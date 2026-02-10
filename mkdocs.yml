@@ -1,0 +1,89 @@
+site_name: MTHDS Documentation
+site_url: https://mthds.ai/
+site_description: "Official documentation for MTHDS."
+docs_dir: docs
+repo_url: "https://github.com/mthds-ai/mthds"
+repo_name: "MTHDS on GitHub"
+theme:
+  name: material
+  custom_dir: docs/overrides
+  favicon: images/favicon-32.png
+  logo: images/favicon-32.png
+  features:
+    - navigation.footer
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+  palette:
+  - scheme: default          # light
+    primary: custom
+    toggle:
+      icon: material/weather-night
+      name: Switch to dark mode
+  - scheme: slate            # dark
+    primary: custom
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to light mode
+
+copyright: "© 2026 Evotis S.A.S."
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/mthds-ai/mthds
+      name: MTHDS on GitHub
+  generator: false
+  version:
+    provider: mike
+
+plugins:
+  - search
+  - meta-manager
+  - glightbox:
+      touchNavigation: true
+      loop: false
+      effect: zoom
+      slide_effect: slide
+      width: 100%
+      height: auto
+      zoomable: true
+      draggable: true
+      auto_caption: false
+      caption_position: bottom
+
+markdown_extensions:
+  - meta
+  - sane_lists
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  - pymdownx.highlight:
+      use_pygments: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.snippets:
+      base_path: .
+      check_paths: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  
+extra_css:
+  - stylesheets/mermaid.css
+  - stylesheets/general.css
+
+nav:
+  - Home:
+    - What are Methods?: index.md
+  - Contribute:
+    - Contributing: contributing.md
+    - Code of Conduct: CODE_OF_CONDUCT.md
+    - License: license.md
+  - Changelog: changelog.md

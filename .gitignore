@@ -1,0 +1,13 @@
+
+# env
+.env
+
+# venv
+.venv
+venv/
+
+# mkdocs build output
+site/
+
+# temp
+temp/

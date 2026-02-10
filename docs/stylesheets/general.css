@@ -1,0 +1,144 @@
+/* Custom styles for MTHDS documentation
+   Color theme adapted from knowhowgraph-site */
+
+/* ───── Light mode (default) ───── */
+:root,
+[data-md-color-scheme="default"] {
+  /* Primary (header, nav, buttons) */
+  --md-primary-fg-color: #1f2937;
+  --md-primary-fg-color--light: #374151;
+  --md-primary-fg-color--dark: #111827;
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: #f3f4f6;
+
+  /* Accent (links, highlights, toggles) */
+  --md-accent-fg-color: #3b82f6;
+  --md-accent-fg-color--transparent: rgba(59, 130, 246, 0.1);
+  --md-accent-bg-color: #ffffff;
+  --md-accent-bg-color--light: #f3f4f6;
+
+  /* Default foreground / background */
+  --md-default-fg-color: #4b5563;
+  --md-default-fg-color--light: #6b7280;
+  --md-default-fg-color--lighter: #9ca3af;
+  --md-default-fg-color--lightest: rgba(75, 85, 99, 0.12);
+  --md-default-bg-color: #ffffff;
+  --md-default-bg-color--light: #f3f4f6;
+  --md-default-bg-color--lighter: #f9fafb;
+  --md-default-bg-color--lightest: #ffffff;
+
+  /* Typography */
+  --md-typeset-color: #4b5563;
+  --md-typeset-a-color: #3b82f6;
+
+  /* Code blocks */
+  --md-code-fg-color: #1f2937;
+  --md-code-bg-color: #f3f4f6;
+  --md-code-hl-color: rgba(59, 130, 246, 0.1);
+
+  /* Footer */
+  --md-footer-fg-color: #d1d5db;
+  --md-footer-fg-color--light: #9ca3af;
+  --md-footer-fg-color--lighter: #6b7280;
+  --md-footer-bg-color: #1f2937;
+  --md-footer-bg-color--dark: #111827;
+}
+
+/* ───── Dark mode (slate) ───── */
+[data-md-color-scheme="slate"] {
+  /* Primary */
+  --md-primary-fg-color: #1e293b;
+  --md-primary-fg-color--light: #334155;
+  --md-primary-fg-color--dark: #0f172a;
+  --md-primary-bg-color: #e5e7eb;
+  --md-primary-bg-color--light: #d1d5db;
+
+  /* Accent */
+  --md-accent-fg-color: #60a5fa;
+  --md-accent-fg-color--transparent: rgba(96, 165, 250, 0.1);
+  --md-accent-bg-color: #1f2937;
+  --md-accent-bg-color--light: #374151;
+
+  /* Default foreground / background */
+  --md-default-fg-color: #d1d5db;
+  --md-default-fg-color--light: #9ca3af;
+  --md-default-fg-color--lighter: #6b7280;
+  --md-default-fg-color--lightest: rgba(209, 213, 219, 0.12);
+  --md-default-bg-color: #0f172a;
+  --md-default-bg-color--light: #1e293b;
+  --md-default-bg-color--lighter: #1f2937;
+  --md-default-bg-color--lightest: #0f172a;
+
+  /* Typography */
+  --md-typeset-color: #d1d5db;
+  --md-typeset-a-color: #60a5fa;
+
+  /* Code blocks */
+  --md-code-fg-color: #e5e7eb;
+  --md-code-bg-color: #1e293b;
+  --md-code-hl-color: rgba(96, 165, 250, 0.15);
+
+  /* Footer */
+  --md-footer-fg-color: #d1d5db;
+  --md-footer-fg-color--light: #9ca3af;
+  --md-footer-fg-color--lighter: #6b7280;
+  --md-footer-bg-color: #0f172a;
+  --md-footer-bg-color--dark: #020617;
+}
+
+/* ───── Header refinements ───── */
+.md-header {
+  background-color: var(--md-primary-fg-color);
+}
+
+/* ───── Headings ───── */
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4,
+.md-typeset h5,
+.md-typeset h6 {
+  color: var(--md-primary-fg-color);
+  font-weight: 700;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h1,
+[data-md-color-scheme="slate"] .md-typeset h2,
+[data-md-color-scheme="slate"] .md-typeset h3,
+[data-md-color-scheme="slate"] .md-typeset h4,
+[data-md-color-scheme="slate"] .md-typeset h5,
+[data-md-color-scheme="slate"] .md-typeset h6 {
+  color: #e5e7eb;
+}
+
+/* ───── Links ───── */
+.md-typeset a {
+  color: var(--md-typeset-a-color);
+}
+
+.md-typeset a:hover {
+  color: #2563eb;
+}
+
+[data-md-color-scheme="slate"] .md-typeset a:hover {
+  color: #93c5fd;
+}
+
+/* ───── Navigation tabs ───── */
+.md-tabs {
+  background-color: var(--md-primary-fg-color);
+}
+
+/* ───── Admonitions: tint with accent ───── */
+.md-typeset .admonition,
+.md-typeset details {
+  border-color: var(--md-accent-fg-color);
+}
+
+/* ───── Smooth color transitions for theme toggle ───── */
+body,
+.md-header,
+.md-tabs,
+.md-footer {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
