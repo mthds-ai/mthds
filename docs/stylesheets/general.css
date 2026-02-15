@@ -135,6 +135,37 @@
   border-color: var(--md-accent-fg-color);
 }
 
+/* ───── LLMs copy-markdown button ───── */
+#llms-copy-button button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--md-default-bg-color) !important;
+  border: 1px solid var(--md-default-fg-color--lightest) !important;
+  border-radius: 4px !important;
+  font-size: 13px !important;
+  padding: 6px 8px !important;
+  color: var(--md-default-fg-color--light) !important;
+  box-shadow: none !important;
+  transition: color 0.2s ease;
+}
+
+#llms-copy-button button:hover {
+  color: var(--md-accent-fg-color) !important;
+}
+
+#llms-copy-button button::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z'/%3E%3C/svg%3E");
+  mask-size: contain;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+}
+
 /* ───── Smooth color transitions for theme toggle ───── */
 body,
 .md-header,
