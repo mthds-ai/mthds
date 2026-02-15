@@ -53,6 +53,16 @@ plugins:
       draggable: true
       auto_caption: false
       caption_position: bottom
+  - llmstxt-md:
+      sections:
+        Getting Started:
+        - index.md: "Introduction to MTHDS"
+        Contribute:
+        - contributing.md: "How to contribute"
+        - CODE_OF_CONDUCT.md: "Code of Conduct"
+        - license.md: "License information"
+        Project:
+        - changelog.md: "Changelog"
 
 markdown_extensions:
   - meta
