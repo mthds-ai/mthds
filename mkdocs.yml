@@ -68,6 +68,9 @@ markdown_extensions:
   - meta
   - sane_lists
   - admonition
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
   - attr_list
   - md_in_html
   - pymdownx.blocks.caption
