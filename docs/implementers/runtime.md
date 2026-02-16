@@ -105,24 +105,17 @@ The refinement graph is built during loading by following `refines` fields acros
 
 ## Model References
 
-The `model` field on `PipeLLM`, `PipeImgGen`, and `PipeExtract` is a string in the `.mthds` file. The standard does not prescribe how this string maps to an actual model.
+MTHDS defines four forms of model reference (`$` preset, `@` alias, `~` waterfall, and bare handle) that method authors use in the `model` field of `PipeLLM`, `PipeImgGen`, and `PipeExtract`. See [Model References](../language/model-references.md) for the full description and examples.
 
-The reference implementation uses a prefix convention to distinguish different kinds of model references. All prefixes apply uniformly to all pipe types — there is no prefix reserved for a specific operator.
+A runtime must resolve each form to a concrete model configuration. The recommended approach:
 
-| Prefix | Kind | Example |
-|--------|------|---------|
-| `$` | Preset | `$writing-factual` |
-| `@` | Alias | `@my-gpt4` |
-| `~` | Waterfall | `~fallback-chain` |
-| *(none)* | Handle | `gpt-4o` |
-
-A **preset** bundles a model handle with extra parameters (temperature, max tokens, quality settings, etc.), letting method authors express *how* the model should behave without hardcoding provider-specific tuning.
-
-An **alias** is a simple name-to-model-handle mapping, useful for giving a short, memorable name to a specific model.
-
-A **waterfall** defines an ordered fallback list of model handles. The runtime tries each model in sequence until one succeeds, providing resilience against model unavailability.
-
-A bare string (no prefix) is treated as a direct model **handle** — an identifier the runtime resolves to a concrete model.
+1. **Parse the prefix** — inspect the first character of the `model` string to determine the reference kind (`$`, `@`, `~`, or no prefix).
+2. **Look up in a registry** — resolve the name (after stripping the prefix) against the appropriate registry:
+    - `$` → preset registry (returns a model handle plus parameters such as temperature, max tokens, quality).
+    - `@` → alias registry (returns a model handle).
+    - `~` → waterfall registry (returns an ordered list of model handles to try in sequence).
+    - No prefix → treat the string as a direct model handle.
+3. **Return the model configuration** — pass the resolved handle (and any associated parameters) to the operator backend.
 
 A compliant runtime may implement model references differently — or not at all, treating the `model` field as a direct model identifier. The standard requires only that the field be a string.
 

@@ -59,7 +59,7 @@ cv_pages = "Page"
 |-------|----------|-------------|
 | `prompt` | No | The LLM prompt template. Supports Jinja2 syntax and `@variable` / `$variable` shorthand. |
 | `system_prompt` | No | System prompt for the LLM. Falls back to the bundle-level `system_prompt` if omitted. |
-| `model` | No | Model identifier or model reference (see [Model References](../implementers/runtime.md#model-references)). |
+| `model` | No | Model identifier or model reference (see [Model References](model-references.md)). |
 | `model_to_structure` | No | Model used for structuring the LLM output into the declared concept. |
 | `structuring_method` | No | How the output is structured: `"direct"` or `"preliminary_text"`. |
 
@@ -117,7 +117,7 @@ model       = "$gen-image-testing"
 |-------|----------|-------------|
 | `prompt` | Yes | The image generation prompt. Supports Jinja2 and `$variable` shorthand. |
 | `negative_prompt` | No | Concepts to avoid in generation. |
-| `model` | No | Model identifier or model reference (see [Model References](../implementers/runtime.md#model-references)). |
+| `model` | No | Model identifier or model reference (see [Model References](model-references.md)). |
 | `aspect_ratio` | No | Desired aspect ratio for the generated image. |
 | `seed` | No | Random seed for reproducibility. `"auto"` lets the model choose. |
 | `output_format` | No | Image output format (e.g., `"png"`, `"jpeg"`). |
@@ -141,7 +141,7 @@ model       = "@default-text-from-pdf"
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `model` | No | Model identifier or model reference (see [Model References](../implementers/runtime.md#model-references)). |
+| `model` | No | Model identifier or model reference (see [Model References](model-references.md)). |
 | `max_page_images` | No | Maximum number of page images to process. |
 | `page_image_captions` | No | Whether to generate captions for page images. |
 | `page_views` | No | Whether to generate page views. |

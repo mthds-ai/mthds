@@ -65,6 +65,7 @@ plugins:
         - language/concepts.md: "Concepts"
         - language/pipes-operators.md: "Pipes — Operators"
         - language/pipes-controllers.md: "Pipes — Controllers"
+        - language/model-references.md: "Model References"
         - language/putting-it-all-together.md: "Putting It All Together"
         - language/domains.md: "Domains"
         - language/namespace-resolution.md: "Namespace Resolution"
@@ -145,6 +146,7 @@ nav:
     - Concepts: language/concepts.md
     - Pipes — Operators: language/pipes-operators.md
     - Pipes — Controllers: language/pipes-controllers.md
+    - Model References: language/model-references.md
     - Putting It All Together: language/putting-it-all-together.md
     - Domains: language/domains.md
     - Namespace Resolution: language/namespace-resolution.md
