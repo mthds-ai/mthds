@@ -55,9 +55,11 @@ plugins:
       caption_position: bottom
   - llmstxt-md:
       sections:
-        Overview:
+        Home:
         - index.md: "Introduction to MTHDS"
         - what-is-mthds/index.md: "What is MTHDS?"
+        - about/philosophy.md: "Design Philosophy"
+        - about/comparison-agent-skills.md: "Comparison with Agent Skills"
         The Language:
         - language/bundles.md: "Bundles"
         - language/concepts.md: "Concepts"
@@ -76,17 +78,16 @@ plugins:
         - packages/distribution.md: "Distribution"
         - packages/version-resolution.md: "Version Resolution"
         - know-how-graph/index.md: "The Know-How Graph"
-        Specification:
+        Reference:
         - spec/mthds-format.md: ".mthds File Format"
         - spec/manifest-format.md: "METHODS.toml Format"
         - spec/lock-format.md: "methods.lock Format"
         - spec/namespace-resolution.md: "Namespace Resolution Rules"
-        CLI & Tooling:
         - cli/index.md: "CLI Reference"
         - tooling/editor-support.md: "Editor Support"
         - tooling/formatting-linting.md: "Formatting & Linting"
         - tooling/json-schema.md: "MTHDS JSON Schema"
-        Getting Started & Guides:
+        Guides:
         - getting-started/first-method.md: "Write Your First Method"
         - guides/create-package.md: "Create a Package"
         - guides/use-dependencies.md: "Use Dependencies"
@@ -98,15 +99,11 @@ plugins:
         - implementers/package-loading.md: "Package Loading"
         - implementers/editor-support.md: "Building Editor Support"
         About:
-        - about/philosophy.md: "Design Philosophy"
-        - about/comparison-agent-skills.md: "Comparison with Agent Skills"
         - about/roadmap.md: "Roadmap"
         - about/contributing.md: "Contributing to MTHDS"
-        Contribute:
         - contributing.md: "How to contribute"
         - CODE_OF_CONDUCT.md: "Code of Conduct"
         - license.md: "License information"
-        Project:
         - changelog.md: "Changelog"
 
 markdown_extensions:
@@ -138,8 +135,11 @@ extra_css:
   - stylesheets/general.css
 
 nav:
-  - Home: index.md
-  - What is MTHDS?: what-is-mthds/index.md
+  - Home:
+    - Home: index.md
+    - What is MTHDS?: what-is-mthds/index.md
+    - Design Philosophy: about/philosophy.md
+    - Comparison with Agent Skills: about/comparison-agent-skills.md
   - The Language:
     - Bundles: language/bundles.md
     - Concepts: language/concepts.md
@@ -157,20 +157,20 @@ nav:
     - The Lock File: packages/lock-file.md
     - Distribution: packages/distribution.md
     - Version Resolution: packages/version-resolution.md
-  - The Know-How Graph: know-how-graph/index.md
-  - Specification:
-    - .mthds File Format: spec/mthds-format.md
-    - METHODS.toml Format: spec/manifest-format.md
-    - methods.lock Format: spec/lock-format.md
-    - Namespace Resolution Rules: spec/namespace-resolution.md
-  - CLI Reference: cli/index.md
-  - Tooling:
-    - Editor Support: tooling/editor-support.md
-    - Formatting & Linting: tooling/formatting-linting.md
-    - MTHDS JSON Schema: tooling/json-schema.md
-  - Getting Started:
-    - Write Your First Method: getting-started/first-method.md
+    - The Know-How Graph: know-how-graph/index.md
+  - Reference:
+    - Specification:
+      - .mthds File Format: spec/mthds-format.md
+      - METHODS.toml Format: spec/manifest-format.md
+      - methods.lock Format: spec/lock-format.md
+      - Namespace Resolution Rules: spec/namespace-resolution.md
+    - CLI Reference: cli/index.md
+    - Tooling:
+      - Editor Support: tooling/editor-support.md
+      - Formatting & Linting: tooling/formatting-linting.md
+      - MTHDS JSON Schema: tooling/json-schema.md
   - Guides:
+    - Write Your First Method: getting-started/first-method.md
     - Create a Package: guides/create-package.md
     - Use Dependencies: guides/use-dependencies.md
     - Publish a Package: guides/publish-package.md
@@ -181,12 +181,9 @@ nav:
     - Package Loading: implementers/package-loading.md
     - Building Editor Support: implementers/editor-support.md
   - About:
-    - Design Philosophy: about/philosophy.md
-    - Comparison with Agent Skills: about/comparison-agent-skills.md
     - Roadmap: about/roadmap.md
     - Contributing to MTHDS: about/contributing.md
-  - Contribute:
     - Contributing: contributing.md
     - Code of Conduct: CODE_OF_CONDUCT.md
     - License: license.md
-  - Changelog: changelog.md
+    - Changelog: changelog.md
