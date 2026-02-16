@@ -103,21 +103,28 @@ function is_compatible(actual_concept, expected_concept):
 
 The refinement graph is built during loading by following `refines` fields across all loaded concepts (including cross-package refinements).
 
-## Model Routing (Implementation-Specific)
+## Model References
 
 The `model` field on `PipeLLM`, `PipeImgGen`, and `PipeExtract` is a string in the `.mthds` file. The standard does not prescribe how this string maps to an actual model.
 
-The reference implementation uses a routing profile system with prefix conventions:
+The reference implementation uses a prefix convention to distinguish different kinds of model references. All prefixes apply uniformly to all pipe types — there is no prefix reserved for a specific operator.
 
-| Prefix | Meaning | Example |
-|--------|---------|---------|
-| `$` | Named routing profile for LLM and image generation models | `$writing-factual` |
-| `@` | Named routing profile for extraction models | `@default-text-from-pdf` |
-| *(none)* | Direct model identifier | `gpt-4o` |
+| Prefix | Kind | Example |
+|--------|------|---------|
+| `$` | Preset | `$writing-factual` |
+| `@` | Alias | `@my-gpt4` |
+| `~` | Waterfall | `~fallback-chain` |
+| *(none)* | Handle | `gpt-4o` |
 
-A routing profile maps a semantic intent (e.g., "writing-factual") to a concrete model (e.g., `gpt-4o`) through a configuration layer. This allows method authors to express *what kind* of model they need without hardcoding a specific model name.
+A **preset** bundles a model handle with extra parameters (temperature, max tokens, quality settings, etc.), letting method authors express *how* the model should behave without hardcoding provider-specific tuning.
 
-A compliant runtime may implement model routing differently — or not at all, treating the `model` field as a direct model identifier. The standard requires only that the field be a string.
+An **alias** is a simple name-to-model-handle mapping, useful for giving a short, memorable name to a specific model.
+
+A **waterfall** defines an ordered fallback list of model handles. The runtime tries each model in sequence until one succeeds, providing resilience against model unavailability.
+
+A bare string (no prefix) is treated as a direct model **handle** — an identifier the runtime resolves to a concrete model.
+
+A compliant runtime may implement model references differently — or not at all, treating the `model` field as a direct model identifier. The standard requires only that the field be a string.
 
 ## Template Blueprint (Advanced PipeCompose)
 

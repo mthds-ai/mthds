@@ -303,7 +303,7 @@ Generates output by invoking a large language model with a prompt.
 | `output` | string | Yes | — |
 | `prompt` | string | No | The LLM prompt template. Supports Jinja2 syntax and the `@variable` / `$variable` shorthand. |
 | `system_prompt` | string | No | System prompt for the LLM. If omitted, the bundle-level `system_prompt` is used (if any). |
-| `model` | string | No | LLM model choice. Supports named models and routing profiles (prefixed with `$`). |
+| `model` | string | No | Model identifier or model reference (see [Model References](../implementers/runtime.md#model-references)). |
 | `model_to_structure` | string | No | Model used for structuring the LLM output into the declared concept. |
 | `structuring_method` | string | No | How the output is structured. Values: `"direct"`, `"preliminary_text"`. |
 
@@ -375,7 +375,7 @@ Generates images using an image generation model.
 | `output` | string | Yes | — |
 | `prompt` | string | Yes | The image generation prompt. Supports Jinja2 and `$variable` shorthand. |
 | `negative_prompt` | string | No | A negative prompt (concepts to avoid in generation). |
-| `model` | string | No | Image generation model choice. Supports routing profiles (prefixed with `$`). |
+| `model` | string | No | Model identifier or model reference (see [Model References](../implementers/runtime.md#model-references)). |
 | `aspect_ratio` | string | No | Desired aspect ratio for the generated image. |
 | `is_raw` | boolean | No | Whether to use raw mode (less post-processing). |
 | `seed` | integer or `"auto"` | No | Random seed for reproducibility. `"auto"` lets the model choose. |
@@ -408,7 +408,7 @@ Extracts structured content from documents (e.g., PDF pages).
 | `description` | string | Yes | — |
 | `inputs` | table | Yes | MUST contain exactly one input. |
 | `output` | string | Yes | MUST be `"Page[]"`. |
-| `model` | string | No | Extraction model choice. Supports routing profiles (prefixed with `@`). |
+| `model` | string | No | Model identifier or model reference (see [Model References](../implementers/runtime.md#model-references)). |
 | `max_page_images` | integer | No | Maximum number of page images to process. |
 | `page_image_captions` | boolean | No | Whether to generate captions for page images. |
 | `page_views` | boolean | No | Whether to generate page views. |
