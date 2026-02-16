@@ -55,8 +55,53 @@ plugins:
       caption_position: bottom
   - llmstxt-md:
       sections:
-        Getting Started:
+        Overview:
         - index.md: "Introduction to MTHDS"
+        - what-is-mthds/index.md: "What is MTHDS?"
+        The Language:
+        - language/bundles.md: "Bundles"
+        - language/concepts.md: "Concepts"
+        - language/pipes-operators.md: "Pipes — Operators"
+        - language/pipes-controllers.md: "Pipes — Controllers"
+        - language/putting-it-all-together.md: "Putting It All Together"
+        - language/domains.md: "Domains"
+        - language/namespace-resolution.md: "Namespace Resolution"
+        The Package System:
+        - packages/structure.md: "Package Structure"
+        - packages/manifest.md: "The Manifest"
+        - packages/exports-visibility.md: "Exports & Visibility"
+        - packages/dependencies.md: "Dependencies"
+        - packages/cross-package-references.md: "Cross-Package References"
+        - packages/lock-file.md: "The Lock File"
+        - packages/distribution.md: "Distribution"
+        - packages/version-resolution.md: "Version Resolution"
+        - know-how-graph/index.md: "The Know-How Graph"
+        Specification:
+        - spec/mthds-format.md: ".mthds File Format"
+        - spec/manifest-format.md: "METHODS.toml Format"
+        - spec/lock-format.md: "methods.lock Format"
+        - spec/namespace-resolution.md: "Namespace Resolution Rules"
+        CLI & Tooling:
+        - cli/index.md: "CLI Reference"
+        - tooling/editor-support.md: "Editor Support"
+        - tooling/formatting-linting.md: "Formatting & Linting"
+        - tooling/json-schema.md: "MTHDS JSON Schema"
+        Getting Started & Guides:
+        - getting-started/first-method.md: "Write Your First Method"
+        - guides/create-package.md: "Create a Package"
+        - guides/use-dependencies.md: "Use Dependencies"
+        - guides/publish-package.md: "Publish a Package"
+        - guides/discover-methods.md: "Discover Methods"
+        For Implementers:
+        - implementers/runtime.md: "Building a Runtime"
+        - implementers/validation-rules.md: "Validation Rules"
+        - implementers/package-loading.md: "Package Loading"
+        - implementers/editor-support.md: "Building Editor Support"
+        About:
+        - about/philosophy.md: "Design Philosophy"
+        - about/comparison-agent-skills.md: "Comparison with Agent Skills"
+        - about/roadmap.md: "Roadmap"
+        - about/contributing.md: "Contributing to MTHDS"
         Contribute:
         - contributing.md: "How to contribute"
         - CODE_OF_CONDUCT.md: "Code of Conduct"
@@ -93,8 +138,53 @@ extra_css:
   - stylesheets/general.css
 
 nav:
-  - Home:
-    - What are Methods?: index.md
+  - Home: index.md
+  - What is MTHDS?: what-is-mthds/index.md
+  - The Language:
+    - Bundles: language/bundles.md
+    - Concepts: language/concepts.md
+    - Pipes — Operators: language/pipes-operators.md
+    - Pipes — Controllers: language/pipes-controllers.md
+    - Putting It All Together: language/putting-it-all-together.md
+    - Domains: language/domains.md
+    - Namespace Resolution: language/namespace-resolution.md
+  - The Package System:
+    - Package Structure: packages/structure.md
+    - The Manifest: packages/manifest.md
+    - Exports & Visibility: packages/exports-visibility.md
+    - Dependencies: packages/dependencies.md
+    - Cross-Package References: packages/cross-package-references.md
+    - The Lock File: packages/lock-file.md
+    - Distribution: packages/distribution.md
+    - Version Resolution: packages/version-resolution.md
+  - The Know-How Graph: know-how-graph/index.md
+  - Specification:
+    - .mthds File Format: spec/mthds-format.md
+    - METHODS.toml Format: spec/manifest-format.md
+    - methods.lock Format: spec/lock-format.md
+    - Namespace Resolution Rules: spec/namespace-resolution.md
+  - CLI Reference: cli/index.md
+  - Tooling:
+    - Editor Support: tooling/editor-support.md
+    - Formatting & Linting: tooling/formatting-linting.md
+    - MTHDS JSON Schema: tooling/json-schema.md
+  - Getting Started:
+    - Write Your First Method: getting-started/first-method.md
+  - Guides:
+    - Create a Package: guides/create-package.md
+    - Use Dependencies: guides/use-dependencies.md
+    - Publish a Package: guides/publish-package.md
+    - Discover Methods: guides/discover-methods.md
+  - For Implementers:
+    - Building a Runtime: implementers/runtime.md
+    - Validation Rules: implementers/validation-rules.md
+    - Package Loading: implementers/package-loading.md
+    - Building Editor Support: implementers/editor-support.md
+  - About:
+    - Design Philosophy: about/philosophy.md
+    - Comparison with Agent Skills: about/comparison-agent-skills.md
+    - Roadmap: about/roadmap.md
+    - Contributing to MTHDS: about/contributing.md
   - Contribute:
     - Contributing: contributing.md
     - Code of Conduct: CODE_OF_CONDUCT.md
