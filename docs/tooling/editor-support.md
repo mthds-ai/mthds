@@ -1,16 +1,16 @@
 ---
-description: "Set up the MTHDS VS Code extension for syntax highlighting, semantic tokens, formatting, and validation of .mthds files."
+description: "Set up the Pipelex extension for syntax highlighting, semantic tokens, formatting, and validation of .mthds files in VS Code-compatible editors."
 ---
 
 # Editor Support
 
-The MTHDS editor extension for VS Code and Cursor provides syntax highlighting, semantic tokens, formatting, and validation for `.mthds` files. It is the recommended way to work with MTHDS.
+The [Pipelex](https://marketplace.visualstudio.com/items?itemName=pipelex.pipelex) extension for VS Code-compatible editors (VS Code, Cursor, Windsurf, Antigravity, and others) provides syntax highlighting, semantic tokens, formatting, and validation for `.mthds` files. It is also available on [Open VSX](https://open-vsx.org/extension/Pipelex/pipelex). It is the recommended way to work with MTHDS.
 
 ## Installation
 
 Install the **Pipelex** extension from the VS Code Marketplace:
 
-1. Open VS Code or Cursor.
+1. Open your VS Code-compatible editor.
 2. Go to Extensions (`Ctrl+Shift+X` / `Cmd+Shift+X`).
 3. Search for **Pipelex**.
 4. Click **Install**.
