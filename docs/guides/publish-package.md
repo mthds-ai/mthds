@@ -97,3 +97,4 @@ Follow [Semantic Versioning](https://semver.org/): increment the major version f
 - [The Manifest](../packages/manifest.md) — `address` and `version` field requirements.
 - [The Lock File](../packages/lock-file.md) — what gets locked and when.
 - [Distribution](../packages/distribution.md) — how packages are fetched by consumers.
+- [Registry Distribution Protocol](../packages/registry-distribution.md) — how to notify registries after publishing.

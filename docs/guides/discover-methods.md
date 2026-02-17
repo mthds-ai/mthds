@@ -136,3 +136,5 @@ The index is built automatically when you run search or graph commands, but buil
 - [The Know-How Graph](../know-how-graph/index.md) — how typed signatures enable semantic discovery.
 - [Cross-Package References](../packages/cross-package-references.md) — how to use discovered pipes in your bundles.
 - [Use Dependencies](use-dependencies.md) — how to add a discovered package as a dependency.
+- [The Registry](../packages/registry.md) — query remote registries for packages beyond your local cache.
+- [Registry Search](../packages/registry-search.md) — type-aware search semantics and concept compatibility rules.
