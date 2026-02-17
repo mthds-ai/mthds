@@ -16,12 +16,10 @@ The MTHDS standard is at version `1.0.0`. This page outlines planned and potenti
 
 - **Know-How Graph web interface.** A web-based explorer for the Know-How Graph, enabling visual navigation of concept hierarchies and pipe chains across the public ecosystem.
 - **Proxy/mirror support.** Configurable proxy for package fetching, supporting speed, reliability, and air-gapped environments (similar to Go's `GOPROXY`).
-- **MTHDS language server protocol (LSP).** A standalone LSP server that provides diagnostics, completion, hover, and go-to-definition for `.mthds` files, usable by any editor.
 
 ## Long-Term
 
 - **Conditional concept fields.** Allow concept structure fields to be conditionally present based on the values of other fields.
-- **Parametric concepts.** Concepts that accept type parameters (e.g., `Result<T>` where T is another concept).
 - **Runtime interoperability standard.** A specification for how different MTHDS runtimes can exchange concept instances, enabling cross-runtime pipe invocation.
 
 ## Contributing to the Roadmap

@@ -92,14 +92,16 @@ path = "path/to/mthds_schema.json"
 
 ## LSP Integration Points
 
-For a full language server implementation, consider these integration points:
+The reference implementation includes an LSP server, available standalone via `plxt lsp stdio`. It is built on a fork of [taplo](https://github.com/tamasfe/taplo), extended with MTHDS-specific semantic tokens, validation, and navigation. It currently provides formatting, document symbols, folding, semantic tokens, schema-based validation and completion, and basic within-bundle go-to-definition. The LSP is bundled with the [`pipelex-tools`](https://pypi.org/project/pipelex-tools/) CLI and with the Pipelex VS Code extension ([source](https://github.com/Pipelex/vscode-pipelex), [Marketplace](https://marketplace.visualstudio.com/items?itemName=pipelex.pipelex), [Open VSX](https://open-vsx.org/extension/Pipelex/pipelex)).
 
-- **Diagnostics** — run validation (Stages 2–7 from the [Validation Rules](validation-rules.md) page) and report errors as LSP diagnostics.
-- **Completion** — suggest pipe type names, native concept codes, field type names, concept codes from the current bundle, and pipe codes for references.
-- **Hover** — show concept descriptions, pipe signatures, and field documentation.
-- **Go to Definition** — navigate from a concept/pipe reference to its definition (may span files for domain-qualified or cross-package references).
-- **Find References** — find all usages of a concept or pipe across bundles.
-- **Rename** — rename a concept or pipe code across all references in the package.
+The following integration points describe the full scope of MTHDS-aware language server capabilities. Each bullet notes the current coverage in the reference implementation:
+
+- **Diagnostics** — run validation (Stages 2–7 from the [Validation Rules](validation-rules.md) page) and report errors as LSP diagnostics. *(Reference implementation: schema-level validation only.)*
+- **Completion** — suggest pipe type names, native concept codes, field type names, concept codes from the current bundle, and pipe codes for references. *(Reference implementation: schema-based suggestions for field names and values.)*
+- **Hover** — show concept descriptions, pipe signatures, and field documentation. *(Reference implementation: schema-based field documentation.)*
+- **Go to Definition** — navigate from a concept/pipe reference to its definition (may span files for domain-qualified or cross-package references). *(Reference implementation: within-bundle navigation only.)*
+- **Find References** — find all usages of a concept or pipe across bundles. *(Not yet implemented in the reference implementation.)*
+- **Rename** — rename a concept or pipe code across all references in the package. *(Not yet implemented in the reference implementation.)*
 
 ## See Also
 
