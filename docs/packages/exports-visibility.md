@@ -1,3 +1,7 @@
+---
+description: "Control which pipes are public in an MTHDS package using the exports section — concepts are always visible, pipes are private by default."
+---
+
 # Exports & Visibility
 
 When a bundle is part of a package, not every pipe needs to be visible to consumers. The `[exports]` section of `METHODS.toml` controls which pipes are part of the public API.

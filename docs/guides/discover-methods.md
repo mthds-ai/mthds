@@ -1,3 +1,7 @@
+---
+description: "Search for and discover existing MTHDS methods — by text, by domain, or by typed signature using the know-how graph."
+---
+
 # Discover Methods
 
 This guide shows how to search for and discover existing MTHDS methods — by text, by domain, or by typed signature.

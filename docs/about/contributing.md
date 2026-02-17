@@ -1,3 +1,7 @@
+---
+description: "Contribute to the MTHDS open standard — report issues, propose specification changes, build tooling, or publish packages."
+---
+
 # Contributing to MTHDS
 
 MTHDS is an open standard. Contributions are welcome — whether they are bug reports, specification clarifications, tooling improvements, or new packages.

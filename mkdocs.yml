@@ -6,6 +6,7 @@ repo_url: "https://github.com/mthds-ai/mthds"
 repo_name: "MTHDS on GitHub"
 theme:
   name: material
+  language: en
   custom_dir: docs/overrides
   favicon: images/favicon-32.png
   logo: images/favicon-32.png

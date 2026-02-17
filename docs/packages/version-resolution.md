@@ -1,3 +1,7 @@
+---
+description: "How MTHDS resolves version conflicts using Minimum Version Selection (MVS), the same approach as Go modules."
+---
+
 # Version Resolution
 
 When multiple packages depend on different versions of the same dependency, MTHDS needs a strategy to pick a single version. MTHDS uses **Minimum Version Selection** (MVS), the same approach used by Go modules.

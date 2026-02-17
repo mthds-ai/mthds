@@ -1,3 +1,7 @@
+---
+description: "Detailed algorithm for MTHDS dependency resolution, library assembly, and namespace isolation in package loading."
+---
+
 # Package Loading
 
 This page details the dependency resolution algorithm, library assembly, and namespace isolation mechanics.

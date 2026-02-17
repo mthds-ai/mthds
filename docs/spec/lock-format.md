@@ -1,3 +1,7 @@
+---
+description: "Formal specification of the methods.lock file format — resolved versions, integrity hashes, and reproducible dependency resolution."
+---
+
 # methods.lock Format
 
 The `methods.lock` file records the exact resolved versions and integrity hashes for all remote dependencies, enabling reproducible builds. It is auto-generated and SHOULD be committed to version control.

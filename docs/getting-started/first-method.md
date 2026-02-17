@@ -1,3 +1,7 @@
+---
+description: "Step-by-step tutorial: create your first MTHDS method with a concept, a pipe, and a working bundle."
+---
+
 # Write Your First Method
 
 This guide walks you through creating a working `.mthds` file from scratch. By the end, you will have a method that generates a short summary from a text input.

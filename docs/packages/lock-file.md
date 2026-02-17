@@ -1,3 +1,7 @@
+---
+description: "The methods.lock file records exact resolved versions and integrity hashes for reproducible MTHDS builds."
+---
+
 # The Lock File
 
 The `methods.lock` file records the exact resolved versions and integrity hashes for all remote dependencies. It enables reproducible builds — every developer and CI system gets the same dependency versions.

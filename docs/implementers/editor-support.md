@@ -1,3 +1,7 @@
+---
+description: "Build editor support for .mthds files — TextMate grammars, semantic tokens, schema validation, and formatting integration."
+---
+
 # Building Editor Support
 
 This page describes how to build editor support for `.mthds` files — syntax highlighting, semantic tokens, schema validation, and formatting.

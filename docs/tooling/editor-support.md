@@ -1,3 +1,7 @@
+---
+description: "Set up the MTHDS VS Code extension for syntax highlighting, semantic tokens, formatting, and validation of .mthds files."
+---
+
 # Editor Support
 
 The MTHDS editor extension for VS Code and Cursor provides syntax highlighting, semantic tokens, formatting, and validation for `.mthds` files. It is the recommended way to work with MTHDS.

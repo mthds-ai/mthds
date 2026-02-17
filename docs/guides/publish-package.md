@@ -1,3 +1,7 @@
+---
+description: "Prepare and publish an MTHDS package — validate, tag a version, push to Git, and register for discovery."
+---
+
 # Publish a Package
 
 This guide walks you through preparing a package for distribution and creating a version tag.

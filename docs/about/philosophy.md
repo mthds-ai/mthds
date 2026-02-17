@@ -1,3 +1,7 @@
+---
+description: "Explore the design principles behind MTHDS — filesystem as interface, human readability, explicit types, and composition over configuration."
+---
+
 # Design Philosophy
 
 MTHDS was designed with a specific set of principles that inform every decision in the standard. Understanding these principles helps explain why the standard works the way it does.

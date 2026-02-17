@@ -1,3 +1,7 @@
+---
+description: "Complete validation checklist for MTHDS implementers — ordered by stage from TOML parsing through cross-package resolution."
+---
+
 # Validation Rules
 
 This page consolidates all validation rules from the [Specification](../spec/mthds-format.md) into an ordered checklist for implementers. Rules are grouped by the stage at which they should be enforced.

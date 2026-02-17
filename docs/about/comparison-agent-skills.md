@@ -1,3 +1,7 @@
+---
+description: "Compare MTHDS with Agent Skills: differences in type systems, packaging, discoverability, and approaches to AI method definitions."
+---
+
 # Comparison with Agent Skills
 
 Both MTHDS and [Agent Skills](https://agentskills.io/) address the problem of defining and discovering AI capabilities. They take fundamentally different approaches, reflecting different design goals.

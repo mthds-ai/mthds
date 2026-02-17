@@ -1,3 +1,7 @@
+---
+description: "Add dependencies on other MTHDS packages and use their concepts and pipes in your bundles with cross-package references."
+---
+
 # Use Dependencies
 
 This guide shows how to add dependencies on other MTHDS packages and use their concepts and pipes in your bundles.

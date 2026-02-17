@@ -1,3 +1,7 @@
+---
+description: "Learn how MTHDS resolves bare, domain-qualified, and package-qualified references to concepts and pipes across bundles."
+---
+
 # Namespace Resolution
 
 When a pipe references a concept or another pipe, MTHDS resolves that reference through a well-defined set of rules. Understanding these rules is essential for working with multi-bundle packages and cross-package dependencies.

@@ -1,3 +1,7 @@
+---
+description: "Learn what MTHDS is: a typed language for declaring AI methods as concepts and pipes in readable, version-controllable text files."
+---
+
 # What is MTHDS?
 
 MTHDS (pronounced "methods") is an open standard for AI methods. It defines a typed language for describing what an AI should do — the data it works with, the transformations it performs, and how those transformations compose together — in plain text files that humans and machines can read.

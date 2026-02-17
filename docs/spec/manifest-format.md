@@ -1,3 +1,7 @@
+---
+description: "Normative specification of the METHODS.toml manifest — package identity, dependencies, exports, and model configuration."
+---
+
 # METHODS.toml Manifest Format
 
 The `METHODS.toml` file is the package manifest — the identity card and dependency declaration for an MTHDS package. It MUST be named exactly `METHODS.toml` and MUST be located at the root of the package directory.

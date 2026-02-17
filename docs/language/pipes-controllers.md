@@ -1,3 +1,7 @@
+---
+description: "Orchestrate multi-step AI workflows with MTHDS controller pipes: PipeSequence, PipeBatch, PipeCondition, and PipeParallel."
+---
+
 # Pipes — Controllers
 
 Controllers are pipes that orchestrate other pipes. They do not perform transformations themselves — they arrange when and how operator pipes (and other controllers) execute.

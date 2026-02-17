@@ -1,3 +1,7 @@
+---
+description: "Complete specification of the .mthds file format — TOML sections for concepts, pipes, domains, and metadata."
+---
+
 # .mthds File Format
 
 The `.mthds` file is a TOML document that defines typed data (concepts) and typed transformations (pipes) within a single domain. This page is the normative reference for every field, validation rule, and structural constraint of the format.

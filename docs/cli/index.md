@@ -1,3 +1,7 @@
+---
+description: "Reference for the mthds CLI — commands for validating bundles, running pipes, and managing the full package lifecycle."
+---
+
 # CLI Reference
 
 The `mthds` CLI is the official command-line tool for working with MTHDS packages. It covers validation, execution, and the full package management lifecycle.

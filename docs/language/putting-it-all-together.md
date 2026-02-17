@@ -1,3 +1,7 @@
+---
+description: "A complete MTHDS bundle walkthrough showing how concepts, operators, and controllers compose into a working AI method."
+---
+
 # Putting It All Together
 
 Before moving on to domains and namespace resolution, here is a complete bundle that uses both operators and controllers. It shows how concepts, pipes, and working memory flow together.

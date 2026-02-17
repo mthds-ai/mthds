@@ -1,3 +1,7 @@
+---
+description: "Guide to turning standalone .mthds bundles into a distributable MTHDS package with a manifest and exports."
+---
+
 # Create a Package
 
 This guide walks you through turning a standalone bundle into a distributable MTHDS package.

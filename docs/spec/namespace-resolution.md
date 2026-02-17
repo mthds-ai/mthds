@@ -1,3 +1,7 @@
+---
+description: "Formal rules for resolving bare, domain-qualified, and package-qualified references in MTHDS bundles and packages."
+---
+
 # Namespace Resolution Rules
 
 This page defines the formal rules for resolving references to concepts and pipes across bundles, domains, and packages.

@@ -1,3 +1,7 @@
+---
+description: "Understand MTHDS domains — namespaces that organize concepts and pipes within bundles and prevent naming collisions."
+---
+
 # Domains
 
 Domains are namespaces for concepts and pipes within a bundle. Every bundle declares exactly one domain in its header, and all concepts and pipes in that bundle belong to that domain.

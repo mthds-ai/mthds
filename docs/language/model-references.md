@@ -1,3 +1,7 @@
+---
+description: "Specify which AI model a pipe uses with MTHDS model references — direct, aliased, class-based, and waterfall resolution."
+---
+
 # Model References
 
 Model references tell pipes which AI model to use. Every `PipeLLM`, `PipeImgGen`, and `PipeExtract` accepts an optional `model` field — a string that identifies the model and, depending on its prefix, how that model is configured.

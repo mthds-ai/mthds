@@ -1,3 +1,7 @@
+---
+description: "Planned directions for MTHDS: registry implementation, package signing, cross-package validation, and conditional logic."
+---
+
 # Roadmap
 
 The MTHDS standard is at version `1.0.0`. This page outlines planned and potential directions for future development.

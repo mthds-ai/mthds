@@ -1,3 +1,7 @@
+---
+description: "Declare and manage dependencies between MTHDS packages using aliases, addresses, version constraints, and local paths."
+---
+
 # Dependencies
 
 Dependencies allow a package to build on other packages. Each dependency is declared in the `[dependencies]` section of `METHODS.toml` with an alias, an address, and a version constraint.

@@ -1,3 +1,7 @@
+---
+description: "Define typed data structures in MTHDS using concepts — with fields, inheritance, and template-powered defaults."
+---
+
 # Concepts
 
 Concepts are typed data declarations. They define the vocabulary of a domain — the kinds of data that pipes accept as input and produce as output.

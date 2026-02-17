@@ -1,3 +1,7 @@
+---
+description: "Use the -> syntax to reference pipes and concepts from other MTHDS packages in your bundles."
+---
+
 # Cross-Package References
 
 When your bundle needs a pipe or concept from another package, you use a **cross-package reference** — the `->` syntax that reaches into a dependency.

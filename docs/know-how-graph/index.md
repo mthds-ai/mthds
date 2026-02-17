@@ -1,3 +1,7 @@
+---
+description: "Explore the Know-How Graph — a typed, searchable network of AI methods that spans MTHDS packages and enables discovery by signature."
+---
+
 # The Know-How Graph
 
 The package system provides the infrastructure for something unique to MTHDS: the **Know-How Graph** — a typed, searchable network of AI methods that spans packages.

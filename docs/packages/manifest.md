@@ -1,3 +1,7 @@
+---
+description: "Reference for METHODS.toml — the MTHDS package manifest that declares identity, version, dependencies, and exports."
+---
+
 # The Manifest
 
 `METHODS.toml` is the package manifest — the identity card and dependency declaration for a package. It is a TOML file at the root of the package directory.

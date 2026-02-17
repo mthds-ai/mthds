@@ -1,3 +1,7 @@
+---
+description: "Learn how MTHDS bundles organize concepts and pipes into .mthds files — the basic building block of the standard."
+---
+
 # Bundles
 
 A **bundle** is a single `.mthds` file. It is the authoring unit of MTHDS — the place where you define typed data and typed transformations.

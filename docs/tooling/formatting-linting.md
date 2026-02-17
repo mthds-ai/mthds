@@ -1,3 +1,7 @@
+---
+description: "Use plxt to format and lint .mthds and TOML files — ensure consistent style and catch errors across your MTHDS project."
+---
+
 # Formatting & Linting
 
 `plxt` is the CLI tool for formatting and linting `.mthds` and `.toml` files. It ensures consistent style across MTHDS projects.

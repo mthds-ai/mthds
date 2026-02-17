@@ -1,3 +1,7 @@
+---
+description: "Architecture guide for building an MTHDS runtime — parsing, loading, validation, and execution of bundles and packages."
+---
+
 # Building a Runtime
 
 This page describes how to build a runtime that loads, validates, and executes MTHDS bundles and packages. The specification defines *what* must hold; this page describes *how* the reference implementation achieves it, as guidance for alternative implementations.

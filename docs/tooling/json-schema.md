@@ -1,3 +1,7 @@
+---
+description: "Machine-readable JSON Schema for .mthds files — use it for validation, autocompletion, and editor integration."
+---
+
 # MTHDS JSON Schema
 
 The MTHDS standard includes a machine-readable JSON Schema that describes the structure of `.mthds` files. Tools and editors can use this schema for validation, autocompletion, and documentation.

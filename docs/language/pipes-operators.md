@@ -1,3 +1,7 @@
+---
+description: "Discover MTHDS operator pipes: PipeLLM, PipeFunc, PipeImgGen, PipeExtract, and PipeCompose for single-step AI transformations."
+---
+
 # Pipes — Operators
 
 Pipes are typed transformations — the actions in MTHDS. Each pipe has a typed signature: it declares what concepts it accepts as input and what concept it produces as output.

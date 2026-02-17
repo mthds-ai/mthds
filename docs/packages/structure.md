@@ -1,3 +1,7 @@
+---
+description: "Understand the directory layout of an MTHDS package: bundles, manifest, domains, and the know-how graph."
+---
+
 # Package Structure
 
 A **package** is the distribution unit of MTHDS. It is a directory that contains a manifest (`METHODS.toml`) and one or more bundles (`.mthds` files).

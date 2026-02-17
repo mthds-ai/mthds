@@ -1,3 +1,7 @@
+---
+description: "Learn how MTHDS packages are distributed — Git-based federated storage with centralized registry discovery."
+---
+
 # Distribution
 
 MTHDS packages are distributed using a federated model: decentralized storage with centralized discovery.
