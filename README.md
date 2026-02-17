@@ -1,6 +1,9 @@
 # MTHDS
 
-An open standard for defining, packaging, and distributing AI methods as portable, composable bundles.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-mthds.ai-blue)](https://mthds.ai/)
+
+An open standard for defining, packaging, and distributing AI methods — typed descriptions of what an AI should do, with what inputs, and what outputs it produces.
 
 ## Quick Example
 
@@ -40,12 +43,11 @@ MTHDS has two pillars:
 - [Write Your First Method](https://mthds.ai/getting-started/first-method/) — Create a working bundle from scratch
 - [Learn the Language](https://mthds.ai/language/bundles/) — Concepts, pipes, domains, and namespace resolution
 - [Editor Support](https://mthds.ai/tooling/editor-support/) — VS Code / Cursor extension for syntax highlighting, validation, and autocomplete
-
-## Documentation
-
-Full documentation is available at [mthds.ai](https://mthds.ai/).
+- [Full Documentation](https://mthds.ai/)
 
 ## Contributing
+
+This repository hosts the MTHDS specification and documentation site. Contributions include new content, fixes, structure improvements, and style tweaks.
 
 ### Requirements
 
@@ -63,8 +65,12 @@ make docs
 
 This serves the documentation site locally at `http://127.0.0.1:8000`.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution guide. Maintained by [Pipelex](https://pipelex.com).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full contribution guide.
 
 ## License
 
 [MIT](LICENSE) — Copyright (c) 2026 Evotis S.A.S.
+
+---
+
+Maintained by [Pipelex](https://pipelex.com).
