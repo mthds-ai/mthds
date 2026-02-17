@@ -25,6 +25,7 @@ A `METHODS.toml` file contains up to three top-level sections:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `address` | string | Yes | Globally unique package identifier. MUST follow the hostname/path pattern. |
+| `display_name` | string | No | Human-friendly display label. When provided, MUST NOT be empty or whitespace-only, MUST NOT exceed 128 characters, and MUST NOT contain Unicode control characters (category Cc). Leading and trailing whitespace is stripped. |
 | `version` | string | Yes | Package version. MUST be valid [semantic versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`, with optional pre-release and build metadata). |
 | `description` | string | Yes | Human-readable summary of the package's purpose. MUST NOT be empty. |
 | `authors` | array of strings | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
@@ -52,6 +53,26 @@ gitlab.com/company/internal-methods
 ```
 legal-tools                     # No hostname
 acme/legal-tools                # No dot in hostname
+```
+
+### Display Name
+
+The optional `display_name` field provides a human-friendly label for the package. It appears in CLI output, registry listings, and error messages. It is cosmetic only — the `address` remains the sole canonical identifier.
+
+**Constraints:**
+
+- MUST NOT be empty or whitespace-only when provided.
+- MUST NOT exceed 128 characters (after leading/trailing whitespace is stripped).
+- MUST NOT contain Unicode control characters (Unicode general category `Cc`).
+- Emojis and other Unicode characters are allowed.
+- Leading and trailing whitespace is stripped by a compliant implementation.
+
+**Example:**
+
+```toml
+[package]
+address      = "github.com/acme/legal-tools"
+display_name = "Legal Tools"
 ```
 
 ### Version Format
@@ -223,6 +244,7 @@ When loading a `.mthds` bundle, a compliant implementation SHOULD discover the m
 ```toml
 [package]
 address       = "github.com/acme/legal-tools"
+display_name  = "Legal Tools"
 version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
