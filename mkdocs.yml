@@ -80,6 +80,10 @@ plugins:
         - packages/distribution.md: "Distribution"
         - packages/version-resolution.md: "Version Resolution"
         - know-how-graph/index.md: "The Know-How Graph"
+        - packages/registry.md: "The Registry"
+        - packages/registry-indexing.md: "Registry Indexing"
+        - packages/registry-search.md: "Registry Search"
+        - packages/registry-distribution.md: "Registry Distribution Protocol"
         Reference:
         - spec/mthds-format.md: ".mthds File Format"
         - spec/manifest-format.md: "METHODS.toml Format"
@@ -161,6 +165,11 @@ nav:
     - Distribution: packages/distribution.md
     - Version Resolution: packages/version-resolution.md
     - The Know-How Graph: know-how-graph/index.md
+    - The Registry:
+      - Registry Overview: packages/registry.md
+      - Registry Indexing: packages/registry-indexing.md
+      - Registry Search: packages/registry-search.md
+      - Registry Distribution Protocol: packages/registry-distribution.md
   - Reference:
     - Specification:
       - .mthds File Format: spec/mthds-format.md

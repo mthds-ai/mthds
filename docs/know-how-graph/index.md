@@ -73,3 +73,5 @@ The result is a federated network of composable, discoverable, type-safe AI meth
 - [Concepts](../language/concepts.md) — how concepts define typed data and refinement.
 - [Exports & Visibility](../packages/exports-visibility.md) — which pipes are visible in the graph.
 - [Distribution](../packages/distribution.md) — how registries index packages.
+- [The Registry](../packages/registry.md) — the HTTP service that exposes the Know-How Graph for remote queries.
+- [Registry Search](../packages/registry-search.md) — type-aware search semantics and graph query rules.

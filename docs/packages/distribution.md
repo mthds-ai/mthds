@@ -75,6 +75,8 @@ MTHDS supports multiple deployment tiers, from local to community-wide:
 
 ## See Also
 
+- [The Registry](registry.md) — the HTTP service that indexes packages and powers discovery.
+- [Registry Distribution Protocol](registry-distribution.md) — proxy chains, signed manifests, and multi-tier deployment.
 - [Specification: Fetching Remote Dependencies](../spec/namespace-resolution.md#fetching-remote-dependencies) — normative reference for the fetch algorithm.
 - [Specification: Cache Layout](../spec/namespace-resolution.md#cache-layout) — normative reference for cache paths.
 - [The Lock File](lock-file.md) — how fetched versions are pinned.
