@@ -1,0 +1,4873 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Complete specification of the .mthds file format — TOML sections for concepts, pipes, domains, and metadata.">
+      
+      
+      
+        <link rel="canonical" href="https://mthds.ai/0.0.2/spec/mthds-format/">
+      
+      
+        <link rel="prev" href="../../packages/registry-distribution/">
+      
+      
+        <link rel="next" href="../manifest-format/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../images/favicon-32.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>.mthds File Format - MTHDS Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/mermaid.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/general.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+ 
+
+
+<meta property="og:type" content="article">
+<meta property="og:title" content=".mthds File Format">
+<meta property="og:description" content="Complete specification of the .mthds file format — TOML sections for concepts, pipes, domains, and metadata.">
+<meta property="og:image" content="https://mthds.ai/0.0.2images/og-banner.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://mthds.ai/0.0.2/spec/mthds-format/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content=".mthds File Format">
+<meta name="twitter:description" content="Complete specification of the .mthds file format — TOML sections for concepts, pipes, domains, and metadata.">
+<meta name="twitter:image" content="https://mthds.ai/0.0.2images/og-banner.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "MTHDS",
+  "url": "https://mthds.ai",
+  "logo": "https://mthds.ai/images/favicon-32.png",
+  "description": "Official documentation for MTHDS."
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "MTHDS Documentation",
+  "url": "https://mthds.ai"
+}
+</script>
+
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mthds-file-format" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MTHDS Documentation" class="md-header__button md-logo" aria-label="MTHDS Documentation" data-md-component="logo">
+      
+  <img src="../../images/favicon-32.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MTHDS Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              .mthds File Format
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="indigo" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="indigo" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mthds-ai/mthds" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    MTHDS on GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../language/bundles/" class="md-tabs__link">
+          
+  
+  
+  The Language
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../packages/structure/" class="md-tabs__link">
+          
+  
+  
+  The Package System
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/first-method/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../implementers/runtime/" class="md-tabs__link">
+          
+  
+  
+  For Implementers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/roadmap/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MTHDS Documentation" class="md-nav__button md-logo" aria-label="MTHDS Documentation" data-md-component="logo">
+      
+  <img src="../../images/favicon-32.png" alt="logo">
+
+    </a>
+    MTHDS Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mthds-ai/mthds" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    MTHDS on GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Home
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../what-is-mthds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What is MTHDS?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/philosophy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Philosophy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/comparison-agent-skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparison with Agent Skills
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Language
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Language
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/pipes-operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipes — Operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/pipes-controllers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipes — Controllers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/model-references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/putting-it-all-together/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Putting It All Together
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/domains/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domains
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/namespace-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespace Resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Package System
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Package System
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/manifest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/exports-visibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exports &amp; Visibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/cross-package-references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Package References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/lock-file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Lock File
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/distribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/version-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../know-how-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Know-How Graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_10">
+        
+          
+          <label class="md-nav__link" for="__nav_3_10" id="__nav_3_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Registry
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Registry
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/registry-indexing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Indexing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/registry-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/registry-distribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Distribution Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specification
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specification
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    .mthds File Format
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    .mthds File Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#file-encoding-and-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Encoding and Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#top-level-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Top-Level Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#header-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Header Fields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-naming-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain Naming Rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concept-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Concept Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-concept-declarations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Concept Declarations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structured-concept-declarations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured Concept Declarations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concept-blueprint-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Blueprint Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concept-refinement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Refinement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concept-structure-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Structure Fields
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Concept Structure Fields">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-blueprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Blueprint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#native-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native Concepts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipe-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipe Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pipe Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-pipe-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Pipe Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pipe-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipe Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-pipellm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator: PipeLLM
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-pipefunc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator: PipeFunc
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-pipeimggen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator: PipeImgGen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-pipeextract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator: PipeExtract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-pipecompose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator: PipeCompose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Operator: PipeCompose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#template-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#construct-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Construct Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controller-pipesequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controller: PipeSequence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controller-pipeparallel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controller: PipeParallel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controller-pipecondition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controller: PipeCondition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controller-pipebatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controller: PipeBatch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipe-reference-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipe Reference Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concept-reference-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Reference Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-bundle-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Bundle Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../manifest-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    METHODS.toml Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lock-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    methods.lock Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../namespace-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespace Resolution Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tooling
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tooling
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tooling/editor-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tooling/formatting-linting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatting &amp; Linting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tooling/json-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MTHDS JSON Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/first-method/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Write Your First Method
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/create-package/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Create a Package
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/use-dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/publish-package/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publish a Package
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/discover-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discover Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Implementers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For Implementers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building a Runtime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/validation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/package-loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/editor-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building Editor Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to MTHDS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CODE_OF_CONDUCT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#file-encoding-and-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File Encoding and Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#top-level-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Top-Level Structure
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#header-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Header Fields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#domain-naming-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain Naming Rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concept-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Concept Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-concept-declarations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Concept Declarations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structured-concept-declarations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured Concept Declarations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concept-blueprint-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Blueprint Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concept-refinement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Refinement
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#concept-structure-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Structure Fields
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Concept Structure Fields">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-blueprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Blueprint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#native-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Native Concepts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipe-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipe Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pipe Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-pipe-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Pipe Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pipe-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipe Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-pipellm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator: PipeLLM
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-pipefunc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator: PipeFunc
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-pipeimggen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator: PipeImgGen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-pipeextract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator: PipeExtract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operator-pipecompose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operator: PipeCompose
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Operator: PipeCompose">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#template-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Template Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#construct-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Construct Mode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controller-pipesequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controller: PipeSequence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controller-pipeparallel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controller: PipeParallel
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controller-pipecondition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controller: PipeCondition
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#controller-pipebatch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Controller: PipeBatch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipe-reference-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipe Reference Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#concept-reference-syntax" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Concept Reference Syntax
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-bundle-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Bundle Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="mthds-file-format">.mthds File Format</h1>
+<p>The <code>.mthds</code> file is a TOML document that defines typed data (concepts) and typed transformations (pipes) within a single domain. This page is the normative reference for every field, validation rule, and structural constraint of the format.</p>
+<h2 id="file-encoding-and-syntax">File Encoding and Syntax</h2>
+<p>A <code>.mthds</code> file MUST be a valid TOML document encoded in UTF-8. The file extension MUST be <code>.mthds</code>. Parsers MUST reject files that are not valid TOML before any MTHDS-specific validation occurs.</p>
+<h2 id="top-level-structure">Top-Level Structure</h2>
+<p>A <code>.mthds</code> file is called a <strong>bundle</strong>. It consists of:</p>
+<ol>
+<li><strong>Header fields</strong> — top-level key-value pairs that identify the bundle.</li>
+<li><strong>Concept definitions</strong> — a <code>[concept]</code> table and/or <code>[concept.&lt;ConceptCode&gt;]</code> sub-tables.</li>
+<li><strong>Pipe definitions</strong> — <code>[pipe.&lt;pipe_code&gt;]</code> sub-tables.</li>
+</ol>
+<p>All three sections are optional in the TOML sense (an empty <code>.mthds</code> file is valid TOML), but a useful bundle will contain at least one concept or one pipe.</p>
+<h2 id="header-fields">Header Fields</h2>
+<p>Header fields appear at the top level of the TOML document, before any <code>[concept]</code> or <code>[pipe]</code> tables.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>domain</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>The domain this bundle belongs to. Determines the namespace for all concepts and pipes defined in this file.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>No</td>
+<td>A human-readable description of what this bundle provides.</td>
+</tr>
+<tr>
+<td><code>system_prompt</code></td>
+<td>string</td>
+<td>No</td>
+<td>A default system prompt applied to all <code>PipeLLM</code> pipes in this bundle that do not define their own <code>system_prompt</code>.</td>
+</tr>
+<tr>
+<td><code>main_pipe</code></td>
+<td>string</td>
+<td>No</td>
+<td>The pipe code of the bundle's primary entry point. If set, this pipe is auto-exported when the bundle is part of a package.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Validation rules:</strong></p>
+<ul>
+<li><code>domain</code> MUST be a valid domain code (see <a href="#domain-naming-rules">Domain Naming Rules</a>).</li>
+<li><code>main_pipe</code>, if present, MUST be a valid pipe code (<code>snake_case</code>) and MUST reference a pipe defined in this bundle.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="n">domain</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"legal.contracts"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Contract analysis methods for legal documents"</span>
+<span class="n">main_pipe</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"extract_clause"</span>
+</code></pre></div>
+<h2 id="domain-naming-rules">Domain Naming Rules</h2>
+<p>Domain codes define the namespace for all concepts and pipes in a bundle.</p>
+<p><strong>Syntax:</strong></p>
+<ul>
+<li>A domain code is one or more <code>snake_case</code> segments separated by <code>.</code> (dot).</li>
+<li>Each segment MUST match the pattern <code>[a-z][a-z0-9_]*</code>.</li>
+<li>Domains MAY be hierarchical: <code>legal</code>, <code>legal.contracts</code>, <code>legal.contracts.shareholder</code>.</li>
+</ul>
+<p><strong>Reserved domains:</strong></p>
+<p>The following domain names are reserved and MUST NOT be used as the first segment of any user-defined domain:</p>
+<ul>
+<li><code>native</code> — built-in concept types</li>
+<li><code>mthds</code> — reserved for the MTHDS standard</li>
+<li><code>pipelex</code> — reserved for the reference implementation</li>
+</ul>
+<p>A compliant implementation MUST reject bundles that declare a domain starting with a reserved segment (e.g., <code>native.custom</code> is invalid).</p>
+<p><strong>Recommendations:</strong></p>
+<ul>
+<li>Depth SHOULD be 1–3 levels.</li>
+<li>Each segment SHOULD be 1–4 words.</li>
+</ul>
+<h2 id="concept-definitions">Concept Definitions</h2>
+<p>Concepts are typed data declarations. They define the vocabulary of a domain — the kinds of data that pipes accept and produce.</p>
+<h3 id="simple-concept-declarations">Simple Concept Declarations</h3>
+<p>The simplest form of concept declaration uses a flat <code>[concept]</code> table where each key is a concept code and the value is a description string:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[concept]</span>
+<span class="n">ContractClause</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A clause extracted from a legal contract"</span>
+<span class="n">UserProfile</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"A user's profile information"</span>
+</code></pre></div>
+<p>This form declares concepts with no structure and no refinement. They exist as named types.</p>
+<h3 id="structured-concept-declarations">Structured Concept Declarations</h3>
+<p>A concept with fields uses a <code>[concept.&lt;ConceptCode&gt;]</code> sub-table:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[concept.LineItem]</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A single line item in an invoice"</span>
+
+<span class="k">[concept.LineItem.structure]</span>
+<span class="n">product_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Name of the product"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<span class="n">quantity</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"integer"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Quantity ordered"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<span class="n">unit_price</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"number"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Price per unit"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<p>Both forms MAY coexist in the same bundle. A bundle MAY mix simple declarations in <code>[concept]</code> with structured declarations as <code>[concept.&lt;Code&gt;]</code> sub-tables.</p>
+<h3 id="concept-blueprint-fields">Concept Blueprint Fields</h3>
+<p>When using the structured form <code>[concept.&lt;ConceptCode&gt;]</code>, the following fields are available:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Human-readable description of the concept.</td>
+</tr>
+<tr>
+<td><code>structure</code></td>
+<td>table or string</td>
+<td>No</td>
+<td>Field definitions for the concept. If a string, it is a shorthand description (equivalent to a simple declaration). If a table, each key is a field name mapped to a field blueprint.</td>
+</tr>
+<tr>
+<td><code>refines</code></td>
+<td>string</td>
+<td>No</td>
+<td>A concept reference indicating that this concept is a specialization of another concept.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Validation rules:</strong></p>
+<ul>
+<li><code>refines</code> and <code>structure</code> MUST NOT both be present on the same concept. A concept either refines another concept or defines its own structure, not both.</li>
+<li><code>refines</code>, if present, MUST be a valid concept reference: either a bare concept code (<code>PascalCase</code>) or a domain-qualified reference (<code>domain.ConceptCode</code>). Cross-package references (<code>alias-&gt;domain.ConceptCode</code>) are also valid.</li>
+<li>Concept codes MUST be <code>PascalCase</code>, matching the pattern <code>[A-Z][a-zA-Z0-9]*</code>.</li>
+<li>Concept codes MUST NOT collide with native concept codes (see <a href="#native-concepts">Native Concepts</a>).</li>
+</ul>
+<h3 id="concept-refinement">Concept Refinement</h3>
+<p>Refinement establishes a specialization relationship between concepts. A concept that refines another inherits its semantic meaning and can be used anywhere the parent concept is expected.</p>
+<div class="highlight"><pre><span></span><code><span class="k">[concept.NonCompeteClause]</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A non-compete clause in an employment contract"</span>
+<span class="n">refines</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"ContractClause"</span>
+</code></pre></div>
+<p>The <code>refines</code> field accepts:</p>
+<ul>
+<li>A bare concept code: <code>"ContractClause"</code> — resolved within the current bundle's domain.</li>
+<li>A domain-qualified reference: <code>"legal.ContractClause"</code> — resolved within the current package.</li>
+<li>A cross-package reference: <code>"acme_legal-&gt;legal.contracts.NonDisclosureAgreement"</code> — resolved from a dependency.</li>
+</ul>
+<h3 id="concept-structure-fields">Concept Structure Fields</h3>
+<p>When <code>structure</code> is a table, each key is a field name and each value is a field blueprint. Field names MUST NOT start with an underscore (<code>_</code>), as these are reserved for internal use. Field names MUST NOT collide with reserved field names (Pydantic model attributes and internal metadata fields).</p>
+<h4 id="field-blueprint">Field Blueprint</h4>
+<p>Each field in a concept structure is defined by a field blueprint:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Human-readable description of the field.</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>string</td>
+<td>Conditional</td>
+<td>The field type. Required unless <code>choices</code> is provided.</td>
+</tr>
+<tr>
+<td><code>required</code></td>
+<td>boolean</td>
+<td>No</td>
+<td>Whether the field is required. Default: <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>default_value</code></td>
+<td>any</td>
+<td>No</td>
+<td>Default value for the field. Must match the declared type.</td>
+</tr>
+<tr>
+<td><code>choices</code></td>
+<td>array of strings</td>
+<td>No</td>
+<td>Fixed set of allowed string values. When <code>choices</code> is set, <code>type</code> MUST be omitted (the type is implicitly an enum of the given choices).</td>
+</tr>
+<tr>
+<td><code>key_type</code></td>
+<td>string</td>
+<td>Conditional</td>
+<td>Key type for <code>dict</code> fields. Required when <code>type = "dict"</code>.</td>
+</tr>
+<tr>
+<td><code>value_type</code></td>
+<td>string</td>
+<td>Conditional</td>
+<td>Value type for <code>dict</code> fields. Required when <code>type = "dict"</code>.</td>
+</tr>
+<tr>
+<td><code>item_type</code></td>
+<td>string</td>
+<td>No</td>
+<td>Item type for <code>list</code> fields. When set to <code>"concept"</code>, <code>item_concept_ref</code> is required.</td>
+</tr>
+<tr>
+<td><code>concept_ref</code></td>
+<td>string</td>
+<td>Conditional</td>
+<td>Concept reference for <code>concept</code>-typed fields. Required when <code>type = "concept"</code>.</td>
+</tr>
+<tr>
+<td><code>item_concept_ref</code></td>
+<td>string</td>
+<td>Conditional</td>
+<td>Concept reference for list items when <code>item_type = "concept"</code>.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="field-types">Field Types</h4>
+<p>The <code>type</code> field accepts the following values:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+<th><code>default_value</code> type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>text</code></td>
+<td>A string value.</td>
+<td><code>string</code></td>
+</tr>
+<tr>
+<td><code>integer</code></td>
+<td>A whole number.</td>
+<td><code>integer</code></td>
+</tr>
+<tr>
+<td><code>number</code></td>
+<td>A numeric value (integer or floating-point).</td>
+<td><code>integer</code> or <code>float</code></td>
+</tr>
+<tr>
+<td><code>boolean</code></td>
+<td>A true/false value.</td>
+<td><code>boolean</code></td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>A date value.</td>
+<td><code>datetime</code></td>
+</tr>
+<tr>
+<td><code>list</code></td>
+<td>An ordered collection. Use <code>item_type</code> to specify element type.</td>
+<td><code>array</code></td>
+</tr>
+<tr>
+<td><code>dict</code></td>
+<td>A key-value mapping. Requires <code>key_type</code> and <code>value_type</code>.</td>
+<td><code>table</code></td>
+</tr>
+<tr>
+<td><code>concept</code></td>
+<td>A reference to another concept. Requires <code>concept_ref</code>. Cannot have <code>default_value</code>.</td>
+<td><em>(not allowed)</em></td>
+</tr>
+</tbody>
+</table>
+<p>When <code>type</code> is omitted and <code>choices</code> is provided, the field is an enumeration field. The value MUST be one of the strings in the <code>choices</code> array.</p>
+<p><strong>Validation rules for field types:</strong></p>
+<ul>
+<li><code>type = "dict"</code>: <code>key_type</code> and <code>value_type</code> MUST both be non-empty.</li>
+<li><code>type = "concept"</code>: <code>concept_ref</code> MUST be set. <code>default_value</code> MUST NOT be set.</li>
+<li><code>type = "list"</code> with <code>item_type = "concept"</code>: <code>item_concept_ref</code> MUST be set.</li>
+<li><code>item_concept_ref</code> MUST NOT be set unless <code>item_type = "concept"</code>.</li>
+<li><code>concept_ref</code> MUST NOT be set unless <code>type = "concept"</code>.</li>
+<li>If <code>choices</code> is provided and <code>type</code> is omitted, <code>default_value</code> (if present) MUST be one of the values in <code>choices</code>.</li>
+<li>If both <code>type</code> and <code>default_value</code> are set, the runtime type of <code>default_value</code> MUST match the declared <code>type</code>.</li>
+</ul>
+<p><strong>Example — concept with all field types:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[concept.CandidateProfile]</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A candidate's profile for job matching"</span>
+
+<span class="k">[concept.CandidateProfile.structure]</span>
+<span class="n">full_name</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Full name"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<span class="n">years_experience</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"integer"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Years of professional experience"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">gpa</span><span class="w">              </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"number"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Grade point average"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">is_active</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"boolean"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Whether actively looking"</span><span class="p">,</span><span class="w"> </span><span class="n">default_value</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<span class="n">graduation_date</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"date"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Date of graduation"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">skills</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"list"</span><span class="p">,</span><span class="w"> </span><span class="n">item_type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"List of skills"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">metadata</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"dict"</span><span class="p">,</span><span class="w"> </span><span class="n">key_type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">value_type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Additional metadata"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">seniority_level</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Seniority level"</span><span class="p">,</span><span class="w"> </span><span class="n">choices</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"junior"</span><span class="p">,</span><span class="w"> </span><span class="s2">"mid"</span><span class="p">,</span><span class="w"> </span><span class="s2">"senior"</span><span class="p">,</span><span class="w"> </span><span class="s2">"lead"</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+<span class="n">address</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"concept"</span><span class="p">,</span><span class="w"> </span><span class="n">concept_ref</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Address"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Home address"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">references</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"list"</span><span class="p">,</span><span class="w"> </span><span class="n">item_type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"concept"</span><span class="p">,</span><span class="w"> </span><span class="n">item_concept_ref</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"ContactInfo"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Professional references"</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<h2 id="native-concepts">Native Concepts</h2>
+<p>Native concepts are built-in types that are always available in every bundle without declaration. They belong to the reserved <code>native</code> domain.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Qualified Reference</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Dynamic</code></td>
+<td><code>native.Dynamic</code></td>
+<td>A dynamically-typed value.</td>
+</tr>
+<tr>
+<td><code>Text</code></td>
+<td><code>native.Text</code></td>
+<td>A text string.</td>
+</tr>
+<tr>
+<td><code>Image</code></td>
+<td><code>native.Image</code></td>
+<td>An image (binary).</td>
+</tr>
+<tr>
+<td><code>Document</code></td>
+<td><code>native.Document</code></td>
+<td>A document (e.g., PDF).</td>
+</tr>
+<tr>
+<td><code>Html</code></td>
+<td><code>native.Html</code></td>
+<td>HTML content.</td>
+</tr>
+<tr>
+<td><code>TextAndImages</code></td>
+<td><code>native.TextAndImages</code></td>
+<td>Combined text and image content.</td>
+</tr>
+<tr>
+<td><code>Number</code></td>
+<td><code>native.Number</code></td>
+<td>A numeric value.</td>
+</tr>
+<tr>
+<td><code>ImgGenPrompt</code></td>
+<td><code>native.ImgGenPrompt</code></td>
+<td>A prompt for image generation.</td>
+</tr>
+<tr>
+<td><code>Page</code></td>
+<td><code>native.Page</code></td>
+<td>A single page extracted from a document.</td>
+</tr>
+<tr>
+<td><code>JSON</code></td>
+<td><code>native.JSON</code></td>
+<td>A JSON value.</td>
+</tr>
+<tr>
+<td><code>Anything</code></td>
+<td><code>native.Anything</code></td>
+<td>Accepts any type.</td>
+</tr>
+</tbody>
+</table>
+<p>Native concepts MAY be referenced by bare code (<code>Text</code>, <code>Image</code>) or by qualified reference (<code>native.Text</code>, <code>native.Image</code>). Bare native concept codes always take priority during resolution.</p>
+<p>A bundle MUST NOT declare a concept with the same code as a native concept. A compliant implementation MUST reject such declarations.</p>
+<h2 id="pipe-definitions">Pipe Definitions</h2>
+<p>Pipes are typed transformations. Each pipe has a typed signature: it declares what concepts it accepts as input and what concept it produces as output.</p>
+<h3 id="common-pipe-fields">Common Pipe Fields</h3>
+<p>All pipe types share these base fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>The pipe type. Determines which category and additional fields are available.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Human-readable description of what this pipe does.</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>No</td>
+<td>Input declarations. Keys are input names (<code>snake_case</code>), values are concept references with optional multiplicity.</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>The output concept reference with optional multiplicity.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Pipe codes:</strong></p>
+<ul>
+<li>Pipe codes are the keys in <code>[pipe.&lt;pipe_code&gt;]</code> tables.</li>
+<li>Pipe codes MUST be <code>snake_case</code>, matching the pattern <code>[a-z][a-z0-9_]*</code>.</li>
+</ul>
+<p><strong>Input names:</strong></p>
+<ul>
+<li>Input names MUST be <code>snake_case</code>.</li>
+<li>Dotted input names are allowed for nested field access (e.g., <code>my_input.field_name</code>), where each segment MUST be <code>snake_case</code>.</li>
+</ul>
+<p><strong>Concept references in inputs and output:</strong></p>
+<p>Concept references in <code>inputs</code> and <code>output</code> support an optional multiplicity suffix:</p>
+<table>
+<thead>
+<tr>
+<th>Syntax</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ConceptName</code></td>
+<td>A single instance.</td>
+</tr>
+<tr>
+<td><code>ConceptName[]</code></td>
+<td>A variable-length list (runtime determines count).</td>
+</tr>
+<tr>
+<td><code>ConceptName[N]</code></td>
+<td>A fixed-length list of exactly N items (N ≥ 1).</td>
+</tr>
+</tbody>
+</table>
+<p>Concept references MAY be bare codes (<code>Text</code>), domain-qualified (<code>legal.ContractClause</code>), or cross-package qualified (<code>alias-&gt;domain.ConceptCode</code>).</p>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[pipe.analyze_contract]</span>
+<span class="n">type</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeLLM"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Analyze a legal contract and extract key clauses"</span>
+<span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"ContractClause[5]"</span>
+
+<span class="k">[pipe.analyze_contract.inputs]</span>
+<span class="n">contract_text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Text"</span>
+</code></pre></div>
+<h3 id="pipe-types">Pipe Types</h3>
+<p>MTHDS defines nine pipe types in two categories:</p>
+<p><strong>Operators</strong> — pipes that perform a single transformation:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PipeLLM</td>
+<td><code>"PipeLLM"</code></td>
+<td>Generates output using a large language model.</td>
+</tr>
+<tr>
+<td>PipeFunc</td>
+<td><code>"PipeFunc"</code></td>
+<td>Calls a registered Python function.</td>
+</tr>
+<tr>
+<td>PipeImgGen</td>
+<td><code>"PipeImgGen"</code></td>
+<td>Generates images using an image generation model.</td>
+</tr>
+<tr>
+<td>PipeExtract</td>
+<td><code>"PipeExtract"</code></td>
+<td>Extracts structured content from documents.</td>
+</tr>
+<tr>
+<td>PipeCompose</td>
+<td><code>"PipeCompose"</code></td>
+<td>Composes output from templates or constructs.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Controllers</strong> — pipes that orchestrate other pipes:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PipeSequence</td>
+<td><code>"PipeSequence"</code></td>
+<td>Executes a series of pipes in order.</td>
+</tr>
+<tr>
+<td>PipeParallel</td>
+<td><code>"PipeParallel"</code></td>
+<td>Executes pipes concurrently.</td>
+</tr>
+<tr>
+<td>PipeCondition</td>
+<td><code>"PipeCondition"</code></td>
+<td>Routes execution based on a condition.</td>
+</tr>
+<tr>
+<td>PipeBatch</td>
+<td><code>"PipeBatch"</code></td>
+<td>Maps a pipe over each item in a list.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="operator-pipellm">Operator: PipeLLM</h2>
+<p>Generates output by invoking a large language model with a prompt.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"PipeLLM"</code></td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>No</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>prompt</code></td>
+<td>string</td>
+<td>No</td>
+<td>The LLM prompt template. Supports Jinja2 syntax and the <code>@variable</code> / <code>$variable</code> shorthand.</td>
+</tr>
+<tr>
+<td><code>system_prompt</code></td>
+<td>string</td>
+<td>No</td>
+<td>System prompt for the LLM. If omitted, the bundle-level <code>system_prompt</code> is used (if any).</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>string</td>
+<td>No</td>
+<td>Model identifier or model reference (see <a href="../../language/model-references/">Model References</a>).</td>
+</tr>
+<tr>
+<td><code>model_to_structure</code></td>
+<td>string</td>
+<td>No</td>
+<td>Model used for structuring the LLM output into the declared concept.</td>
+</tr>
+<tr>
+<td><code>structuring_method</code></td>
+<td>string</td>
+<td>No</td>
+<td>How the output is structured. Values: <code>"direct"</code>, <code>"preliminary_text"</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Prompt template syntax:</strong></p>
+<ul>
+<li><code>{{ variable_name }}</code> — standard Jinja2 variable substitution.</li>
+<li><code>@variable_name</code> — shorthand, preprocessed to Jinja2 syntax.</li>
+<li><code>$variable_name</code> — shorthand, preprocessed to Jinja2 syntax.</li>
+<li>Dotted paths are supported: <code>{{ doc_request.document_type }}</code>, <code>@doc_request.priority</code>.</li>
+</ul>
+<p><strong>Validation rules:</strong></p>
+<ul>
+<li>Every variable referenced in <code>prompt</code> and <code>system_prompt</code> MUST correspond to a declared input (by root name). Internal variables starting with <code>_</code> and the special names <code>preliminary_text</code> and <code>place_holder</code> are excluded from this check.</li>
+<li>Every declared input MUST be referenced by at least one variable in <code>prompt</code> or <code>system_prompt</code>. Unused inputs are rejected.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[pipe.analyze_cv]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeLLM"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Analyze a CV to extract key professional information"</span>
+<span class="n">output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"CVAnalysis"</span>
+<span class="n">model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"$writing-factual"</span>
+<span class="n">system_prompt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"""</span>
+<span class="s2">You are an expert HR analyst specializing in CV evaluation.</span>
+<span class="s2">"""</span>
+<span class="n">prompt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"""</span>
+<span class="s2">Analyze the following CV and extract the candidate's key professional information.</span>
+
+<span class="s2">@cv_pages</span>
+<span class="s2">"""</span>
+
+<span class="k">[pipe.analyze_cv.inputs]</span>
+<span class="n">cv_pages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Page"</span>
+</code></pre></div>
+<h2 id="operator-pipefunc">Operator: PipeFunc</h2>
+<p>Calls a registered Python function.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"PipeFunc"</code></td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>No</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>function_name</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>The fully-qualified name of the Python function to call.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[pipe.capitalize_text]</span>
+<span class="n">type</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeFunc"</span>
+<span class="n">description</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"Capitalize the input text"</span>
+<span class="n">inputs</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">text</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Text"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"Text"</span>
+<span class="n">function_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"my_package.text_utils.capitalize"</span>
+</code></pre></div>
+<h2 id="operator-pipeimggen">Operator: PipeImgGen</h2>
+<p>Generates images using an image generation model.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"PipeImgGen"</code></td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>No</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>prompt</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>The image generation prompt. Supports Jinja2 and <code>$variable</code> shorthand.</td>
+</tr>
+<tr>
+<td><code>negative_prompt</code></td>
+<td>string</td>
+<td>No</td>
+<td>A negative prompt (concepts to avoid in generation).</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>string</td>
+<td>No</td>
+<td>Model identifier or model reference (see <a href="../../language/model-references/">Model References</a>).</td>
+</tr>
+<tr>
+<td><code>aspect_ratio</code></td>
+<td>string</td>
+<td>No</td>
+<td>Desired aspect ratio for the generated image.</td>
+</tr>
+<tr>
+<td><code>is_raw</code></td>
+<td>boolean</td>
+<td>No</td>
+<td>Whether to use raw mode (less post-processing).</td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td>integer or <code>"auto"</code></td>
+<td>No</td>
+<td>Random seed for reproducibility. <code>"auto"</code> lets the model choose.</td>
+</tr>
+<tr>
+<td><code>background</code></td>
+<td>string</td>
+<td>No</td>
+<td>Background setting for the generated image.</td>
+</tr>
+<tr>
+<td><code>output_format</code></td>
+<td>string</td>
+<td>No</td>
+<td>Image output format (e.g., <code>"png"</code>, <code>"jpeg"</code>).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Validation rules:</strong></p>
+<ul>
+<li>Every variable referenced in <code>prompt</code> MUST correspond to a declared input.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[pipe.generate_portrait]</span>
+<span class="n">type</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeImgGen"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Generate a portrait image from a description"</span>
+<span class="n">inputs</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Text"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"Image"</span>
+<span class="n">prompt</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"A professional portrait: $description"</span>
+<span class="n">model</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"$gen-image-testing"</span>
+</code></pre></div>
+<h2 id="operator-pipeextract">Operator: PipeExtract</h2>
+<p>Extracts structured content from documents (e.g., PDF pages).</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"PipeExtract"</code></td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>Yes</td>
+<td>MUST contain exactly one input.</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>MUST be <code>"Page[]"</code>.</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>string</td>
+<td>No</td>
+<td>Model identifier or model reference (see <a href="../../language/model-references/">Model References</a>).</td>
+</tr>
+<tr>
+<td><code>max_page_images</code></td>
+<td>integer</td>
+<td>No</td>
+<td>Maximum number of page images to process.</td>
+</tr>
+<tr>
+<td><code>page_image_captions</code></td>
+<td>boolean</td>
+<td>No</td>
+<td>Whether to generate captions for page images.</td>
+</tr>
+<tr>
+<td><code>page_views</code></td>
+<td>boolean</td>
+<td>No</td>
+<td>Whether to generate page views.</td>
+</tr>
+<tr>
+<td><code>page_views_dpi</code></td>
+<td>integer</td>
+<td>No</td>
+<td>DPI for page view rendering.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Validation rules:</strong></p>
+<ul>
+<li><code>inputs</code> MUST contain exactly one entry. The input concept SHOULD be <code>Document</code> or a concept that refines <code>Document</code> or <code>Image</code>.</li>
+<li><code>output</code> MUST be <code>"Page[]"</code> (a variable-length list of <code>Page</code>).</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[pipe.extract_cv]</span>
+<span class="n">type</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeExtract"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Extract text content from a CV PDF document"</span>
+<span class="n">inputs</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">cv_pdf</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Document"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"Page[]"</span>
+<span class="n">model</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"@default-text-from-pdf"</span>
+</code></pre></div>
+<h2 id="operator-pipecompose">Operator: PipeCompose</h2>
+<p>Composes output by assembling data from working memory using either a template or a construct. Exactly one of <code>template</code> or <code>construct</code> MUST be provided.</p>
+<h3 id="template-mode">Template Mode</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"PipeCompose"</code></td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>No</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>MUST be a single concept (no multiplicity).</td>
+</tr>
+<tr>
+<td><code>template</code></td>
+<td>string or table</td>
+<td>Yes (if no <code>construct</code>)</td>
+<td>A Jinja2 template string, or a template blueprint table with <code>template</code>, <code>category</code>, <code>templating_style</code>, and <code>extra_context</code> fields.</td>
+</tr>
+</tbody>
+</table>
+<p>When <code>template</code> is a string, it is a Jinja2 template rendered with the input variables. When <code>template</code> is a table, it MUST contain a <code>template</code> field (string) and MAY contain <code>category</code>, <code>templating_style</code>, and <code>extra_context</code>.</p>
+<p><strong>Validation rules (template mode):</strong></p>
+<ul>
+<li>Every variable referenced in the template MUST correspond to a declared input.</li>
+<li><code>output</code> MUST NOT use multiplicity brackets (<code>[]</code> or <code>[N]</code>).</li>
+</ul>
+<h3 id="construct-mode">Construct Mode</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"PipeCompose"</code></td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>No</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>MUST be a single concept (no multiplicity).</td>
+</tr>
+<tr>
+<td><code>construct</code></td>
+<td>table</td>
+<td>Yes (if no <code>template</code>)</td>
+<td>A field-by-field composition blueprint.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>construct</code> table defines how each field of the output concept is composed. Each key is a field name, and the value defines the composition method:</p>
+<table>
+<thead>
+<tr>
+<th>Value form</th>
+<th>Method</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Literal (<code>string</code>, <code>integer</code>, <code>float</code>, <code>boolean</code>, <code>array</code>)</td>
+<td>Fixed</td>
+<td>The field value is the literal.</td>
+</tr>
+<tr>
+<td><code>{ from = "path" }</code></td>
+<td>Variable reference</td>
+<td>The field value comes from a variable in working memory. <code>path</code> is a dotted path (e.g., <code>"match_analysis.score"</code>).</td>
+</tr>
+<tr>
+<td><code>{ from = "path", list_to_dict_keyed_by = "attr" }</code></td>
+<td>Variable reference with transform</td>
+<td>Converts a list to a dict keyed by the named attribute.</td>
+</tr>
+<tr>
+<td><code>{ template = "..." }</code></td>
+<td>Template</td>
+<td>The field value is rendered from a Jinja2 template string.</td>
+</tr>
+<tr>
+<td>Nested table (no <code>from</code> or <code>template</code> key)</td>
+<td>Nested construct</td>
+<td>The field is recursively composed from a nested construct.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Validation rules (construct mode):</strong></p>
+<ul>
+<li>The root variable of every <code>from</code> path and every template variable MUST correspond to a declared input.</li>
+<li><code>from</code> and <code>template</code> are mutually exclusive within a single field definition.</li>
+</ul>
+<p><strong>Example — construct mode:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[pipe.compose_interview_sheet]</span>
+<span class="n">type</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeCompose"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Compose the final interview sheet"</span>
+<span class="n">inputs</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">match_analysis</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"MatchAnalysis"</span><span class="p">,</span><span class="w"> </span><span class="n">interview_questions</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"InterviewQuestion[]"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"InterviewSheet"</span>
+
+<span class="k">[pipe.compose_interview_sheet.construct]</span>
+<span class="n">overall_match_score</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"match_analysis.overall_match_score"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">matching_skills</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"match_analysis.matching_skills"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">missing_skills</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"match_analysis.missing_skills"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">questions</span><span class="w">            </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"interview_questions"</span><span class="w"> </span><span class="p">}</span>
+</code></pre></div>
+<h2 id="controller-pipesequence">Controller: PipeSequence</h2>
+<p>Executes a series of sub-pipes in order. The output of each step is added to working memory and can be consumed by subsequent steps.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"PipeSequence"</code></td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>No</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>steps</code></td>
+<td>array of tables</td>
+<td>Yes</td>
+<td>Ordered list of sub-pipe invocations. MUST contain at least one step.</td>
+</tr>
+</tbody>
+</table>
+<p>Each step is a <strong>sub-pipe blueprint</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pipe</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>Pipe reference (bare, domain-qualified, or package-qualified).</td>
+</tr>
+<tr>
+<td><code>result</code></td>
+<td>string</td>
+<td>No</td>
+<td>Name under which the step's output is stored in working memory.</td>
+</tr>
+<tr>
+<td><code>nb_output</code></td>
+<td>integer</td>
+<td>No</td>
+<td>Expected number of output items. Mutually exclusive with <code>multiple_output</code>.</td>
+</tr>
+<tr>
+<td><code>multiple_output</code></td>
+<td>boolean</td>
+<td>No</td>
+<td>Whether to expect multiple output items. Mutually exclusive with <code>nb_output</code>.</td>
+</tr>
+<tr>
+<td><code>batch_over</code></td>
+<td>string</td>
+<td>No</td>
+<td>Working memory variable to iterate over (inline batch). Requires <code>batch_as</code>.</td>
+</tr>
+<tr>
+<td><code>batch_as</code></td>
+<td>string</td>
+<td>No</td>
+<td>Name for each item during inline batch iteration. Requires <code>batch_over</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Validation rules:</strong></p>
+<ul>
+<li><code>steps</code> MUST contain at least one entry.</li>
+<li><code>nb_output</code> and <code>multiple_output</code> MUST NOT both be set on the same step.</li>
+<li><code>batch_over</code> and <code>batch_as</code> MUST either both be present or both be absent.</li>
+<li><code>batch_over</code> and <code>batch_as</code> MUST NOT be the same value.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[pipe.process_document]</span>
+<span class="n">type</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeSequence"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Full document processing pipeline"</span>
+<span class="n">inputs</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">document</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Document"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"AnalysisResult"</span>
+<span class="n">steps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">pipe</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"extract_pages"</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"pages"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">pipe</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"analyze_content"</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"analysis"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">pipe</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"generate_summary"</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"summary"</span><span class="w"> </span><span class="p">},</span>
+<span class="p">]</span>
+</code></pre></div>
+<h2 id="controller-pipeparallel">Controller: PipeParallel</h2>
+<p>Executes multiple sub-pipes concurrently. Each branch operates independently.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"PipeParallel"</code></td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>No</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>branches</code></td>
+<td>array of tables</td>
+<td>Yes</td>
+<td>List of sub-pipe invocations to execute concurrently.</td>
+</tr>
+<tr>
+<td><code>add_each_output</code></td>
+<td>boolean</td>
+<td>No</td>
+<td>If <code>true</code>, each branch's output is individually added to working memory under its <code>result</code> name. Default: <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>combined_output</code></td>
+<td>string</td>
+<td>No</td>
+<td>Concept reference for a combined output that merges all branch results.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Validation rules:</strong></p>
+<ul>
+<li>At least one of <code>add_each_output</code> or <code>combined_output</code> MUST be set (otherwise the pipe produces no output).</li>
+<li><code>combined_output</code>, if present, MUST be a valid concept reference.</li>
+<li>Each branch follows the same sub-pipe blueprint format as <code>PipeSequence</code> steps.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[pipe.extract_documents]</span>
+<span class="n">type</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeParallel"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Extract text from both CV and job offer concurrently"</span>
+<span class="n">inputs</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">cv_pdf</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Document"</span><span class="p">,</span><span class="w"> </span><span class="n">job_offer_pdf</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Document"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"Page[]"</span>
+<span class="n">add_each_output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<span class="n">branches</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">pipe</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"extract_cv"</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"cv_pages"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">pipe</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"extract_job_offer"</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"job_offer_pages"</span><span class="w"> </span><span class="p">},</span>
+<span class="p">]</span>
+</code></pre></div>
+<h2 id="controller-pipecondition">Controller: PipeCondition</h2>
+<p>Routes execution to different pipes based on an evaluated condition.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"PipeCondition"</code></td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>No</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>expression_template</code></td>
+<td>string</td>
+<td>Conditional</td>
+<td>A Jinja2 template that evaluates to a string matching an outcome key. Exactly one of <code>expression_template</code> or <code>expression</code> MUST be provided.</td>
+</tr>
+<tr>
+<td><code>expression</code></td>
+<td>string</td>
+<td>Conditional</td>
+<td>A static expression string. Exactly one of <code>expression_template</code> or <code>expression</code> MUST be provided.</td>
+</tr>
+<tr>
+<td><code>outcomes</code></td>
+<td>table</td>
+<td>Yes</td>
+<td>Maps outcome strings to pipe references. MUST have at least one entry.</td>
+</tr>
+<tr>
+<td><code>default_outcome</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>The pipe reference (or special outcome) to use when no outcome key matches.</td>
+</tr>
+<tr>
+<td><code>add_alias_from_expression_to</code></td>
+<td>string</td>
+<td>No</td>
+<td>If set, stores the evaluated expression value in working memory under this name.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Special outcomes:</strong></p>
+<p>Certain string values in <code>outcomes</code> values and <code>default_outcome</code> have special meaning and are not treated as pipe references:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"fail"</code></td>
+<td>Abort execution with an error.</td>
+</tr>
+<tr>
+<td><code>"continue"</code></td>
+<td>Skip this branch and continue without executing a sub-pipe.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[pipe.route_by_document_type]</span>
+<span class="n">type</span><span class="w">                </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeCondition"</span>
+<span class="n">description</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="s2">"Route processing based on document type"</span>
+<span class="n">inputs</span><span class="w">              </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">doc_request</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"DocumentRequest"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">              </span><span class="o">=</span><span class="w"> </span><span class="s2">"Text"</span>
+<span class="n">expression_template</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"{{ doc_request.document_type }}"</span>
+<span class="n">default_outcome</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"continue"</span>
+
+<span class="k">[pipe.route_by_document_type.outcomes]</span>
+<span class="n">technical</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"process_technical"</span>
+<span class="n">business</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"process_business"</span>
+<span class="n">legal</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"process_legal"</span>
+</code></pre></div>
+<h2 id="controller-pipebatch">Controller: PipeBatch</h2>
+<p>Maps a single pipe over each item in a list input, producing a list output.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td><code>"PipeBatch"</code></td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>table</td>
+<td>Yes</td>
+<td>MUST include an entry whose name matches <code>input_list_name</code>.</td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>branch_pipe_code</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>The pipe reference to invoke for each item.</td>
+</tr>
+<tr>
+<td><code>input_list_name</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>The name of the input that contains the list to iterate over.</td>
+</tr>
+<tr>
+<td><code>input_item_name</code></td>
+<td>string</td>
+<td>Yes</td>
+<td>The name under which each individual item is passed to the branch pipe.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Validation rules:</strong></p>
+<ul>
+<li><code>input_list_name</code> MUST exist as a key in <code>inputs</code>.</li>
+<li><code>input_item_name</code> MUST NOT be empty.</li>
+<li><code>input_item_name</code> MUST NOT equal <code>input_list_name</code>.</li>
+<li><code>input_item_name</code> MUST NOT equal any key in <code>inputs</code>.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="k">[pipe.batch_generate_jokes]</span>
+<span class="n">type</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeBatch"</span>
+<span class="n">description</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"Generate a joke for each topic"</span>
+<span class="n">inputs</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">topics</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Topic[]"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">"Joke[]"</span>
+<span class="n">branch_pipe_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"generate_joke"</span>
+<span class="n">input_list_name</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"topics"</span>
+<span class="n">input_item_name</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"topic"</span>
+</code></pre></div>
+<h2 id="pipe-reference-syntax">Pipe Reference Syntax</h2>
+<p>Every location in a <code>.mthds</code> file that references another pipe supports three forms:</p>
+<table>
+<thead>
+<tr>
+<th>Form</th>
+<th>Syntax</th>
+<th>Example</th>
+<th>Resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bare</td>
+<td><code>pipe_code</code></td>
+<td><code>"extract_clause"</code></td>
+<td>Resolved within the current bundle and its domain.</td>
+</tr>
+<tr>
+<td>Domain-qualified</td>
+<td><code>domain.pipe_code</code></td>
+<td><code>"legal.contracts.extract_clause"</code></td>
+<td>Resolved within the named domain of the current package.</td>
+</tr>
+<tr>
+<td>Package-qualified</td>
+<td><code>alias-&gt;domain.pipe_code</code></td>
+<td><code>"docproc-&gt;extraction.extract_text"</code></td>
+<td>Resolved in the named domain of the dependency identified by the alias.</td>
+</tr>
+</tbody>
+</table>
+<p>Pipe references appear in:</p>
+<ul>
+<li><code>steps[].pipe</code> (PipeSequence)</li>
+<li><code>branches[].pipe</code> (PipeParallel)</li>
+<li><code>outcomes</code> values (PipeCondition)</li>
+<li><code>default_outcome</code> (PipeCondition)</li>
+<li><code>branch_pipe_code</code> (PipeBatch)</li>
+</ul>
+<p>Pipe <em>definitions</em> (the <code>[pipe.&lt;pipe_code&gt;]</code> table keys) are always bare <code>snake_case</code> names. Namespacing applies only to pipe <em>references</em>.</p>
+<h2 id="concept-reference-syntax">Concept Reference Syntax</h2>
+<p>Every location that references a concept supports three forms, symmetric with pipe references:</p>
+<table>
+<thead>
+<tr>
+<th>Form</th>
+<th>Syntax</th>
+<th>Example</th>
+<th>Resolution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bare</td>
+<td><code>ConceptCode</code></td>
+<td><code>"ContractClause"</code></td>
+<td>Resolved in order: native concepts → current bundle → same domain.</td>
+</tr>
+<tr>
+<td>Domain-qualified</td>
+<td><code>domain.ConceptCode</code></td>
+<td><code>"legal.contracts.NonCompeteClause"</code></td>
+<td>Resolved within the named domain of the current package.</td>
+</tr>
+<tr>
+<td>Package-qualified</td>
+<td><code>alias-&gt;domain.ConceptCode</code></td>
+<td><code>"acme-&gt;legal.ContractClause"</code></td>
+<td>Resolved in the named domain of the dependency identified by the alias.</td>
+</tr>
+</tbody>
+</table>
+<p>The disambiguation between concepts and pipes in a domain-qualified reference relies on casing:</p>
+<ul>
+<li><code>snake_case</code> final segment → pipe code</li>
+<li><code>PascalCase</code> final segment → concept code</li>
+</ul>
+<p>Concept references appear in:</p>
+<ul>
+<li><code>inputs</code> values</li>
+<li><code>output</code></li>
+<li><code>refines</code></li>
+<li><code>concept_ref</code> and <code>item_concept_ref</code> in structure field blueprints</li>
+<li><code>combined_output</code> (PipeParallel)</li>
+</ul>
+<h2 id="complete-bundle-example">Complete Bundle Example</h2>
+<div class="highlight"><pre><span></span><code><span class="n">domain</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"joke_generation"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Generating one-liner jokes from topics"</span>
+<span class="n">main_pipe</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"generate_jokes_from_topics"</span>
+
+<span class="k">[concept.Topic]</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A subject or theme that can be used as the basis for a joke."</span>
+<span class="n">refines</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"Text"</span>
+
+<span class="k">[concept.Joke]</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A humorous one-liner intended to make people laugh."</span>
+<span class="n">refines</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"Text"</span>
+
+<span class="k">[pipe.generate_jokes_from_topics]</span>
+<span class="n">type</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeSequence"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Generate 3 joke topics and create a joke for each"</span>
+<span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"Joke[]"</span>
+<span class="n">steps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">pipe</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"generate_topics"</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"topics"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="n">pipe</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"batch_generate_jokes"</span><span class="p">,</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"jokes"</span><span class="w"> </span><span class="p">},</span>
+<span class="p">]</span>
+
+<span class="k">[pipe.generate_topics]</span>
+<span class="n">type</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeLLM"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Generate 3 distinct topics suitable for jokes"</span>
+<span class="n">output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Topic[3]"</span>
+<span class="n">prompt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Generate 3 distinct and varied topics for crafting one-liner jokes."</span>
+
+<span class="k">[pipe.batch_generate_jokes]</span>
+<span class="n">type</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeBatch"</span>
+<span class="n">description</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"Generate a joke for each topic"</span>
+<span class="n">inputs</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">topics</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Topic[]"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s2">"Joke[]"</span>
+<span class="n">branch_pipe_code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"generate_joke"</span>
+<span class="n">input_list_name</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"topics"</span>
+<span class="n">input_item_name</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s2">"topic"</span>
+
+<span class="k">[pipe.generate_joke]</span>
+<span class="n">type</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeLLM"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Write a clever one-liner joke about the given topic"</span>
+<span class="n">inputs</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">topic</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Topic"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"Joke"</span>
+<span class="n">prompt</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"Write a clever one-liner joke about $topic. Be concise and witty."</span>
+</code></pre></div>
+        <div id="llms-copy-button" style="position: fixed; z-index: 1100; top: 80px; right: 20px;">
+            <button onclick="copyMarkdownToClipboard()" style="cursor: pointer; background: #007acc; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Copy Markdown</button>
+        </div>
+        <script>
+        async function copyMarkdownToClipboard() {
+            try {
+                const currentPath = window.location.pathname;
+                const mdPath = currentPath.endsWith('/') ? currentPath + 'index.md' : currentPath.replace(/\.html$/, '.md');
+
+                const response = await fetch(mdPath);
+                if (response.ok) {
+                    const markdown = await response.text();
+                    await navigator.clipboard.writeText(markdown);
+                    // Show feedback
+                    const button = document.querySelector('#llms-copy-button button');
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.style.background = '#28a745';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '#007acc';
+                    }, 2000);
+                } else {
+                    throw new Error('Markdown file not found');
+                }
+            } catch (err) {
+                console.error('Failed to copy markdown:', err);
+                alert('Failed to copy markdown content');
+            }
+        }
+        </script>
+        
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../../packages/registry-distribution/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Registry Distribution Protocol">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Registry Distribution Protocol
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../manifest-format/" class="md-footer__link md-footer__link--next" aria-label="Next: METHODS.toml Format">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                METHODS.toml Format
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      © 2026 Evotis S.A.S.
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/mthds-ai/mthds" target="_blank" rel="noopener" title="MTHDS on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.footer", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
