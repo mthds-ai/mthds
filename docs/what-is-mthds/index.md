@@ -18,7 +18,7 @@ The `.mthds` file format. Everything you need to define typed data and AI transf
 
 A `.mthds` file is a valid [TOML](https://toml.io/) document with structure and meaning layered on top. If you know TOML, you already know the syntax. Inside a file, you define:
 
-- **Concepts** — typed data declarations. A concept is a named type that describes a kind of data: a `ContractClause`, a `CandidateProfile`, a `Joke`. Concepts can have internal structure (fields with types like `text`, `integer`, `boolean`, `list`) or they can be simple semantic labels. Concepts can refine other concepts — `NonCompeteClause` refines `ContractClause`, meaning it can be used anywhere a `ContractClause` is expected.
+- **Concepts** — typed data declarations. A concept is a named type that describes a kind of data: a `ContractClause`, a `CandidateProfile`, a `Joke`. Concepts can have internal structure (fields with types like `text`, `integer`, `boolean`, `list`, `number`, `date`, `dict`, and `concept`) or they can be simple semantic labels. Concepts can refine other concepts — `NonCompeteClause` refines `ContractClause`, meaning it can be used anywhere a `ContractClause` is expected.
 
 - **Pipes** — typed transformations. A pipe declares its inputs (concepts), its output (a concept), and its type — what kind of work it does. MTHDS defines five **operators** (PipeLLM for language model generation, PipeFunc for Python functions, PipeImgGen for image generation, PipeExtract for document extraction, PipeCompose for templating and assembly) and four **controllers** (PipeSequence for sequential steps, PipeParallel for concurrent branches, PipeCondition for conditional routing, PipeBatch for mapping over lists).
 

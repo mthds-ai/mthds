@@ -51,7 +51,7 @@ Your Package
 └── Package B (requires Library X ^1.2.0)
 ```
 
-MVS handles this naturally: it collects both constraints (`^1.0.0` and `^1.2.0`), lists available versions, and picks the minimum version satisfying both. If constraints are contradictory (e.g., `^1.0.0` and `^2.0.0`), the resolver reports an error.
+MVS handles this naturally: it collects both constraints (`^1.0.0` and `^1.2.0`), lists available versions, and picks the minimum version satisfying both. If constraints are incompatible (e.g., `^1.0.0` and `^2.0.0` have no overlapping range), the resolver reports an error.
 
 ## See Also
 
