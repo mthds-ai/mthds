@@ -40,8 +40,8 @@ The registry reads `METHODS.toml` from the package root. This provides:
 | `description` | `string` | Human-readable package description. |
 | `authors` | `list[string]` | Package authors. |
 | `license` | `string \| null` | SPDX license identifier. |
-| `dependencies` | `list[PackageDependency]` | Declared dependencies with address, version constraint, and alias. |
-| `exports` | `list[DomainExports]` | Which pipes are publicly visible, grouped by domain path. |
+| `dependencies` | `table[alias, PackageDependency]` | Declared dependencies with address, version constraint, and alias. |
+| `exports` | `table[domain_path, DomainExports]` | Which pipes are publicly visible, grouped by domain path. |
 
 If `METHODS.toml` is missing or fails validation, the registry MUST skip the package and log a warning. A malformed manifest MUST NOT cause the registry to stop indexing other packages.
 
