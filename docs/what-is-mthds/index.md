@@ -10,7 +10,7 @@ An AI method in MTHDS is not code in the traditional sense. It is a declaration:
 
 MTHDS gives agents the ability to discover, compose, and execute structured AI methods. Instead of relying on unstructured prompts, an agent can search the Know-How Graph for methods by typed signature ("I have a `Document`, I need a `NonCompeteClause`"), compose them into multi-step workflows, and execute them with validated data flow.
 
-The language reads close to natural language and is knowledge-based. Concepts like `ContractClause`, `CandidateProfile`, or `Joke` carry business meaning directly — they are not programming abstractions but representations of real domain knowledge. A pipe that declares `inputs = { doc = "ContractClause" }` and `output = "NonCompeteClause"` reads as a business statement, not as code. Domain experts can read and understand `.mthds` files without programming experience, making methods a shared artifact between technical and non-technical teams.
+The language reads close to natural language and is designed to transcribe business logic. ***Concepts*** like `ContractClause`, `CandidateProfile`, or `Joke` carry business meaning directly — they are not programming abstractions but representations of real domain knowledge. A ***Pipe*** that declares `inputs = { doc = "ContractClause" }` and `output = "NonCompeteClause"` reads as a business statement, not as code. Domain experts can read and understand `.mthds` files without programming skills, making methods a shared artifact between technical and non-technical teams.
 
 ## The Two Pillars
 
