@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         run: make install
 
+      - name: Add venv to PATH
+        run: echo "${{ github.workspace }}/.venv/bin" >> $GITHUB_PATH
+
       - name: Check documentation build
         run: make docs-check
 
