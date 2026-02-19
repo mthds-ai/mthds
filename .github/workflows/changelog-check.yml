@@ -1,0 +1,32 @@
+name: Changelog Version Check
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check Changelog Version
+        run: |
+          # Get version from pyproject.toml
+          VERSION=$(grep -m 1 'version = ' pyproject.toml | cut -d '"' -f 2)
+          echo "Version from pyproject.toml: $VERSION"
+
+          # Look for the version in the changelog
+          if ! grep -q "## \[v$VERSION\] -" CHANGELOG.md; then
+            echo "❌ Error: No changelog entry found for version v$VERSION"
+            echo ""
+            echo "The following versions are in the changelog:"
+            grep -E "^## \[v[0-9]+" CHANGELOG.md | head -10
+            echo ""
+            echo "Please add a changelog entry: ## [v$VERSION] - YYYY-MM-DD"
+            exit 1
+          else
+            echo "✅ Changelog entry found for version v$VERSION"
+          fi

@@ -1,0 +1,74 @@
+name: Version check
+
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get branch info
+        id: branch_info
+        run: |
+          echo "====== DEBUGGING BRANCH INFO ======"
+          echo "PR URL: ${{ github.event.pull_request.html_url }}"
+          echo "PR Number: ${{ github.event.pull_request.number }}"
+          
+          BASE_BRANCH="${{ github.event.pull_request.base.ref }}"
+          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+          echo "Source branch: $SOURCE_BRANCH"
+          echo "Target branch: $BASE_BRANCH"
+          
+          echo "base_branch=$BASE_BRANCH" >> $GITHUB_OUTPUT
+          echo "source_branch=$SOURCE_BRANCH" >> $GITHUB_OUTPUT
+          
+          # Check if source is a release branch
+          if [[ "$SOURCE_BRANCH" =~ ^release/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Source is a release branch"
+            echo "is_release_source=true" >> $GITHUB_OUTPUT
+            echo "source_release_version=${SOURCE_BRANCH#release/v}" >> $GITHUB_OUTPUT
+            echo "Extracted source release version: ${SOURCE_BRANCH#release/v}"
+          else
+            echo "Source is NOT a release branch - skipping version check"
+            echo "is_release_source=false" >> $GITHUB_OUTPUT
+            echo "This workflow only runs for PRs from release branches to main"
+            exit 0
+          fi
+          echo "======================================="
+
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Get version from pyproject.toml
+        id: current_version
+        run: |
+          echo "====== DEBUGGING CURRENT VERSION ======"
+          VERSION=$(grep '^version' pyproject.toml | sed -E 's/version = "(.*)"/\1/')
+          echo "Current pyproject.toml version: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "======================================="
+
+      # Check that version in pyproject.toml matches the source release branch name
+      - name: Check version matches release branch
+        run: |
+          echo "====== CHECKING VERSION MATCH FOR RELEASE BRANCH ======"
+          # Extract version from branch name
+          RELEASE_VERSION="${{ steps.branch_info.outputs.source_release_version }}"
+          
+          # Get version from PR branch
+          PR_VERSION="${{ steps.current_version.outputs.version }}"
+          
+          echo "Release branch version: $RELEASE_VERSION"
+          echo "pyproject.toml version: $PR_VERSION"
+          
+          # Check if versions match
+          if [[ "$PR_VERSION" != "$RELEASE_VERSION" ]]; then
+            echo "❌ ERROR: Version in pyproject.toml ($PR_VERSION) does not match release branch version ($RELEASE_VERSION)"
+            exit 1
+          else
+            echo "✅ Version in pyproject.toml ($PR_VERSION) matches release branch version ($RELEASE_VERSION)"
+          fi
+          echo "======================================="
