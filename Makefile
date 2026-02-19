@@ -32,6 +32,31 @@ define PRINT_TITLE
     @echo "$(PADDED_TITLE)"
 endef
 
+define ROOT_ROBOTS_TXT
+User-agent: *
+Allow: /latest/
+Disallow: /
+
+Sitemap: https://mthds.ai/latest/sitemap.xml
+endef
+export ROOT_ROBOTS_TXT
+
+define ROOT_INDEX_HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="refresh" content="0;url=/latest/">
+<link rel="canonical" href="https://mthds.ai/latest/">
+<title>MTHDS Documentation</title>
+</head>
+<body>
+<p>Redirecting to <a href="/latest/">MTHDS Documentation</a>...</p>
+</body>
+</html>
+endef
+export ROOT_INDEX_HTML
+
 define HELP
 Manage $(PROJECT_NAME) located in $(CURDIR).
 Usage:
@@ -48,7 +73,7 @@ make docs-list                        - List deployed documentation versions
 make docs-deploy VERSION=x.y.z       - Deploy docs as version x.y.z (local, no push)
 make docs-deploy-stable               - Deploy stable docs with 'latest' alias (CI only)
 make docs-deploy-specific-version     - Deploy docs for the current version with 'pre-release' alias (CI only)
-make docs-deploy-404                  - Deploy 404.html for versionless URL redirects
+make docs-deploy-root                 - Deploy root assets (404, robots.txt, index redirect) to gh-pages
 make docs-delete VERSION=x.y.z       - Delete a deployed documentation version
 
 make cleanenv                         - Remove virtual env
@@ -65,7 +90,7 @@ export HELP
 	all help env lock install update \
 	cleanderived cleanenv cleanall reinstall ri \
 	docs docs-check docs-serve-versioned docs-list \
-	docs-deploy docs-deploy-stable docs-deploy-specific-version docs-deploy-404 docs-delete \
+	docs-deploy docs-deploy-stable docs-deploy-specific-version docs-deploy-root docs-delete \
 	li check-uv
 
 all help:
@@ -96,7 +121,7 @@ env: check-uv
 install: env
 	$(call PRINT_TITLE,"Installing dependencies")
 	@. $(VIRTUAL_ENV)/bin/activate && \
-	uv sync --all-extras && \
+	uv sync && \
 	echo "Installed dependencies in ${VIRTUAL_ENV}";
 
 lock: env
@@ -107,7 +132,7 @@ lock: env
 update: env
 	$(call PRINT_TITLE,"Updating all dependencies")
 	@uv lock --upgrade && \
-	uv sync --all-extras && \
+	uv sync && \
 	echo "Updated dependencies in ${VIRTUAL_ENV}";
 
 
@@ -159,24 +184,29 @@ docs-deploy: env
 	$(call PRINT_TITLE,"Deploying documentation version $(if $(VERSION),$(VERSION),$(DOCS_VERSION))")
 	$(VENV_MIKE) deploy $(if $(VERSION),$(VERSION),$(DOCS_VERSION))
 
-docs-deploy-stable: env docs-deploy-404
+docs-deploy-stable: env
 	$(call PRINT_TITLE,"Deploying stable documentation $(DOCS_VERSION) with latest alias")
 	$(VENV_MIKE) deploy --push --update-aliases $(DOCS_VERSION) latest
 	$(VENV_MIKE) set-default --push latest
+	$(MAKE) docs-deploy-root
 
-docs-deploy-specific-version: env docs-deploy-404
+docs-deploy-specific-version: env
 	$(call PRINT_TITLE,"Deploying documentation $(DOCS_VERSION) with pre-release alias")
 	$(VENV_MIKE) deploy --push --update-aliases $(DOCS_VERSION) pre-release
+	$(MAKE) docs-deploy-root
 
-docs-deploy-404:
-	$(call PRINT_TITLE,"Deploying 404.html to gh-pages root for versionless URL redirects")
-	@TMPDIR=$$(mktemp -d); \
+docs-deploy-root:
+	$(call PRINT_TITLE,"Deploying root assets to gh-pages (404, robots.txt, index redirect)")
+	@git fetch origin gh-pages:gh-pages 2>/dev/null || true; \
+	TMPDIR=$$(mktemp -d); \
 	trap "cd '$(CURDIR)'; git worktree remove '$$TMPDIR' 2>/dev/null || true; rm -rf '$$TMPDIR'" EXIT; \
 	git worktree add "$$TMPDIR" gh-pages && \
 	cp docs/404.html "$$TMPDIR/404.html" && \
+	echo "$$ROOT_ROBOTS_TXT" > "$$TMPDIR/robots.txt" && \
+	echo "$$ROOT_INDEX_HTML" > "$$TMPDIR/index.html" && \
 	cd "$$TMPDIR" && \
-	git add 404.html && \
-	(git diff --cached --quiet || git commit -m "Update 404.html for versionless URL redirects") && \
+	git add 404.html robots.txt index.html && \
+	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html)") && \
 	git push origin gh-pages
 
 docs-delete: env

@@ -11,6 +11,7 @@ description: "Reference for METHODS.toml — the MTHDS package manifest that dec
 ```toml
 [package]
 address       = "github.com/acme/legal-tools"
+display_name  = "Legal Tools"
 version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
@@ -40,6 +41,7 @@ The `[package]` section defines the package's identity:
 | Field | Required | Description |
 |-------|----------|-------------|
 | `address` | Yes | Globally unique identifier. Must follow the hostname/path pattern (e.g., `github.com/org/repo`). |
+| `display_name` | No | Human-friendly label for CLI output and registry listings. Cosmetic only — never used as an identifier. Max 128 characters. |
 | `version` | Yes | [Semantic version](https://semver.org/) (`MAJOR.MINOR.PATCH`, with optional pre-release and build metadata). |
 | `description` | Yes | Human-readable summary of the package's purpose. Must not be empty. |
 | `authors` | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
