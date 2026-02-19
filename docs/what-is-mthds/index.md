@@ -1,12 +1,16 @@
 ---
-description: "Learn what MTHDS is: a typed language for declaring AI methods as concepts and pipes in readable, version-controllable text files."
+description: "Learn what MTHDS is: a typed language for declaring AI methods as concepts and pipes in readable, version-controllable text files — giving agents structured methods they can discover and execute."
 ---
 
 # What is MTHDS?
 
 MTHDS (pronounced "methods") is an open standard for AI methods. It defines a typed language for describing what an AI should do — the data it works with, the transformations it performs, and how those transformations compose together — in plain text files that humans and machines can read.
 
-An AI method in MTHDS is not code in the traditional sense. It is a declaration: "given this kind of input, produce that kind of output, using this approach." The runtime decides how to execute it. The method author decides what it means.
+An AI method in MTHDS is not code in the traditional sense. It is a declaration: "given this kind of input, produce that kind of output, using this approach." An agent or runner decides how to execute it. The method author decides what it means.
+
+MTHDS gives agents the ability to discover, compose, and execute structured AI methods. Instead of relying on unstructured prompts, an agent can search the Know-How Graph for methods by typed signature ("I have a `Document`, I need a `NonCompeteClause`"), compose them into multi-step workflows, and execute them with validated data flow.
+
+The language reads close to natural language and is knowledge-based. Concepts like `ContractClause`, `CandidateProfile`, or `Joke` carry business meaning directly — they are not programming abstractions but representations of real domain knowledge. A pipe that declares `inputs = { doc = "ContractClause" }` and `output = "NonCompeteClause"` reads as a business statement, not as code. Domain experts can read and understand `.mthds` files without programming experience, making methods a shared artifact between technical and non-technical teams.
 
 ## The Two Pillars
 
@@ -99,7 +103,7 @@ output      = "Joke"
 prompt      = "Write a clever one-liner joke about $topic. Be concise and witty."
 ```
 
-This file defines two concepts (`Topic` and `Joke`, both refining the built-in `Text` type) and four pipes: a sequence that generates topics and then batch-processes them into jokes. It works as a standalone file — save it, point a runtime at it, and it runs.
+This file defines two concepts (`Topic` and `Joke`, both refining the built-in `Text` type) and four pipes: a sequence that generates topics and then batch-processes them into jokes. It works as a standalone file — save it, point a runner at it, and it runs.
 
 ## Progressive Enhancement
 
@@ -129,6 +133,6 @@ MTHDS differs from other approaches to describing AI capabilities in three ways:
 
 - **Method authors**: Start with [The Language](../language/bundles.md) to learn bundles, concepts, pipes, and domains. Then move to [The Package System](../packages/structure.md) when you are ready to distribute.
 
-- **Runtime implementers**: Start with the [Specification](../spec/mthds-format.md) for the normative reference on file formats, validation rules, and resolution algorithms.
+- **Runner implementers**: Start with the [Specification](../spec/mthds-format.md) for the normative reference on file formats, validation rules, and resolution algorithms.
 
 - **Everyone**: [Write Your First Method](../getting-started/first-method.md) walks you through creating a working `.mthds` file step by step.
