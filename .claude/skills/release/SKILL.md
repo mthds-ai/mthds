@@ -1,11 +1,11 @@
 ---
 name: release
-description: Prepare a new release for the MTHDS project. Bumps version in pyproject.toml, updates CHANGELOG.md, manages the release/vX.Y.Z branch, validates docs build, and commits. Use when the user says "release", "prepare a release", "bump version", "new version", or "cut a release".
+description: Prepare a new release for the MTHDS project. Bumps version in pyproject.toml, syncs uv.lock, updates CHANGELOG.md, manages the release/vX.Y.Z branch, validates docs build, and commits. Use when the user says "release", "prepare a release", "bump version", "new version", or "cut a release".
 ---
 
 # Release Workflow
 
-Guides the user through preparing a new MTHDS release in 7 interactive steps. Every step requires explicit user confirmation before proceeding.
+Guides the user through preparing a new MTHDS release in 8 interactive steps. Every step requires explicit user confirmation before proceeding.
 
 ## Step 1 — Gather State
 
@@ -47,7 +47,20 @@ Edit the `version = "..."` line in `pyproject.toml` to `version = "{TARGET_VERSI
 
 The version in pyproject.toml must **not** have a `v` prefix (e.g. `0.0.4`, not `v0.0.4`).
 
-## Step 5 — Update CHANGELOG.md
+## Step 5 — Sync uv.lock
+
+After updating `pyproject.toml`, regenerate the lock file so it reflects `TARGET_VERSION`:
+
+```bash
+uv lock
+```
+
+Verify the output confirms the version was updated (e.g. `Updated mthds vX.Y.Z -> v{TARGET_VERSION}`).
+
+- **If the lock file was already in sync**: inform the user and continue.
+- **On failure**: show the error and ask the user how to proceed.
+
+## Step 6 — Update CHANGELOG.md
 
 The changelog entry **must** match the CI grep pattern: `## [vX.Y.Z] -`
 
@@ -66,7 +79,7 @@ The user may accept, edit, or rewrite the proposed entry.
 
 - **If exists**: show the existing entry and ask the user whether to keep it or edit it.
 
-## Step 6 — Validate Docs Build
+## Step 7 — Validate Docs Build
 
 Run:
 
@@ -77,18 +90,18 @@ make docs-check
 - **On success**: report and continue.
 - **On failure**: show the errors and ask the user how to proceed (fix issues, skip validation, or abort).
 
-## Step 7 — Review & Commit
+## Step 8 — Review & Commit
 
 Present a full summary:
 
 - Target version: `v{TARGET_VERSION}`
 - Branch: `release/v{TARGET_VERSION}`
-- Files changed: `pyproject.toml`, `CHANGELOG.md`
+- Files changed: `pyproject.toml`, `uv.lock`, `CHANGELOG.md`
 - Changelog entry preview
 
 Ask the user to confirm. On confirmation:
 
-1. Stage **only** `pyproject.toml` and `CHANGELOG.md` — never use `git add .` or `git add -A`.
+1. Stage **only** `pyproject.toml`, `uv.lock`, and `CHANGELOG.md` — never use `git add .` or `git add -A`.
 2. Commit with message: `Bump version to {TARGET_VERSION} and update changelog`
 3. Show the commit result.
 
@@ -101,7 +114,7 @@ Wait for explicit user approval before pushing or creating a PR.
 
 ## Rules
 
-- Never use `git add .` or `git add -A` — only stage `pyproject.toml` and `CHANGELOG.md`.
+- Never use `git add .` or `git add -A` — only stage `pyproject.toml`, `uv.lock`, and `CHANGELOG.md`.
 - Never push or create PRs without explicit user approval.
 - The `v` prefix appears in branch names and changelog headers, but **not** in `pyproject.toml`.
 - Always use today's date for new changelog entries (format: `YYYY-MM-DD`).
