@@ -2,7 +2,7 @@
 description: "MTHDS is an open standard for defining, packaging, and sharing AI methods — giving agents the ability to discover and execute structured, composable AI workflows."
 ---
 
-# Home
+# Overview
 
 MTHDS is an open standard for defining, packaging, and distributing AI methods. It provides a typed language for describing what an AI should do, with what inputs, and what outputs to produce — all in plain-text files that humans and machines can read alike.
 
