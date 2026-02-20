@@ -209,7 +209,7 @@ docs-deploy-specific-version: env
 	$(MAKE) docs-deploy-root
 
 docs-deploy-root:
-	$(call PRINT_TITLE,"Deploying root assets to gh-pages (404 / robots.txt / index redirect)")
+	$(call PRINT_TITLE,"Deploying root assets to gh-pages: 404 + robots.txt + index redirect")
 	@git fetch origin gh-pages:gh-pages 2>/dev/null || true; \
 	TMPDIR=$$(mktemp -d); \
 	trap "cd '$(CURDIR)'; git worktree remove '$$TMPDIR' 2>/dev/null || true; rm -rf '$$TMPDIR'" EXIT; \

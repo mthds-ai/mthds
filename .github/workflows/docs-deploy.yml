@@ -43,3 +43,80 @@ jobs:
 
       - name: Deploy documentation
         run: make docs-deploy-stable
+
+  github-release:
+    name: Create GitHub Release
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version
+        id: get_version
+        run: |
+          VERSION=$(grep -m 1 'version = ' pyproject.toml | cut -d '"' -f 2)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Detected version: $VERSION"
+
+      - name: Check if release already exists
+        id: check_release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            echo "Release v$VERSION already exists, skipping."
+            echo "EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "Release v$VERSION does not exist, will create."
+            echo "EXISTS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Extract changelog notes
+        if: env.EXISTS == 'false'
+        run: |
+          VERSION="${{ env.VERSION }}"
+          echo "Extracting changelog for version v$VERSION"
+
+          START_LINE=$(grep -n "## \[v$VERSION\] - " CHANGELOG.md | cut -d: -f1)
+
+          if [ -z "$START_LINE" ]; then
+            echo "Warning: No changelog entry found for version v$VERSION"
+            echo "CHANGELOG_NOTES=" >> $GITHUB_ENV
+            exit 0
+          fi
+
+          NEXT_VERSION_LINE=$(tail -n +$((START_LINE + 1)) CHANGELOG.md | grep -n "^## \[v.*\] - " | head -1 | cut -d: -f1)
+
+          if [ -z "$NEXT_VERSION_LINE" ]; then
+            CHANGELOG_CONTENT=$(tail -n +$START_LINE CHANGELOG.md)
+          else
+            END_LINE=$((START_LINE + NEXT_VERSION_LINE - 1))
+            CHANGELOG_CONTENT=$(sed -n "$START_LINE,$((END_LINE - 1))p" CHANGELOG.md)
+          fi
+
+          HEADER_LINE=$(echo "$CHANGELOG_CONTENT" | head -1)
+          CONTENT_LINES=$(echo "$CHANGELOG_CONTENT" | tail -n +2 | sed '/^$/d' | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
+
+          CHANGELOG_CONTENT=$(printf "%s\n\n%s" "$HEADER_LINE" "$CONTENT_LINES")
+
+          echo "CHANGELOG_NOTES<<EOF" >> $GITHUB_ENV
+          echo "$CHANGELOG_CONTENT" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        if: env.EXISTS == 'false'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          if [ -n "$CHANGELOG_NOTES" ]; then
+            gh release create "v$VERSION" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "v$VERSION" \
+              --notes "$CHANGELOG_NOTES"
+          else
+            gh release create "v$VERSION" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "v$VERSION" \
+              --generate-notes \
+              --notes "Release v$VERSION"
+          fi
