@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /latest/
+Disallow: /
+
+Sitemap: https://mthds.ai/latest/sitemap.xml
