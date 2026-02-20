@@ -11,3 +11,6 @@ site/
 
 # temp
 temp/
+
+# skill build artifacts
+*.skill

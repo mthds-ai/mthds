@@ -57,7 +57,7 @@ plugins:
   - llmstxt-md:
       sections:
         Home:
-        - index.md: "Introduction to MTHDS"
+        - index.md: "Overview"
         - what-is-mthds/index.md: "What is MTHDS?"
         - about/philosophy.md: "Design Philosophy"
         - about/comparison-agent-skills.md: "Comparison with Agent Skills"
@@ -142,7 +142,7 @@ extra_css:
 
 nav:
   - Home:
-    - Home: index.md
+    - Overview: index.md
     - What is MTHDS?: what-is-mthds/index.md
     - Design Philosophy: about/philosophy.md
     - Comparison with Agent Skills: about/comparison-agent-skills.md

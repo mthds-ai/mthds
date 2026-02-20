@@ -87,11 +87,11 @@ endef
 export HELP
 
 .PHONY: \
-	all help env lock install update \
+	all help env env-verbose lock install update \
 	cleanderived cleanenv cleanall reinstall ri \
 	docs docs-check docs-serve-versioned docs-list \
 	docs-deploy docs-deploy-stable docs-deploy-specific-version docs-deploy-root docs-delete \
-	li check-uv
+	li check-uv check-uv-verbose
 
 all help:
 	@echo "$$HELP"
@@ -102,6 +102,13 @@ all help:
 ##########################################################################################
 
 check-uv:
+	@command -v uv >/dev/null 2>&1 || { \
+		echo "uv not found – installing latest …"; \
+		curl -LsSf https://astral.sh/uv/install.sh | sh; \
+	}
+	@uv self update >/dev/null 2>&1 || true
+
+check-uv-verbose:
 	$(call PRINT_TITLE,"Ensuring uv ≥ $(UV_MIN_VERSION)")
 	@command -v uv >/dev/null 2>&1 || { \
 		echo "uv not found – installing latest …"; \
@@ -110,6 +117,12 @@ check-uv:
 	@uv self update >/dev/null 2>&1 || true
 
 env: check-uv
+	@if [ ! -d $(VIRTUAL_ENV) ]; then \
+		echo "Creating Python virtual env in \`${VIRTUAL_ENV}\`"; \
+		uv venv $(VIRTUAL_ENV) --python $(PYTHON_VERSION); \
+	fi
+
+env-verbose: check-uv-verbose
 	$(call PRINT_TITLE,"Creating virtual environment")
 	@if [ ! -d $(VIRTUAL_ENV) ]; then \
 		echo "Creating Python virtual env in \`${VIRTUAL_ENV}\`"; \
@@ -118,7 +131,7 @@ env: check-uv
 		echo "Python virtual env already exists in \`${VIRTUAL_ENV}\`"; \
 	fi
 
-install: env
+install: env-verbose
 	$(call PRINT_TITLE,"Installing dependencies")
 	@. $(VIRTUAL_ENV)/bin/activate && \
 	uv sync && \
@@ -129,7 +142,7 @@ lock: env
 	@uv lock && \
 	echo "uv lock without update";
 
-update: env
+update: env-verbose
 	$(call PRINT_TITLE,"Updating all dependencies")
 	@uv lock --upgrade && \
 	uv sync && \
