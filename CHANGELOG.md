@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.0.4] - 2026-02-20
+
+- Added github release workflow
+- Fix deploy doc workflow
+
 ## [v0.0.3] - 2026-02-20
 
 - Renamed Home section first page to Overview
