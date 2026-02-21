@@ -63,8 +63,8 @@ cv_pages = "Page"
 |-------|----------|-------------|
 | `prompt` | No | The LLM prompt template. Supports Jinja2 syntax and `@variable` / `$variable` shorthand. |
 | `system_prompt` | No | System prompt for the LLM. Falls back to the bundle-level `system_prompt` if omitted. |
-| `model` | No | Model identifier or model reference (see [Model References](model-references.md)). |
-| `model_to_structure` | No | Model used for structuring the LLM output into the declared concept. |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
+| `model_to_structure` | No | Model used for structuring the LLM output into the declared concept. Accepts the same forms as `model`. |
 | `structuring_method` | No | How the output is structured: `"direct"` or `"preliminary_text"`. |
 
 **Prompt template syntax:**
@@ -121,10 +121,11 @@ model       = "$gen-image-testing"
 |-------|----------|-------------|
 | `prompt` | Yes | The image generation prompt. Supports Jinja2 and `$variable` shorthand. |
 | `negative_prompt` | No | Concepts to avoid in generation. |
-| `model` | No | Model identifier or model reference (see [Model References](model-references.md)). |
-| `aspect_ratio` | No | Desired aspect ratio for the generated image. |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
+| `aspect_ratio` | No | Desired aspect ratio. Values: `square`, `landscape_4_3`, `landscape_3_2`, `landscape_16_9`, `landscape_21_9`, `portrait_3_4`, `portrait_2_3`, `portrait_9_16`, `portrait_9_21`. |
 | `seed` | No | Random seed for reproducibility. `"auto"` lets the model choose. |
-| `output_format` | No | Image output format (e.g., `"png"`, `"jpeg"`). |
+| `background` | No | Background setting. Values: `transparent`, `opaque`, `auto`. |
+| `output_format` | No | Image output format. Values: `png`, `jpeg`, `webp`. |
 
 ## PipeExtract
 
@@ -145,7 +146,7 @@ model       = "@default-text-from-pdf"
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `model` | No | Model identifier or model reference (see [Model References](model-references.md)). |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
 | `max_page_images` | No | Maximum number of page images to process. |
 | `page_image_captions` | No | Whether to generate captions for page images. |
 | `page_views` | No | Whether to generate page views. |
@@ -180,10 +181,17 @@ The `template` field can be a plain string (as above) or a table with additional
 
 ```toml
 [pipe.format_report.template]
-template        = "# Report for {{ candidate_name }}"
-category        = "basic"
-templating_style = "default"
+template = "# Report for {{ candidate_name }}"
+category = "markdown"
+
+[pipe.format_report.template.templating_style]
+tag_style   = "xml"
+text_format = "markdown"
 ```
+
+**`category` values:** `basic`, `expression`, `html`, `markdown`, `mermaid`, `llm_prompt`, `img_gen_prompt`.
+
+The optional `templating_style` table controls output formatting with `tag_style` (`no_tag`, `ticks`, `xml`, `square_brackets`) and `text_format` (`plain`, `markdown`, `html`, `json`). See the [specification](../spec/mthds-format.md#templating-style) for details.
 
 ### Construct Mode
 

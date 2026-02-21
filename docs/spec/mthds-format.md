@@ -307,8 +307,8 @@ Generates output by invoking a large language model with a prompt.
 | `output` | string | Yes | — |
 | `prompt` | string | No | The LLM prompt template. Supports Jinja2 syntax and the `@variable` / `$variable` shorthand. |
 | `system_prompt` | string | No | System prompt for the LLM. If omitted, the bundle-level `system_prompt` is used (if any). |
-| `model` | string | No | Model identifier or model reference (see [Model References](../language/model-references.md)). |
-| `model_to_structure` | string | No | Model used for structuring the LLM output into the declared concept. |
+| `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [LLM settings](#inline-llm-settings) table. |
+| `model_to_structure` | string or table | No | Model used for structuring the LLM output into the declared concept. Accepts the same forms as `model`. |
 | `structuring_method` | string | No | How the output is structured. Values: `"direct"`, `"preliminary_text"`. |
 
 **Prompt template syntax:**
@@ -339,6 +339,35 @@ Analyze the following CV and extract the candidate's key professional informatio
 
 @cv_pages
 """
+
+[pipe.analyze_cv.inputs]
+cv_pages = "Page"
+```
+
+### Inline LLM Settings
+
+When the `model` field is a table instead of a string, it defines inline model settings using the `LLMSetting` structure:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | The model handle (e.g., `"claude-4.5-sonnet"`). |
+| `temperature` | number | Yes | Sampling temperature. Range: 0–1. |
+| `max_tokens` | integer, `"auto"`, or null | No | Maximum tokens for the response. `"auto"` lets the model choose. |
+| `image_detail` | string | No | Image detail level for vision inputs. Values: `high`, `low`, `auto`. |
+| `prompting_target` | string | No | Target provider for prompt formatting. Values: `openai`, `anthropic`, `mistral`, `gemini`, `fal`. |
+| `reasoning_effort` | string | No | Level of reasoning effort. Values: `none`, `minimal`, `low`, `medium`, `high`, `max`. |
+| `reasoning_budget` | integer | No | Token budget for reasoning. Must be > 0. |
+| `description` | string | No | Human-readable description of this model configuration. |
+
+**Example — inline LLM settings:**
+
+```toml
+[pipe.analyze_cv]
+type = "PipeLLM"
+description = "Analyze a CV"
+output = "CVAnalysis"
+prompt = "Analyze: @cv_pages"
+model = { model = "claude-4.5-sonnet", temperature = 0.1, max_tokens = 4096 }
 
 [pipe.analyze_cv.inputs]
 cv_pages = "Page"
@@ -379,12 +408,12 @@ Generates images using an image generation model.
 | `output` | string | Yes | — |
 | `prompt` | string | Yes | The image generation prompt. Supports Jinja2 and `$variable` shorthand. |
 | `negative_prompt` | string | No | A negative prompt (concepts to avoid in generation). |
-| `model` | string | No | Model identifier or model reference (see [Model References](../language/model-references.md)). |
-| `aspect_ratio` | string | No | Desired aspect ratio for the generated image. |
+| `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [image generation settings](#inline-image-generation-settings) table. |
+| `aspect_ratio` | string | No | Desired aspect ratio. Values: `square`, `landscape_4_3`, `landscape_3_2`, `landscape_16_9`, `landscape_21_9`, `portrait_3_4`, `portrait_2_3`, `portrait_9_16`, `portrait_9_21`. |
 | `is_raw` | boolean | No | Whether to use raw mode (less post-processing). |
 | `seed` | integer or `"auto"` | No | Random seed for reproducibility. `"auto"` lets the model choose. |
-| `background` | string | No | Background setting for the generated image. |
-| `output_format` | string | No | Image output format (e.g., `"png"`, `"jpeg"`). |
+| `background` | string | No | Background setting. Values: `transparent`, `opaque`, `auto`. |
+| `output_format` | string | No | Image output format. Values: `png`, `jpeg`, `webp`. |
 
 **Validation rules:**
 
@@ -402,6 +431,33 @@ prompt      = "A professional portrait: $description"
 model       = "$gen-image-testing"
 ```
 
+### Inline Image Generation Settings
+
+When the `model` field is a table instead of a string, it defines inline model settings using the `ImgGenSetting` structure:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | The model handle. |
+| `quality` | string | No | Image quality. Values: `low`, `medium`, `high`. |
+| `nb_steps` | integer | No | Number of generation steps. Must be > 0. |
+| `guidance_scale` | number | No | Guidance scale for generation. Must be > 0. |
+| `is_moderated` | boolean | No | Whether to apply content moderation. Default: `false`. |
+| `safety_tolerance` | integer | No | Safety tolerance level. Range: 1–6. |
+| `description` | string | No | Human-readable description of this model configuration. |
+
+**Example — inline image generation settings:**
+
+```toml
+[pipe.generate_portrait]
+type        = "PipeImgGen"
+description = "Generate a portrait image"
+inputs      = { description = "Text" }
+output      = "Image"
+prompt       = "A professional portrait: $description"
+aspect_ratio = "portrait_3_4"
+model        = { model = "flux-pro", quality = "high", nb_steps = 50 }
+```
+
 ## Operator: PipeExtract
 
 Extracts structured content from documents (e.g., PDF pages).
@@ -412,7 +468,7 @@ Extracts structured content from documents (e.g., PDF pages).
 | `description` | string | Yes | — |
 | `inputs` | table | Yes | MUST contain exactly one input. |
 | `output` | string | Yes | MUST be `"Page[]"`. |
-| `model` | string | No | Model identifier or model reference (see [Model References](../language/model-references.md)). |
+| `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [extract settings](#inline-extract-settings) table. |
 | `max_page_images` | integer | No | Maximum number of page images to process. |
 | `page_image_captions` | boolean | No | Whether to generate captions for page images. |
 | `page_views` | boolean | No | Whether to generate page views. |
@@ -434,6 +490,28 @@ output      = "Page[]"
 model       = "@default-text-from-pdf"
 ```
 
+### Inline Extract Settings
+
+When the `model` field is a table instead of a string, it defines inline model settings using the `ExtractSetting` structure:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | The model handle. |
+| `max_nb_images` | integer | No | Maximum number of images to extract. Must be >= 0. |
+| `image_min_size` | integer | No | Minimum image size in pixels. Must be >= 0. |
+| `description` | string | No | Human-readable description of this model configuration. |
+
+**Example — inline extract settings:**
+
+```toml
+[pipe.extract_cv]
+type        = "PipeExtract"
+description = "Extract text content from a CV PDF document"
+inputs      = { cv_pdf = "Document" }
+output      = "Page[]"
+model       = { model = "gpt-4.1", max_nb_images = 10, image_min_size = 100 }
+```
+
 ## Operator: PipeCompose
 
 Composes output by assembling data from working memory using either a template or a construct. Exactly one of `template` or `construct` MUST be provided.
@@ -448,7 +526,25 @@ Composes output by assembling data from working memory using either a template o
 | `output` | string | Yes | MUST be a single concept (no multiplicity). |
 | `template` | string or table | Yes (if no `construct`) | A Jinja2 template string, or a template blueprint table with `template`, `category`, `templating_style`, and `extra_context` fields. |
 
-When `template` is a string, it is a Jinja2 template rendered with the input variables. When `template` is a table, it MUST contain a `template` field (string) and MAY contain `category`, `templating_style`, and `extra_context`.
+When `template` is a string, it is a Jinja2 template rendered with the input variables. When `template` is a table, it MUST contain a `template` field (string) and a `category` field, and MAY contain `templating_style` and `extra_context`.
+
+**Template blueprint fields (table form):**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `template` | string | Yes | The Jinja2 template string. |
+| `category` | string | Yes | Template category. Values: `basic`, `expression`, `html`, `markdown`, `mermaid`, `llm_prompt`, `img_gen_prompt`. |
+| `templating_style` | table | No | Rendering style configuration. See [Templating Style](#templating-style) below. |
+| `extra_context` | table | No | Additional context variables for template rendering. |
+
+#### Templating Style
+
+The `templating_style` field controls how template output is formatted, particularly useful for templates that produce prompts for different LLM providers.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `tag_style` | string | Yes | How variables are tagged in output. Values: `no_tag`, `ticks`, `xml`, `square_brackets`. |
+| `text_format` | string | No | Output text format. Values: `plain`, `markdown`, `html`, `json`. Default: `plain`. |
 
 **Validation rules (template mode):**
 

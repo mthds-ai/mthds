@@ -14,10 +14,19 @@ The schema defines the complete structure of an `.mthds` bundle:
 - **Concept definitions**: both simple (string) and structured forms, including `structure` fields, `refines`, and all field types (`text`, `integer`, `number`, `boolean`, `date`, `list`, `dict`, `concept`) and the `choices` enum mechanism.
 - **Pipe definitions**: all nine pipe types with their specific fields — `PipeLLM`, `PipeFunc`, `PipeImgGen`, `PipeExtract`, `PipeCompose`, `PipeSequence`, `PipeParallel`, `PipeCondition`, `PipeBatch`.
 - **Sub-pipe blueprints**: the `steps`, `branches`, `outcomes`, and `construct` structures used by controllers and PipeCompose.
+- **Inline model settings**: the `LLMSetting`, `ImgGenSetting`, and `ExtractSetting` objects that can be used in place of string model references.
+
+## Schema Version
+
+The schema is auto-generated from the MTHDS data model (PipelexBundleBlueprint). The current version is noted in the schema's `$comment` field. The hosted schema always corresponds to the latest released version of the MTHDS standard.
 
 ## Where to Find It
 
-The schema is located at `pipelex/language/mthds_schema.json` in the Pipelex repository. It is auto-generated from the MTHDS data model to ensure it stays in sync with the implementation.
+The schema is hosted at a stable URL for direct use by editors and tooling:
+
+**Hosted URL:** [`https://mthds.ai/schema/mthds_schema.json`](https://mthds.ai/schema/mthds_schema.json)
+
+The schema is also located at `pipelex/language/mthds_schema.json` in the Pipelex repository. It is auto-generated from the MTHDS data model to ensure it stays in sync with the implementation.
 
 ## How to Use It
 
@@ -28,14 +37,14 @@ The VS Code extension can use the schema for autocompletion and inline validatio
 ```json
 {
   "pipelex.schema.associations": {
-    ".*\\.mthds$": "path/to/mthds_schema.json"
+    ".*\\.mthds$": "https://mthds.ai/schema/mthds_schema.json"
   }
 }
 ```
 
 ### With Other Editors
 
-Any editor that supports JSON Schema for TOML can use the MTHDS schema. Configure your editor's TOML language server to associate `.mthds` files with the schema.
+Any editor that supports JSON Schema for TOML can use the MTHDS schema. Configure your editor's TOML language server to associate `.mthds` files with the schema URL `https://mthds.ai/schema/mthds_schema.json`.
 
 ### For Tooling
 
