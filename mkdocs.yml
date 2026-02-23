@@ -29,7 +29,7 @@ theme:
       icon: material/weather-sunny
       name: Switch to light mode
 
-copyright: "© 2026 Evotis S.A.S."
+copyright: "© 2025-2026 Evotis S.A.S."
 
 extra:
   social:
@@ -61,6 +61,7 @@ plugins:
         - what-is-mthds/index.md: "What is MTHDS?"
         - about/philosophy.md: "Design Philosophy"
         - about/comparison-agent-skills.md: "Comparison with Agent Skills"
+        - know-how-graph/index.md: "The Know-How Graph"
         The Language:
         - language/bundles.md: "Bundles"
         - language/concepts.md: "Concepts"
@@ -79,7 +80,6 @@ plugins:
         - packages/lock-file.md: "The Lock File"
         - packages/distribution.md: "Distribution"
         - packages/version-resolution.md: "Version Resolution"
-        - know-how-graph/index.md: "The Know-How Graph"
         - packages/registry.md: "The Registry"
         - packages/registry-indexing.md: "Registry Indexing"
         - packages/registry-search.md: "Registry Search"
@@ -146,6 +146,7 @@ nav:
     - What is MTHDS?: what-is-mthds/index.md
     - Design Philosophy: about/philosophy.md
     - Comparison with Agent Skills: about/comparison-agent-skills.md
+    - The Know-How Graph: know-how-graph/index.md
   - The Language:
     - Bundles: language/bundles.md
     - Concepts: language/concepts.md
@@ -164,7 +165,6 @@ nav:
     - The Lock File: packages/lock-file.md
     - Distribution: packages/distribution.md
     - Version Resolution: packages/version-resolution.md
-    - The Know-How Graph: know-how-graph/index.md
     - The Registry:
       - Registry Overview: packages/registry.md
       - Registry Indexing: packages/registry-indexing.md

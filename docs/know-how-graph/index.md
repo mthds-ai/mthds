@@ -4,7 +4,7 @@ description: "Explore the Know-How Graph — a typed, searchable network of AI m
 
 # The Know-How Graph
 
-The package system provides the infrastructure for something unique to MTHDS: the **Know-How Graph** — a typed, searchable network of AI methods that spans packages.
+When packages export typed pipes and concepts into a shared ecosystem, something emerges: the **Know-How Graph** — a typed, searchable network of AI methods that spans packages. Instead of searching for methods by keyword or description, you can ask "I have a `ContractDocument`, I need a `NonCompeteClause`" and the graph finds the methods — or chains of methods — that get you there.
 
 ## Pipes as Typed Nodes
 
@@ -13,7 +13,7 @@ Every exported pipe has a typed signature — the concepts it accepts and the co
 ```
 extract_clause:          (ContractDocument) → NonCompeteClause
 classify_document:       (Document)         → ClassifiedDocument
-compute_weighted_score:  (Text)             → ScoreResult
+summarize_findings:      (Text)             → ExecutiveSummary
 ```
 
 These signatures, combined with the concept refinement hierarchy, form a directed graph:
@@ -68,8 +68,13 @@ The Know-How Graph emerges naturally from the package system:
 
 The result is a federated network of composable, discoverable, type-safe AI methods — where finding the right method is as precise as asking "I have X, I need Y."
 
+The Know-How Graph is infrastructure that agents can navigate. An agent can discover methods by typed signature, compose multi-step chains through intermediate concepts, and build new methods that extend the graph. Each method an agent creates or refines becomes a node that other agents — or humans — can discover and reuse. The graph grows as the ecosystem grows.
+
+The ecosystem follows an open-commons model. Common tasks — contract extraction, document classification, expense processing — get solved once and shared as public packages. Organization-specific workflows stay private simply by not being published. When a package is published, the `exports` field in `METHODS.toml` controls which pipes and concepts are part of the public API, but the fundamental privacy boundary is publication itself.
+
 ## See Also
 
+- [The Know-How Graph Viewpoint](https://knowhowgraph.com/) — the extended essay on the Know-How Graph vision and why AI agents need typed methods.
 - [Concepts](../language/concepts.md) — how concepts define typed data and refinement.
 - [Exports & Visibility](../packages/exports-visibility.md) — which pipes are visible in the graph.
 - [Distribution](../packages/distribution.md) — how registries index packages.

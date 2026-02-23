@@ -22,29 +22,25 @@ The schema is auto-generated from the MTHDS data model (PipelexBundleBlueprint).
 
 ## Where to Find It
 
-The schema is hosted at a stable URL for direct use by editors and tooling:
+The schema is distributed with the tools that use it:
 
-**Hosted URL:** [`https://mthds.ai/schema/mthds_schema.json`](https://mthds.ai/schema/mthds_schema.json)
+- **VS Code extension** — the Pipelex extension bundles the schema and uses it for autocompletion and inline validation.
+- **`plxt` CLI** — the `plxt` binary includes the schema for local validation.
+- **`pipelex-tools` PyPI package** — the schema is included in the Python distribution.
 
-The schema is also located at `pipelex/language/mthds_schema.json` in the Pipelex repository. It is auto-generated from the MTHDS data model to ensure it stays in sync with the implementation.
+The schema is also hosted at a stable URL for direct use by editors and other tooling:
+
+**Hosted URL:** [`https://pipelex-config.s3.amazonaws.com/mthds_schema_latest.json`](https://pipelex-config.s3.amazonaws.com/mthds_schema_latest.json)
 
 ## How to Use It
 
 ### With the VS Code Extension
 
-The VS Code extension can use the schema for autocompletion and inline validation. Configure it via `pipelex.schema.associations` in your VS Code settings:
-
-```json
-{
-  "pipelex.schema.associations": {
-    ".*\\.mthds$": "https://mthds.ai/schema/mthds_schema.json"
-  }
-}
-```
+The Pipelex VS Code extension includes the schema and uses it automatically for autocompletion and inline validation of `.mthds` files. No configuration is required.
 
 ### With Other Editors
 
-Any editor that supports JSON Schema for TOML can use the MTHDS schema. Configure your editor's TOML language server to associate `.mthds` files with the schema URL `https://mthds.ai/schema/mthds_schema.json`.
+Any editor that supports JSON Schema for TOML can use the MTHDS schema. Configure your editor's TOML language server to associate `.mthds` files with the schema URL `https://pipelex-config.s3.amazonaws.com/mthds_schema_latest.json`.
 
 ### For Tooling
 

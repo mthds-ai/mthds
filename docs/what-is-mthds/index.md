@@ -8,7 +8,21 @@ MTHDS (pronounced "methods") is an open standard for AI methods. It defines a ty
 
 An AI method in MTHDS is not code in the traditional sense. It is a declaration: "given this kind of input, produce that kind of output, using this approach." An agent or runner decides how to execute it. The method author decides what it means.
 
-MTHDS gives agents the ability to discover, compose, and execute structured AI methods. Instead of relying on unstructured prompts, an agent can search the Know-How Graph for methods by typed signature ("I have a `Document`, I need a `NonCompeteClause`"), compose them into multi-step workflows, and execute them with validated data flow.
+## Why a New Standard?
+
+Current approaches to AI workflows each solve part of the problem but leave significant gaps:
+
+**Code** (Python, frameworks) provides full control, typed outputs, and testability. But the business logic that matters — the actual extraction, analysis, or reasoning steps — is buried in infrastructure code. Domain experts cannot read or iterate on it.
+
+**Natural-language instructions** (prompts, skills) are the opposite: easy to write and human-readable. But they carry no typed outputs, no validation, and no guaranteed output structure. The agent reinterprets them at every invocation.
+
+**Automation platforms** (Zapier, Make, n8n) connect APIs through visual, GUI-based editors designed for deterministic workflows — not for AI. AI capabilities were bolted on after the fact. Their interfaces are built for human point-and-click editing, not for agents to read or compose programmatically. And when workflows require multi-step cognitive work — extraction, analysis, synthesis — these platforms lack the conceptual typing system to validate what flows between steps.
+
+MTHDS provides the missing combination: a declarative language that is typed enough to validate, structured enough to compose, and readable enough for domain experts to understand. The method separates *what* a workflow does from *how* it is executed, analogous to how SQL separates data queries from storage engines.
+
+## Agents as First-Class Participants
+
+MTHDS gives agents the ability to discover, compose, and execute structured AI methods. But agents are not limited to execution. Because `.mthds` files are plain text with typed structure, agents can also *build* new methods, *modify* existing ones, and *extend* the ecosystem. An agent can search the Know-How Graph for methods by typed signature ("I have a `Document`, I need a `NonCompeteClause`"), compose them into multi-step workflows, create new methods that fill gaps in the graph, and execute them with validated data flow. Methods are artifacts agents can create, not just consume.
 
 The language reads close to natural language and is designed to transcribe business logic. ***Concepts*** like `ContractClause`, `CandidateProfile`, or `Joke` carry business meaning directly — they are not programming abstractions but representations of real domain knowledge. A ***Pipe*** that declares `inputs = { doc = "ContractClause" }` and `output = "NonCompeteClause"` reads as a business statement, not as code. Domain experts can read and understand `.mthds` files without programming skills, making methods a shared artifact between technical and non-technical teams.
 

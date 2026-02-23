@@ -39,7 +39,7 @@ plxt lint .
 plxt lint contract_analysis.mthds
 ```
 
-The `plxt lint` command (also available as `plxt check` or `plxt validate`) checks for TOML structural issues and reports errors.
+The `plxt lint` command checks for TOML structural issues and reports errors.
 
 ## Configuration
 

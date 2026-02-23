@@ -107,6 +107,18 @@ function is_compatible(actual_concept, expected_concept):
 
 The refinement graph is built during loading by following `refines` fields across all loaded concepts (including cross-package refinements).
 
+## Output Validation
+
+A compliant runtime validates the output of every pipe against the declared output concept's structure at every intermediate step — not just at the method level. This ensures that errors surface at the step that produces incorrect output, not downstream where the symptoms are harder to trace.
+
+**Recommended approach:**
+
+1. After a pipe produces output, resolve the output concept's definition (including its `structure` fields if any).
+2. Validate the produced data against the concept's type and field constraints — required fields, field types (`text`, `integer`, `boolean`, `list`, `dict`, `number`, `date`, `concept`), and any `choices` enums.
+3. If validation fails, report the error with the pipe code and step index, and halt execution of the current pipeline.
+
+Validation libraries such as Pydantic (Python) or Zod (TypeScript) are natural fits for implementing these checks. Beyond mapping MTHDS concept structures to schema definitions, these libraries also support custom validation logic — expressed in Python or TypeScript — that goes beyond what the MTHDS standard defines.
+
 ## Model References
 
 MTHDS defines four forms of model reference (`$` preset, `@` alias, `~` waterfall, and bare handle) that method authors use in the `model` field of `PipeLLM`, `PipeImgGen`, and `PipeExtract`. See [Model References](../language/model-references.md) for the full description and examples.
