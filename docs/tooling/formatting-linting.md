@@ -8,7 +8,7 @@ description: "Use plxt to format and lint .mthds and TOML files — ensure consi
 
 ## Installation
 
-`plxt` is distributed as a standalone binary. Install it via the instructions in the Pipelex documentation, or use the bundled version included with the VS Code extension.
+`plxt` is distributed as a standalone binary. Install it from the [`pipelex-tools` PyPI package](https://pypi.org/project/pipelex-tools/) (`pip install pipelex-tools`), or use the bundled version included with the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=pipelex.pipelex).
 
 ## Formatting
 

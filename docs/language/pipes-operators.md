@@ -123,7 +123,8 @@ model       = "$gen-image-testing"
 | `negative_prompt` | No | Concepts to avoid in generation. |
 | `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
 | `aspect_ratio` | No | Desired aspect ratio. Values: `square`, `landscape_4_3`, `landscape_3_2`, `landscape_16_9`, `landscape_21_9`, `portrait_3_4`, `portrait_2_3`, `portrait_9_16`, `portrait_9_21`. |
-| `seed` | No | Random seed for reproducibility. `"auto"` lets the model choose. |
+| `is_raw` | No | Whether to use raw mode (less post-processing). |
+| `seed` | No | Random seed for reproducibility. Integer value, or `"auto"` to let the model randomize it. |
 | `background` | No | Background setting. Values: `transparent`, `opaque`, `auto`. |
 | `output_format` | No | Image output format. Values: `png`, `jpeg`, `webp`. |
 

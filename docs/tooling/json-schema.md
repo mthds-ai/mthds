@@ -18,7 +18,7 @@ The schema defines the complete structure of an `.mthds` bundle:
 
 ## Schema Version
 
-The schema is auto-generated from the MTHDS data model (PipelexBundleBlueprint). The current version is noted in the schema's `$comment` field. The hosted schema always corresponds to the latest released version of the MTHDS standard.
+The schema is auto-generated from the MTHDS bundle data model. The current version is noted in the schema's `$comment` field. The hosted schema always corresponds to the latest released version of the MTHDS standard.
 
 ## Where to Find It
 
@@ -30,7 +30,7 @@ The schema is distributed with the tools that use it:
 
 The schema is also hosted at a stable URL for direct use by editors and other tooling:
 
-**Hosted URL:** [`https://pipelex-config.s3.amazonaws.com/mthds_schema_latest.json`](https://pipelex-config.s3.amazonaws.com/mthds_schema_latest.json)
+**Hosted URL:** [`https://mthds.ai/mthds_schema.json`](https://mthds.ai/mthds_schema.json)
 
 ## How to Use It
 
@@ -40,7 +40,7 @@ The Pipelex VS Code extension includes the schema and uses it automatically for 
 
 ### With Other Editors
 
-Any editor that supports JSON Schema for TOML can use the MTHDS schema. Configure your editor's TOML language server to associate `.mthds` files with the schema URL `https://pipelex-config.s3.amazonaws.com/mthds_schema_latest.json`.
+Any editor that supports JSON Schema for TOML can use the MTHDS schema. Configure your editor's TOML language server to associate `.mthds` files with the schema URL `https://mthds.ai/mthds_schema.json`.
 
 ### For Tooling
 

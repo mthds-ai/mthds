@@ -32,9 +32,10 @@ refines = "Text"
 [pipe.analyze_cv_job_match_and_generate_questions]
 type = "PipeSequence"
 description = """
-Main pipeline that orchestrates the complete CV-job matching and interview question generation method. Takes a candidate's CV and a job offer as PDF documents, extracts their content, performs a comprehensive match analysis identifying strengths, gaps, and areas to probe, and generates exactly 5 targeted interview questions based on the analysis results.
+Takes a CV and a job offer, extracts their content, analyzes strengths and gaps, \
+and generates 5 targeted interview questions.
 """
-inputs = { cv_pdf = "PDF", job_offer_pdf = "PDF" }
+inputs = { cv = "Document", job_offer = "Document" }
 output = "Question[5]"
 steps = [
     { pipe = "extract_documents_parallel", result = "extracted_documents" },
