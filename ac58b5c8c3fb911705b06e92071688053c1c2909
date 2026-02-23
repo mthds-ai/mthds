@@ -1,0 +1,25 @@
+docs/stylesheets/general.css
+  1edc23990a8f96ab 2,7-12,14-16,18,21-24,26-27,31-32,35-37,40-44,49-54,57-60,63-70,73-74,77-79,82-86,89,92,102,112,118-119,123-124,128-137,143
+mkdocs.yml
+  1edc23990a8f96ab 23,29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "ac58b5c8c3fb911705b06e92071688053c1c2909",
+  "prompts": {
+    "1edc23990a8f96ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "04882285-6f33-45c3-b40d-f1b70095c9c2",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 87,
+      "total_deletions": 71,
+      "accepted_lines": 76,
+      "overriden_lines": 0
+    }
+  }
+}
