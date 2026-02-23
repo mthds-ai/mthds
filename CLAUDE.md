@@ -1,6 +1,6 @@
-# MTHDS Documentation Site
+# MTHDS Site
 
-This is the MkDocs (Material theme) documentation site for the MTHDS open standard.
+This is the documentation site for the MTHDS open standard.
 
 ## Project Setup
 

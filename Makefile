@@ -49,7 +49,7 @@ define ROOT_INDEX_HTML
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="0;url=/latest/">
 <link rel="canonical" href="https://mthds.ai/latest/">
-<title>MTHDS Documentation</title>
+<title>MTHDS</title>
 </head>
 <body>
 <p>Redirecting to <a href="/latest/">MTHDS Documentation</a>...</p>
