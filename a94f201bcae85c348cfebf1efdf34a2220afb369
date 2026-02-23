@@ -1,0 +1,57 @@
+docs/tooling/formatting-linting.md
+  78f0b842239a17f0 42
+docs/implementers/runtime.md
+  3a7ddeb8bb170308 110-111,113-119,121
+  78f0b842239a17f0 112,120
+docs/index.md
+  3a7ddeb8bb170308 7,9-11,17,45
+docs/tooling/json-schema.md
+  3a7ddeb8bb170308 25,27-29,31,33,43
+  78f0b842239a17f0 39
+mkdocs.yml
+  3a7ddeb8bb170308 32,64,149
+docs/know-how-graph/index.md
+  3a7ddeb8bb170308 71-72,74,77
+  78f0b842239a17f0 7,16,73
+docs/packages/distribution.md
+  78f0b842239a17f0 59
+docs/what-is-mthds/index.md
+  3a7ddeb8bb170308 11-16,18,20-25
+  78f0b842239a17f0 19
+docs/about/philosophy.md
+  3a7ddeb8bb170308 9-10,12,46-49
+  78f0b842239a17f0 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "a94f201bcae85c348cfebf1efdf34a2220afb369",
+  "prompts": {
+    "3a7ddeb8bb170308": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b9284f48-67df-46f4-b72f-024f04bb71d5",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 92,
+      "total_deletions": 14,
+      "accepted_lines": 51,
+      "overriden_lines": 1
+    },
+    "78f0b842239a17f0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f8a7c04b-a794-4c38-be27-e0b2b0718bfc",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 13,
+      "total_deletions": 50,
+      "accepted_lines": 10,
+      "overriden_lines": 0
+    }
+  }
+}
