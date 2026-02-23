@@ -1,0 +1,48 @@
+docs/mthds_schema.json
+  bb3f44b54bb5f237 948-949
+docs/language/pipes-operators.md
+  8a55fac6afc05422 126
+docs/tooling/formatting-linting.md
+  8a55fac6afc05422 11
+docs/index.md
+  bb3f44b54bb5f237 35-36
+docs/tooling/json-schema.md
+  8a55fac6afc05422 21,33,43
+docs/packages/registry.md
+  8a55fac6afc05422 7-9
+docs/spec/mthds-format.md
+  8a55fac6afc05422 362-365,452-455
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "d76e3e46d61ea9fe9ad62e8d0b1a8a9dbfbeacb7",
+  "prompts": {
+    "8a55fac6afc05422": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "301b3b10-b9d1-4e52-9f1d-52900bf24db9",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 20,
+      "total_deletions": 8,
+      "accepted_lines": 17,
+      "overriden_lines": 0
+    },
+    "bb3f44b54bb5f237": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "93a9ca0d-f373-4120-84a4-86a3912a1ce6",
+        "model": "claude-4.6-opus-high-thinking"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 4,
+      "total_deletions": 2,
+      "accepted_lines": 4,
+      "overriden_lines": 0
+    }
+  }
+}
