@@ -239,7 +239,7 @@ docs-delete: env
 
 update-schema:
 	$(call PRINT_TITLE,"Downloading latest JSON Schema")
-	curl -fSL "$(SCHEMA_URL)" -o "$(CURDIR)/docs/schema/mthds_schema.json"
+	curl -fSL "$(SCHEMA_URL)" -o "$(CURDIR)/docs/mthds_schema.json"
 
 up: update-schema
 	@echo "> done: update-schema"
