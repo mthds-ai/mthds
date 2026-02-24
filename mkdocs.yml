@@ -99,7 +99,6 @@ plugins:
         - getting-started/first-method.md: "Write Your First Method"
         - guides/create-package.md: "Create a Package"
         - guides/use-dependencies.md: "Use Dependencies"
-        - guides/publish-package.md: "Publish a Package"
         - guides/discover-methods.md: "Discover Methods"
         For Implementers:
         - implementers/runtime.md: "Building a Runtime"
@@ -187,7 +186,6 @@ nav:
     - Write Your First Method: getting-started/first-method.md
     - Create a Package: guides/create-package.md
     - Use Dependencies: guides/use-dependencies.md
-    - Publish a Package: guides/publish-package.md
     - Discover Methods: guides/discover-methods.md
   - For Implementers:
     - Building a Runtime: implementers/runtime.md

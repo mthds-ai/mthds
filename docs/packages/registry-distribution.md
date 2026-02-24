@@ -125,26 +125,6 @@ GET /v1/packages/{address}/signals
 }
 ```
 
-## Publish Notification
-
-After a package passes [publish validation](../guides/publish-package.md) and a version tag is pushed to Git, the CLI MAY notify one or more registries to trigger re-indexing:
-
-```
-POST /v1/packages/{address}/notify
-Content-Type: application/json
-Authorization: Bearer <token>
-
-{
-  "version": "1.2.0",
-  "tag": "v1.2.0",
-  "clone_url": "https://github.com/acme/legal-tools.git"
-}
-```
-
-A registry MUST respond with `202 Accepted` if it acknowledges the notification. The actual re-indexing happens asynchronously.
-
-A registry MUST NOT require publish notification — it MUST be capable of discovering new versions through polling or webhooks independently.
-
 ## Multi-Tier Deployment
 
 Registries support the same deployment tiers described in [Distribution](distribution.md):
@@ -194,5 +174,4 @@ Registry URLs are resolved in this order of precedence:
 - [The Registry](registry.md) — API endpoints and schemas.
 - [Registry Indexing](registry-indexing.md) — how registries build the index.
 - [Distribution](distribution.md) — the federated storage model that registries build upon.
-- [Publish a Package](../guides/publish-package.md) — how to publish and notify registries.
 - [Version Resolution](version-resolution.md) — how version constraints are resolved.
