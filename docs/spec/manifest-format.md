@@ -31,6 +31,7 @@ A `METHODS.toml` file contains up to three top-level sections:
 | `authors` | array of strings | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | string | No | SPDX license identifier (e.g., `"MIT"`, `"Apache-2.0"`). |
 | `mthds_version` | string | No | MTHDS standard version constraint. If set, MUST be a valid version constraint. |
+| `main_pipe` | string | No | The package's entry-point pipe code. MUST be `snake_case` (matching `[a-z][a-z0-9_]*`). MUST reference a pipe declared in the `[exports]` section. See [Main Pipe](#main-pipe). |
 
 ### Address Format
 
@@ -90,6 +91,30 @@ MAJOR.MINOR.PATCH[-pre-release][+build-metadata]
 The `mthds_version` field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see [Version Constraint Syntax](#version-constraint-syntax)).
 
 The current MTHDS standard version is `1.0.0`.
+
+### Main Pipe
+
+The optional `main_pipe` field designates the package's primary entry point — the pipe that runs when a user invokes the package by slug or address:
+
+```bash
+npx mthds run legal-tools
+npx mthds run github.com/acme/legal-tools
+```
+
+**Constraints:**
+
+- The value MUST be a valid `snake_case` pipe code (matching `[a-z][a-z0-9_]*`).
+- The referenced pipe MUST be declared in the `[exports]` section. A manifest that sets `main_pipe` to a pipe not listed in exports is invalid.
+- When `main_pipe` is not set, the package has no default entry point. It can still be consumed as a library by importing specific pipes.
+
+**Example:**
+
+```toml
+[package]
+address   = "github.com/acme/legal-tools"
+version   = "0.3.0"
+main_pipe = "analyze_nda"
+```
 
 ## The `[dependencies]` Section
 
@@ -250,6 +275,7 @@ description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
 mthds_version = ">=1.0.0"
+main_pipe     = "analyze_nda"
 
 [dependencies]
 docproc     = { address = "github.com/mthds/document-processing", version = "^1.0.0" }
