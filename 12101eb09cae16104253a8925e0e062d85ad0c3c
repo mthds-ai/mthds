@@ -1,0 +1,27 @@
+docs/stylesheets/general.css
+  33e800f6c0a790a2 74
+docs/language/model-references.md
+  33e800f6c0a790a2 146
+docs/spec/mthds-format.md
+  33e800f6c0a790a2 466
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "12101eb09cae16104253a8925e0e062d85ad0c3c",
+  "prompts": {
+    "33e800f6c0a790a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1f088f5d-fb0d-476b-88db-74ecd0792148",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 3,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    }
+  }
+}
