@@ -463,7 +463,7 @@ inputs      = { description = "Text" }
 output      = "Image"
 prompt       = "A professional portrait: $description"
 aspect_ratio = "portrait_3_4"
-model        = { model = "flux-pro", quality = "high", nb_steps = 50 }
+model        = { model = "flux-pro", quality = "high" }
 ```
 
 ## Operator: PipeExtract

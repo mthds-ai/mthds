@@ -143,7 +143,7 @@ description = "Generate a portrait"
 inputs      = { description = "Text" }
 output      = "Image"
 prompt      = "A professional portrait: $description"
-model       = { model = "flux-pro", quality = "high", nb_steps = 50 }
+model       = { model = "flux-pro", quality = "high" }
 ```
 
 **Example — PipeExtract with inline settings:**
