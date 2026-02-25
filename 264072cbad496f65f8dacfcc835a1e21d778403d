@@ -1,0 +1,23 @@
+docs/spec/cli-io-contract.md
+  6b5295015e7090d9 30-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.5",
+  "base_commit_sha": "264072cbad496f65f8dacfcc835a1e21d778403d",
+  "prompts": {
+    "6b5295015e7090d9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3a0a679e-f73b-4155-b7ef-b1bca6a31238",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 0,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    }
+  }
+}
