@@ -12,7 +12,7 @@ Three rules govern visibility:
 
 - **Concepts are always public.** Concepts are vocabulary — they are always accessible from outside the package.
 - **Pipes are private by default.** A pipe not listed in `[exports]` is an implementation detail, invisible to consumers.
-- **`main_pipe` is auto-exported.** If a bundle declares a `main_pipe` in its header, that pipe is automatically part of the public API, regardless of whether it appears in `[exports]`.
+- **`main_pipe` must be exported.** If a package declares a `main_pipe`, that pipe MUST appear in the `[exports]` section.
 
 ## Declaring Exports
 
@@ -44,7 +44,7 @@ pipes = ["compute_weighted_score"]
 
 **Bundles in other domains** (say, `analysis`) can reference `scoring.compute_weighted_score` because it is exported. They cannot reference `scoring.internal_helper` because it is not in the exports list.
 
-**External packages** that depend on this package follow the same rule: only exported pipes (and `main_pipe` pipes) are accessible via [cross-package references](cross-package-references.md).
+**External packages** that depend on this package follow the same rule: only exported pipes are accessible via [cross-package references](cross-package-references.md).
 
 ## Intra-Package Visibility Summary
 
@@ -52,7 +52,6 @@ pipes = ["compute_weighted_score"]
 |---------------|----------|
 | Bare references (same bundle or same domain) | Always |
 | Cross-domain references to exported pipes | Yes |
-| Cross-domain references to `main_pipe` pipes | Yes |
 | Cross-domain references to non-exported pipes | No — visibility error |
 
 ## Standalone Bundles

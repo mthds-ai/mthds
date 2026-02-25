@@ -17,13 +17,14 @@ A `METHODS.toml` file contains up to three top-level sections:
 | Section | Required | Description |
 |---------|----------|-------------|
 | `[package]` | Yes | Package identity and metadata. |
-| `[dependencies]` | No | Dependencies on other MTHDS packages. |
+| `[dependencies]` | No | Dependencies on other MTHDS packages. **Not yet implemented.** |
 | `[exports]` | No | Visibility declarations for pipes. |
 
 ## The `[package]` Section
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
+| `name` | string | Yes | The name of the method. MUST be `kebab-case` (matching `[a-z][a-z0-9]*(-[a-z0-9]+)*`), max 25 characters. See [Name](#name). |
 | `address` | string | Yes | Globally unique package identifier. MUST follow the hostname/path pattern. |
 | `display_name` | string | No | Human-friendly display label. When provided, MUST NOT be empty or whitespace-only, MUST NOT exceed 128 characters, and MUST NOT contain Unicode control characters (category Cc). Leading and trailing whitespace is stripped. |
 | `version` | string | Yes | Package version. MUST be valid [semantic versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`, with optional pre-release and build metadata). |
@@ -31,6 +32,7 @@ A `METHODS.toml` file contains up to three top-level sections:
 | `authors` | array of strings | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | string | No | SPDX license identifier (e.g., `"MIT"`, `"Apache-2.0"`). |
 | `mthds_version` | string | No | MTHDS standard version constraint. If set, MUST be a valid version constraint. |
+| `main_pipe` | string | No | The package's entry-point pipe code. MUST be `snake_case` (matching `[a-z][a-z0-9_]*`). MUST reference a pipe declared in the `[exports]` section. See [Main Pipe](#main-pipe). |
 
 ### Address Format
 
@@ -55,6 +57,24 @@ legal-tools                     # No hostname
 acme/legal-tools                # No dot in hostname
 ```
 
+### Name
+
+The `name` field is the name of the method. It is the primary identifier for the method — it appears in CLI output, registry listings, and documentation.
+
+**Constraints:**
+
+- MUST be `kebab-case`, matching the pattern `[a-z][a-z0-9]*(-[a-z0-9]+)*`.
+- MUST NOT exceed 25 characters.
+- MUST NOT be empty.
+
+**Example:**
+
+```toml
+[package]
+name    = "nda-analyzer"
+address = "github.com/acme/legal-tools"
+```
+
 ### Display Name
 
 The optional `display_name` field provides a human-friendly label for the package. It appears in CLI output, registry listings, and error messages. It is cosmetic only — the `address` remains the sole canonical identifier.
@@ -71,8 +91,9 @@ The optional `display_name` field provides a human-friendly label for the packag
 
 ```toml
 [package]
+name         = "nda-analyzer"
 address      = "github.com/acme/legal-tools"
-display_name = "Legal Tools"
+display_name = "Nda Analyzer"
 ```
 
 ### Version Format
@@ -91,7 +112,34 @@ The `mthds_version` field, if present, declares which versions of the MTHDS stan
 
 The current MTHDS standard version is `1.0.0`.
 
+### Main Pipe
+
+The optional `main_pipe` field designates the package's primary entry point — the pipe that runs when a user invokes the package by slug or address:
+
+```bash
+mthds run method nda-analyzer
+mthds run method github.com/acme/legal-tools
+```
+
+**Constraints:**
+
+- The value MUST be a valid `snake_case` pipe code (matching `[a-z][a-z0-9_]*`).
+- The referenced pipe MUST be declared in the `[exports]` section. A manifest that sets `main_pipe` to a pipe not listed in exports is invalid.
+- When `main_pipe` is not set, the package has no default entry point. It can still be consumed as a library by importing specific pipes.
+
+**Example:**
+
+```toml
+[package]
+name      = "nda-analyzer"
+address   = "github.com/acme/legal-tools"
+version   = "0.3.0"
+main_pipe = "analyze_nda"
+```
+
 ## The `[dependencies]` Section
+
+> **Not yet implemented.** Dependencies between packages are planned but not yet supported. The specification below describes the intended behavior for a future release.
 
 Each entry in `[dependencies]` declares a dependency on another MTHDS package. The key is the **alias** — a `snake_case` identifier used in cross-package references (`->` syntax).
 
@@ -158,7 +206,7 @@ The `[exports]` section controls which pipes are visible to consumers of the pac
 
 - **Concepts are always public.** Concepts are vocabulary — they are always accessible from outside the package.
 - **Pipes are private by default.** A pipe not listed in `[exports]` is an implementation detail, invisible to consumers.
-- **`main_pipe` is auto-exported.** If a bundle declares a `main_pipe`, that pipe is automatically part of the public API, regardless of whether it appears in `[exports]`.
+- **`main_pipe` must be exported.** If a package declares a `main_pipe`, that pipe MUST appear in the `[exports]` section.
 
 ### Exports Table Structure
 
@@ -243,6 +291,7 @@ When loading a `.mthds` bundle, a compliant implementation SHOULD discover the m
 
 ```toml
 [package]
+name          = "nda-analyzer"
 address       = "github.com/acme/legal-tools"
 display_name  = "Legal Tools"
 version       = "0.3.0"
@@ -250,10 +299,7 @@ description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
 mthds_version = ">=1.0.0"
-
-[dependencies]
-docproc     = { address = "github.com/mthds/document-processing", version = "^1.0.0" }
-scoring_lib = { address = "github.com/mthds/scoring-lib", version = "^0.5.0" }
+main_pipe     = "analyze_nda"
 
 [exports.legal]
 pipes = ["classify_document"]

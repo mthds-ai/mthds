@@ -96,7 +96,6 @@ Each pipe definition produces a `PipeSignature`:
 The `is_exported` flag is determined by the manifest's `[exports]` section:
 
 - If the manifest declares exports for the pipe's domain and the pipe code appears in the exports list, `is_exported` is `true`.
-- If the pipe is the bundle's `main_pipe`, it is auto-exported.
 - If no exports are declared at all (no manifest), all pipes are considered exported.
 
 ### Step 4: Assemble the Index Entry
