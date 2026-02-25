@@ -27,7 +27,10 @@ The concept's rendered JSON is emitted directly — no envelope, no metadata:
 This is the structured content of the method's main output concept. Standard JSON tools work directly:
 
 ```bash
-mthds-agent pipelex run extract-terms/ | jq '.clauses[] | select(.risk_level == "high")'
+mthds-agent pipelex run method extract-terms | jq '.clauses[] | select(.risk_level == "high")'
+
+# Or using the installed CLI shim:
+extract-terms | jq '.clauses[] | select(.risk_level == "high")'
 ```
 
 When the method has no main output (empty working memory), an empty object `{}` is emitted.
@@ -92,10 +95,17 @@ The `--inputs` / `-i` flag accepts a file path or inline JSON string. If the val
 
 ```bash
 # Inline JSON
-mthds-agent pipelex run my-method/ --inputs '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}'
+mthds-agent pipelex run method my-method --inputs '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}'
 
 # File path
-mthds-agent pipelex run my-method/ --inputs data.json
+mthds-agent pipelex run method my-method --inputs data.json
+```
+
+When a method is installed as a CLI shim (see [CLI Reference](../cli/index.md)), the same commands are available as:
+
+```bash
+my-method --inputs '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}'
+my-method --inputs data.json
 ```
 
 When `--inputs` is provided, stdin is ignored entirely. This allows overriding piped data for debugging.
@@ -105,7 +115,7 @@ When `--inputs` is provided, stdin is ignored entirely. This allows overriding p
 When `--inputs` is not provided and stdin is not a TTY (i.e., data is being piped), JSON is read from stdin:
 
 ```bash
-echo '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}' | mthds-agent pipelex run my-method/
+echo '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}' | mthds-agent pipelex run method my-method
 ```
 
 When stdin is a TTY (interactive terminal), no stdin reading occurs and the method runs without inputs.
@@ -142,7 +152,7 @@ The input resolution rules when receiving a full envelope:
 2. **Single-input shortcut**: If the downstream method declares exactly one input, it auto-binds to the upstream's `main_stuff` content. This is the common case for simple chains:
 
     ```bash
-    mthds-agent pipelex run extract-terms/ --with-memory | mthds-agent pipelex run assess-risk/
+    extract-terms --with-memory | assess-risk
     ```
 
 3. **Error on failure**: If the downstream method's declared inputs cannot be satisfied from the upstream's working memory, a clear error is raised listing what was available upstream vs. what was expected downstream.
@@ -166,9 +176,9 @@ In a Unix pipe chain, errors stop execution at the failing step. Use `set -o pip
 
 ```bash
 set -o pipefail
-mthds-agent pipelex run extract-terms/ --with-memory \
-  | mthds-agent pipelex run assess-risk/ --with-memory \
-  | mthds-agent pipelex run generate-report/
+extract-terms --with-memory \
+  | assess-risk --with-memory \
+  | generate-report
 ```
 
 ## Examples
@@ -177,9 +187,9 @@ mthds-agent pipelex run extract-terms/ --with-memory \
 
 ```bash
 # Extract terms, then assess risk, then generate report
-mthds-agent pipelex run extract-terms/ --inputs '{"document": {"concept": "native.Document", "content": {"url": "contract.pdf"}}}' --with-memory \
-  | mthds-agent pipelex run assess-risk/ --with-memory \
-  | mthds-agent pipelex run generate-report/
+extract-terms --inputs '{"document": {"concept": "native.Document", "content": {"url": "contract.pdf"}}}' --with-memory \
+  | assess-risk --with-memory \
+  | generate-report
 ```
 
 Each intermediate step uses `--with-memory` to pass the full envelope. The final step omits it to produce compact output.
@@ -188,7 +198,7 @@ Each intermediate step uses `--with-memory` to pass the full envelope. The final
 
 ```bash
 # Extract just the high-risk clauses
-mthds-agent pipelex run extract-terms/ --inputs data.json \
+extract-terms --inputs data.json \
   | jq '.clauses[] | select(.risk_level == "high")'
 ```
 
@@ -196,7 +206,7 @@ mthds-agent pipelex run extract-terms/ --inputs data.json \
 
 ```bash
 # The --inputs flag overrides whatever comes from stdin
-echo '{"old": "data"}' | mthds-agent pipelex run my-method/ --inputs '{"new": "data"}'
+echo '{"old": "data"}' | mthds-agent pipelex run method my-method --inputs '{"new": "data"}'
 ```
 
 The `--inputs` flag always wins — the stdin data is ignored.
