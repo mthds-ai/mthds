@@ -136,24 +136,3 @@ For `methods.lock`:
 2. Each entry's `hash` MUST match `sha256:[0-9a-f]{64}`.
 3. Each entry's `source` MUST start with `https://`.
 
-## Stage 9: Publish Validation
-
-The `mthds pkg publish` command runs 15 checks across seven categories. These are advisory (for distribution readiness) rather than mandatory for loading:
-
-| # | Category | Check | Level |
-|---|----------|-------|-------|
-| 1 | Manifest | `METHODS.toml` exists and parses | Error |
-| 2 | Manifest | Authors are specified | Warning |
-| 3 | Manifest | License is specified | Warning |
-| 4 | Manifest | `mthds_version` constraint is parseable | Error |
-| 5 | Manifest | `mthds_version` is satisfiable by current standard version | Warning |
-| 6 | Bundle | At least one `.mthds` file exists | Error |
-| 7 | Bundle | All bundles parse without error | Error |
-| 8 | Export | Every exported pipe exists in the scanned bundles | Error |
-| 9 | Visibility | Cross-domain pipe references respect export rules | Error |
-| 10 | Visibility | Bundles do not use reserved domains | Error |
-| 11 | Visibility | Cross-package references use known dependency aliases | Error |
-| 12 | Dependency | No wildcard (`*`) version constraints | Warning |
-| 13 | Lock file | `methods.lock` exists for packages with remote dependencies | Error |
-| 14 | Lock file | Lock file includes all remote dependency addresses | Warning |
-| 15 | Git | Working directory is clean; version tag does not already exist | Warning/Error |

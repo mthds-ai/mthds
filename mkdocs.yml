@@ -1,6 +1,6 @@
-site_name: MTHDS Documentation
+site_name: MTHDS
 site_url: https://mthds.ai/
-site_description: "Official documentation for MTHDS."
+site_description: "Official documentation for the MTHDS open standard."
 docs_dir: docs
 repo_url: "https://github.com/mthds-ai/mthds"
 repo_name: "MTHDS on GitHub"
@@ -20,16 +20,18 @@ theme:
   palette:
   - scheme: default          # light
     primary: custom
+    accent: custom
     toggle:
       icon: material/weather-night
       name: Switch to dark mode
   - scheme: slate            # dark
     primary: custom
+    accent: custom
     toggle:
       icon: material/weather-sunny
       name: Switch to light mode
 
-copyright: "© 2026 Evotis S.A.S."
+copyright: "© 2025-2026 Evotis S.A.S."
 
 extra:
   social:
@@ -61,6 +63,7 @@ plugins:
         - what-is-mthds/index.md: "What is MTHDS?"
         - about/philosophy.md: "Design Philosophy"
         - about/comparison-agent-skills.md: "Comparison with Agent Skills"
+        - know-how-graph/index.md: "The Know-How Graph"
         The Language:
         - language/bundles.md: "Bundles"
         - language/concepts.md: "Concepts"
@@ -79,7 +82,6 @@ plugins:
         - packages/lock-file.md: "The Lock File"
         - packages/distribution.md: "Distribution"
         - packages/version-resolution.md: "Version Resolution"
-        - know-how-graph/index.md: "The Know-How Graph"
         - packages/registry.md: "The Registry"
         - packages/registry-indexing.md: "Registry Indexing"
         - packages/registry-search.md: "Registry Search"
@@ -97,7 +99,6 @@ plugins:
         - getting-started/first-method.md: "Write Your First Method"
         - guides/create-package.md: "Create a Package"
         - guides/use-dependencies.md: "Use Dependencies"
-        - guides/publish-package.md: "Publish a Package"
         - guides/discover-methods.md: "Discover Methods"
         For Implementers:
         - implementers/runtime.md: "Building a Runtime"
@@ -146,6 +147,7 @@ nav:
     - What is MTHDS?: what-is-mthds/index.md
     - Design Philosophy: about/philosophy.md
     - Comparison with Agent Skills: about/comparison-agent-skills.md
+    - The Know-How Graph: know-how-graph/index.md
   - The Language:
     - Bundles: language/bundles.md
     - Concepts: language/concepts.md
@@ -164,7 +166,6 @@ nav:
     - The Lock File: packages/lock-file.md
     - Distribution: packages/distribution.md
     - Version Resolution: packages/version-resolution.md
-    - The Know-How Graph: know-how-graph/index.md
     - The Registry:
       - Registry Overview: packages/registry.md
       - Registry Indexing: packages/registry-indexing.md
@@ -185,7 +186,6 @@ nav:
     - Write Your First Method: getting-started/first-method.md
     - Create a Package: guides/create-package.md
     - Use Dependencies: guides/use-dependencies.md
-    - Publish a Package: guides/publish-package.md
     - Discover Methods: guides/discover-methods.md
   - For Implementers:
     - Building a Runtime: implementers/runtime.md

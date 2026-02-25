@@ -108,6 +108,59 @@ All four reference forms (`$`, `@`, `~`, bare) work identically across all three
 !!! note "Runtime compliance"
     The MTHDS standard requires only that the `model` field be a string. The prefix convention (`$`, `@`, `~`) is a standard pattern that runtimes are expected to support, but a compliant runtime may implement model references differently — for example, treating all model strings as direct identifiers.
 
+## Inline Settings
+
+The `model` field can also be a TOML table instead of a string, providing full model configuration directly in the pipe definition. This is useful when a pipe needs specific model parameters that do not warrant creating a named preset.
+
+Each pipe type that accepts `model` has a corresponding inline settings structure:
+
+- **PipeLLM** uses `LLMSetting` — includes `model`, `temperature`, `max_tokens`, `image_detail`, `prompting_target`, `reasoning_effort`, `reasoning_budget`.
+- **PipeImgGen** uses `ImgGenSetting` — includes `model`, `quality`, `nb_steps`, `guidance_scale`, `is_moderated`, `safety_tolerance`.
+- **PipeExtract** uses `ExtractSetting` — includes `model`, `max_nb_images`, `image_min_size`.
+
+All three require a `model` field (the model handle) and accept an optional `description`.
+
+**Example — PipeLLM with inline settings:**
+
+```toml
+[pipe.analyze_cv]
+type = "PipeLLM"
+description = "Analyze a CV"
+output = "CVAnalysis"
+prompt = "Analyze: @cv_pages"
+model = { model = "claude-4.5-sonnet", temperature = 0.1, max_tokens = 4096 }
+
+[pipe.analyze_cv.inputs]
+cv_pages = "Page"
+```
+
+**Example — PipeImgGen with inline settings:**
+
+```toml
+[pipe.generate_portrait]
+type        = "PipeImgGen"
+description = "Generate a portrait"
+inputs      = { description = "Text" }
+output      = "Image"
+prompt      = "A professional portrait: $description"
+model       = { model = "flux-pro", quality = "high" }
+```
+
+**Example — PipeExtract with inline settings:**
+
+```toml
+[pipe.extract_cv]
+type        = "PipeExtract"
+description = "Extract text content from a CV PDF"
+inputs      = { cv_pdf = "Document" }
+output      = "Page[]"
+model       = { model = "gpt-4.1", max_nb_images = 10 }
+```
+
+Inline settings and string references are mutually exclusive — the `model` field is either a string or a table, never both.
+
+For the full field reference of each settings structure, see the [.mthds File Format specification](../spec/mthds-format.md#inline-llm-settings).
+
 ## See Also
 
 - [Pipes — Operators](pipes-operators.md) — the pipe types that use model references.

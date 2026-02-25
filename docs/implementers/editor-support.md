@@ -87,7 +87,7 @@ In the `plxt.toml` configuration, associate `.mthds` files with the schema:
 include = ["**/*.mthds"]
 
 [rule.schema]
-path = "path/to/mthds_schema.json"
+url = "https://mthds.ai/mthds_schema.json"
 ```
 
 ## LSP Integration Points

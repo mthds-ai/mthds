@@ -10,6 +10,7 @@ PYTHON_VERSION ?= 3.13
 VENV_PYTHON := $(VIRTUAL_ENV)/bin/python
 VENV_MKDOCS := $(VIRTUAL_ENV)/bin/mkdocs
 VENV_MIKE := $(VIRTUAL_ENV)/bin/mike
+SCHEMA_URL := https://pipelex-config.s3.amazonaws.com/mthds_schema_latest.json
 
 UV_MIN_VERSION = $(shell grep -m1 'required-version' pyproject.toml | sed -E 's/.*= *"([^<>=, ]+).*/\1/')
 
@@ -48,7 +49,7 @@ define ROOT_INDEX_HTML
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="0;url=/latest/">
 <link rel="canonical" href="https://mthds.ai/latest/">
-<title>MTHDS Documentation</title>
+<title>MTHDS</title>
 </head>
 <body>
 <p>Redirecting to <a href="/latest/">MTHDS Documentation</a>...</p>
@@ -73,13 +74,16 @@ make docs-list                        - List deployed documentation versions
 make docs-deploy VERSION=x.y.z       - Deploy docs as version x.y.z (local, no push)
 make docs-deploy-stable               - Deploy stable docs with 'latest' alias (CI only)
 make docs-deploy-specific-version     - Deploy docs for the current version with 'pre-release' alias (CI only)
-make docs-deploy-root                 - Deploy root assets (404, robots.txt, index redirect) to gh-pages
+make docs-deploy-root                 - Deploy root assets (404, robots.txt, index redirect, JSON Schema) to gh-pages
 make docs-delete VERSION=x.y.z       - Delete a deployed documentation version
 
 make cleanenv                         - Remove virtual env
 make cleanderived                     - Remove mkdocs build output
 make cleanall                         - Remove all -> cleanenv + cleanderived
 make reinstall                        - Reinstall dependencies
+
+make update-schema                    - Download latest JSON Schema from S3
+make up                               - Shorthand -> update-schema
 
 make li                               - Shorthand -> lock install
 
@@ -91,6 +95,7 @@ export HELP
 	cleanderived cleanenv cleanall reinstall ri \
 	docs docs-check docs-serve-versioned docs-list \
 	docs-deploy docs-deploy-stable docs-deploy-specific-version docs-deploy-root docs-delete \
+	update-schema up \
 	li check-uv check-uv-verbose
 
 all help:
@@ -209,17 +214,18 @@ docs-deploy-specific-version: env
 	$(MAKE) docs-deploy-root
 
 docs-deploy-root:
-	$(call PRINT_TITLE,"Deploying root assets to gh-pages: 404 + robots.txt + index redirect")
+	$(call PRINT_TITLE,"Deploying root assets to gh-pages: 404 + robots.txt + index redirect + JSON Schema")
 	@git fetch origin gh-pages:gh-pages 2>/dev/null || true; \
 	TMPDIR=$$(mktemp -d); \
 	trap "cd '$(CURDIR)'; git worktree remove '$$TMPDIR' 2>/dev/null || true; rm -rf '$$TMPDIR'" EXIT; \
 	git worktree add "$$TMPDIR" gh-pages && \
 	cp docs/404.html "$$TMPDIR/404.html" && \
+	cp docs/mthds_schema.json "$$TMPDIR/mthds_schema.json" && \
 	echo "$$ROOT_ROBOTS_TXT" > "$$TMPDIR/robots.txt" && \
 	echo "$$ROOT_INDEX_HTML" > "$$TMPDIR/index.html" && \
 	cd "$$TMPDIR" && \
-	git add 404.html robots.txt index.html && \
-	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html)") && \
+	git add 404.html robots.txt index.html mthds_schema.json && \
+	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html, mthds_schema.json)") && \
 	git push origin gh-pages
 
 docs-delete: env
@@ -231,6 +237,13 @@ docs-delete: env
 ##########################################################################################
 ### SHORTHANDS
 ##########################################################################################
+
+update-schema:
+	$(call PRINT_TITLE,"Downloading latest JSON Schema")
+	curl -fSL "$(SCHEMA_URL)" -o "$(CURDIR)/docs/mthds_schema.json"
+
+up: update-schema
+	@echo "> done: update-schema"
 
 li: lock install
 	@echo "> done: lock install"

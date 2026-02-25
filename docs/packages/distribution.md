@@ -56,7 +56,7 @@ The `.git` directory is removed from cached copies to save space. Cache writes u
 One or more registry services index packages without owning them. A registry provides:
 
 - **Search** — by domain, by concept, by pipe signature, by description.
-- **Type-compatible search** — "find pipes that accept `Document` and produce something refining `Text`" (unique to MTHDS).
+- **Type-compatible search** — "find all pipes that accept `LoanApplication` and produce something refining `RiskAssessment`" (enabled by the MTHDS type system).
 - **Metadata** — versions, descriptions, licenses, dependency graphs.
 - **Concept/pipe browsing** — navigate the refinement hierarchy, explore pipe signatures.
 
