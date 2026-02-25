@@ -74,7 +74,7 @@ make docs-list                        - List deployed documentation versions
 make docs-deploy VERSION=x.y.z       - Deploy docs as version x.y.z (local, no push)
 make docs-deploy-stable               - Deploy stable docs with 'latest' alias (CI only)
 make docs-deploy-specific-version     - Deploy docs for the current version with 'pre-release' alias (CI only)
-make docs-deploy-root                 - Deploy root assets (404, robots.txt, index redirect) to gh-pages
+make docs-deploy-root                 - Deploy root assets (404, robots.txt, index redirect, JSON Schema) to gh-pages
 make docs-delete VERSION=x.y.z       - Delete a deployed documentation version
 
 make cleanenv                         - Remove virtual env
@@ -214,17 +214,18 @@ docs-deploy-specific-version: env
 	$(MAKE) docs-deploy-root
 
 docs-deploy-root:
-	$(call PRINT_TITLE,"Deploying root assets to gh-pages: 404 + robots.txt + index redirect")
+	$(call PRINT_TITLE,"Deploying root assets to gh-pages: 404 + robots.txt + index redirect + JSON Schema")
 	@git fetch origin gh-pages:gh-pages 2>/dev/null || true; \
 	TMPDIR=$$(mktemp -d); \
 	trap "cd '$(CURDIR)'; git worktree remove '$$TMPDIR' 2>/dev/null || true; rm -rf '$$TMPDIR'" EXIT; \
 	git worktree add "$$TMPDIR" gh-pages && \
 	cp docs/404.html "$$TMPDIR/404.html" && \
+	cp docs/mthds_schema.json "$$TMPDIR/mthds_schema.json" && \
 	echo "$$ROOT_ROBOTS_TXT" > "$$TMPDIR/robots.txt" && \
 	echo "$$ROOT_INDEX_HTML" > "$$TMPDIR/index.html" && \
 	cd "$$TMPDIR" && \
-	git add 404.html robots.txt index.html && \
-	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html)") && \
+	git add 404.html robots.txt index.html mthds_schema.json && \
+	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html, mthds_schema.json)") && \
 	git push origin gh-pages
 
 docs-delete: env
