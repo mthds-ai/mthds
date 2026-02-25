@@ -1,0 +1,23 @@
+Makefile
+  94379ac2e8c5727f 77,217,223,227-228
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.4",
+  "base_commit_sha": "626f523ebd9908694a4510a398353edfe1a9082d",
+  "prompts": {
+    "94379ac2e8c5727f": {
+      "agent_id": {
+        "tool": "cursor",
+        "id": "c1af691b-a124-40fc-96f2-22ca3b44c171",
+        "model": "claude-4.6-opus-high-thinking"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 4,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}
