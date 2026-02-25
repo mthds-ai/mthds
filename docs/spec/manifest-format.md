@@ -91,9 +91,9 @@ The optional `display_name` field provides a human-friendly label for the packag
 
 ```toml
 [package]
-name         = "legal-tools"
+name         = "nda-analyzer"
 address      = "github.com/acme/legal-tools"
-display_name = "Legal Tools"
+display_name = "Nda Analyzer"
 ```
 
 ### Version Format
