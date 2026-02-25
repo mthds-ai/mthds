@@ -38,7 +38,7 @@ The `[package]` section defines the package's identity:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | Yes | The name of the method. Must be `kebab-case` (matching `[a-z][a-z0-9-]*`), max 25 characters. |
+| `name` | Yes | The name of the method. Must be `kebab-case` (matching `[a-z][a-z0-9]*(-[a-z0-9]+)*`), max 25 characters. |
 | `address` | Yes | Globally unique identifier. Must follow the hostname/path pattern (e.g., `github.com/org/repo`). |
 | `display_name` | No | Human-friendly label for CLI output and registry listings. Cosmetic only — never used as an identifier. Max 128 characters. |
 | `version` | Yes | [Semantic version](https://semver.org/) (`MAJOR.MINOR.PATCH`, with optional pre-release and build metadata). |
@@ -84,8 +84,8 @@ Examples: `1.0.0`, `0.3.0`, `2.1.3-beta.1`, `1.0.0-rc.1+build.42`
 The `main_pipe` field designates the package's primary entry point — the pipe that runs when a user invokes the package by slug or address:
 
 ```bash
-npx mthds run method nda-analyzer
-npx mthds run method github.com/acme/legal-tools
+mthds run method nda-analyzer
+mthds run method github.com/acme/legal-tools
 ```
 
 Both commands above execute the pipe referenced by `main_pipe`.

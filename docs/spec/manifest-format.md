@@ -24,7 +24,7 @@ A `METHODS.toml` file contains up to three top-level sections:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | string | Yes | The name of the method. MUST be `kebab-case` (matching `[a-z][a-z0-9-]*`), max 25 characters. See [Name](#name). |
+| `name` | string | Yes | The name of the method. MUST be `kebab-case` (matching `[a-z][a-z0-9]*(-[a-z0-9]+)*`), max 25 characters. See [Name](#name). |
 | `address` | string | Yes | Globally unique package identifier. MUST follow the hostname/path pattern. |
 | `display_name` | string | No | Human-friendly display label. When provided, MUST NOT be empty or whitespace-only, MUST NOT exceed 128 characters, and MUST NOT contain Unicode control characters (category Cc). Leading and trailing whitespace is stripped. |
 | `version` | string | Yes | Package version. MUST be valid [semantic versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`, with optional pre-release and build metadata). |
@@ -63,7 +63,7 @@ The `name` field is the name of the method. It is the primary identifier for the
 
 **Constraints:**
 
-- MUST be `kebab-case`, matching the pattern `[a-z][a-z0-9-]*`.
+- MUST be `kebab-case`, matching the pattern `[a-z][a-z0-9]*(-[a-z0-9]+)*`.
 - MUST NOT exceed 25 characters.
 - MUST NOT be empty.
 
@@ -117,8 +117,8 @@ The current MTHDS standard version is `1.0.0`.
 The optional `main_pipe` field designates the package's primary entry point — the pipe that runs when a user invokes the package by slug or address:
 
 ```bash
-npx mthds run method nda-analyzer
-npx mthds run method github.com/acme/legal-tools
+mthds run method nda-analyzer
+mthds run method github.com/acme/legal-tools
 ```
 
 **Constraints:**
@@ -206,7 +206,7 @@ The `[exports]` section controls which pipes are visible to consumers of the pac
 
 - **Concepts are always public.** Concepts are vocabulary — they are always accessible from outside the package.
 - **Pipes are private by default.** A pipe not listed in `[exports]` is an implementation detail, invisible to consumers.
-- **`main_pipe` is auto-exported.** If a bundle declares a `main_pipe`, that pipe is automatically part of the public API, regardless of whether it appears in `[exports]`.
+- **`main_pipe` must be exported.** If a package declares a `main_pipe`, that pipe MUST appear in the `[exports]` section.
 
 ### Exports Table Structure
 
