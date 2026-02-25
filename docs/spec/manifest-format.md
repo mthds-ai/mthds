@@ -17,15 +17,15 @@ A `METHODS.toml` file contains up to three top-level sections:
 | Section | Required | Description |
 |---------|----------|-------------|
 | `[package]` | Yes | Package identity and metadata. |
-| `[dependencies]` | No | Dependencies on other MTHDS packages. |
+| `[dependencies]` | No | Dependencies on other MTHDS packages. **Not yet implemented.** |
 | `[exports]` | No | Visibility declarations for pipes. |
 
 ## The `[package]` Section
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
+| `name` | string | Yes | The name of the method. MUST be `kebab-case` (matching `[a-z][a-z0-9-]*`), max 25 characters. See [Name](#name). |
 | `address` | string | Yes | Globally unique package identifier. MUST follow the hostname/path pattern. |
-| `display_name` | string | No | Human-friendly display label. When provided, MUST NOT be empty or whitespace-only, MUST NOT exceed 128 characters, and MUST NOT contain Unicode control characters (category Cc). Leading and trailing whitespace is stripped. |
 | `version` | string | Yes | Package version. MUST be valid [semantic versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`, with optional pre-release and build metadata). |
 | `description` | string | Yes | Human-readable summary of the package's purpose. MUST NOT be empty. |
 | `authors` | array of strings | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
@@ -56,24 +56,22 @@ legal-tools                     # No hostname
 acme/legal-tools                # No dot in hostname
 ```
 
-### Display Name
+### Name
 
-The optional `display_name` field provides a human-friendly label for the package. It appears in CLI output, registry listings, and error messages. It is cosmetic only — the `address` remains the sole canonical identifier.
+The `name` field is the name of the method. It is the primary identifier for the method — it appears in CLI output, registry listings, and documentation.
 
 **Constraints:**
 
-- MUST NOT be empty or whitespace-only when provided.
-- MUST NOT exceed 128 characters (after leading/trailing whitespace is stripped).
-- MUST NOT contain Unicode control characters (Unicode general category `Cc`).
-- Emojis and other Unicode characters are allowed.
-- Leading and trailing whitespace is stripped by a compliant implementation.
+- MUST be `kebab-case`, matching the pattern `[a-z][a-z0-9-]*`.
+- MUST NOT exceed 25 characters.
+- MUST NOT be empty.
 
 **Example:**
 
 ```toml
 [package]
-address      = "github.com/acme/legal-tools"
-display_name = "Legal Tools"
+name    = "nda-analyzer"
+address = "github.com/acme/legal-tools"
 ```
 
 ### Version Format
@@ -97,8 +95,8 @@ The current MTHDS standard version is `1.0.0`.
 The optional `main_pipe` field designates the package's primary entry point — the pipe that runs when a user invokes the package by slug or address:
 
 ```bash
-npx mthds run legal-tools
-npx mthds run github.com/acme/legal-tools
+npx mthds run method nda-analyzer
+npx mthds run method github.com/acme/legal-tools
 ```
 
 **Constraints:**
@@ -111,12 +109,15 @@ npx mthds run github.com/acme/legal-tools
 
 ```toml
 [package]
+name      = "nda-analyzer"
 address   = "github.com/acme/legal-tools"
 version   = "0.3.0"
 main_pipe = "analyze_nda"
 ```
 
 ## The `[dependencies]` Section
+
+> **Not yet implemented.** Dependencies between packages are planned but not yet supported. The specification below describes the intended behavior for a future release.
 
 Each entry in `[dependencies]` declares a dependency on another MTHDS package. The key is the **alias** — a `snake_case` identifier used in cross-package references (`->` syntax).
 
@@ -268,18 +269,14 @@ When loading a `.mthds` bundle, a compliant implementation SHOULD discover the m
 
 ```toml
 [package]
+name          = "nda-analyzer"
 address       = "github.com/acme/legal-tools"
-display_name  = "Legal Tools"
 version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
 mthds_version = ">=1.0.0"
 main_pipe     = "analyze_nda"
-
-[dependencies]
-docproc     = { address = "github.com/mthds/document-processing", version = "^1.0.0" }
-scoring_lib = { address = "github.com/mthds/scoring-lib", version = "^0.5.0" }
 
 [exports.legal]
 pipes = ["classify_document"]

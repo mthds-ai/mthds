@@ -4,6 +4,8 @@ description: "Declare and manage dependencies between MTHDS packages using alias
 
 # Dependencies
 
+> **Not yet implemented.** Dependencies between packages are planned but not yet supported. The documentation below describes the intended behavior for a future release.
+
 Dependencies allow a package to build on other packages. Each dependency is declared in the `[dependencies]` section of `METHODS.toml` with an alias, an address, and a version constraint.
 
 ## Declaring Dependencies
