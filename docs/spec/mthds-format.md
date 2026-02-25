@@ -359,6 +359,10 @@ When the `model` field is a table instead of a string, it defines inline model s
 | `reasoning_budget` | integer | No | Token budget for reasoning. Must be > 0. |
 | `description` | string | No | Human-readable description of this model configuration. |
 
+**Validation rules:**
+
+- `reasoning_effort` and `reasoning_budget` MUST NOT both be set on the same inline LLM settings table.
+
 **Example — inline LLM settings:**
 
 ```toml
@@ -445,6 +449,10 @@ When the `model` field is a table instead of a string, it defines inline model s
 | `safety_tolerance` | integer | No | Safety tolerance level. Range: 1–6. |
 | `description` | string | No | Human-readable description of this model configuration. |
 
+**Validation rules:**
+
+- `quality` and `nb_steps` MUST NOT both be set on the same inline image generation settings table.
+
 **Example — inline image generation settings:**
 
 ```toml
@@ -455,7 +463,7 @@ inputs      = { description = "Text" }
 output      = "Image"
 prompt       = "A professional portrait: $description"
 aspect_ratio = "portrait_3_4"
-model        = { model = "flux-pro", quality = "high", nb_steps = 50 }
+model        = { model = "flux-pro", quality = "high" }
 ```
 
 ## Operator: PipeExtract

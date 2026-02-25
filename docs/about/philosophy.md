@@ -6,6 +6,10 @@ description: "Explore the design principles behind MTHDS — filesystem as inter
 
 MTHDS was designed with a specific set of principles that inform every decision in the standard. Understanding these principles helps explain why the standard works the way it does.
 
+## Declarative by Design
+
+MTHDS separates *what* a method does from *how* it is executed. The method author declares intent — "given this input concept, produce that output concept, using this approach" — and the runtime decides how to fulfill it. This is analogous to how SQL separates data queries from storage engines: the query author describes the result they want, not the access path to get there. A method may specify which model to use, but it does not specify how to manage context windows, how to retry on failure, or how to allocate compute resources. Those are runtime concerns.
+
 ## Filesystem as Interface
 
 MTHDS packages are directories of text files. `.mthds` bundles are TOML. `METHODS.toml` is TOML. `methods.lock` is TOML. There are no binary formats, no databases, no proprietary encodings.
@@ -38,6 +42,10 @@ Typed signatures enable:
 - **Auto-composition.** When no single pipe transforms X to Y, the graph can discover multi-step chains through intermediate concepts.
 
 This contrasts with text-based approaches where capabilities are described in natural language. Text descriptions enable keyword search but not type-safe composition.
+
+## One Artifact, Three Audiences
+
+A `.mthds` file serves as both specification and executable artifact. A domain expert reads the business logic — concepts named after real-world entities, pipes that declare intent in plain language. An engineer reads something testable and deployable — typed signatures, validated data flow, version-controlled definitions. An agent reads something it can build, modify, and execute — structured text with machine-readable types and composable transformations. No separate documentation layer, no translation step between what the method describes and what the method does.
 
 ## Federated Distribution
 

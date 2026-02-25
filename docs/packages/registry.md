@@ -4,6 +4,9 @@ description: "Specification of the MTHDS registry — the HTTP service that inde
 
 # The Registry
 
+!!! note "Implementation status"
+    An early beta of the MTHDS registry is available at [mthds.sh](https://mthds.sh). The full specification below describes the target API surface.
+
 A **registry** is an HTTP service that indexes MTHDS packages and exposes them for discovery. Registries do not host package source code — they index metadata from Git-hosted packages and serve it through a structured API.
 
 ## Role in the Ecosystem
