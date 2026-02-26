@@ -3,9 +3,11 @@
 
 {% block extrahead %}
 {{ super() }} {# keep anything Material already outputs #}
+{# Ensure base URL always ends with / (mike strips trailing slash on versioned deploys) #}
+{% set base_url = config.site_url ~ ('' if config.site_url[-1:] == '/' else '/') %}
 {% set og_title = (page.meta.title if page and page.meta and page.meta.title) or (page.title if page and page.title) or config.site_name %}
 {% set og_desc = (page.meta.description if page and page.meta and page.meta.description) or config.site_description %}
-{% set og_image = (page.meta.image if page and page.meta and page.meta.image) or (config.site_url ~ "images/og-banner.jpeg") %}
+{% set og_image = (page.meta.image if page and page.meta and page.meta.image) or (base_url ~ "images/og-banner.jpeg") %}
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{ og_title }}">
 <meta property="og:description" content="{{ og_desc }}">
