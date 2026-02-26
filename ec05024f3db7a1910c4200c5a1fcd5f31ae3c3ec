@@ -1,0 +1,27 @@
+mkdocs.yml
+  5f5b181e9b9389b9 204
+pyproject.toml
+  5f5b181e9b9389b9 3
+CHANGELOG.md
+  5f5b181e9b9389b9 3-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.5",
+  "base_commit_sha": "ec05024f3db7a1910c4200c5a1fcd5f31ae3c3ec",
+  "prompts": {
+    "5f5b181e9b9389b9": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aeef01c5-1a58-4bd6-bfda-a4fc53a9feac",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 19,
+      "total_deletions": 2,
+      "accepted_lines": 18,
+      "overriden_lines": 0
+    }
+  }
+}
