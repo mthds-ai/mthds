@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.1.3] - 2026-02-26
+
+- Add PostHog analytics to docs site
+- Add Hub link to navigation
+
 ## [v0.1.2] - 2026-02-26
 
 - Update homepage with overview content
