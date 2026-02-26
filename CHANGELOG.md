@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.1.2] - 2026-02-26
+
+- Update homepage with overview content
+
 ## [v0.1.1] - 2026-02-25
 
 - Change favicon and logo
