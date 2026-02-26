@@ -8,8 +8,8 @@ theme:
   name: material
   language: en
   custom_dir: docs/overrides
-  favicon: images/favicon-32.png
-  logo: images/favicon-32.png
+  favicon: images/m-black_on_transparent-favicon.png
+  logo: images/mthds-black_on_transparent.png
   features:
     - navigation.footer
     - navigation.tabs
@@ -91,6 +91,7 @@ plugins:
         - spec/manifest-format.md: "METHODS.toml Format"
         - spec/lock-format.md: "methods.lock Format"
         - spec/namespace-resolution.md: "Namespace Resolution Rules"
+        - spec/cli-io-contract.md: "CLI I/O Contract"
         - cli/index.md: "CLI Reference"
         - tooling/editor-support.md: "Editor Support"
         - tooling/formatting-linting.md: "Formatting & Linting"
@@ -177,6 +178,7 @@ nav:
       - METHODS.toml Format: spec/manifest-format.md
       - methods.lock Format: spec/lock-format.md
       - Namespace Resolution Rules: spec/namespace-resolution.md
+      - CLI I/O Contract: spec/cli-io-contract.md
     - CLI Reference: cli/index.md
     - Tooling:
       - Editor Support: tooling/editor-support.md

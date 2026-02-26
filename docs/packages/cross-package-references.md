@@ -52,7 +52,7 @@ steps = [
 ]
 ```
 
-**Visibility constraint:** The referenced pipe must be exported by the dependency package — listed in its `[exports]` section or declared as `main_pipe` in one of its bundles.
+**Visibility constraint:** The referenced pipe must be exported by the dependency package — listed in its `[exports]` section.
 
 ## Referencing Concepts
 
@@ -129,7 +129,7 @@ steps = [
 
 **What fails:**
 
-- `scoring_lib->scoring.internal_helper` — visibility error: `internal_helper` is not in `[exports.scoring]` and is not `main_pipe`.
+- `scoring_lib->scoring.internal_helper` — visibility error: `internal_helper` is not in `[exports.scoring]`.
 
 ## See Also
 

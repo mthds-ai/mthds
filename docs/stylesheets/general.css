@@ -180,6 +180,38 @@
   -webkit-mask-size: contain;
 }
 
+/* ───── Theme-aware logo ───── */
+/* Hide default <img> so we can swap via CSS background */
+.md-header .md-logo img,
+.md-nav .md-logo img {
+  display: none;
+}
+
+/* Full logo via background-image — light mode: black logo */
+.md-header .md-logo,
+.md-nav .md-logo {
+  background: url("../images/mthds-black_on_transparent.png") no-repeat center / contain;
+  width: 108px;
+  min-width: 108px;
+  height: 1.6rem;
+}
+
+/* Dark mode: white logo */
+[data-md-color-scheme="slate"] .md-header .md-logo,
+[data-md-color-scheme="slate"] .md-nav .md-logo {
+  background-image: url("../images/mthds-white_on_transparent.png");
+}
+
+/* Hide "MTHDS" site name text — the full logo already displays it.
+   Keep .md-header__topic visible because Material JS appends
+   the mike version selector (.md-version) as its child. */
+.md-header__topic:first-child > .md-ellipsis {
+  display: none;
+}
+.md-header__topic:first-child {
+  flex-shrink: 0;
+}
+
 /* ───── Smooth color transitions for theme toggle ───── */
 body,
 .md-header,

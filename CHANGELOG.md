@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.1.1] - 2026-02-25
+
+- Change favicon and logo
+
 ## [v0.1.0] - 2026-02-22
 
 - Add hosted JSON Schema and document inline model settings and enum values
