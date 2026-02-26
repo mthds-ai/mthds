@@ -4,7 +4,7 @@
 {% block extrahead %}
 {{ super() }} {# keep anything Material already outputs #}
 {% if page and page.title and page.meta %}
-{% set og_image = page.meta.image | default(config.site_url ~ "images/og-banner.png") %}
+{% set og_image = page.meta.image | default(config.site_url ~ "images/og-banner.jpeg") %}
 <meta property="og:type" content="article">
 <meta property="og:title" content="{{ page.meta.title or page.title }}">
 <meta property="og:description" content="{{ page.meta.description or config.site_description }}">
