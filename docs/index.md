@@ -2,51 +2,23 @@
 description: "MTHDS is an open standard for defining, packaging, and sharing AI methods — giving agents the ability to discover and execute structured, composable AI workflows."
 ---
 
-# Overview
+**TLDR**
 
-AI workflows today are written in code that domain experts cannot read, described in prompts that carry no structure, or wired together in automation platforms not designed for cognitive work. MTHDS bridges these approaches: a typed, declarative language for AI methods that is readable by domain experts, validatable by engineers, and executable by agents.
+MTHDS is a declarative language for defining AI methods: discrete, reusable units of cognitive work like extraction, analysis, synthesis, generation. It is built on TOML and introduces two primitives: concepts (semantically typed data named after real domain things) and pipes (deterministic orchestration steps with explicit typed inputs and outputs). Pipes can invoke LLMs, VLMs, OCR, and image generation models, with built-in structured generation.
 
-MTHDS (pronounced "methods") is an open standard for defining, packaging, and distributing AI methods. It provides a typed language for describing what an AI should do, with what inputs, and what outputs to produce — all in plain-text files that humans and machines can read alike.
+The typing is conceptual: `NonCompeteClause` is a refinement of `ContractClause`, meaning pipes compose wherever types are compatible, without manual glue code, because the types carry business meaning rather than just structure.
 
-Here is what a `.mthds` file looks like:
-**cv_match.mthds**
-```toml
-domain = "cv_match"
-description = "Matching CVs with job offers and generating interview questions"
-main_pipe = "analyze_cv_job_match_and_generate_questions"
+Methods are executable and composable like Unix tools: a method can be saved as a CLI command, combined with others using standard Unix pipes, or invoked directly by Claude Code. Methods can also be published as packages, used as templates to customize, or called as components from other methods. Teams can share some methods openly and keep their secret sauce private.
 
-[concept.MatchAnalysis]
-description = """
-Analysis of alignment between a candidate and a position, including strengths, gaps, and areas requiring further exploration.
-"""
+The standard ships with a Claude Code plugin that lets Claude write, modify, and compose methods on your behalf. This makes MTHDS agent-first by design: a domain expert who can describe what they need in plain language can have Claude author the method, which then runs consistently, is testable, and lives in version control.
 
-[concept.MatchAnalysis.structure]
-strengths = { type = "text", description = "Areas where the candidate's profile aligns well with the requirements", required = true }
-gaps = { type = "text", description = "Areas where the candidate's profile does not meet the requirements or lacks evidence", required = true }
-areas_to_probe = { type = "text", description = "Topics or competencies that need clarification or deeper assessment during the interview", required = true }
+Where agent skills handle open-ended tasks, methods handle the parts that benefit from being explicit, versioned, and validated. And unlike skills, methods are executable outside the scope of an agent entirely.
 
-[concept.Question]
-description = "A single interview question designed to assess a candidate."
-refines = "Text"
-
-[pipe.analyze_cv_job_match_and_generate_questions]
-type = "PipeSequence"
-description = """
-Takes a CV and a job offer, extracts their content, analyzes strengths and gaps, \
-and generates 5 targeted interview questions.
-"""
-inputs = { cv = "Document", job_offer = "Document" }
-output = "Question[5]"
-steps = [
-    { pipe = "extract_documents_parallel", result = "extracted_documents" },
-    { pipe = "analyze_match", result = "match_analysis" },
-    { pipe = "generate_interview_questions", result = "interview_questions" },
-]
-```
-
-***Concepts*** carry business meaning directly — `ContractClause`, `CandidateProfile`, `Joke` — and ***Pipes*** read as declarative intent: "given this input, produce that output." Domain experts can read a `.mthds` file without programming skills.
-
-The standard has two pillars. **The Language** lets you define typed data and transformations in `.mthds` files — plain text, version-controllable, readable by anyone on the team. A single file works on its own, no setup required. **The Package System** adds distribution: give your methods an identity, declare dependencies, control visibility, and share them across projects and organizations.
+- Hub: [mthds.sh](https://mthds.sh)
+- Spec: [github.com/mthds-ai/mthds](https://github.com/mthds-ai/mthds)
+- Reference implementation: [github.com/Pipelex/pipelex](https://github.com/Pipelex/pipelex)
+- Agent skills: [github.com/mthds-ai/skills](https://github.com/mthds-ai/skills)
+- VS Code extension: [go.pipelex.com/vscode](https://go.pipelex.com/vscode)
 
 <div class="grid cards" markdown>
 
