@@ -44,6 +44,9 @@ extra:
 
 plugins:
   - search
+  - privacy:
+      links_attr_map:
+        target: _blank
   - meta-manager
   - glightbox:
       touchNavigation: true
