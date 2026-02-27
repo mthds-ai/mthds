@@ -83,6 +83,7 @@ The `mkdocs.yml` configures specific plugins and markdown extensions. Use these 
 | `search` | Full-text search |
 | `meta-manager` | Default metadata from `.meta.yml` files |
 | `glightbox` | Lightbox for images (click to zoom) |
+| `privacy` | Downloads external assets locally (GDPR) and applies `links_attr_map` (e.g., `target: _blank` on external links) |
 | `llmstxt-md` | Generates `llms.txt` for LLM-friendly content — nav sections must be updated when adding pages |
 
 ### Theme Features (from `mkdocs.yml` theme config)
@@ -104,6 +105,10 @@ The `mkdocs.yml` configures specific plugins and markdown extensions. Use these 
 - After making changes, always run `make docs-check` to verify the build passes with `--strict`
 - When adding or moving pages, update BOTH the `nav:` section AND the `llmstxt-md` plugin `sections:` in `mkdocs.yml`
 - `make docs-check` runs `mkdocs build --strict` — any warning (broken links, missing nav targets) becomes a build error
+
+## General Rules
+
+- **Do not reinvent the wheel.** Before writing custom JS, CSS, or template overrides, always search for an existing MkDocs plugin or Material theme feature that solves the problem. Only write custom code if no plugin or built-in option exists.
 
 ## Existing Files (do not overwrite)
 

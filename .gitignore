@@ -9,6 +9,9 @@ venv/
 # mkdocs build output
 site/
 
+# mkdocs privacy plugin cache
+.cache/
+
 # temp
 temp/
 
