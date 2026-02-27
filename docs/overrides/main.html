@@ -45,4 +45,26 @@
     person_profiles: 'identified_only'
   });
 </script>
+<!-- Open all external links in a new tab -->
+<script>
+  function openExternalLinksInNewTab() {
+    document.querySelectorAll("a[href^='http']").forEach(function (a) {
+      if (a.hostname !== window.location.hostname) {
+        a.setAttribute("target", "_blank");
+        a.setAttribute("rel", "noopener");
+      }
+    });
+  }
+  document.addEventListener("DOMContentLoaded", openExternalLinksInNewTab);
+  document.addEventListener("DOMContentSwitch", openExternalLinksInNewTab);
+
+  // MkDocs Material instant navigation: re-run after each page load
+  if (typeof document$ !== "undefined") {
+    document$.subscribe(openExternalLinksInNewTab);
+  } else {
+    // Fallback: observe DOM changes for instant navigation
+    new MutationObserver(openExternalLinksInNewTab)
+      .observe(document.body, { childList: true, subtree: true });
+  }
+</script>
 {% endblock %}
