@@ -24,7 +24,7 @@ A `METHODS.toml` file contains up to three top-level sections:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `name` | string | Yes | The name of the method. MUST be `kebab-case` (matching `[a-z][a-z0-9]*(-[a-z0-9]+)*`), max 25 characters. See [Name](#name). |
+| `name` | string | Yes | The name of the method. MUST be `snake_case` (matching `[a-z][a-z0-9_]*`), 2-25 characters. See [Name](#name). |
 | `address` | string | Yes | Globally unique package identifier. MUST follow the hostname/path pattern. |
 | `display_name` | string | No | Human-friendly display label. When provided, MUST NOT be empty or whitespace-only, MUST NOT exceed 128 characters, and MUST NOT contain Unicode control characters (category Cc). Leading and trailing whitespace is stripped. |
 | `version` | string | Yes | Package version. MUST be valid [semantic versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`, with optional pre-release and build metadata). |
@@ -63,15 +63,18 @@ The `name` field is the name of the method. It is the primary identifier for the
 
 **Constraints:**
 
-- MUST be `kebab-case`, matching the pattern `[a-z][a-z0-9]*(-[a-z0-9]+)*`.
-- MUST NOT exceed 25 characters.
+- MUST be `snake_case`, matching the pattern `[a-z][a-z0-9_]*`.
+- MUST be between 2 and 25 characters.
 - MUST NOT be empty.
+
+The package directory name MUST match the `name` field exactly. A compliant tool MUST reject a package whose directory name does not match its manifest name.
 
 **Example:**
 
 ```toml
+# Inside nda_analyzer/METHODS.toml
 [package]
-name    = "nda-analyzer"
+name    = "nda_analyzer"
 address = "github.com/acme/legal-tools"
 ```
 
@@ -91,7 +94,7 @@ The optional `display_name` field provides a human-friendly label for the packag
 
 ```toml
 [package]
-name         = "nda-analyzer"
+name         = "nda_analyzer"
 address      = "github.com/acme/legal-tools"
 display_name = "Nda Analyzer"
 ```
@@ -117,7 +120,7 @@ The current MTHDS standard version is `1.0.0`.
 The optional `main_pipe` field designates the package's primary entry point — the pipe that runs when a user invokes the package by slug or address:
 
 ```bash
-mthds run method nda-analyzer
+mthds run method nda_analyzer
 mthds run method github.com/acme/legal-tools
 ```
 
@@ -131,7 +134,7 @@ mthds run method github.com/acme/legal-tools
 
 ```toml
 [package]
-name      = "nda-analyzer"
+name      = "nda_analyzer"
 address   = "github.com/acme/legal-tools"
 version   = "0.3.0"
 main_pipe = "analyze_nda"
@@ -252,7 +255,7 @@ A package is a directory containing a `METHODS.toml` manifest and one or more `.
 **Minimal package:**
 
 ```
-my-tool/
+my_tool/
 ├── METHODS.toml
 └── main.mthds
 ```
@@ -260,7 +263,7 @@ my-tool/
 **Full package:**
 
 ```
-legal-tools/
+legal_tools/
 ├── METHODS.toml
 ├── methods.lock
 ├── general_legal.mthds
@@ -291,7 +294,7 @@ When loading a `.mthds` bundle, a compliant implementation SHOULD discover the m
 
 ```toml
 [package]
-name          = "nda-analyzer"
+name          = "nda_analyzer"
 address       = "github.com/acme/legal-tools"
 display_name  = "Legal Tools"
 version       = "0.3.0"

@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.1.4] - 2026-03-02
+
+### Changed
+
+- **Method names: strict snake_case** — the `name` field specification updated from kebab-case to snake_case (pattern `[a-z][a-z0-9_]*`). Directory name must match the `name` field exactly — no conversion needed.
+- Updated CLI I/O contract examples to use snake_case method names.
+
 ## [v0.1.3] - 2026-02-26
 
 - Add PostHog analytics to docs site
