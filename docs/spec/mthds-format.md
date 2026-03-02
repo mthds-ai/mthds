@@ -548,7 +548,7 @@ type        = "PipeSearch"
 description = "Search the web for information about a topic"
 inputs      = { topic = "Text" }
 output      = "SearchResult"
-model       = "$linkup-standard"
+model       = "$web-search"
 prompt      = "What is $topic?"
 ```
 
