@@ -88,15 +88,16 @@ Handles are the simplest form. They are convenient for quick experiments but cou
 
 ## Which Pipes Use Model References
 
-Three operator pipe types accept the `model` field:
+Four operator pipe types accept the `model` field:
 
 | Pipe Type | Typical Use |
 |-----------|-------------|
 | `PipeLLM` | Large language model invocation. |
 | `PipeImgGen` | Image generation. |
 | `PipeExtract` | Document extraction (e.g., PDF to pages). |
+| `PipeSearch` | Web search with structured results. |
 
-All four reference forms (`$`, `@`, `~`, bare) work identically across all three pipe types.
+All four reference forms (`$`, `@`, `~`, bare) work identically across all four pipe types.
 
 ## Choosing a Reference Type
 
@@ -117,8 +118,9 @@ Each pipe type that accepts `model` has a corresponding inline settings structur
 - **PipeLLM** uses `LLMSetting` — includes `model`, `temperature`, `max_tokens`, `image_detail`, `prompting_target`, `reasoning_effort`, `reasoning_budget`.
 - **PipeImgGen** uses `ImgGenSetting` — includes `model`, `quality`, `nb_steps`, `guidance_scale`, `is_moderated`, `safety_tolerance`.
 - **PipeExtract** uses `ExtractSetting` — includes `model`, `max_nb_images`, `image_min_size`.
+- **PipeSearch** uses `SearchSetting` — includes `model`, `depth`, `include_images`, `include_inline_citations`, `max_results`.
 
-All three require a `model` field (the model handle) and accept an optional `description`.
+All four require a `model` field (the model handle) and accept an optional `description`.
 
 **Example — PipeLLM with inline settings:**
 
@@ -155,6 +157,18 @@ description = "Extract text content from a CV PDF"
 inputs      = { cv_pdf = "Document" }
 output      = "Page[]"
 model       = { model = "gpt-4.1", max_nb_images = 10 }
+```
+
+**Example — PipeSearch with inline settings:**
+
+```toml
+[pipe.deep_search]
+type        = "PipeSearch"
+description = "Deep research on a topic"
+inputs      = { topic = "Text" }
+output      = "SearchResult"
+prompt      = "What are the main details about $topic?"
+model       = { model = "linkup/deep", depth = "deep", include_images = false }
 ```
 
 Inline settings and string references are mutually exclusive — the `model` field is either a string or a table, never both.
