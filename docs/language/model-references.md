@@ -8,7 +8,7 @@ Model references tell pipes which AI model to use. Every `PipeLLM`, `PipeImgGen`
 
 ## At a Glance
 
-MTHDS defines the following forms of model reference, each distinguished by a single-character prefix:
+MTHDS defines the following forms of model reference, most distinguished by a single-character prefix:
 
 | Prefix | Kind | Example | Purpose |
 |--------|------|---------|---------|
@@ -17,7 +17,7 @@ MTHDS defines the following forms of model reference, each distinguished by a si
 | `~` | Waterfall | `~fallback-chain` | Ordered fallback list for resilience. |
 | *(none)* | Handle | `claude-4.5-sonnet` | Direct model identifier. |
 
-All four forms apply uniformly to all pipe types that accept a `model` field — there is no prefix reserved for a specific operator.
+All forms apply uniformly to all pipe types that accept a `model` field — there is no prefix reserved for a specific operator.
 
 ## Aliases (`@`)
 
