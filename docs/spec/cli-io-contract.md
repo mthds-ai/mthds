@@ -95,17 +95,17 @@ The `--inputs` / `-i` flag accepts a file path or inline JSON string. If the val
 
 ```bash
 # Inline JSON
-mthds-agent pipelex run method my-method --inputs '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}'
+mthds-agent pipelex run method my_method --inputs '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}'
 
 # File path
-mthds-agent pipelex run method my-method --inputs data.json
+mthds-agent pipelex run method my_method --inputs data.json
 ```
 
 When a method is installed as a CLI shim (see [CLI Reference](../cli/index.md)), the same commands are available as:
 
 ```bash
-my-method --inputs '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}'
-my-method --inputs data.json
+my_method --inputs '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}'
+my_method --inputs data.json
 ```
 
 When `--inputs` is provided, stdin is ignored entirely. This allows overriding piped data for debugging.
@@ -115,7 +115,7 @@ When `--inputs` is provided, stdin is ignored entirely. This allows overriding p
 When `--inputs` is not provided and stdin is not a TTY (i.e., data is being piped), JSON is read from stdin:
 
 ```bash
-echo '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}' | mthds-agent pipelex run method my-method
+echo '{"text": {"concept": "native.Text", "content": {"text": "hello"}}}' | mthds-agent pipelex run method my_method
 ```
 
 When stdin is a TTY (interactive terminal), no stdin reading occurs and the method runs without inputs.
@@ -206,7 +206,7 @@ extract-terms --inputs data.json \
 
 ```bash
 # The --inputs flag overrides whatever comes from stdin
-echo '{"old": "data"}' | mthds-agent pipelex run method my-method --inputs '{"new": "data"}'
+echo '{"old": "data"}' | mthds-agent pipelex run method my_method --inputs '{"new": "data"}'
 ```
 
 The `--inputs` flag always wins — the stdin data is ignored.
