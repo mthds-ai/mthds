@@ -1,0 +1,41 @@
+docs/spec/mthds-format.md
+  e74a3619dff3ec36 220,278,288,525-579
+CLAUDE.md
+  e74a3619dff3ec36 48-49
+docs/language/pipes-operators.md
+  e74a3619dff3ec36 2,158-168,170-182
+docs/language/concepts.md
+  e74a3619dff3ec36 157
+docs/language/model-references.md
+  e74a3619dff3ec36 7
+docs/implementers/runtime.md
+  e74a3619dff3ec36 29,40,125
+docs/implementers/editor-support.md
+  e74a3619dff3ec36 28,67
+docs/implementers/validation-rules.md
+  e74a3619dff3ec36 68-73
+docs/what-is-mthds/index.md
+  e74a3619dff3ec36 41
+docs/tooling/json-schema.md
+  e74a3619dff3ec36 15,17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "18753c318e7b51d7e8849c3e7ad62ebb17dc7f7c",
+  "prompts": {
+    "e74a3619dff3ec36": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "974b722a-a0bf-4111-bfa1-9bd4a16f2b32",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 102,
+      "total_deletions": 12,
+      "accepted_lines": 101,
+      "overriden_lines": 1
+    }
+  }
+}
