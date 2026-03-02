@@ -1,0 +1,37 @@
+docs/language/model-references.md
+  b267cc90424384ae 11
+docs/spec/mthds-format.md
+  b267cc90424384ae 278
+docs/packages/registry-indexing.md
+  b267cc90424384ae 151
+docs/language/putting-it-all-together.md
+  b267cc90424384ae 62
+docs/what-is-mthds/index.md
+  b267cc90424384ae 120
+docs/implementers/runtime.md
+  b267cc90424384ae 29,125
+docs/implementers/editor-support.md
+  b267cc90424384ae 67
+docs/tooling/json-schema.md
+  b267cc90424384ae 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "60a4a345807af7f31b7edfea702d30d4aa628b4a",
+  "prompts": {
+    "b267cc90424384ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8e892eed-f5db-4cf1-b1fb-c853b4942ba5",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 11,
+      "total_deletions": 11,
+      "accepted_lines": 9,
+      "overriden_lines": 0
+    }
+  }
+}
