@@ -217,6 +217,7 @@ Native concepts are built-in types that are always available in every bundle wit
 | `ImgGenPrompt` | `native.ImgGenPrompt` | A prompt for image generation. |
 | `Page` | `native.Page` | A single page extracted from a document. |
 | `JSON` | `native.JSON` | A JSON value. |
+| `SearchResult` | `native.SearchResult` | A web search result with answer and sources. |
 | `Anything` | `native.Anything` | Accepts any type. |
 
 Native concepts MAY be referenced by bare code (`Text`, `Image`) or by qualified reference (`native.Text`, `native.Image`). Bare native concept codes always take priority during resolution.
@@ -274,7 +275,7 @@ contract_text = "Text"
 
 ### Pipe Types
 
-MTHDS defines nine pipe types in two categories:
+MTHDS defines ten pipe types in two categories:
 
 **Operators** — pipes that perform a single transformation:
 
@@ -284,6 +285,7 @@ MTHDS defines nine pipe types in two categories:
 | PipeFunc | `"PipeFunc"` | Calls a registered Python function. |
 | PipeImgGen | `"PipeImgGen"` | Generates images using an image generation model. |
 | PipeExtract | `"PipeExtract"` | Extracts structured content from documents. |
+| PipeSearch | `"PipeSearch"` | Searches the web and returns structured results. |
 | PipeCompose | `"PipeCompose"` | Composes output from templates or constructs. |
 
 **Controllers** — pipes that orchestrate other pipes:
@@ -518,6 +520,61 @@ description = "Extract text content from a CV PDF document"
 inputs      = { cv_pdf = "Document" }
 output      = "Page[]"
 model       = { model = "gpt-4.1", max_nb_images = 10, image_min_size = 100 }
+```
+
+## Operator: PipeSearch
+
+Searches the web using a search provider and returns structured results.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | `"PipeSearch"` | Yes | — |
+| `description` | string | Yes | — |
+| `inputs` | table | No | — |
+| `output` | string | Yes | MUST be `SearchResult` or a concept that refines `SearchResult`. |
+| `prompt` | string | Yes | The search query template. Supports Jinja2 syntax and the `@variable` / `$variable` shorthand. |
+| `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [search settings](#inline-search-settings) table. |
+
+**Validation rules:**
+
+- Every variable referenced in `prompt` MUST correspond to a declared input.
+- `output` MUST be `SearchResult` or a concept that refines `SearchResult`.
+
+**Example:**
+
+```toml
+[pipe.search_topic]
+type        = "PipeSearch"
+description = "Search the web for information about a topic"
+inputs      = { topic = "Text" }
+output      = "SearchResult"
+model       = "$linkup-standard"
+prompt      = "What is $topic?"
+```
+
+### Inline Search Settings
+
+When the `model` field is a table instead of a string, it defines inline model settings using the `SearchSetting` structure:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | The model handle. |
+| `depth` | string | Yes | Search depth. Values: `standard`, `deep`. |
+| `include_images` | boolean | No | Whether to include images in results. Default: `false`. |
+| `include_inline_citations` | boolean | No | Whether to include inline citations. Default: `true`. |
+| `max_results` | integer or null | No | Maximum number of results. Must be ≥ 1. |
+| `description` | string | No | Human-readable description of this model configuration. |
+
+**Example — inline search settings:**
+
+```toml
+[pipe.deep_search]
+type        = "PipeSearch"
+description = "Deep research on a topic"
+inputs      = { topic = "Text" }
+output      = "SearchResult"
+prompt      = "What are the main details about $topic?"
+model       = { model = "linkup/deep", depth = "deep", include_images = false }
 ```
 
 ## Operator: PipeCompose

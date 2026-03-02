@@ -45,8 +45,8 @@ Pipelex does NOT appear in: the landing page, the Language section, the Package 
 - `MTHDS_STANDARD_VERSION` = `"1.0.0"` (not `"0.2.0"` from the design doc)
 - `RESERVED_DOMAINS` = `{"native", "mthds", "pipelex"}`
 - `NATIVE_PACKAGE_ADDRESS` = `"__native__"`
-- Native concepts: 11 (Dynamic, Text, Image, Document, Html, TextAndImages, Number, ImgGenPrompt, Page, JSON, Anything)
-- Pipe types: 5 operators (PipeLLM, PipeFunc, PipeImgGen, PipeExtract, PipeCompose) + 4 controllers (PipeBatch, PipeCondition, PipeParallel, PipeSequence)
+- Native concepts: 12 (Dynamic, Text, Image, Document, Html, TextAndImages, Number, ImgGenPrompt, Page, JSON, SearchResult, Anything)
+- Pipe types: 6 operators (PipeLLM, PipeFunc, PipeImgGen, PipeExtract, PipeSearch, PipeCompose) + 4 controllers (PipeBatch, PipeCondition, PipeParallel, PipeSequence)
 - Concept field types: 8 (text, list, dict, integer, boolean, number, date, concept)
 - Template categories: 7 (basic, expression, html, markdown, mermaid, llm_prompt, img_gen_prompt)
 

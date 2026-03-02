@@ -204,13 +204,13 @@ docs-deploy: env
 
 docs-deploy-stable: env
 	$(call PRINT_TITLE,"Deploying stable documentation $(DOCS_VERSION) with latest alias")
-	$(VENV_MIKE) deploy --push --update-aliases $(DOCS_VERSION) latest
+	$(VENV_MIKE) deploy --push --update-aliases --alias-type redirect $(DOCS_VERSION) latest
 	$(VENV_MIKE) set-default --push latest
 	$(MAKE) docs-deploy-root
 
 docs-deploy-specific-version: env
 	$(call PRINT_TITLE,"Deploying documentation $(DOCS_VERSION) with pre-release alias")
-	$(VENV_MIKE) deploy --push --update-aliases $(DOCS_VERSION) pre-release
+	$(VENV_MIKE) deploy --push --update-aliases --alias-type redirect $(DOCS_VERSION) pre-release
 	$(MAKE) docs-deploy-root
 
 docs-deploy-root:

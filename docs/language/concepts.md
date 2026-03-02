@@ -154,6 +154,7 @@ MTHDS provides a set of built-in concepts that are always available in every bun
 | `ImgGenPrompt` | A prompt for image generation. |
 | `Page` | A single page extracted from a document. |
 | `JSON` | A JSON value. |
+| `SearchResult` | A web search result with answer and sources. |
 | `Anything` | Accepts any type. |
 
 Native concepts can be referenced by bare code (`Text`, `Image`) or by qualified reference (`native.Text`, `native.Image`). Bare native codes always take priority during name resolution.
