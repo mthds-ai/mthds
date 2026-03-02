@@ -1,0 +1,23 @@
+docs/language/model-references.md
+  b267cc90424384ae 11,20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.7",
+  "base_commit_sha": "693f32833d08214e7e54d97700742f8f24b82cbc",
+  "prompts": {
+    "b267cc90424384ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8e892eed-f5db-4cf1-b1fb-c853b4942ba5",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 2,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  }
+}
