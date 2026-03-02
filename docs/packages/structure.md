@@ -9,7 +9,7 @@ A **package** is the distribution unit of MTHDS. It is a directory that contains
 ## A Minimal Package
 
 ```
-my-tool/
+my_tool/
 ├── METHODS.toml
 └── main.mthds
 ```
@@ -19,7 +19,7 @@ This is the smallest distributable package: one manifest, one bundle. The manife
 ## A Full Package
 
 ```
-legal-tools/
+legal_tools/
 ├── METHODS.toml
 ├── methods.lock
 ├── general_legal.mthds
