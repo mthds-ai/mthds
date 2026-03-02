@@ -275,7 +275,7 @@ contract_text = "Text"
 
 ### Pipe Types
 
-MTHDS defines ten pipe types in two categories:
+MTHDS defines pipe types in two categories:
 
 **Operators** — pipes that perform a single transformation:
 

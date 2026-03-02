@@ -26,7 +26,7 @@ A `.mthds` file is valid TOML. Parse it with any compliant TOML parser, then val
 1. Parse the TOML into a generic dictionary.
 2. Extract header fields (`domain`, `description`, `system_prompt`, `main_pipe`).
 3. Extract the `concept` table — a mix of simple declarations (string values) and structured declarations (sub-tables with `description`, `structure`, `refines`).
-4. Extract `pipe` sub-tables. Each pipe has a `type` field that determines the discriminated union variant (one of the ten pipe types).
+4. Extract `pipe` sub-tables. Each pipe has a `type` field that determines the discriminated union variant (one of the supported pipe types).
 5. Validate all fields against the rules in the [Specification](../spec/mthds-format.md).
 
 The reference implementation uses Pydantic's discriminated union on the `type` field to dispatch pipe parsing:
@@ -122,7 +122,7 @@ Validation libraries such as Pydantic (Python) or Zod (TypeScript) are natural f
 
 ## Model References
 
-MTHDS defines four forms of model reference (`$` preset, `@` alias, `~` waterfall, and bare handle) that method authors use in the `model` field of `PipeLLM`, `PipeImgGen`, `PipeExtract`, and `PipeSearch`. See [Model References](../language/model-references.md) for the full description and examples.
+MTHDS defines several forms of model reference (`$` preset, `@` alias, `~` waterfall, and bare handle) that method authors use in the `model` field of `PipeLLM`, `PipeImgGen`, `PipeExtract`, and `PipeSearch`. See [Model References](../language/model-references.md) for the full description and examples.
 
 A runtime must resolve each form to a concrete model configuration. The recommended approach:
 

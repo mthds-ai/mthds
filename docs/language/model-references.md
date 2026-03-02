@@ -8,7 +8,7 @@ Model references tell pipes which AI model to use. Every `PipeLLM`, `PipeImgGen`
 
 ## At a Glance
 
-MTHDS defines four forms of model reference, distinguished by a single-character prefix:
+MTHDS defines the following forms of model reference, each distinguished by a single-character prefix:
 
 | Prefix | Kind | Example | Purpose |
 |--------|------|---------|---------|
