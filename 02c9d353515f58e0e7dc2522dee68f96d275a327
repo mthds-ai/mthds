@@ -1,0 +1,29 @@
+mkdocs.yml
+  01e79652edf77dbc 46-47
+CHANGELOG.md
+  01e79652edf77dbc 3-7
+pyproject.toml
+  01e79652edf77dbc 3
+docs/overrides/redirect.html
+  01e79652edf77dbc 1-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "02c9d353515f58e0e7dc2522dee68f96d275a327",
+  "prompts": {
+    "01e79652edf77dbc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "24130bd3-be21-4712-9ad4-fb70d2486455",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 46,
+      "total_deletions": 5,
+      "accepted_lines": 42,
+      "overriden_lines": 0
+    }
+  }
+}
