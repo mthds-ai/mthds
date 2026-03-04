@@ -44,6 +44,7 @@ extra:
 
 plugins:
   - mike:
+      alias_type: copy
       redirect_template: docs/overrides/redirect.html
   - search
   - privacy:
