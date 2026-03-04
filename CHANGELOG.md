@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.2.1] - 2026-03-03
+
+- Add PipeSearch operator to JSON Schema
+
 ## [v0.2.0] - 2026-03-03
 
 - Add documentation for PipeSearch operator
