@@ -534,6 +534,10 @@ Searches the web using a search provider and returns structured results.
 | `output` | string | Yes | MUST be `SearchResult` or a concept that refines `SearchResult`. |
 | `prompt` | string | Yes | The search query template. Supports Jinja2 syntax and the `@variable` / `$variable` shorthand. |
 | `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [search settings](#inline-search-settings) table. |
+| `from_date` | string | No | Start date filter in ISO 8601 format (YYYY-MM-DD). Only return results from this date onwards. |
+| `to_date` | string | No | End date filter in ISO 8601 format (YYYY-MM-DD). Only return results up to this date. |
+| `include_domains` | array of strings | No | Restrict search to these domains only (e.g., `["reuters.com", "bbc.com"]`). |
+| `exclude_domains` | array of strings | No | Exclude results from these domains. |
 
 **Validation rules:**
 
@@ -548,8 +552,22 @@ type        = "PipeSearch"
 description = "Search the web for information about a topic"
 inputs      = { topic = "Text" }
 output      = "SearchResult"
-model       = "$web-search"
+model       = "$standard"
 prompt      = "What is $topic?"
+```
+
+**Example — with date and domain filters:**
+
+```toml
+[pipe.search_recent_from_sources]
+type            = "PipeSearch"
+description     = "Search specific sources for recent news"
+inputs          = { topic = "Text" }
+output          = "SearchResult"
+model           = "$standard"
+prompt          = "What are the latest developments about $topic?"
+from_date       = "2026-01-01"
+include_domains = ["reuters.com", "apnews.com", "bbc.com"]
 ```
 
 ### Inline Search Settings
@@ -559,7 +577,6 @@ When the `model` field is a table instead of a string, it defines inline model s
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `model` | string | Yes | The model handle. |
-| `depth` | string | Yes | Search depth. Values: `standard`, `deep`. |
 | `include_images` | boolean | No | Whether to include images in results. Default: `false`. |
 | `include_inline_citations` | boolean | No | Whether to include inline citations. Default: `true`. |
 | `max_results` | integer or null | No | Maximum number of results. Must be ≥ 1. |
@@ -574,7 +591,7 @@ description = "Deep research on a topic"
 inputs      = { topic = "Text" }
 output      = "SearchResult"
 prompt      = "What are the main details about $topic?"
-model       = { model = "linkup/deep", depth = "deep", include_images = false }
+model       = { model = "linkup-deep", include_images = false }
 ```
 
 ## Operator: PipeCompose

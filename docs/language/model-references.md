@@ -118,7 +118,7 @@ Each pipe type that accepts `model` has a corresponding inline settings structur
 - **PipeLLM** uses `LLMSetting` — includes `model`, `temperature`, `max_tokens`, `image_detail`, `prompting_target`, `reasoning_effort`, `reasoning_budget`.
 - **PipeImgGen** uses `ImgGenSetting` — includes `model`, `quality`, `nb_steps`, `guidance_scale`, `is_moderated`, `safety_tolerance`.
 - **PipeExtract** uses `ExtractSetting` — includes `model`, `max_nb_images`, `image_min_size`.
-- **PipeSearch** uses `SearchSetting` — includes `model`, `depth`, `include_images`, `include_inline_citations`, `max_results`.
+- **PipeSearch** uses `SearchSetting` — includes `model`, `include_images`, `include_inline_citations`, `max_results`.
 
 All four require a `model` field (the model handle) and accept an optional `description`.
 
@@ -168,7 +168,7 @@ description = "Deep research on a topic"
 inputs      = { topic = "Text" }
 output      = "SearchResult"
 prompt      = "What are the main details about $topic?"
-model       = { model = "linkup/deep", depth = "deep", include_images = false }
+model       = { model = "linkup-deep", include_images = false }
 ```
 
 Inline settings and string references are mutually exclusive — the `model` field is either a string or a table, never both.

@@ -165,7 +165,7 @@ type        = "PipeSearch"
 description = "Search the web for information about a topic"
 inputs      = { topic = "Text" }
 output      = "SearchResult"
-model       = "$web-search"
+model       = "$standard"
 prompt      = "What's the latest news on $topic?"
 ```
 
@@ -177,6 +177,10 @@ prompt      = "What's the latest news on $topic?"
 |-------|----------|-------------|
 | `prompt` | Yes | The search query template. Supports Jinja2 syntax and `$variable` shorthand. |
 | `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
+| `from_date` | No | Start date filter in ISO 8601 format (YYYY-MM-DD). Only return results from this date onwards. |
+| `to_date` | No | End date filter in ISO 8601 format (YYYY-MM-DD). Only return results up to this date. |
+| `include_domains` | No | Restrict search to these domains only (e.g., `["reuters.com", "bbc.com"]`). |
+| `exclude_domains` | No | Exclude results from these domains. |
 
 **Constraints:** The output must be `SearchResult` or a concept that refines `SearchResult`.
 
