@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.3.0] - 2026-03-04
+
+- Add OpenGraph and Twitter Card meta tags to mike redirect template for social link previews
+- Add mike plugin configuration with custom redirect template
+
 ## [v0.2.1] - 2026-03-03
 
 - Add PipeSearch operator to JSON Schema
