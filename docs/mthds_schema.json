@@ -83,6 +83,9 @@
                 "$ref": "#/definitions/PipeExtractBlueprint"
               },
               {
+                "$ref": "#/definitions/PipeSearchBlueprint"
+              },
+              {
                 "$ref": "#/definitions/PipeBatchBlueprint"
               },
               {
@@ -1427,6 +1430,149 @@
       "title": "PipeParallelBlueprint",
       "type": "object"
     },
+    "PipeSearchBlueprint": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "default": "PipeSearch",
+          "title": "Type",
+          "type": "string",
+          "enum": [
+            "PipeSearch"
+          ]
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "inputs": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inputs"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "prompt": {
+          "title": "Prompt",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SearchSetting"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ModelReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "include_images": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Include Images"
+        },
+        "max_results": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Results"
+        },
+        "from_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "From Date"
+        },
+        "to_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "To Date"
+        },
+        "include_domains": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Include Domains"
+        },
+        "exclude_domains": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exclude Domains"
+        }
+      },
+      "required": [
+        "description",
+        "output",
+        "prompt"
+      ],
+      "title": "PipeSearchBlueprint",
+      "type": "object"
+    },
     "PipeSequenceBlueprint": {
       "additionalProperties": false,
       "properties": {
@@ -1517,6 +1663,55 @@
       ],
       "title": "ReasoningEffort",
       "type": "string"
+    },
+    "SearchSetting": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "include_images": {
+          "default": false,
+          "title": "Include Images",
+          "type": "boolean"
+        },
+        "include_inline_citations": {
+          "default": true,
+          "title": "Include Inline Citations",
+          "type": "boolean"
+        },
+        "max_results": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Results"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        }
+      },
+      "required": [
+        "model"
+      ],
+      "title": "SearchSetting",
+      "type": "object"
     },
     "SpecialOutcome": {
       "enum": [
@@ -1704,7 +1899,7 @@
     }
   },
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$comment": "Generated from PipelexBundleBlueprint v0.18.0b3. Do not edit manually.",
+  "$comment": "Generated from PipelexBundleBlueprint v0.20.0. Do not edit manually.",
   "x-taplo": {
     "initKeys": [
       "domain"
