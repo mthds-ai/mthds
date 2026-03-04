@@ -4,11 +4,11 @@ description: "Specify which AI model a pipe uses with MTHDS model references —
 
 # Model References
 
-Model references tell pipes which AI model to use. Every `PipeLLM`, `PipeImgGen`, and `PipeExtract` accepts an optional `model` field — a string that identifies the model and, depending on its prefix, how that model is configured.
+Model references tell pipes which AI model to use. Every `PipeLLM`, `PipeImgGen`, `PipeExtract`, and `PipeSearch` accepts an optional `model` field — a string that identifies the model and, depending on its prefix, how that model is configured.
 
 ## At a Glance
 
-MTHDS defines four forms of model reference, distinguished by a single-character prefix:
+MTHDS defines the following forms of model reference, most distinguished by a single-character prefix:
 
 | Prefix | Kind | Example | Purpose |
 |--------|------|---------|---------|
@@ -17,7 +17,7 @@ MTHDS defines four forms of model reference, distinguished by a single-character
 | `~` | Waterfall | `~fallback-chain` | Ordered fallback list for resilience. |
 | *(none)* | Handle | `claude-4.5-sonnet` | Direct model identifier. |
 
-All four forms apply uniformly to all pipe types that accept a `model` field — there is no prefix reserved for a specific operator.
+All forms apply uniformly to all pipe types that accept a `model` field — there is no prefix reserved for a specific operator.
 
 ## Aliases (`@`)
 
@@ -88,15 +88,16 @@ Handles are the simplest form. They are convenient for quick experiments but cou
 
 ## Which Pipes Use Model References
 
-Three operator pipe types accept the `model` field:
+Four operator pipe types accept the `model` field:
 
 | Pipe Type | Typical Use |
 |-----------|-------------|
 | `PipeLLM` | Large language model invocation. |
 | `PipeImgGen` | Image generation. |
 | `PipeExtract` | Document extraction (e.g., PDF to pages). |
+| `PipeSearch` | Web search with structured results. |
 
-All four reference forms (`$`, `@`, `~`, bare) work identically across all three pipe types.
+All four reference forms (`$`, `@`, `~`, bare) work identically across all four pipe types.
 
 ## Choosing a Reference Type
 
@@ -117,8 +118,9 @@ Each pipe type that accepts `model` has a corresponding inline settings structur
 - **PipeLLM** uses `LLMSetting` — includes `model`, `temperature`, `max_tokens`, `image_detail`, `prompting_target`, `reasoning_effort`, `reasoning_budget`.
 - **PipeImgGen** uses `ImgGenSetting` — includes `model`, `quality`, `nb_steps`, `guidance_scale`, `is_moderated`, `safety_tolerance`.
 - **PipeExtract** uses `ExtractSetting` — includes `model`, `max_nb_images`, `image_min_size`.
+- **PipeSearch** uses `SearchSetting` — includes `model`, `include_images`, `include_inline_citations`, `max_results`.
 
-All three require a `model` field (the model handle) and accept an optional `description`.
+All four require a `model` field (the model handle) and accept an optional `description`.
 
 **Example — PipeLLM with inline settings:**
 
@@ -155,6 +157,18 @@ description = "Extract text content from a CV PDF"
 inputs      = { cv_pdf = "Document" }
 output      = "Page[]"
 model       = { model = "gpt-4.1", max_nb_images = 10 }
+```
+
+**Example — PipeSearch with inline settings:**
+
+```toml
+[pipe.deep_search]
+type        = "PipeSearch"
+description = "Deep research on a topic"
+inputs      = { topic = "Text" }
+output      = "SearchResult"
+prompt      = "What are the main details about $topic?"
+model       = { model = "linkup-deep", include_images = false }
 ```
 
 Inline settings and string references are mutually exclusive — the `model` field is either a string or a table, never both.

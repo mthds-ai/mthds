@@ -148,7 +148,7 @@ Operations on the index:
 
 ## Know-How Graph Construction
 
-After building the package index, the registry constructs the Know-How Graph — a directed graph of concepts and pipes that enables [type-aware search](registry-search.md). The construction follows five steps:
+After building the package index, the registry enables the Know-How Graph — a directed graph of concepts and pipes that enables [type-aware search](registry-search.md). The construction follows these steps:
 
 ### Step 1: Build Concept Nodes
 

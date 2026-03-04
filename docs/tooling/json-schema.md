@@ -12,9 +12,9 @@ The schema defines the complete structure of an `.mthds` bundle:
 
 - **Header fields**: `domain`, `description`, `system_prompt`, `main_pipe`.
 - **Concept definitions**: both simple (string) and structured forms, including `structure` fields, `refines`, and all field types (`text`, `integer`, `number`, `boolean`, `date`, `list`, `dict`, `concept`) and the `choices` enum mechanism.
-- **Pipe definitions**: all nine pipe types with their specific fields — `PipeLLM`, `PipeFunc`, `PipeImgGen`, `PipeExtract`, `PipeCompose`, `PipeSequence`, `PipeParallel`, `PipeCondition`, `PipeBatch`.
+- **Pipe definitions**: all pipe types with their specific fields — `PipeLLM`, `PipeFunc`, `PipeImgGen`, `PipeExtract`, `PipeSearch`, `PipeCompose`, `PipeSequence`, `PipeParallel`, `PipeCondition`, `PipeBatch`.
 - **Sub-pipe blueprints**: the `steps`, `branches`, `outcomes`, and `construct` structures used by controllers and PipeCompose.
-- **Inline model settings**: the `LLMSetting`, `ImgGenSetting`, and `ExtractSetting` objects that can be used in place of string model references.
+- **Inline model settings**: the `LLMSetting`, `ImgGenSetting`, `ExtractSetting`, and `SearchSetting` objects that can be used in place of string model references.
 
 ## Schema Version
 

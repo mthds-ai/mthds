@@ -1,5 +1,5 @@
 ---
-description: "Discover MTHDS operator pipes: PipeLLM, PipeFunc, PipeImgGen, PipeExtract, and PipeCompose for single-step AI transformations."
+description: "Discover MTHDS operator pipes: PipeLLM, PipeFunc, PipeImgGen, PipeExtract, PipeSearch, and PipeCompose for single-step AI transformations."
 ---
 
 # Pipes — Operators
@@ -154,6 +154,35 @@ model       = "@default-text-from-pdf"
 | `page_views_dpi` | No | DPI for page view rendering. |
 
 **Constraints:** PipeExtract requires exactly one input (typically `Document` or a concept refining it) and the output must be `"Page[]"`.
+
+## PipeSearch
+
+Searches the web using a search provider and returns structured results with an answer and source citations.
+
+```toml
+[pipe.search_topic]
+type        = "PipeSearch"
+description = "Search the web for information about a topic"
+inputs      = { topic = "Text" }
+output      = "SearchResult"
+model       = "$standard"
+prompt      = "What's the latest news on $topic?"
+```
+
+**What this does:** Takes a `Text` input, sends a search query to a web search provider, and produces a `SearchResult` output containing a synthesized answer and a list of sources.
+
+**Key fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `prompt` | Yes | The search query template. Supports Jinja2 syntax and `$variable` shorthand. |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
+| `from_date` | No | Start date filter in ISO 8601 format (YYYY-MM-DD). Only return results from this date onwards. |
+| `to_date` | No | End date filter in ISO 8601 format (YYYY-MM-DD). Only return results up to this date. |
+| `include_domains` | No | Restrict search to these domains only (e.g., `["reuters.com", "bbc.com"]`). |
+| `exclude_domains` | No | Exclude results from these domains. |
+
+**Constraints:** The output must be `SearchResult` or a concept that refines `SearchResult`.
 
 ## PipeCompose
 

@@ -25,7 +25,7 @@ The base scope is `source.mthds` (extending `source.toml`). Key MTHDS-specific s
 
 1. **Pipe sections** — table headers matching `[pipe.<snake_case>]` or `[pipe.<snake_case>.<subfield>]`.
 2. **Concept sections** — table headers matching `[concept.<PascalCase>]` or `[concept.<PascalCase>.structure]`.
-3. **Pipe type values** — string values that match the nine pipe type names (`PipeLLM`, `PipeFunc`, etc.) in the `type` field of pipe sections.
+3. **Pipe type values** — string values that match the pipe type names (`PipeLLM`, `PipeSequence`, etc.) in the `type` field of pipe sections.
 4. **Prompt templates** — multi-line strings containing Jinja2 syntax and `@variable` / `$variable` shorthand.
 5. **Cross-package references** — strings containing `->` (the arrow separator for package-qualified references).
 6. **Model references** — string values with `$` or `@` prefixes in the `model` field.
@@ -64,7 +64,7 @@ The MTHDS JSON Schema (`mthds_schema.json`) provides machine-readable validation
 
 - Header fields (`domain`, `description`, `system_prompt`, `main_pipe`)
 - Concept definitions (simple and structured forms)
-- All nine pipe types with their specific fields
+- All pipe types with their specific fields
 - Sub-pipe blueprints (`steps`, `branches`, `outcomes`, `construct`)
 - Field types and their constraints
 

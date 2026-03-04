@@ -65,6 +65,12 @@ Each pipe type has specific rules:
 - `inputs` MUST contain exactly one entry.
 - `output` MUST be `"Page[]"`.
 
+**PipeSearch:**
+
+- `prompt` MUST be present.
+- All prompt variables MUST have matching inputs.
+- `output` MUST be `SearchResult` or a concept that refines `SearchResult`.
+
 **PipeCompose:**
 
 - Exactly one of `template` or `construct` MUST be present.

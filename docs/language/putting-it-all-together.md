@@ -59,4 +59,4 @@ prompt      = "Write a clever one-liner joke about $topic. Be concise and witty.
 4. `generate_joke` is a `PipeLLM` that takes one `topic` and produces one `Joke`.
 5. The batch collects all jokes into `Joke[]`, which becomes the final output.
 
-Two concepts (`Topic` and `Joke`) both refine the native `Text` concept. Four pipes — one sequence, one batch, two LLM operators — work together through working memory.
+The concepts (`Topic` and `Joke`) both refine the native `Text` concept. The pipes — a sequence, a batch, and LLM operators — work together through working memory.
