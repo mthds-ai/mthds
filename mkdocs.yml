@@ -75,6 +75,8 @@ plugins:
         - language/concepts.md: "Concepts"
         - language/pipes-operators.md: "Pipes — Operators"
         - language/pipes-controllers.md: "Pipes — Controllers"
+        - language/working-memory.md: "Working Memory"
+        - language/multiplicity.md: "Multiplicity"
         - language/model-references.md: "Model References"
         - language/putting-it-all-together.md: "Putting It All Together"
         - language/domains.md: "Domains"
@@ -160,6 +162,8 @@ nav:
     - Concepts: language/concepts.md
     - Pipes — Operators: language/pipes-operators.md
     - Pipes — Controllers: language/pipes-controllers.md
+    - Working Memory: language/working-memory.md
+    - Multiplicity: language/multiplicity.md
     - Model References: language/model-references.md
     - Putting It All Together: language/putting-it-all-together.md
     - Domains: language/domains.md

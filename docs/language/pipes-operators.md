@@ -32,6 +32,8 @@ All pipe types share these base fields:
 | `ConceptName[]` | A variable-length list. |
 | `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 1). |
 
+See [Multiplicity](multiplicity.md) for a detailed guide on when and how to use each form.
+
 ## PipeLLM
 
 Generates output by invoking a large language model with a prompt.
@@ -69,12 +71,145 @@ cv_pages = "Page"
 
 **Prompt template syntax:**
 
+All three syntaxes below compile to the same Jinja2 template under the hood. The shorthands exist to improve readability:
+
 - `{{ variable_name }}` — standard Jinja2 variable substitution.
-- `@variable_name` — shorthand, preprocessed to Jinja2 syntax.
-- `$variable_name` — shorthand, preprocessed to Jinja2 syntax.
-- Dotted paths are supported: `{{ doc_request.document_type }}`, `@doc_request.priority`.
+- `@variable_name` — shorthand designed for **block-level insertion** of an input's full content. Use `@` when the variable stands on its own line or represents a large block of text.
+- `$variable_name` — shorthand designed for **inline substitution** within a sentence. Use `$` when the variable is embedded in surrounding text.
+
+For example:
+
+```toml
+prompt = """
+Summarize the following article about $topic:
+
+@article_text
+
+Keep the summary under 3 sentences.
+"""
+```
+
+Here, `$topic` is inline (part of the sentence), while `@article_text` is block-level (inserted as a standalone block). Both conventions aid readability — they are not enforced by the runtime.
+
+Dotted paths are supported: `{{ doc_request.document_type }}`, `@doc_request.priority`.
 
 Every variable referenced in the prompt must correspond to a declared input, and every declared input must be referenced in the prompt or system prompt. Unused inputs are rejected.
+
+### Image Inputs
+
+PipeLLM supports vision language models that process both text and images. Declare image inputs in the `inputs` field — they are passed to the model alongside the text prompt.
+
+```toml
+[pipe.describe_image]
+type        = "PipeLLM"
+description = "Describe an image"
+inputs      = { image = "Image" }
+output      = "VisualDescription"
+prompt      = "Describe the provided image in great detail: $image"
+```
+
+Image variables must be tagged with `@` or `$` in the prompt, just like text variables.
+
+**Sub-attribute access with dot notation:** When an input is a structured concept that contains an image field, use dotted paths to reach the image:
+
+```toml
+[pipe.analyze_page_view]
+type        = "PipeLLM"
+description = "Analyze the visual layout of a page"
+inputs      = { "page_content.page_view" = "Image" }
+output      = "LayoutAnalysis"
+prompt      = """
+Analyze the visual layout and design elements of this page: $page_content.page_view
+Focus on typography, spacing, and overall composition.
+"""
+```
+
+**Multiple images:** List each image as a separate input:
+
+```toml
+[pipe.compare_images]
+type        = "PipeLLM"
+description = "Compare two images"
+inputs      = { first_image = "Image", second_image = "Image" }
+output      = "ImageComparison"
+prompt      = "Compare these two images and describe their similarities and differences: $first_image and $second_image"
+```
+
+### Document Inputs
+
+PipeLLM supports documents (PDFs, etc.) as inputs. Documents are passed to the model alongside the text prompt.
+
+```toml
+[pipe.summarize_document]
+type        = "PipeLLM"
+description = "Summarize a document"
+inputs      = { document = "Document" }
+output      = "DocumentSummary"
+prompt      = "Summarize the key points from this document: @document"
+```
+
+Document variables must be tagged with `@` or `$`, just like text and image variables.
+
+**Multiple documents:**
+
+```toml
+[pipe.compare_documents]
+type        = "PipeLLM"
+description = "Compare two documents"
+inputs      = { first_doc = "Document", second_doc = "Document" }
+output      = "DocumentComparison"
+prompt      = "Compare these two documents and describe their similarities and differences: $first_doc and $second_doc"
+```
+
+Text, image, and document inputs can be freely combined in the same pipe.
+
+### Structuring Method
+
+The `structuring_method` field controls how PipeLLM produces structured output (when the output concept has a `structure` table):
+
+- `"direct"` — the model generates JSON conforming to the output schema in a single call. Fast, but depends on the model's ability to produce well-formed JSON.
+- `"preliminary_text"` — a two-step process: the model first generates free-form text, then a second call extracts and structures the information into the target schema. More robust for complex structures.
+
+**More PipeLLM examples:**
+
+Image input with structured output:
+
+```toml
+[concept.TableRow]
+description = "A single row of data from a table"
+
+[concept.TableRow.structure]
+cells = { type = "list", item_type = "text", description = "Cell values in order" }
+
+[concept.TableData]
+description = "Structured data extracted from a table image"
+
+[concept.TableData.structure]
+headers = { type = "list", item_type = "text", description = "Column headers" }
+rows    = { type = "list", item_type = "concept", item_concept_ref = "TableRow", description = "Table rows" }
+
+[pipe.extract_table_from_image]
+type        = "PipeLLM"
+description = "Extract table data from an image"
+inputs      = { image = "Image" }
+output      = "TableData"
+prompt      = "Extract the table data from this image and return the headers and rows: $image"
+```
+
+Combining text and document inputs:
+
+```toml
+[pipe.analyze_with_context]
+type        = "PipeLLM"
+description = "Analyze a document with additional context"
+inputs      = { context = "Text", reference_doc = "Document" }
+output      = "ContextualAnalysis"
+prompt      = """
+Given this context: $context
+
+Analyze the document and explain how it relates to the context: $reference_doc
+"""
+```
 
 ## PipeFunc
 

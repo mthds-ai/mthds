@@ -4,7 +4,7 @@ description: "A complete MTHDS bundle walkthrough showing how concepts, operator
 
 # Putting It All Together
 
-Before moving on to domains and namespace resolution, here is a complete bundle that uses both operators and controllers. It shows how concepts, pipes, and working memory flow together.
+Before moving on to domains and namespace resolution, here is a complete bundle that uses both operators and controllers. It shows how concepts, pipes, and [working memory](working-memory.md) flow together.
 
 ```toml
 domain      = "joke_generation"
