@@ -52,7 +52,7 @@ Header fields appear at the top of the file, before any `[concept]` or `[pipe]` 
 |-------|----------|-------------|
 | `domain` | Yes | The domain this bundle belongs to. Determines the namespace for all concepts and pipes defined in this file. |
 | `description` | No | A human-readable description of what this bundle provides. |
-| `system_prompt` | No | A default system prompt applied to all `PipeLLM` pipes in this bundle that do not define their own. |
+| `system_prompt` | No | A default system prompt applied to all `PipeLLM` pipes in this bundle that do not define their own. When a PipeLLM pipe omits its own `system_prompt`, it inherits the bundle-level value. A pipe that defines its own `system_prompt` overrides the bundle default. |
 | `main_pipe` | No | The pipe code of the bundle's primary entry point. Auto-exported when the bundle is part of a package. |
 
 The `domain` field is the only required header. It assigns a namespace to everything in the file — more on this in [Domains](domains.md).

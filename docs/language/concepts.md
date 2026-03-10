@@ -20,6 +20,49 @@ These concepts exist as named types. They have no internal structure — they ar
 
 **Naming rule:** Concept codes must be `PascalCase`, matching the pattern `[A-Z][a-zA-Z0-9]*`. Examples: `ContractClause`, `UserProfile`, `CVAnalysis`.
 
+### Naming Guidelines
+
+Beyond the PascalCase rule, follow these principles for clear, reusable concept names:
+
+**1. Define what it is, not what it's for.**
+
+```toml
+[concept]
+# Avoid — includes usage context
+TextToSummarize = "Text that needs to be summarized"
+
+# Prefer — defines the essence
+Article = "A written composition on a specific topic"
+```
+
+A concept should describe the nature of the data, not the role it plays in a particular pipe.
+
+**2. Use singular forms.**
+
+```toml
+[concept]
+# Avoid — plural form
+Invoices = "Commercial documents from sellers"
+
+# Prefer — singular form
+Invoice = "A commercial document issued by a seller to a buyer"
+```
+
+Concepts are always singular. Use [multiplicity](multiplicity.md) to express quantity.
+
+**3. Avoid unnecessary adjectives.**
+
+```toml
+[concept]
+# Avoid — includes subjective qualifier
+LongArticle = "A lengthy written composition"
+
+# Prefer — neutral description
+Article = "A written composition on a specific topic"
+```
+
+Keep concept names factual and neutral. Qualitative distinctions belong in the pipe logic, not in the concept name.
+
 ## Structured Concepts
 
 When a concept needs internal structure — specific fields with types — use a `[concept.<ConceptCode>]` sub-table:
@@ -160,6 +203,26 @@ MTHDS provides a set of built-in concepts that are always available in every bun
 Native concepts can be referenced by bare code (`Text`, `Image`) or by qualified reference (`native.Text`, `native.Image`). Bare native codes always take priority during name resolution.
 
 A bundle cannot declare a concept with the same code as a native concept. For example, defining `[concept] Text = "My custom text"` is an error.
+
+### Native Concept Fields
+
+The most commonly used native concepts have the following fields. These are the fields you can reference in prompts via dot notation (e.g., `$page_content.page_view`).
+
+**Text** — a single `text` field containing the string value.
+
+**Image** — `url` (location of the image), `source_prompt` (the prompt used to generate it, if applicable), `caption` (descriptive text), `base_64` (base64-encoded image data, alternative to URL).
+
+**Document** — `url` (location of the document file), `mime_type` (e.g., `"application/pdf"`).
+
+**Number** — a single `number` field (integer or floating-point).
+
+**TextAndImages** — `text` (the text content), `images` (a list of images associated with the text).
+
+**Page** — `text_and_images` (the extracted text and embedded images from the page), `page_view` (a screenshot or rendering of the entire page as an image).
+
+**SearchResult** — `answer` (the synthesized answer text), `sources` (a list of source citations, each with `name`, `url`, and `snippet`).
+
+**JSON** — a single `json_obj` field containing the JSON object.
 
 ## See Also
 
