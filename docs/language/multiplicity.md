@@ -171,7 +171,7 @@ prompt      = "Extract all fields from this invoice: @invoice_image"
 type        = "PipeSequence"
 description = "Process multiple invoices"
 inputs      = { invoice_images = "InvoiceImage[]" }
-output      = "InvoiceData"
+output      = "InvoiceData[]"
 steps = [
     { pipe = "extract_single_invoice", batch_over = "invoice_images", batch_as = "invoice_image", result = "all_invoice_data" }
 ]
