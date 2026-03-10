@@ -20,6 +20,49 @@ These concepts exist as named types. They have no internal structure — they ar
 
 **Naming rule:** Concept codes must be `PascalCase`, matching the pattern `[A-Z][a-zA-Z0-9]*`. Examples: `ContractClause`, `UserProfile`, `CVAnalysis`.
 
+### Naming Guidelines
+
+Beyond the PascalCase rule, follow these principles for clear, reusable concept names:
+
+**1. Define what it is, not what it's for.**
+
+```toml
+[concept]
+# Avoid — includes usage context
+TextToSummarize = "Text that needs to be summarized"
+
+# Prefer — defines the essence
+Article = "A written composition on a specific topic"
+```
+
+A concept should describe the nature of the data, not the role it plays in a particular pipe.
+
+**2. Use singular forms.**
+
+```toml
+[concept]
+# Avoid — plural form
+Invoices = "Commercial documents from sellers"
+
+# Prefer — singular form
+Invoice = "A commercial document issued by a seller to a buyer"
+```
+
+Concepts are always singular. Use [multiplicity](multiplicity.md) to express quantity.
+
+**3. Avoid unnecessary adjectives.**
+
+```toml
+[concept]
+# Avoid — includes subjective qualifier
+LongArticle = "A lengthy written composition"
+
+# Prefer — neutral description
+Article = "A written composition on a specific topic"
+```
+
+Keep concept names factual and neutral. Qualitative distinctions belong in the pipe logic, not in the concept name.
+
 ## Structured Concepts
 
 When a concept needs internal structure — specific fields with types — use a `[concept.<ConceptCode>]` sub-table:
@@ -130,6 +173,9 @@ refines     = "ContractClause"
 
 `NonCompeteClause` is a specialization of `ContractClause`. Any pipe that accepts `ContractClause` also accepts `NonCompeteClause`.
 
+!!! note "Type Compatibility — Substitutability"
+    Refined concepts are **substitutable** for their parent. If a pipe declares `inputs = { clause = "ContractClause" }`, you can pass a `NonCompeteClause` (or any other concept that refines `ContractClause`) as the `clause` input. This follows the standard subtyping rule: a specialized type is always valid where the general type is expected.
+
 The `refines` field accepts three forms of concept reference:
 
 - **Bare code:** `"ContractClause"` — resolved within the current bundle's domain.
@@ -137,6 +183,39 @@ The `refines` field accepts three forms of concept reference:
 - **Cross-package:** `"acme_legal->legal.contracts.NonDisclosureAgreement"` — resolved from a dependency.
 
 Cross-package refinement is how you build on another package's vocabulary without merging namespaces. See [Namespace Resolution](namespace-resolution.md) for the full resolution rules.
+
+## When to Refine vs. When to Create a New Concept
+
+Choosing between refinement and a new concept depends on the semantic relationship and whether you need custom structure.
+
+**Refine** when the new concept is genuinely a specialized version of an existing one and the parent's structure is sufficient:
+
+```toml
+[concept.Invoice]
+description = "A commercial document issued by a seller to a buyer"
+refines = "Document"
+
+[concept.VIPCustomer]
+description = "A high-value customer with special privileges"
+refines = "Customer"
+```
+
+Refinement is the right choice when you want substitutability — an `Invoice` can be used wherever a `Document` is expected.
+
+**Create a new concept** when the data needs its own structure, or when it does not naturally fit as a subtype of any existing concept:
+
+```toml
+[concept.InvoiceData]
+description = "Extracted data from an invoice"
+
+[concept.InvoiceData.structure]
+invoice_number = { type = "text", description = "Invoice identifier", required = true }
+total_amount   = { type = "number", description = "Total amount due" }
+line_items     = { type = "list", item_type = "concept", item_concept_ref = "LineItem", description = "Invoice line items" }
+```
+
+!!! tip "Don't over-refine"
+    Avoid creating refinements for distinctions that belong in processing logic rather than in the type system. For example, `SmallInvoice` and `LargeInvoice` are better handled as a single `Invoice` concept with the pipe deciding how to process different amounts.
 
 ## Native Concepts
 
@@ -160,6 +239,26 @@ MTHDS provides a set of built-in concepts that are always available in every bun
 Native concepts can be referenced by bare code (`Text`, `Image`) or by qualified reference (`native.Text`, `native.Image`). Bare native codes always take priority during name resolution.
 
 A bundle cannot declare a concept with the same code as a native concept. For example, defining `[concept] Text = "My custom text"` is an error.
+
+### Native Concept Fields
+
+The most commonly used native concepts have the following fields. These are the fields you can reference in prompts via dot notation (e.g., `$page_content.page_view`).
+
+**Text** — a single `text` field containing the string value.
+
+**Image** — `url` (location of the image), `source_prompt` (the prompt used to generate it, if applicable), `caption` (descriptive text), `base_64` (base64-encoded image data, alternative to URL).
+
+**Document** — `url` (location of the document file), `mime_type` (e.g., `"application/pdf"`).
+
+**Number** — a single `number` field (integer or floating-point).
+
+**TextAndImages** — `text` (the text content), `images` (a list of images associated with the text).
+
+**Page** — `text_and_images` (the extracted text and embedded images from the page), `page_view` (a screenshot or rendering of the entire page as an image).
+
+**SearchResult** — `answer` (the synthesized answer text), `sources` (a list of source citations, each with `name`, `url`, and `snippet`).
+
+**JSON** — a single `json_obj` field containing the JSON object.
 
 ## See Also
 

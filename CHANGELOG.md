@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.3.1] - 2026-03-09
+
+- Expand language docs: file naming conventions, bundle-level system prompt, refinement vs. new concept guidance, and structuring_method details
+- Fix docs quality issues: nb_output example, cross-references, concept headers, and item_type
+
 ## [v0.3.0] - 2026-03-04
 
 - Add OpenGraph and Twitter Card meta tags to mike redirect template for social link previews

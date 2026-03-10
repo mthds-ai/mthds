@@ -120,6 +120,14 @@ This file works as a standalone bundle — no manifest, no package, no dependenc
 mthds run summarizer.mthds
 ```
 
+## File Naming Conventions
+
+When organizing `.mthds` files in a project:
+
+- Use `snake_case` for file names: `invoice_processing.mthds`, `cv_analysis.mthds`.
+- Match the file name to the bundle's domain when practical. A bundle with `domain = "invoice_processing"` lives naturally in `invoice_processing.mthds`.
+- Use the `.mthds` extension — it is required by the toolchain for validation and formatting.
+
 ## Next Steps
 
 - Add more concepts and pipes to your bundle. See [The Language](../language/bundles.md) for the full set of pipe types and concept features.

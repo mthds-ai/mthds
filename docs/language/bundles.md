@@ -52,12 +52,45 @@ Header fields appear at the top of the file, before any `[concept]` or `[pipe]` 
 |-------|----------|-------------|
 | `domain` | Yes | The domain this bundle belongs to. Determines the namespace for all concepts and pipes defined in this file. |
 | `description` | No | A human-readable description of what this bundle provides. |
-| `system_prompt` | No | A default system prompt applied to all `PipeLLM` pipes in this bundle that do not define their own. |
+| `system_prompt` | No | A default system prompt applied to all `PipeLLM` pipes in this bundle that do not define their own. When a PipeLLM pipe omits its own `system_prompt`, it inherits the bundle-level value. A pipe that defines its own `system_prompt` overrides the bundle default. |
 | `main_pipe` | No | The pipe code of the bundle's primary entry point. Auto-exported when the bundle is part of a package. |
 
 The `domain` field is the only required header. It assigns a namespace to everything in the file — more on this in [Domains](domains.md).
 
 The `main_pipe` field, if present, must be a valid `snake_case` pipe code and must reference a pipe defined in the same bundle.
+
+### Bundle-Level System Prompt
+
+The `system_prompt` header sets a default system prompt for all PipeLLM pipes in the bundle. Individual pipes can override it by defining their own `system_prompt`.
+
+```toml
+domain        = "medical.records"
+description   = "Medical record analysis methods"
+system_prompt = """
+You are a medical records analyst. Follow HIPAA guidelines strictly.
+Never include patient identifiers in your output.
+"""
+
+[concept]
+Diagnosis = "A primary diagnosis extracted from a medical record"
+
+[pipe.extract_diagnosis]
+type        = "PipeLLM"
+description = "Extract diagnosis from medical records"
+inputs      = { record = "Text" }
+output      = "Diagnosis"
+prompt      = "Extract the primary diagnosis from: @record"
+# Inherits the bundle-level system_prompt
+
+[pipe.summarize_for_patient]
+type          = "PipeLLM"
+description   = "Summarize records in patient-friendly language"
+inputs        = { record = "Text" }
+output        = "Text"
+system_prompt = "You are a helpful medical assistant explaining records to patients in simple terms."
+prompt        = "Summarize the following in plain language: @record"
+# Overrides the bundle-level system_prompt
+```
 
 ## Standalone Bundles
 
