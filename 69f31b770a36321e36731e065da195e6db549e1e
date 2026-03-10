@@ -1,0 +1,25 @@
+pyproject.toml
+  7a622555c8793cbb 3
+CHANGELOG.md
+  7a622555c8793cbb 3-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "69f31b770a36321e36731e065da195e6db549e1e",
+  "prompts": {
+    "7a622555c8793cbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "700218ab-b2fa-4fb1-90a7-52759a2b8ee1",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 6,
+      "total_deletions": 1,
+      "accepted_lines": 6,
+      "overriden_lines": 0
+    }
+  }
+}
