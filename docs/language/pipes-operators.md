@@ -167,8 +167,10 @@ Text, image, and document inputs can be freely combined in the same pipe.
 
 The `structuring_method` field controls how PipeLLM produces structured output (when the output concept has a `structure` table):
 
-- `"direct"` — the model generates JSON conforming to the output schema in a single call. Fast, but depends on the model's ability to produce well-formed JSON.
-- `"preliminary_text"` — a two-step process: the model first generates free-form text, then a second call extracts and structures the information into the target schema. More robust for complex structures.
+- `"direct"` — the model generates JSON conforming to the output schema in a single call. This is the fastest option and works well when the output structure is straightforward (few fields, simple types) and the model reliably produces well-formed JSON.
+- `"preliminary_text"` — a two-step process: the model first generates free-form text reasoning through the problem, then a second call extracts and structures the information into the target schema. Use this mode when the output structure is complex (many fields, nested concepts, or nuanced extraction) or when the model struggles to produce correct JSON in a single pass.
+
+When `structuring_method` is omitted, the runtime chooses a default. In general, start with the default and switch to `"preliminary_text"` if you observe structuring errors or degraded output quality on complex schemas.
 
 **More PipeLLM examples:**
 

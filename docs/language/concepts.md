@@ -173,6 +173,9 @@ refines     = "ContractClause"
 
 `NonCompeteClause` is a specialization of `ContractClause`. Any pipe that accepts `ContractClause` also accepts `NonCompeteClause`.
 
+!!! note "Type Compatibility — Substitutability"
+    Refined concepts are **substitutable** for their parent. If a pipe declares `inputs = { clause = "ContractClause" }`, you can pass a `NonCompeteClause` (or any other concept that refines `ContractClause`) as the `clause` input. This follows the standard subtyping rule: a specialized type is always valid where the general type is expected.
+
 The `refines` field accepts three forms of concept reference:
 
 - **Bare code:** `"ContractClause"` — resolved within the current bundle's domain.
@@ -180,6 +183,39 @@ The `refines` field accepts three forms of concept reference:
 - **Cross-package:** `"acme_legal->legal.contracts.NonDisclosureAgreement"` — resolved from a dependency.
 
 Cross-package refinement is how you build on another package's vocabulary without merging namespaces. See [Namespace Resolution](namespace-resolution.md) for the full resolution rules.
+
+## When to Refine vs. When to Create a New Concept
+
+Choosing between refinement and a new concept depends on the semantic relationship and whether you need custom structure.
+
+**Refine** when the new concept is genuinely a specialized version of an existing one and the parent's structure is sufficient:
+
+```toml
+[concept.Invoice]
+description = "A commercial document issued by a seller to a buyer"
+refines = "Document"
+
+[concept.VIPCustomer]
+description = "A high-value customer with special privileges"
+refines = "Customer"
+```
+
+Refinement is the right choice when you want substitutability — an `Invoice` can be used wherever a `Document` is expected.
+
+**Create a new concept** when the data needs its own structure, or when it does not naturally fit as a subtype of any existing concept:
+
+```toml
+[concept.InvoiceData]
+description = "Extracted data from an invoice"
+
+[concept.InvoiceData.structure]
+invoice_number = { type = "text", description = "Invoice identifier", required = true }
+total_amount   = { type = "number", description = "Total amount due" }
+line_items     = { type = "list", item_type = "concept", item_concept_ref = "LineItem", description = "Invoice line items" }
+```
+
+!!! tip "Don't over-refine"
+    Avoid creating refinements for distinctions that belong in processing logic rather than in the type system. For example, `SmallInvoice` and `LargeInvoice` are better handled as a single `Invoice` concept with the pipe deciding how to process different amounts.
 
 ## Native Concepts
 

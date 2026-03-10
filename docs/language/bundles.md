@@ -59,6 +59,39 @@ The `domain` field is the only required header. It assigns a namespace to everyt
 
 The `main_pipe` field, if present, must be a valid `snake_case` pipe code and must reference a pipe defined in the same bundle.
 
+### Bundle-Level System Prompt
+
+The `system_prompt` header sets a default system prompt for all PipeLLM pipes in the bundle. Individual pipes can override it by defining their own `system_prompt`.
+
+```toml
+domain        = "medical.records"
+description   = "Medical record analysis methods"
+system_prompt = """
+You are a medical records analyst. Follow HIPAA guidelines strictly.
+Never include patient identifiers in your output.
+"""
+
+[concept]
+Diagnosis = "A primary diagnosis extracted from a medical record"
+
+[pipe.extract_diagnosis]
+type        = "PipeLLM"
+description = "Extract diagnosis from medical records"
+inputs      = { record = "Text" }
+output      = "Diagnosis"
+prompt      = "Extract the primary diagnosis from: @record"
+# Inherits the bundle-level system_prompt
+
+[pipe.summarize_for_patient]
+type          = "PipeLLM"
+description   = "Summarize records in patient-friendly language"
+inputs        = { record = "Text" }
+output        = "Text"
+system_prompt = "You are a helpful medical assistant explaining records to patients in simple terms."
+prompt        = "Summarize the following in plain language: @record"
+# Overrides the bundle-level system_prompt
+```
+
 ## Standalone Bundles
 
 A `.mthds` file works on its own, without a package manifest. When used standalone:
