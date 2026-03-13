@@ -1,5 +1,12 @@
 # Changelog
 
+## [v0.3.2] - 2026-03-13
+
+- Document PipeCompose template mode: shorthand syntax (`$`, `@`, `@?`), template categories, available filters, and template context
+- Add `@?` conditional insertion pattern to PipeLLM prompt syntax reference
+- Add normative shorthand expansion rules to the specification
+- Add preprocessor guidance and filter-per-category table to implementers runtime docs
+
 ## [v0.3.1] - 2026-03-09
 
 - Expand language docs: file naming conventions, bundle-level system prompt, refinement vs. new concept guidance, and structuring_method details
