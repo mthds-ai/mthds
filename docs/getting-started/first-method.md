@@ -120,6 +120,9 @@ This file works as a standalone bundle — no manifest, no package, no dependenc
 mthds run summarizer.mthds
 ```
 
+!!! note "Runtime required"
+    Execution requires an MTHDS-compatible runtime. The reference runtime is [Pipelex](https://github.com/Pipelex/pipelex).
+
 ## File Naming Conventions
 
 When organizing `.mthds` files in a project:
