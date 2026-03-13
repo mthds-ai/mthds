@@ -610,6 +610,25 @@ Composes output by assembling data from working memory using either a template o
 
 When `template` is a string, it is a Jinja2 template rendered with the input variables. When `template` is a table, it MUST contain a `template` field (string) and a `category` field, and MAY contain `templating_style` and `extra_context`.
 
+**Template shorthand syntax:**
+
+MTHDS defines three shorthand patterns that a compliant preprocessor MUST expand before Jinja2 rendering:
+
+| Pattern | Expansion | Description |
+|---------|-----------|-------------|
+| `$name` | `{{ name|format() }}` | Inline substitution with formatting. |
+| `@name` | `{{ name|tag("name") }}` | Block insertion with tagging. |
+| `@?name` | `{% if name %}{{ name|tag("name") }}{% endif %}` | Conditional block insertion (renders only if truthy). |
+
+**Rules:**
+
+- A shorthand pattern MUST NOT match when the character immediately following `$`, `@`, or `@?` is a digit (`0`–`9`). This prevents dollar amounts (e.g., `$100`) and version-like strings (e.g., `@2.0`) from being treated as variables.
+- Dotted paths are supported: `$user.name`, `@doc.summary`, `@?extra.notes`. Each segment of the dotted path MUST be a valid identifier.
+- When a matched name ends with a `.` (dot), the preprocessor MUST strip the trailing dot from the variable name and place it after the expanded expression (treating it as sentence punctuation).
+- Raw Jinja2 syntax (`{{ }}`, `{% %}`) MUST always be accepted alongside the shorthands.
+
+These shorthands apply to the `template` field of PipeCompose and to the `prompt` and `system_prompt` fields of PipeLLM, PipeImgGen, and PipeSearch. See [Pipes — Operators: Template Mode](../language/pipes-operators.md#template-mode) for the full reference on categories and filters.
+
 **Template blueprint fields (table form):**
 
 | Field | Type | Required | Description |

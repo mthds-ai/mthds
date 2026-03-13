@@ -76,6 +76,7 @@ All three syntaxes below compile to the same Jinja2 template under the hood. The
 - `{{ variable_name }}` — standard Jinja2 variable substitution.
 - `@variable_name` — shorthand designed for **block-level insertion** of an input's full content. Use `@` when the variable stands on its own line or represents a large block of text.
 - `$variable_name` — shorthand designed for **inline substitution** within a sentence. Use `$` when the variable is embedded in surrounding text.
+- `@?variable_name` — shorthand for **conditional insertion**. Renders the variable only if it is truthy (non-empty, non-null). Use `@?` for optional inputs that may or may not be provided.
 
 For example:
 
@@ -85,13 +86,17 @@ Summarize the following article about $topic:
 
 @article_text
 
+@?additional_context
+
 Keep the summary under 3 sentences.
 """
 ```
 
-Here, `$topic` is inline (part of the sentence), while `@article_text` is block-level (inserted as a standalone block). Both conventions aid readability — they are not enforced by the runtime.
+Here, `$topic` is inline (part of the sentence), `@article_text` is block-level (inserted as a standalone block), and `@?additional_context` is conditionally inserted — it only appears if the variable has a value. All three conventions aid readability — they are not enforced by the runtime.
 
 Dotted paths are supported: `{{ doc_request.document_type }}`, `@doc_request.priority`.
+
+For the full reference on shorthand syntax, template categories, and available filters, see [PipeCompose — Template Mode](#template-mode) below.
 
 Every variable referenced in the prompt must correspond to a declared input, and every declared input must be referenced in the prompt or system prompt. Unused inputs are rejected.
 
@@ -336,11 +341,11 @@ description = "Format analysis results into a report"
 inputs      = { analysis = "CVAnalysis", candidate_name = "Text" }
 output      = "Text"
 template    = """
-# Report for {{ candidate_name }}
+# Report for $candidate_name
 
-{{ analysis.summary }}
+@analysis.summary
 
-Skills: {{ analysis.skills }}
+Skills: $analysis.skills
 """
 ```
 
@@ -348,13 +353,91 @@ The `template` field can be a plain string (as above) or a table with additional
 
 ```toml
 [pipe.format_report.template]
-template = "# Report for {{ candidate_name }}"
+template = "# Report for $candidate_name"
 category = "markdown"
 
 [pipe.format_report.template.templating_style]
 tag_style   = "xml"
 text_format = "markdown"
 ```
+
+#### Template Shorthand Syntax
+
+MTHDS templates support three shorthand patterns that are preprocessed into Jinja2 before rendering. Raw Jinja2 (`{{ }}`, `{% %}`) is always available alongside the shorthands.
+
+| Shorthand | Jinja2 Expansion | Purpose |
+|-----------|-----------------|---------|
+| `$variable` | `{{ variable|format() }}` | **Inline substitution** — embed a value within a sentence. |
+| `@variable` | `{{ variable|tag("variable") }}` | **Block insertion** — insert content as a standalone, tagged block. |
+| `@?variable` | `{% if variable %}{{ variable|tag("variable") }}{% endif %}` | **Conditional insertion** — render only if the variable is truthy. |
+
+**Notes:**
+
+- **Dotted paths** are supported with all three patterns: `$user.name`, `@doc.summary`, `@?extra.notes`.
+- **Trailing dots** are treated as punctuation, not part of the path: `$amount.` expands to `{{ amount|format() }}.`
+- **Dollar amounts** like `$100` or `$1,000` are **not** matched — the character after `$` must be a letter or underscore.
+- **Raw Jinja2** is always available: `{{ variable_name }}`, `{% for item in items %}`, etc.
+
+**Example combining all three patterns:**
+
+```toml
+[pipe.compose_prompt]
+type        = "PipeCompose"
+description = "Build an LLM prompt from structured inputs"
+inputs      = { topic = "Text", context = "Text", guidelines = "Text" }
+output      = "Text"
+template    = """
+Write an article about $topic.
+
+@context
+
+@?guidelines
+"""
+```
+
+Here, `$topic` is inlined into the sentence, `@context` is inserted as a tagged block, and `@?guidelines` appears only if the variable has a value.
+
+#### Template Categories
+
+The `category` field determines which Jinja2 filters are registered and how the template environment is configured.
+
+| Category | Use When | Autoescape | Trim Blocks | Available Filters |
+|----------|----------|:----------:|:-----------:|-------------------|
+| `basic` | General-purpose text composition | No | No | `format`, `tag` |
+| `expression` | Simple expression evaluation | No | No | *(none)* |
+| `html` | Generating HTML content | Yes | Yes | `format`, `tag`, `escape_script_tag` |
+| `markdown` | Generating Markdown content | No | Yes | `format`, `tag`, `escape_script_tag` |
+| `mermaid` | Generating Mermaid diagrams | No | No | *(none)* |
+| `llm_prompt` | Composing prompts for LLMs | No | No | `format`, `tag`, `with_images` |
+| `img_gen_prompt` | Composing prompts for image generation | No | No | `format`, `tag`, `with_images` |
+
+**Guidance:** Use `basic` for most templates. Use `html` when generating web content (autoescape prevents XSS). Use `llm_prompt` when composing prompts that may include image references.
+
+#### Available Filters
+
+Filters transform variable content during rendering. The `$` and `@` shorthands apply `format()` and `tag()` automatically — you only need to call filters explicitly when using raw Jinja2 syntax.
+
+| Filter | Syntax | Description | Categories |
+|--------|--------|-------------|------------|
+| `format` | `{{ var|format(text_format?) }}` | Formats a value as text. Optional `text_format` parameter: `plain`, `markdown`, `html`, `json`. Uses the context default if omitted. Applied automatically by `$`. | basic, html, markdown, llm_prompt, img_gen_prompt |
+| `tag` | `{{ var|tag(tag_name?) }}` | Wraps content in tags based on the template's `tag_style`. The tag name defaults to the variable name. Applied automatically by `@` and `@?`. | basic, html, markdown, llm_prompt, img_gen_prompt |
+| `escape_script_tag` | `{{ var|escape_script_tag() }}` | Escapes `</script>` tags to prevent injection. | html, markdown |
+| `with_images` | `{{ var|with_images() }}` | Extracts nested images from structured content and returns text with `[Image N]` placeholders. | llm_prompt, img_gen_prompt |
+
+#### Template Context
+
+All declared inputs are available as variables in the template. The optional `extra_context` field (table form only) injects additional static variables:
+
+```toml
+[pipe.format_report.template]
+template = "Version: $version — Report for $candidate_name"
+category = "basic"
+
+[pipe.format_report.template.extra_context]
+version = "2.0"
+```
+
+Every variable referenced in the template must correspond to a declared input or an `extra_context` key.
 
 **`category` values:** `basic`, `expression`, `html`, `markdown`, `mermaid`, `llm_prompt`, `img_gen_prompt`.
 
