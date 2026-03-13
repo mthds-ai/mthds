@@ -1,0 +1,31 @@
+docs/404.md
+  0d925c2f6e5ec8e7 4
+mkdocs.yml
+  0d925c2f6e5ec8e7 49
+Makefile
+  0d925c2f6e5ec8e7 207,213
+docs/overrides/redirect.html
+  0d925c2f6e5ec8e7 10-11
+docs/overrides/main.html
+  0d925c2f6e5ec8e7 6-8,43-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "71cee7c18187c6d4a6fe6469df1fb9ea94e7ee2c",
+  "prompts": {
+    "0d925c2f6e5ec8e7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a4d5c903-2b09-49cc-bd4b-7bab8dc4b124",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 32,
+      "total_deletions": 4,
+      "accepted_lines": 30,
+      "overriden_lines": 0
+    }
+  }
+}
