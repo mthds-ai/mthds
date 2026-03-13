@@ -1,0 +1,29 @@
+docs/spec/mthds-format.md
+  2baa66e72e1c7abf 619-621
+CHANGELOG.md
+  2baa66e72e1c7abf 3-9
+docs/language/pipes-operators.md
+  2baa66e72e1c7abf 370-372,422-425
+pyproject.toml
+  2baa66e72e1c7abf 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.10",
+  "base_commit_sha": "fa864ee443b3f6656950d052fb082ddb8c89c23d",
+  "prompts": {
+    "2baa66e72e1c7abf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4acade21-1e9a-4d3d-983f-40babfac5be0",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 21,
+      "total_deletions": 14,
+      "accepted_lines": 18,
+      "overriden_lines": 0
+    }
+  }
+}
