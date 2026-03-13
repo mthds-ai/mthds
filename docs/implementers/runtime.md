@@ -149,7 +149,7 @@ When the `template` field of a `PipeCompose` pipe is a table (rather than a plai
 
 The `category` field influences which Jinja2 filters are available. For example, `html` templates get HTML-specific filters, while `llm_prompt` templates get prompt-specific filters. The reference implementation registers different filter sets per category.
 
-**Shorthand preprocessor:** A compliant runtime SHOULD expand the `$`, `@`, and `@?` shorthand patterns into their Jinja2 equivalents before template rendering. See the [specification](../spec/mthds-format.md#template-mode) for the normative expansion rules. The preprocessor runs on the `template` field of PipeCompose as well as the `prompt` and `system_prompt` fields of PipeLLM, PipeImgGen, and PipeSearch.
+**Shorthand preprocessor:** A compliant runtime SHOULD expand the `$`, `@`, and `@?` shorthand patterns into their Jinja2 equivalents before template rendering. See the [specification](../spec/mthds-format.md#template-mode) for the normative expansion rules. The preprocessor runs on the `template` field of PipeCompose, the `prompt` and `system_prompt` fields of PipeLLM, and the `prompt` field of PipeImgGen and PipeSearch.
 
 **Filter registration per category:** The reference implementation registers the following Jinja2 filters based on the template category:
 

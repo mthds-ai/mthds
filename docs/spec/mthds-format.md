@@ -627,7 +627,7 @@ MTHDS defines three shorthand patterns that a compliant preprocessor MUST expand
 - When a matched name ends with a `.` (dot), the preprocessor MUST strip the trailing dot from the variable name and place it after the expanded expression (treating it as sentence punctuation).
 - Raw Jinja2 syntax (`{{ }}`, `{% %}`) MUST always be accepted alongside the shorthands.
 
-These shorthands apply to the `template` field of PipeCompose and to the `prompt` and `system_prompt` fields of PipeLLM, PipeImgGen, and PipeSearch. See [Pipes — Operators: Template Mode](../language/pipes-operators.md#template-mode) for the full reference on categories and filters.
+These shorthands apply to the `template` field of PipeCompose, the `prompt` and `system_prompt` fields of PipeLLM, and the `prompt` field of PipeImgGen and PipeSearch. See [Pipes — Operators: Template Mode](../language/pipes-operators.md#template-mode) for the full reference on categories and filters.
 
 **Template blueprint fields (table form):**
 
