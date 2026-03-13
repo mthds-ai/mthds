@@ -50,9 +50,22 @@ define ROOT_INDEX_HTML
 <meta http-equiv="refresh" content="0;url=/latest/">
 <link rel="canonical" href="https://mthds.ai/latest/">
 <title>MTHDS</title>
+<style>
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #1a1a1a;
+        color: #d4d4d4;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    a { color: #e5e5e5; text-decoration: none; }
+</style>
 </head>
 <body>
-<p>Redirecting to <a href="/latest/">MTHDS Documentation</a>...</p>
+<p>Redirecting to <a href="/latest/">MTHDS Documentation</a>&#8230;</p>
 </body>
 </html>
 endef

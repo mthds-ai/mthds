@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.3.3] - 2026-03-13
+
+- Improve root redirect page styling for better appearance during redirect
+- Add runtime requirement note to first-method getting-started guide
+
 ## [v0.3.2] - 2026-03-13
 
 - Document PipeCompose template mode: shorthand syntax (`$`, `@`, `@?`), template categories, available filters, and template context
