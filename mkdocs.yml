@@ -1,5 +1,5 @@
 site_name: MTHDS
-site_url: https://mthds.ai/
+site_url: https://mthds.ai/latest/
 site_description: "Official documentation for the MTHDS open standard: to give AI methods to AI agents."
 docs_dir: docs
 repo_url: "https://github.com/mthds-ai/mthds"
@@ -47,7 +47,8 @@ plugins:
       alias_type: copy
       redirect_template: docs/overrides/redirect.html
       canonical_version: latest
-  - search
+  - search:
+      separator: '[\s\-\.]+'
   - privacy:
       links_attr_map:
         target: _blank
