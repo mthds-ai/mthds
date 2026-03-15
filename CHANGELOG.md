@@ -1,5 +1,14 @@
 # Changelog
 
+## [v0.3.4] - 2026-03-15
+
+- Fix sitemap URLs to include `/latest/` prefix (was generating broken URLs without version path)
+- Add conditional `og:type` (website on homepage, article on all other pages), `og:site_name`, and `og:locale` meta tags
+- Restructure JSON-LD: WebSite schema on homepage only, TechArticle on article pages only
+- Replace indexable `404.md` page with proper MkDocs 404 override (`noindex`, canonical, visible content)
+- Style root 404 fallback with grayscale palette and dark mode support
+- Improve on-site search tokenization for hyphenated and dotted identifiers
+
 ## [v0.3.3] - 2026-03-13
 
 - Improve root redirect page styling for better appearance during redirect

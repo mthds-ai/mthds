@@ -114,7 +114,8 @@ The `mkdocs.yml` configures specific plugins and markdown extensions. Use these 
 
 These files already exist and should not be replaced:
 
-- `docs/404.html`, `docs/404.md` — custom 404 page
+- `docs/404.html` — root-level 404 fallback for GitHub Pages (standalone, not part of MkDocs build)
+- `docs/overrides/404.html` — versioned MkDocs 404 override (extends main.html, owns noindex + visible content)
 - `docs/CNAME` — domain configuration
 - `docs/images/favicon-32.png` — favicon
 - `docs/overrides/main.html` — OpenGraph meta tags
