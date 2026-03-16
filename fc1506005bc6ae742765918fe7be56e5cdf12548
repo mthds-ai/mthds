@@ -1,0 +1,35 @@
+docs/overrides/main.html
+  30cc8ed6835b0015 4-42,44,48-53,62,87,94
+mkdocs.yml
+  30cc8ed6835b0015 2
+docs/CLAUDE.md
+  30cc8ed6835b0015 8-9,25,30,32,34,36,38-39,48,71
+CHANGELOG.md
+  30cc8ed6835b0015 3-10
+docs/overrides/404.html
+  30cc8ed6835b0015 3-17,24
+pyproject.toml
+  30cc8ed6835b0015 3
+Makefile
+  30cc8ed6835b0015 39,240-243,246-247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "fc1506005bc6ae742765918fe7be56e5cdf12548",
+  "prompts": {
+    "30cc8ed6835b0015": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6a2bae90-5f3c-41a6-9662-95751cb7e9d1",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 96,
+      "total_deletions": 26,
+      "accepted_lines": 95,
+      "overriden_lines": 0
+    }
+  }
+}
