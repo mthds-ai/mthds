@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /latest/
+Allow: /sitemap.xml
 Disallow: /
 
-Sitemap: https://mthds.ai/latest/sitemap.xml
+Sitemap: https://mthds.ai/sitemap.xml
