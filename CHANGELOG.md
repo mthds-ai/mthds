@@ -1,5 +1,13 @@
 # Changelog
 
+## [v0.3.5] - 2026-03-16
+
+- Fix sitemap.xml double-path bug (`/latest/latest/page/`) by setting `site_url` to bare domain
+- Add root-level `sitemap.xml` generation for Google crawling (rewritten from versioned copy)
+- Fix `robots.txt` to allow `/sitemap.xml` and point `Sitemap:` to root copy
+- Override `site_meta` block in `main.html` to hardcode `/latest/` canonical URLs
+- Suppress OG tags, JSON-LD, and analytics on 404 page
+
 ## [v0.3.4] - 2026-03-15
 
 - Fix sitemap URLs to include `/latest/` prefix (was generating broken URLs without version path)

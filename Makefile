@@ -36,9 +36,10 @@ endef
 define ROOT_ROBOTS_TXT
 User-agent: *
 Allow: /latest/
+Allow: /sitemap.xml
 Disallow: /
 
-Sitemap: https://mthds.ai/latest/sitemap.xml
+Sitemap: https://mthds.ai/sitemap.xml
 endef
 export ROOT_ROBOTS_TXT
 
@@ -236,9 +237,14 @@ docs-deploy-root:
 	cp docs/mthds_schema.json "$$TMPDIR/mthds_schema.json" && \
 	echo "$$ROOT_ROBOTS_TXT" > "$$TMPDIR/robots.txt" && \
 	echo "$$ROOT_INDEX_HTML" > "$$TMPDIR/index.html" && \
+	if [ -f "$$TMPDIR/latest/sitemap.xml" ]; then \
+		sed 's|<loc>https://mthds.ai/[^<]*/|<loc>https://mthds.ai/latest/|g' \
+			"$$TMPDIR/latest/sitemap.xml" > "$$TMPDIR/sitemap.xml"; \
+	fi && \
 	cd "$$TMPDIR" && \
 	git add 404.html robots.txt index.html mthds_schema.json && \
-	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html, mthds_schema.json)") && \
+	if [ -f sitemap.xml ]; then git add sitemap.xml; fi && \
+	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html, sitemap.xml, mthds_schema.json)") && \
 	git push origin gh-pages
 
 docs-delete: env
