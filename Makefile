@@ -238,7 +238,7 @@ docs-deploy-root:
 	echo "$$ROOT_ROBOTS_TXT" > "$$TMPDIR/robots.txt" && \
 	echo "$$ROOT_INDEX_HTML" > "$$TMPDIR/index.html" && \
 	if [ -f "$$TMPDIR/latest/sitemap.xml" ]; then \
-		sed 's|<loc>https://mthds.ai/[^<]*/|<loc>https://mthds.ai/latest/|g' \
+		sed 's|<loc>https://mthds.ai/[^/]*/|<loc>https://mthds.ai/latest/|g' \
 			"$$TMPDIR/latest/sitemap.xml" > "$$TMPDIR/sitemap.xml"; \
 	fi && \
 	cd "$$TMPDIR" && \
