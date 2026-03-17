@@ -117,7 +117,10 @@ These files already exist and should not be replaced:
 - `docs/404.html` — root-level 404 fallback for GitHub Pages (standalone, not part of MkDocs build)
 - `docs/overrides/404.html` — versioned MkDocs 404 override (extends main.html, owns noindex + visible content)
 - `docs/CNAME` — domain configuration
-- `docs/images/favicon-32.png` — favicon
+- `docs/images/favicon-32.png` — favicon (32px, browser tab)
+- `docs/images/favicon-128.png` — favicon (128px, default + Chrome shortcuts)
+- `docs/images/favicon-180.png` — Apple Touch Icon (180px, iOS home screen)
+- `docs/images/favicon-192.png` — favicon (192px, Android/PWA)
 - `docs/overrides/main.html` — OpenGraph meta tags
 - `docs/stylesheets/general.css` — custom color theme
 - `docs/stylesheets/mermaid.css` — mermaid diagram styles
