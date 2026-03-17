@@ -1,0 +1,23 @@
+mkdocs.yml
+  6c33ba46e01bb7b1 34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "098048788f925d55b725af33acaaf290ae168504",
+  "prompts": {
+    "6c33ba46e01bb7b1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "170c07bd-82cd-4e14-8b0a-3e49913ad45c",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 1,
+      "total_deletions": 1,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
