@@ -1,5 +1,10 @@
 # Changelog
 
+## [v0.3.6] - 2026-03-17
+
+- Add visible H1 heading and emphasize key terms on index page
+- Add Pipelex reference runtime line to site footer
+
 ## [v0.3.5] - 2026-03-16
 
 - Fix sitemap.xml double-path bug (`/latest/latest/page/`) by setting `site_url` to bare domain
