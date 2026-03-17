@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /latest/
 Allow: /sitemap.xml
-Disallow: /
+Disallow: /0.
+Disallow: /pre-release/
+Disallow: /404.html
 
 Sitemap: https://mthds.ai/sitemap.xml
