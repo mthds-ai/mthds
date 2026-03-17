@@ -31,7 +31,7 @@ theme:
       icon: material/weather-sunny
       name: Switch to light mode
 
-copyright: "© 2025-2026 Evotis S.A.S."
+copyright: "Reference runtime: <a href='https://github.com/Pipelex/pipelex' target='_blank'>Pipelex</a> (MIT)<br>© 2025-2026 Evotis S.A.S."
 
 extra:
   social:
