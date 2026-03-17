@@ -8,7 +8,7 @@ theme:
   name: material
   language: en
   custom_dir: docs/overrides
-  favicon: images/m-black_on_transparent-favicon.png
+  favicon: images/favicon-32.png
   logo: images/mthds-black_on_transparent.png
   features:
     - navigation.footer
