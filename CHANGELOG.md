@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.3.7] - 2026-03-17
+
+- Refine robots.txt to block specific paths (/0., /pre-release/, /404.html) instead of broad disallow
+- Add multi-size favicon support (32, 128, 180, 192px) with Apple Touch Icon and Android/PWA sizes
+- Support multi-version deletion in docs-delete make target
+
 ## [v0.3.6] - 2026-03-17
 
 - Add visible H1 heading and emphasize key terms on index page

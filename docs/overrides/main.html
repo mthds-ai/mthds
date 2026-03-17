@@ -42,6 +42,10 @@
 
 {% block extrahead %}
 {{ super() }}
+<link rel="icon" type="image/png" sizes="32x32" href="{{ 'images/favicon-32.png' | url }}">
+<link rel="icon" type="image/png" sizes="128x128" href="{{ 'images/favicon-128.png' | url }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ 'images/favicon-180.png' | url }}">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ 'images/favicon-192.png' | url }}">
 {% if page and page.meta and page.meta.robots %}
 <meta name="robots" content="{{ page.meta.robots }}">
 {% endif %}

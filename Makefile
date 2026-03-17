@@ -37,7 +37,9 @@ define ROOT_ROBOTS_TXT
 User-agent: *
 Allow: /latest/
 Allow: /sitemap.xml
-Disallow: /
+Disallow: /0.
+Disallow: /pre-release/
+Disallow: /404.html
 
 Sitemap: https://mthds.ai/sitemap.xml
 endef
@@ -248,8 +250,8 @@ docs-deploy-root:
 	git push origin gh-pages
 
 docs-delete: env
-	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Usage: make docs-delete VERSION=x.y.z"; exit 1; fi
-	$(call PRINT_TITLE,"Deleting documentation version $(VERSION)")
+	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Usage: make docs-delete VERSION=\"x.y.z [x.y.z ...]\""; exit 1; fi
+	$(call PRINT_TITLE,"Deleting documentation version(s): $(VERSION)")
 	$(VENV_MIKE) delete --push $(VERSION)
 
 
