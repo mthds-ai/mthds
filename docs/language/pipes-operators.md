@@ -272,7 +272,7 @@ model       = "$gen-image-testing"
 
 ## PipeExtract
 
-Extracts structured content from documents (e.g., PDF pages).
+Extracts structured content from documents (e.g., PDF, web pages).
 
 ```toml
 [pipe.extract_cv]
@@ -283,7 +283,18 @@ output      = "Page[]"
 model       = "@default-text-from-pdf"
 ```
 
-**What this does:** Takes a `Document` input and extracts its content as a variable-length list of `Page` objects.
+**Web page extraction:**
+
+```toml
+[pipe.extract_web_article]
+type        = "PipeExtract"
+description = "Extract content from a web page"
+inputs      = { article_url = "Document" }
+output      = "Page[]"
+model       = "@default-extract-web-page"
+```
+
+**What this does:** Takes a `Document` input (a file path, storage URL, or web page URL) and extracts its content as a variable-length list of `Page` objects.
 
 **Key fields:**
 
@@ -295,7 +306,7 @@ model       = "@default-text-from-pdf"
 | `page_views` | No | Whether to generate page views. |
 | `page_views_dpi` | No | DPI for page view rendering. |
 
-**Constraints:** PipeExtract requires exactly one input (typically `Document` or a concept refining it) and the output must be `"Page[]"`.
+**Constraints:** PipeExtract requires exactly one input (typically `Document` or a concept refining it) and the output must be `"Page[]"`. The input document URL can be a web page URL for web content extraction.
 
 ## PipeSearch
 

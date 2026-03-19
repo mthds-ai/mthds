@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.4.0] - 2026-03-19
+
+- Expand Document concept and PipeExtract operator to support web page URLs alongside file paths
+- Add PipeExtract web page extraction example
+- Define SearchResult sources: a list of source citations, each a Document with `title`, `url`, and `snippet`
+
 ## [v0.3.8] - 2026-03-19
 
 - Enrich root index.html with real content for AI agents and scrapers (browsers still redirect instantly)
