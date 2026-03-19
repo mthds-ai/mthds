@@ -1,0 +1,27 @@
+CHANGELOG.md
+  2390ccec52fc4a60 3-8
+Makefile
+  2390ccec52fc4a60 40-41,57-62,66,70-72,74-77,81-99,261,274-275,279-281
+pyproject.toml
+  2390ccec52fc4a60 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.15",
+  "base_commit_sha": "067880708362028e44dbf3bd13e5c0d5acfd6512",
+  "prompts": {
+    "2390ccec52fc4a60": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a0a7674a-36a3-498d-afa5-286f3012e923",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 48,
+      "total_deletions": 10,
+      "accepted_lines": 48,
+      "overriden_lines": 0
+    }
+  }
+}
