@@ -37,6 +37,8 @@ define ROOT_ROBOTS_TXT
 User-agent: *
 Allow: /latest/
 Allow: /sitemap.xml
+Allow: /llms.txt
+Allow: /llms-full.txt
 Disallow: /0.
 Disallow: /pre-release/
 Disallow: /404.html
@@ -52,23 +54,49 @@ define ROOT_INDEX_HTML
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="0;url=/latest/">
 <link rel="canonical" href="https://mthds.ai/latest/">
-<title>MTHDS</title>
+<title>MTHDS — The Language of Executable AI Methods</title>
+<meta name="description" content="MTHDS is an open standard for defining, packaging, and sharing AI methods — giving agents the ability to discover and execute structured, composable AI workflows.">
+<meta property="og:title" content="MTHDS — The Language of Executable AI Methods">
+<meta property="og:description" content="MTHDS is an open standard for defining, packaging, and sharing AI methods — giving agents the ability to discover and execute structured, composable AI workflows.">
+<meta property="og:url" content="https://mthds.ai/latest/">
+<meta property="og:type" content="website">
 <style>
     body {
         margin: 0;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        padding: 2rem;
         background: #1a1a1a;
         color: #d4d4d4;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6;
+        max-width: 720px;
+        margin: 0 auto;
     }
-    a { color: #e5e5e5; text-decoration: none; }
+    a { color: #7cb3f0; }
+    h1 { color: #e5e5e5; }
+    ul { padding-left: 1.2rem; }
+    .redirect-notice { color: #888; font-size: 0.85rem; margin-top: 2rem; }
 </style>
 </head>
 <body>
-<p>Redirecting to <a href="/latest/">MTHDS Documentation</a>&#8230;</p>
+<h1>MTHDS: The Language of Executable AI Methods</h1>
+<p>MTHDS is a declarative language for defining AI methods: discrete, reusable units of cognitive work like extraction, analysis, synthesis, generation. It is built on TOML and introduces two primitives: concepts (semantically typed data named after real domain things) and pipes (deterministic orchestration steps with explicit typed inputs and outputs). Pipes can invoke LLMs, VLMs, OCR, and image generation models, with built-in structured generation.</p>
+<p>Methods are executable and composable like Unix tools: a method can be saved as a CLI command, combined with others using standard Unix pipes, or invoked directly by Claude Code.</p>
+<h2>Links</h2>
+<ul>
+<li><a href="https://mthds.sh">Hub</a> — Discover and share methods</li>
+<li><a href="https://github.com/mthds-ai/mthds">Spec</a> — The MTHDS open standard repository</li>
+<li><a href="https://github.com/Pipelex/pipelex">Reference implementation</a> — Pipelex runtime</li>
+<li><a href="https://github.com/mthds-ai/skills">Agent skills</a> — Claude Code plugin for MTHDS</li>
+<li><a href="https://go.pipelex.com/vscode">VS Code extension</a></li>
+</ul>
+<h2>Get Started</h2>
+<ul>
+<li><a href="/latest/language/bundles/">Learn the Language</a> — Concepts, pipes, domains, and .mthds files</li>
+<li><a href="/latest/spec/mthds-format/">Read the Specification</a> — File formats, validation rules, resolution algorithms</li>
+<li><a href="/latest/getting-started/first-method/">Write Your First Method</a> — Set up your editor and write your first method</li>
+</ul>
+<p>For AI agents: see <a href="/llms.txt">/llms.txt</a> for a machine-readable index of this documentation.</p>
+<p class="redirect-notice">Redirecting to <a href="/latest/">MTHDS Documentation</a>&#8230;</p>
 </body>
 </html>
 endef
@@ -230,7 +258,7 @@ docs-deploy-specific-version: env
 	$(MAKE) docs-deploy-root
 
 docs-deploy-root:
-	$(call PRINT_TITLE,"Deploying root assets to gh-pages: 404 + robots.txt + index redirect + JSON Schema")
+	$(call PRINT_TITLE,"Deploying root assets to gh-pages: 404 + robots.txt + index + JSON Schema + llms.txt")
 	@git fetch origin gh-pages:gh-pages 2>/dev/null || true; \
 	TMPDIR=$$(mktemp -d); \
 	trap "cd '$(CURDIR)'; git worktree remove '$$TMPDIR' 2>/dev/null || true; rm -rf '$$TMPDIR'" EXIT; \
@@ -243,10 +271,14 @@ docs-deploy-root:
 		sed 's|<loc>https://mthds.ai/[^/]*/|<loc>https://mthds.ai/latest/|g' \
 			"$$TMPDIR/latest/sitemap.xml" > "$$TMPDIR/sitemap.xml"; \
 	fi && \
+	if [ -f "$$TMPDIR/latest/llms.txt" ]; then cp "$$TMPDIR/latest/llms.txt" "$$TMPDIR/llms.txt"; fi && \
+	if [ -f "$$TMPDIR/latest/llms-full.txt" ]; then cp "$$TMPDIR/latest/llms-full.txt" "$$TMPDIR/llms-full.txt"; fi && \
 	cd "$$TMPDIR" && \
 	git add 404.html robots.txt index.html mthds_schema.json && \
 	if [ -f sitemap.xml ]; then git add sitemap.xml; fi && \
-	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html, sitemap.xml, mthds_schema.json)") && \
+	if [ -f llms.txt ]; then git add llms.txt; fi && \
+	if [ -f llms-full.txt ]; then git add llms-full.txt; fi && \
+	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html, sitemap.xml, mthds_schema.json, llms.txt)") && \
 	git push origin gh-pages
 
 docs-delete: env
