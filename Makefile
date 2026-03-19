@@ -250,8 +250,8 @@ docs-deploy-root:
 	git push origin gh-pages
 
 docs-delete: env
-	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Usage: make docs-delete VERSION=\"x.y.z [x.y.z ...]\""; exit 1; fi
-	$(call PRINT_TITLE,"Deleting documentation version(s): $(VERSION)")
+	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Usage: make docs-delete VERSION='x.y.z x.y.z ...'"; exit 1; fi
+	$(call PRINT_TITLE,"Deleting documentation versions: $(VERSION)")
 	$(VENV_MIKE) delete --push $(VERSION)
 
 
