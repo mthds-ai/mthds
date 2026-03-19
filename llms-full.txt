@@ -733,7 +733,7 @@ MTHDS provides a set of built-in concepts that are always available in every bun
 | `Dynamic` | A dynamically-typed value. |
 | `Text` | A text string. |
 | `Image` | An image (binary). |
-| `Document` | A document (e.g., PDF). |
+| `Document` | A document (e.g., PDF, web page). |
 | `Html` | HTML content. |
 | `TextAndImages` | Combined text and image content. |
 | `Number` | A numeric value. |
@@ -755,7 +755,7 @@ The most commonly used native concepts have the following fields. These are the 
 
 **Image** — `url` (location of the image), `source_prompt` (the prompt used to generate it, if applicable), `caption` (descriptive text), `base_64` (base64-encoded image data, alternative to URL).
 
-**Document** — `url` (location of the document file), `mime_type` (e.g., `"application/pdf"`).
+**Document** — `url` (location of the document file or web page), `mime_type` (e.g., `"application/pdf"`), `title` (optional display name), `snippet` (optional text excerpt).
 
 **Number** — a single `number` field (integer or floating-point).
 
@@ -763,7 +763,7 @@ The most commonly used native concepts have the following fields. These are the 
 
 **Page** — `text_and_images` (the extracted text and embedded images from the page), `page_view` (a screenshot or rendering of the entire page as an image).
 
-**SearchResult** — `answer` (the synthesized answer text), `sources` (a list of source citations, each with `name`, `url`, and `snippet`).
+**SearchResult** — `answer` (the synthesized answer text), `sources` (a list of source citations, each a Document with `title`, `url`, and `snippet`).
 
 **JSON** — a single `json_obj` field containing the JSON object.
 
@@ -1046,7 +1046,7 @@ model       = "$gen-image-testing"
 
 ## PipeExtract
 
-Extracts structured content from documents (e.g., PDF pages).
+Extracts structured content from documents (e.g., PDF, web pages).
 
 ```toml
 [pipe.extract_cv]
@@ -1057,7 +1057,18 @@ output      = "Page[]"
 model       = "@default-text-from-pdf"
 ```
 
-**What this does:** Takes a `Document` input and extracts its content as a variable-length list of `Page` objects.
+**Web page extraction:**
+
+```toml
+[pipe.extract_web_article]
+type        = "PipeExtract"
+description = "Extract content from a web page"
+inputs      = { article_url = "Document" }
+output      = "Page[]"
+model       = "@default-extract-web-page"
+```
+
+**What this does:** Takes a `Document` input (a file path, storage URL, or web page URL) and extracts its content as a variable-length list of `Page` objects.
 
 **Key fields:**
 
@@ -1069,7 +1080,7 @@ model       = "@default-text-from-pdf"
 | `page_views` | No | Whether to generate page views. |
 | `page_views_dpi` | No | DPI for page view rendering. |
 
-**Constraints:** PipeExtract requires exactly one input (typically `Document` or a concept refining it) and the output must be `"Page[]"`.
+**Constraints:** PipeExtract requires exactly one input (typically `Document` or a concept refining it) and the output must be `"Page[]"`. The input document URL can be a web page URL for web content extraction.
 
 ## PipeSearch
 
@@ -4148,7 +4159,7 @@ Native concepts are built-in types that are always available in every bundle wit
 | `Dynamic` | `native.Dynamic` | A dynamically-typed value. |
 | `Text` | `native.Text` | A text string. |
 | `Image` | `native.Image` | An image (binary). |
-| `Document` | `native.Document` | A document (e.g., PDF). |
+| `Document` | `native.Document` | A document (e.g., PDF, web page). |
 | `Html` | `native.Html` | HTML content. |
 | `TextAndImages` | `native.TextAndImages` | Combined text and image content. |
 | `Number` | `native.Number` | A numeric value. |
@@ -4408,7 +4419,7 @@ model        = { model = "flux-pro", quality = "high" }
 
 ## Operator: PipeExtract
 
-Extracts structured content from documents (e.g., PDF pages).
+Extracts structured content from documents (e.g., PDF, web pages).
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -4426,6 +4437,7 @@ Extracts structured content from documents (e.g., PDF pages).
 
 - `inputs` MUST contain exactly one entry. The input concept SHOULD be `Document` or a concept that refines `Document` or `Image`.
 - `output` MUST be `"Page[]"` (a variable-length list of `Page`).
+- When the document URL is a web page, PipeExtract fetches and extracts the page content.
 
 **Example:**
 
