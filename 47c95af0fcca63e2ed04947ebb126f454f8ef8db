@@ -1,0 +1,27 @@
+docs/language/concepts.md
+  a826c56bef582e06 259
+pyproject.toml
+  a826c56bef582e06 3
+CHANGELOG.md
+  a826c56bef582e06 3-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.15",
+  "base_commit_sha": "47c95af0fcca63e2ed04947ebb126f454f8ef8db",
+  "prompts": {
+    "a826c56bef582e06": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2c7e4fff-93b7-48f6-a13e-c537f0d1e259",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 8,
+      "total_deletions": 2,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    }
+  }
+}
