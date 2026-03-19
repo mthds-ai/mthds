@@ -248,7 +248,7 @@ The most commonly used native concepts have the following fields. These are the 
 
 **Image** — `url` (location of the image), `source_prompt` (the prompt used to generate it, if applicable), `caption` (descriptive text), `base_64` (base64-encoded image data, alternative to URL).
 
-**Document** — `url` (location of the document file or web page), `mime_type` (e.g., `"application/pdf"`).
+**Document** — `url` (location of the document file or web page), `mime_type` (e.g., `"application/pdf"`), `title` (optional display name), `snippet` (optional text excerpt).
 
 **Number** — a single `number` field (integer or floating-point).
 
