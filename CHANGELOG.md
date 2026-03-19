@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.3.8] - 2026-03-19
+
+- Enrich root index.html with real content for AI agents and scrapers (browsers still redirect instantly)
+- Copy llms.txt and llms-full.txt to domain root for AI agent discovery
+- Add llms.txt paths to robots.txt allowlist
+
 ## [v0.3.7] - 2026-03-17
 
 - Refine robots.txt to block specific paths (/0., /pre-release/, /404.html) instead of broad disallow
