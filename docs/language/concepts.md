@@ -226,7 +226,7 @@ MTHDS provides a set of built-in concepts that are always available in every bun
 | `Dynamic` | A dynamically-typed value. |
 | `Text` | A text string. |
 | `Image` | An image (binary). |
-| `Document` | A document (e.g., PDF). |
+| `Document` | A document (e.g., PDF, web page). |
 | `Html` | HTML content. |
 | `TextAndImages` | Combined text and image content. |
 | `Number` | A numeric value. |
@@ -248,7 +248,7 @@ The most commonly used native concepts have the following fields. These are the 
 
 **Image** — `url` (location of the image), `source_prompt` (the prompt used to generate it, if applicable), `caption` (descriptive text), `base_64` (base64-encoded image data, alternative to URL).
 
-**Document** — `url` (location of the document file), `mime_type` (e.g., `"application/pdf"`).
+**Document** — `url` (location of the document file or web page), `mime_type` (e.g., `"application/pdf"`), `title` (optional display name), `snippet` (optional text excerpt).
 
 **Number** — a single `number` field (integer or floating-point).
 
@@ -256,7 +256,7 @@ The most commonly used native concepts have the following fields. These are the 
 
 **Page** — `text_and_images` (the extracted text and embedded images from the page), `page_view` (a screenshot or rendering of the entire page as an image).
 
-**SearchResult** — `answer` (the synthesized answer text), `sources` (a list of source citations, each with `name`, `url`, and `snippet`).
+**SearchResult** — `answer` (the synthesized answer text), `sources` (a list of source citations, each a Document with `title`, `url`, and `snippet`).
 
 **JSON** — a single `json_obj` field containing the JSON object.
 

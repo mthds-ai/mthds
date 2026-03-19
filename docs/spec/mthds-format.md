@@ -210,7 +210,7 @@ Native concepts are built-in types that are always available in every bundle wit
 | `Dynamic` | `native.Dynamic` | A dynamically-typed value. |
 | `Text` | `native.Text` | A text string. |
 | `Image` | `native.Image` | An image (binary). |
-| `Document` | `native.Document` | A document (e.g., PDF). |
+| `Document` | `native.Document` | A document (e.g., PDF, web page). |
 | `Html` | `native.Html` | HTML content. |
 | `TextAndImages` | `native.TextAndImages` | Combined text and image content. |
 | `Number` | `native.Number` | A numeric value. |
@@ -470,7 +470,7 @@ model        = { model = "flux-pro", quality = "high" }
 
 ## Operator: PipeExtract
 
-Extracts structured content from documents (e.g., PDF pages).
+Extracts structured content from documents (e.g., PDF, web pages).
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -488,6 +488,7 @@ Extracts structured content from documents (e.g., PDF pages).
 
 - `inputs` MUST contain exactly one entry. The input concept SHOULD be `Document` or a concept that refines `Document` or `Image`.
 - `output` MUST be `"Page[]"` (a variable-length list of `Page`).
+- When the document URL is a web page, PipeExtract fetches and extracts the page content.
 
 **Example:**
 
