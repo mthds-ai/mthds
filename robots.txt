@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /latest/
 Allow: /sitemap.xml
+Allow: /llms.txt
+Allow: /llms-full.txt
 Disallow: /0.
 Disallow: /pre-release/
 Disallow: /404.html
