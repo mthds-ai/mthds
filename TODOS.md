@@ -43,6 +43,14 @@ Reference: `wip/vercel-docs-migration-v2.md`
 
 ## Phase 2: Local Validation
 
+### Prerequisites
+
+- [ ] Install Vercel CLI: `npm install -g vercel@50.37.3`
+- [ ] Create Vercel project in dashboard (don't connect a git repo -- CI deploys via CLI)
+- [ ] Run `vercel link` in repo root to connect local project to Vercel
+
+### Build and verify
+
 - [ ] Run `make docs-build-site` successfully
 - [ ] Run `vercel dev` and verify locally:
   - [ ] All pages render correctly
@@ -58,8 +66,10 @@ Reference: `wip/vercel-docs-migration-v2.md`
 
 ### Vercel project setup
 
-- [ ] Create Vercel project for `mthds.ai` in Vercel dashboard
-- [ ] Add secrets to GitHub repo: `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VERCEL_TOKEN`
+- [ ] Grab `VERCEL_ORG_ID` from Vercel dashboard: Settings > General > "Vercel ID"
+- [ ] Grab `VERCEL_PROJECT_ID` from project settings: Settings > General > "Project ID"
+- [ ] Create `VERCEL_TOKEN` in Vercel account settings: Settings > Tokens > Create
+- [ ] Add all 3 as GitHub repo secrets: repo Settings > Secrets and variables > Actions
 
 ### Deploy and verify on preview URL
 
