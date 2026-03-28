@@ -1,0 +1,49 @@
+TODOS.md
+  bf25b14ece681fe1 1-12,14-16,21-23,27-29,34-51,53-120
+  090b7f174d39b1f4 13,17-20,24-26,30-33,52,121-130
+.gitignore
+  090b7f174d39b1f4 20-23
+Makefile
+  090b7f174d39b1f4 119-121,141,249-252,254-256,260-266,268,270-276
+vercel.json
+  090b7f174d39b1f4 1-50
+.github/workflows/docs-deploy.yml
+  090b7f174d39b1f4 10,17-20,49-50,52-74
+docs/404.html
+  090b7f174d39b1f4 99
+docs/CLAUDE.md
+  090b7f174d39b1f4 10-11,18,39-40,47,49,51-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.20",
+  "base_commit_sha": "36fad1677d6ec2ab905be428e76ea200dae4f3cd",
+  "prompts": {
+    "090b7f174d39b1f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9fc1f434-b835-4333-a90f-be2175d5fc78",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 151,
+      "total_deletions": 83,
+      "accepted_lines": 150,
+      "overriden_lines": 0
+    },
+    "bf25b14ece681fe1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0ce2869d-42cf-4777-b53d-53c0cec99801",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 116,
+      "total_deletions": 0,
+      "accepted_lines": 107,
+      "overriden_lines": 0
+    }
+  }
+}
