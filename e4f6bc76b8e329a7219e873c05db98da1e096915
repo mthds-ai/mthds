@@ -1,0 +1,23 @@
+Makefile
+  c65586e191f88139 6,23,29,34,162,176,185,191,196,207,212,231,235,239,243,247,251,256,281,290
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "e4f6bc76b8e329a7219e873c05db98da1e096915",
+  "prompts": {
+    "c65586e191f88139": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "dac885bb-a89a-4adc-aa27-d8b5bba7ca11",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 25,
+      "total_deletions": 24,
+      "accepted_lines": 20,
+      "overriden_lines": 0
+    }
+  }
+}
