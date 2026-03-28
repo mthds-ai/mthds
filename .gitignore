@@ -17,3 +17,7 @@ temp/
 
 # skill build artifacts
 *.skill
+
+# Vercel
+site-output/
+.vercel/

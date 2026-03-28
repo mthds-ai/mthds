@@ -116,9 +116,9 @@ make docs-check                       - Check documentation build with mkdocs
 make docs-serve-versioned             - Serve versioned docs locally with mike
 make docs-list                        - List deployed documentation versions
 make docs-deploy VERSION=x.y.z       - Deploy docs as version x.y.z (local, no push)
-make docs-deploy-stable               - Deploy stable docs with 'latest' alias (CI only)
-make docs-deploy-specific-version     - Deploy docs for the current version with 'pre-release' alias (CI only)
-make docs-deploy-root                 - Deploy root assets (404, robots.txt, index redirect, JSON Schema) to gh-pages
+make docs-build-versioned             - Build versioned docs with mike (local gh-pages only, no push)
+make docs-assemble-site               - Extract gh-pages content + root assets into site-output/
+make docs-build-site                  - Full pipeline: build versioned + assemble (for local dev)
 make docs-delete VERSION=x.y.z       - Delete a deployed documentation version
 
 make cleanenv                         - Remove virtual env
@@ -138,7 +138,7 @@ export HELP
 	all help env env-verbose lock install update \
 	cleanderived cleanenv cleanall reinstall ri \
 	docs docs-check docs-serve-versioned docs-list \
-	docs-deploy docs-deploy-stable docs-deploy-specific-version docs-deploy-root docs-delete \
+	docs-deploy docs-build-versioned docs-assemble-site docs-build-site docs-delete \
 	update-schema up \
 	li check-uv check-uv-verbose
 
@@ -246,40 +246,34 @@ docs-deploy: env
 	$(call PRINT_TITLE,"Deploying documentation version $(if $(VERSION),$(VERSION),$(DOCS_VERSION))")
 	$(VENV_MIKE) deploy $(if $(VERSION),$(VERSION),$(DOCS_VERSION))
 
-docs-deploy-stable: env
-	$(call PRINT_TITLE,"Deploying stable documentation $(DOCS_VERSION) with latest alias")
-	$(VENV_MIKE) deploy --push --update-aliases --alias-type copy $(DOCS_VERSION) latest
-	$(VENV_MIKE) set-default --push latest
-	$(MAKE) docs-deploy-root
+docs-build-versioned: env
+	$(call PRINT_TITLE,"Building versioned docs with mike (local gh-pages only)")
+	$(VENV_MIKE) deploy --update-aliases --alias-type copy $(DOCS_VERSION) latest
+	$(VENV_MIKE) set-default latest
 
-docs-deploy-specific-version: env
-	$(call PRINT_TITLE,"Deploying documentation $(DOCS_VERSION) with pre-release alias")
-	$(VENV_MIKE) deploy --push --update-aliases --alias-type copy $(DOCS_VERSION) pre-release
-	$(MAKE) docs-deploy-root
-
-docs-deploy-root:
-	$(call PRINT_TITLE,"Deploying root assets to gh-pages: 404 + robots.txt + index + JSON Schema + llms.txt")
-	@git fetch origin gh-pages:gh-pages 2>/dev/null || true; \
+docs-assemble-site:
+	$(call PRINT_TITLE,"Assembling site output from gh-pages + root assets")
+	@rm -rf site-output; \
 	TMPDIR=$$(mktemp -d); \
 	trap "cd '$(CURDIR)'; git worktree remove '$$TMPDIR' 2>/dev/null || true; rm -rf '$$TMPDIR'" EXIT; \
 	git worktree add "$$TMPDIR" gh-pages && \
-	cp docs/404.html "$$TMPDIR/404.html" && \
-	cp docs/mthds_schema.json "$$TMPDIR/mthds_schema.json" && \
-	echo "$$ROOT_ROBOTS_TXT" > "$$TMPDIR/robots.txt" && \
-	echo "$$ROOT_INDEX_HTML" > "$$TMPDIR/index.html" && \
-	if [ -f "$$TMPDIR/latest/sitemap.xml" ]; then \
+	cp -a "$$TMPDIR/." site-output/ && \
+	rm -rf site-output/.git && \
+	cp docs/404.html site-output/404.html && \
+	cp docs/mthds_schema.json site-output/mthds_schema.json && \
+	echo "$$ROOT_ROBOTS_TXT" > site-output/robots.txt && \
+	echo "$$ROOT_INDEX_HTML" > site-output/index.html && \
+	if [ -f site-output/latest/sitemap.xml ]; then \
 		sed 's|<loc>https://mthds.ai/[^/]*/|<loc>https://mthds.ai/latest/|g' \
-			"$$TMPDIR/latest/sitemap.xml" > "$$TMPDIR/sitemap.xml"; \
+			site-output/latest/sitemap.xml > site-output/sitemap.xml; \
 	fi && \
-	if [ -f "$$TMPDIR/latest/llms.txt" ]; then cp "$$TMPDIR/latest/llms.txt" "$$TMPDIR/llms.txt"; fi && \
-	if [ -f "$$TMPDIR/latest/llms-full.txt" ]; then cp "$$TMPDIR/latest/llms-full.txt" "$$TMPDIR/llms-full.txt"; fi && \
-	cd "$$TMPDIR" && \
-	git add 404.html robots.txt index.html mthds_schema.json && \
-	if [ -f sitemap.xml ]; then git add sitemap.xml; fi && \
-	if [ -f llms.txt ]; then git add llms.txt; fi && \
-	if [ -f llms-full.txt ]; then git add llms-full.txt; fi && \
-	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html, sitemap.xml, mthds_schema.json, llms.txt)") && \
-	git push origin gh-pages
+	if [ -f site-output/latest/llms.txt ]; then cp site-output/latest/llms.txt site-output/llms.txt; fi && \
+	if [ -f site-output/latest/llms-full.txt ]; then cp site-output/latest/llms-full.txt site-output/llms-full.txt; fi && \
+	rm -f site-output/CNAME && \
+	echo "Site output ready in site-output/"
+
+docs-build-site: docs-build-versioned docs-assemble-site
+	@echo "Complete site ready in site-output/. Run 'vercel dev' to preview locally."
 
 docs-delete: env
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Usage: make docs-delete VERSION='x.y.z x.y.z ...'"; exit 1; fi
