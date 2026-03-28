@@ -126,9 +126,11 @@ Instead: use explicit redirects only (`/` and `/index.html`). Unversioned deep l
 
 ### Trailing slash handling
 
-MkDocs generates `page/index.html` files, expecting URLs with trailing slashes (`/page/`). Setting `trailingSlash: true` in Vercel normalizes this: `/latest/language/bundles` becomes `/latest/language/bundles/` via 308 redirect.
+`trailingSlash` is intentionally **not set** in `vercel.json`. Vercel serves `page/index.html` for both `/page` and `/page/` without redirects.
 
-Vercel applies trailing slash normalization only to paths without file extensions. Root files like `/robots.txt` and `/sitemap.xml` are unaffected.
+Setting `trailingSlash: true` would break versioned directory roots (`/0.3.8/`, `/0.4.0/`, etc.) because Vercel treats the dot in version numbers as a file extension and strips the trailing slash via 308, breaking relative asset path resolution.
+
+To ensure versioned roots always have a trailing slash (required for correct relative asset resolution), an explicit redirect rule handles this: `/:version(\d+\.\d+\.\d+)` -> `/:version/` (308). This fires for slashless version paths only and does not conflict with `trailingSlash` since it is unset.
 
 ---
 
@@ -140,7 +142,6 @@ Vercel applies trailing slash normalization only to paths without file extension
   "buildCommand": null,
   "outputDirectory": "site-output",
   "cleanUrls": false,
-  "trailingSlash": true,
 
   "redirects": [
     {
@@ -194,7 +195,7 @@ Vercel applies trailing slash normalization only to paths without file extension
 | `buildCommand` | `null` | We deploy pre-built static files; Vercel should not run any build |
 | `outputDirectory` | `site-output` | The directory CI populates with the full static site |
 | `cleanUrls` | `false` | MkDocs generates explicit `index.html` files; don't strip `.html` extensions |
-| `trailingSlash` | `true` | MkDocs expects trailing slashes on directory URLs; normalizes `/page` -> `/page/` |
+| `trailingSlash` | *(not set)* | Intentionally omitted. Setting `true` breaks versioned directories (`0.x.y/`) because Vercel treats the dot as a file extension and strips the trailing slash. Both `/page` and `/page/` serve correctly without normalization; canonical tags handle SEO. |
 
 ### Redirect rules
 
@@ -444,7 +445,7 @@ The existing SEO architecture is well done. Specific findings:
 
 **404 pages return 200 (moderate)** -- GitHub Pages serves `404.html` with 200 status for missing paths. Google may report "soft 404" warnings in Search Console. Vercel serves custom 404 pages with proper 404 status.
 
-**Trailing slash inconsistency (low)** -- GitHub Pages doesn't enforce trailing slashes: `/page` and `/page/` both work, creating potential duplicate URLs. `trailingSlash: true` normalizes this via 308 redirect.
+**Trailing slash inconsistency (low, accepted)** -- Both `/page` and `/page/` serve the same content (same as GitHub Pages). `trailingSlash: true` cannot be used because it breaks versioned directories (`0.x.y/`) by treating the dot as a file extension. Canonical tags handle SEO deduplication; this is a non-issue in practice since all internal links use trailing slashes.
 
 ### Version indexation policy
 
