@@ -1,0 +1,27 @@
+wip/vercel-docs-migration-v2.md
+  028e7135f31eb230 405
+TODOS.md
+  028e7135f31eb230 58
+Makefile
+  028e7135f31eb230 208
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "8b0bd162344e90ce88f9fc8c6d9f17b2e809acc2",
+  "prompts": {
+    "028e7135f31eb230": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48be8fb1-df92-4b5d-a92e-31a4f8bcc947",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 58,
+      "accepted_lines": 3,
+      "overriden_lines": 0
+    }
+  }
+}
