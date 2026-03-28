@@ -1,0 +1,23 @@
+TODOS.md
+  090b7f174d39b1f4 46-53,69-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.20",
+  "base_commit_sha": "cfaf3edb0b68cc9cc0cf2bf4f8ee0f133f735d0b",
+  "prompts": {
+    "090b7f174d39b1f4": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9fc1f434-b835-4333-a90f-be2175d5fc78",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 2,
+      "accepted_lines": 12,
+      "overriden_lines": 0
+    }
+  }
+}
