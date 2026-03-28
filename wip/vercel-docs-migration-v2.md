@@ -126,11 +126,9 @@ Instead: use explicit redirects only (`/` and `/index.html`). Unversioned deep l
 
 ### Trailing slash handling
 
-`trailingSlash` is intentionally **not set** in `vercel.json`. Vercel serves `page/index.html` for both `/page` and `/page/` without redirects.
+`trailingSlash: true` is set in `vercel.json`. This ensures all directory paths get trailing slashes via 308 redirect, which is required for MkDocs' relative asset paths to resolve correctly.
 
-Setting `trailingSlash: true` would break versioned directory roots (`/0.3.8/`, `/0.4.0/`, etc.) because Vercel treats the dot in version numbers as a file extension and strips the trailing slash via 308, breaking relative asset path resolution.
-
-To ensure versioned roots always have a trailing slash (required for correct relative asset resolution), an explicit redirect rule handles this: `/:version(\d+\.\d+\.\d+)` -> `/:version/` (308). This fires for slashless version paths only and does not conflict with `trailingSlash` since it is unset.
+**Versioned directory workaround:** Vercel treats the dot in semver directory names (`0.3.8`) as a file extension (`.8`) and strips the trailing slash instead of adding it (`/0.3.8/` → 308 → `/0.3.8`). This breaks relative asset paths on versioned root pages. Fix: during `docs-assemble-site`, a `<base href="/VERSION/">` tag is injected into each versioned root `index.html`. This makes the browser resolve all relative URLs from the correct base, even at the slashless URL. Only the root `index.html` of each version needs this — deep pages like `/0.3.8/language/bundles/` work correctly because the last path segment has no dot.
 
 ---
 
@@ -142,6 +140,7 @@ To ensure versioned roots always have a trailing slash (required for correct rel
   "buildCommand": null,
   "outputDirectory": "site-output",
   "cleanUrls": false,
+  "trailingSlash": true,
 
   "redirects": [
     {
@@ -195,7 +194,7 @@ To ensure versioned roots always have a trailing slash (required for correct rel
 | `buildCommand` | `null` | We deploy pre-built static files; Vercel should not run any build |
 | `outputDirectory` | `site-output` | The directory CI populates with the full static site |
 | `cleanUrls` | `false` | MkDocs generates explicit `index.html` files; don't strip `.html` extensions |
-| `trailingSlash` | *(not set)* | Intentionally omitted. Setting `true` breaks versioned directories (`0.x.y/`) because Vercel treats the dot as a file extension and strips the trailing slash. Both `/page` and `/page/` serve correctly without normalization; canonical tags handle SEO. |
+| `trailingSlash` | `true` | Required for MkDocs relative asset paths. Vercel strips trailing slashes on dotted version directories (`0.x.y/`), but this is handled by injecting `<base>` tags into versioned root `index.html` files during `docs-assemble-site`. |
 
 ### Redirect rules
 
@@ -445,7 +444,7 @@ The existing SEO architecture is well done. Specific findings:
 
 **404 pages return 200 (moderate)** -- GitHub Pages serves `404.html` with 200 status for missing paths. Google may report "soft 404" warnings in Search Console. Vercel serves custom 404 pages with proper 404 status.
 
-**Trailing slash inconsistency (low, accepted)** -- Both `/page` and `/page/` serve the same content (same as GitHub Pages). `trailingSlash: true` cannot be used because it breaks versioned directories (`0.x.y/`) by treating the dot as a file extension. Canonical tags handle SEO deduplication; this is a non-issue in practice since all internal links use trailing slashes.
+**Trailing slash inconsistency (fixed)** -- `trailingSlash: true` normalizes all paths to have trailing slashes via 308 redirect. Versioned directories (`0.x.y/`) are a special case: Vercel strips their trailing slash because the dot looks like a file extension. This is handled by injecting `<base>` tags into versioned root `index.html` files, making relative asset paths resolve correctly even at the slashless URL.
 
 ### Version indexation policy
 

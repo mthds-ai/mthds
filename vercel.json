@@ -3,6 +3,7 @@
   "buildCommand": null,
   "outputDirectory": "site-output",
   "cleanUrls": false,
+  "trailingSlash": true,
 
   "redirects": [
     {
@@ -13,11 +14,6 @@
     {
       "source": "/index.html",
       "destination": "/latest/",
-      "statusCode": 301
-    },
-    {
-      "source": "/:version(\\d+\\.\\d+\\.\\d+)",
-      "destination": "/:version/",
       "statusCode": 301
     }
   ],

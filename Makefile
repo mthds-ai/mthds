@@ -216,6 +216,13 @@ docs-assemble-site:
 	if [ -f site-output/latest/llms.txt ]; then cp site-output/latest/llms.txt site-output/llms.txt; fi && \
 	if [ -f site-output/latest/llms-full.txt ]; then cp site-output/latest/llms-full.txt site-output/llms-full.txt; fi && \
 	rm -f site-output/CNAME && \
+	for dir in site-output/[0-9]*.[0-9]*.[0-9]*/; do \
+		version=$$(basename "$$dir"); \
+		if [ -f "$$dir/index.html" ]; then \
+			sed 's|<head>|<head>\n<base href="/'"$$version"'/">|' "$$dir/index.html" > "$$dir/index.html.tmp" && \
+			mv "$$dir/index.html.tmp" "$$dir/index.html"; \
+		fi; \
+	done && \
 	echo "Site output ready in site-output/"
 
 docs-build-site: docs-build-versioned docs-assemble-site

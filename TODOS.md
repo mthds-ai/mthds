@@ -66,16 +66,16 @@ Reference: `wip/vercel-docs-migration-v2.md`
 
 ### Vercel project setup
 
-- [ ] Grab `VERCEL_ORG_ID` from Vercel dashboard: Settings > General > "Vercel ID"
-- [ ] Grab `VERCEL_PROJECT_ID` from project settings: Settings > General > "Project ID"
-- [ ] Create `VERCEL_TOKEN` in Vercel account settings: Settings > Tokens > Create
-- [ ] Add all 3 as GitHub repo secrets: repo Settings > Secrets and variables > Actions
+- [x] Grab `VERCEL_ORG_ID` from Vercel dashboard: Settings > General > "Vercel ID"
+- [x] Grab `VERCEL_PROJECT_ID` from project settings: Settings > General > "Project ID"
+- [x] Create `VERCEL_TOKEN` in Vercel account settings: Settings > Tokens > Create
+- [x] Add all 3 as GitHub repo secrets: repo Settings > Secrets and variables > Actions
 
 ### Deploy and verify on preview URL
 
-- [ ] Deploy to Vercel preview: `vercel deploy` (no `--prod`)
+- [x] Deploy to Vercel preview: `vercel deploy` (no `--prod`)
 - [ ] Verify on preview URL (`mthds-xyz.vercel.app`):
-  - [ ] All pages render correctly
+  - [x] All pages render correctly
   - [ ] 301 redirects work (`/` -> `/latest/`, `/index.html` -> `/latest/`)
   - [ ] 404 status on missing pages
   - [ ] `X-Robots-Tag` headers correct per path (`/latest/` indexable, `/0.*` noindex, `/pre-release/` noindex+nofollow)
