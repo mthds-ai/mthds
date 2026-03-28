@@ -3,6 +3,7 @@ include .env
 export
 endif
 VIRTUAL_ENV := $(CURDIR)/.venv
+export PATH := $(VIRTUAL_ENV)/bin:$(PATH)
 PROJECT_NAME := $(shell grep '^name = ' pyproject.toml | sed -E 's/name = "(.*)"/\1/')
 
 # The "?" is used to make the variable optional, so that it can be overridden by the user.
@@ -19,18 +20,18 @@ DOCS_VERSION := $(shell grep -m1 '^version = ' pyproject.toml | sed -E 's/versio
 
 define PRINT_TITLE
     $(eval PROJECT_PART := [$(PROJECT_NAME)])
-    $(eval TARGET_PART := ($@))
+    $(eval TARGET_PART := $@)
     $(eval MESSAGE_PART := $(1))
     $(if $(MESSAGE_PART),\
         $(eval FULL_TITLE := === $(PROJECT_PART) ===== $(TARGET_PART) ====== $(MESSAGE_PART) ),\
         $(eval FULL_TITLE := === $(PROJECT_PART) ===== $(TARGET_PART) ====== )\
     )
-    $(eval TITLE_LENGTH := $(shell echo -n "$(FULL_TITLE)" | wc -c | tr -d ' '))
+    $(eval TITLE_LENGTH := $(shell printf '%s' '$(FULL_TITLE)' | wc -c | tr -d ' '))
     $(eval PADDING_LENGTH := $(shell echo $$((126 - $(TITLE_LENGTH)))))
     $(eval PADDING := $(shell printf '%*s' $(PADDING_LENGTH) '' | tr ' ' '='))
     $(eval PADDED_TITLE := $(FULL_TITLE)$(PADDING))
     @echo ""
-    @echo "$(PADDED_TITLE)"
+    @echo '$(PADDED_TITLE)'
 endef
 
 define ROOT_ROBOTS_TXT
@@ -158,7 +159,7 @@ check-uv:
 	@uv self update >/dev/null 2>&1 || true
 
 check-uv-verbose:
-	$(call PRINT_TITLE,"Ensuring uv ≥ $(UV_MIN_VERSION)")
+	$(call PRINT_TITLE,Ensuring uv >= $(UV_MIN_VERSION))
 	@command -v uv >/dev/null 2>&1 || { \
 		echo "uv not found – installing latest …"; \
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
@@ -172,7 +173,7 @@ env: check-uv
 	fi
 
 env-verbose: check-uv-verbose
-	$(call PRINT_TITLE,"Creating virtual environment")
+	$(call PRINT_TITLE,Creating virtual environment)
 	@if [ ! -d $(VIRTUAL_ENV) ]; then \
 		echo "Creating Python virtual env in \`${VIRTUAL_ENV}\`"; \
 		uv venv $(VIRTUAL_ENV) --python $(PYTHON_VERSION); \
@@ -181,18 +182,18 @@ env-verbose: check-uv-verbose
 	fi
 
 install: env-verbose
-	$(call PRINT_TITLE,"Installing dependencies")
+	$(call PRINT_TITLE,Installing dependencies)
 	@. $(VIRTUAL_ENV)/bin/activate && \
 	uv sync && \
 	echo "Installed dependencies in ${VIRTUAL_ENV}";
 
 lock: env
-	$(call PRINT_TITLE,"Resolving dependencies without update")
+	$(call PRINT_TITLE,Resolving dependencies without update)
 	@uv lock && \
 	echo "uv lock without update";
 
 update: env-verbose
-	$(call PRINT_TITLE,"Updating all dependencies")
+	$(call PRINT_TITLE,Updating all dependencies)
 	@uv lock --upgrade && \
 	uv sync && \
 	echo "Updated dependencies in ${VIRTUAL_ENV}";
@@ -203,12 +204,12 @@ update: env-verbose
 ##############################################################################################
 
 cleanderived:
-	$(call PRINT_TITLE,"Erasing derived files and directories")
+	$(call PRINT_TITLE,Erasing derived files and directories)
 	@find . -type d -name 'site' -maxdepth 1 -exec rm -rf {} + && \
 	echo "Cleaned up derived files and directories";
 
 cleanenv:
-	$(call PRINT_TITLE,"Erasing virtual environment")
+	$(call PRINT_TITLE,Erasing virtual environment)
 	@find . -type d -wholename './.venv' -exec rm -rf {} + && \
 	echo "Cleaned up virtual env";
 
@@ -227,32 +228,32 @@ cleanall: cleanderived cleanenv
 ##########################################################################################
 
 docs: env
-	$(call PRINT_TITLE,"Serving documentation with mkdocs")
+	$(call PRINT_TITLE,Serving documentation with mkdocs)
 	$(VENV_MKDOCS) serve -a 127.0.0.1:8000 -f "$(CURDIR)/mkdocs.yml" --watch "$(CURDIR)/docs" -s
 
 docs-check: env
-	$(call PRINT_TITLE,"Checking documentation build with mkdocs")
+	$(call PRINT_TITLE,Checking documentation build with mkdocs)
 	$(VENV_MKDOCS) build --strict
 
 docs-serve-versioned: env
-	$(call PRINT_TITLE,"Serving versioned documentation with mike")
+	$(call PRINT_TITLE,Serving versioned documentation with mike)
 	$(VENV_MIKE) serve
 
 docs-list: env
-	$(call PRINT_TITLE,"Listing deployed documentation versions")
+	$(call PRINT_TITLE,Listing deployed documentation versions)
 	$(VENV_MIKE) list
 
 docs-deploy: env
-	$(call PRINT_TITLE,"Deploying documentation version $(if $(VERSION),$(VERSION),$(DOCS_VERSION))")
+	$(call PRINT_TITLE,Deploying documentation version $(if $(VERSION),$(VERSION),$(DOCS_VERSION)))
 	$(VENV_MIKE) deploy $(if $(VERSION),$(VERSION),$(DOCS_VERSION))
 
 docs-build-versioned: env
-	$(call PRINT_TITLE,"Building versioned docs with mike (local gh-pages only)")
+	$(call PRINT_TITLE,Building versioned docs with mike -- local gh-pages only)
 	$(VENV_MIKE) deploy --update-aliases --alias-type copy $(DOCS_VERSION) latest
 	$(VENV_MIKE) set-default latest
 
 docs-assemble-site:
-	$(call PRINT_TITLE,"Assembling site output from gh-pages + root assets")
+	$(call PRINT_TITLE,Assembling site output from gh-pages + root assets)
 	@rm -rf site-output; \
 	TMPDIR=$$(mktemp -d); \
 	trap "cd '$(CURDIR)'; git worktree remove '$$TMPDIR' 2>/dev/null || true; rm -rf '$$TMPDIR'" EXIT; \
@@ -277,7 +278,7 @@ docs-build-site: docs-build-versioned docs-assemble-site
 
 docs-delete: env
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Usage: make docs-delete VERSION='x.y.z x.y.z ...'"; exit 1; fi
-	$(call PRINT_TITLE,"Deleting documentation versions: $(VERSION)")
+	$(call PRINT_TITLE,Deleting documentation versions: $(VERSION))
 	$(VENV_MIKE) delete --push $(VERSION)
 
 
@@ -286,7 +287,7 @@ docs-delete: env
 ##########################################################################################
 
 update-schema:
-	$(call PRINT_TITLE,"Downloading latest JSON Schema")
+	$(call PRINT_TITLE,Downloading latest JSON Schema)
 	curl -fSL "$(SCHEMA_URL)" -o "$(CURDIR)/docs/mthds_schema.json"
 
 up: update-schema

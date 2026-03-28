@@ -21,3 +21,5 @@ temp/
 # Vercel
 site-output/
 .vercel/
+.vercel
+.env*.local

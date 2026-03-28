@@ -45,9 +45,9 @@ Reference: `wip/vercel-docs-migration-v2.md`
 
 ### Prerequisites
 
-- [ ] Install Vercel CLI: `npm install -g vercel@50.37.3`
-- [ ] Create Vercel project in dashboard (don't connect a git repo -- CI deploys via CLI)
-- [ ] Run `vercel link` in repo root to connect local project to Vercel
+- [x] Install Vercel CLI: `npm install -g vercel@50.37.3`
+- [x] Create Vercel project in dashboard (don't connect a git repo -- CI deploys via CLI)
+- [x] Run `vercel link` in repo root to connect local project to Vercel
 
 ### Build and verify
 
