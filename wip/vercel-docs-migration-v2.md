@@ -402,7 +402,7 @@ The existing targets remain for backward compatibility and as a fallback if we n
 | `docs/overrides/main.html` | Canonical tag logic (`https://mthds.ai/latest/`) is correct for Vercel. |
 | `docs/overrides/redirect.html` | Mike's redirect template. With `alias_type: copy` these are rarely generated, but the template is correct if they are. |
 | `docs/overrides/404.html` | MkDocs-built 404 for versioned paths. Correct and unaffected. |
-| Root `index.html` (in Makefile) | Still generated into `site-output/` as a fallback. The `vercel.json` redirect takes precedence (`/` -> `/latest/` via 301). If the redirect somehow fails, the meta-refresh in index.html still works. |
+| Root `index.html` (in Makefile) | **Removed.** No longer generated into `site-output/`. Vercel serves files before evaluating redirect rules, so an `index.html` on disk would prevent the `vercel.json` 301 redirect from firing. Mike's own `index.html` (from `set-default`) is also deleted during `docs-assemble-site`. Both `/` and `/index.html` are handled exclusively by `vercel.json` redirects. |
 
 ---
 

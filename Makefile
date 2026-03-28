@@ -48,61 +48,6 @@ Sitemap: https://mthds.ai/sitemap.xml
 endef
 export ROOT_ROBOTS_TXT
 
-define ROOT_INDEX_HTML
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta http-equiv="refresh" content="0;url=/latest/">
-<link rel="canonical" href="https://mthds.ai/latest/">
-<title>MTHDS — The Language of Executable AI Methods</title>
-<meta name="description" content="MTHDS is an open standard for defining, packaging, and sharing AI methods — giving agents the ability to discover and execute structured, composable AI workflows.">
-<meta property="og:title" content="MTHDS — The Language of Executable AI Methods">
-<meta property="og:description" content="MTHDS is an open standard for defining, packaging, and sharing AI methods — giving agents the ability to discover and execute structured, composable AI workflows.">
-<meta property="og:url" content="https://mthds.ai/latest/">
-<meta property="og:type" content="website">
-<style>
-    body {
-        margin: 0;
-        padding: 2rem;
-        background: #1a1a1a;
-        color: #d4d4d4;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        line-height: 1.6;
-        max-width: 720px;
-        margin: 0 auto;
-    }
-    a { color: #7cb3f0; }
-    h1 { color: #e5e5e5; }
-    ul { padding-left: 1.2rem; }
-    .redirect-notice { color: #888; font-size: 0.85rem; margin-top: 2rem; }
-</style>
-</head>
-<body>
-<h1>MTHDS: The Language of Executable AI Methods</h1>
-<p>MTHDS is a declarative language for defining AI methods: discrete, reusable units of cognitive work like extraction, analysis, synthesis, generation. It is built on TOML and introduces two primitives: concepts (semantically typed data named after real domain things) and pipes (deterministic orchestration steps with explicit typed inputs and outputs). Pipes can invoke LLMs, VLMs, OCR, and image generation models, with built-in structured generation.</p>
-<p>Methods are executable and composable like Unix tools: a method can be saved as a CLI command, combined with others using standard Unix pipes, or invoked directly by Claude Code.</p>
-<h2>Links</h2>
-<ul>
-<li><a href="https://mthds.sh">Hub</a> — Discover and share methods</li>
-<li><a href="https://github.com/mthds-ai/mthds">Spec</a> — The MTHDS open standard repository</li>
-<li><a href="https://github.com/Pipelex/pipelex">Reference implementation</a> — Pipelex runtime</li>
-<li><a href="https://github.com/mthds-ai/skills">Agent skills</a> — Claude Code plugin for MTHDS</li>
-<li><a href="https://go.pipelex.com/vscode">VS Code extension</a></li>
-</ul>
-<h2>Get Started</h2>
-<ul>
-<li><a href="/latest/language/bundles/">Learn the Language</a> — Concepts, pipes, domains, and .mthds files</li>
-<li><a href="/latest/spec/mthds-format/">Read the Specification</a> — File formats, validation rules, resolution algorithms</li>
-<li><a href="/latest/getting-started/first-method/">Write Your First Method</a> — Set up your editor and write your first method</li>
-</ul>
-<p>For AI agents: see <a href="/llms.txt">/llms.txt</a> for a machine-readable index of this documentation.</p>
-<p class="redirect-notice">Redirecting to <a href="/latest/">MTHDS Documentation</a>&#8230;</p>
-</body>
-</html>
-endef
-export ROOT_INDEX_HTML
-
 define HELP
 Manage $(PROJECT_NAME) located in $(CURDIR).
 Usage:
@@ -260,10 +205,10 @@ docs-assemble-site:
 	git worktree add "$$TMPDIR" gh-pages && \
 	cp -a "$$TMPDIR/." site-output/ && \
 	rm -rf site-output/.git && \
+	rm -f site-output/index.html && \
 	cp docs/404.html site-output/404.html && \
 	cp docs/mthds_schema.json site-output/mthds_schema.json && \
 	echo "$$ROOT_ROBOTS_TXT" > site-output/robots.txt && \
-	echo "$$ROOT_INDEX_HTML" > site-output/index.html && \
 	if [ -f site-output/latest/sitemap.xml ]; then \
 		sed 's|<loc>https://mthds.ai/[^/]*/|<loc>https://mthds.ai/latest/|g' \
 			site-output/latest/sitemap.xml > site-output/sitemap.xml; \

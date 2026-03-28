@@ -51,14 +51,14 @@ Reference: `wip/vercel-docs-migration-v2.md`
 
 ### Build and verify
 
-- [ ] Run `make docs-build-site` successfully
+- [x] Run `make docs-build-site` successfully
 - [ ] Run `vercel dev` and verify locally:
-  - [ ] All pages render correctly
-  - [ ] `/` redirects to `/latest/` with 301
-  - [ ] `/index.html` redirects to `/latest/` with 301
-  - [ ] Missing pages return 404 status (not 200)
-  - [ ] Unversioned deep links (e.g. `/language/bundles/`) return 404 (not redirect)
-  - [ ] Root files served directly: `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/mthds_schema.json`
+  - [x] All pages render correctly
+  - [x] `/` redirects to `/latest/` with 301
+  - [x] `/index.html` redirects to `/latest/` with 301
+  - [x] Missing pages return 404 status (not 200)
+  - [x] Unversioned deep links (e.g. `/language/bundles/`) return 404 (not redirect)
+  - [x] Root files served directly: `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/mthds_schema.json`
 
 ---
 
