@@ -31,7 +31,7 @@ case "$MODE" in
             echo "ERROR: No baseline found. Run 'make lighthouse-baseline' first."
             exit 1
         fi
-        LATEST=$(ls -t "$LIGHTHOUSE_DIR"/*.report.json 2>/dev/null | grep -v baseline | head -1)
+        LATEST=$(ls -t "$LIGHTHOUSE_DIR"/*.report.json 2>/dev/null | grep -v baseline | head -1 || true)
         if [ -z "$LATEST" ]; then
             echo "ERROR: No lighthouse reports found. Run 'make lighthouse' first."
             exit 1

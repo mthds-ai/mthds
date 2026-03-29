@@ -12,7 +12,10 @@ if [ ! -f "$PRUNE_FILE" ]; then
 fi
 
 # Read existing versions once
-EXISTING=$("$MIKE" list 2>/dev/null || true)
+if ! EXISTING=$("$MIKE" list 2>&1); then
+    echo "mike list failed (no gh-pages branch yet?) — nothing to prune."
+    exit 0
+fi
 
 PRUNED=0
 while IFS= read -r version || [ -n "$version" ]; do
@@ -20,7 +23,8 @@ while IFS= read -r version || [ -n "$version" ]; do
     version=$(echo "$version" | xargs)
     [[ -z "$version" || "$version" == \#* ]] && continue
 
-    if echo "$EXISTING" | grep -q "^${version}\b"; then
+    escaped=$(printf '%s\n' "$version" | sed 's/[.[\*^$()+?{|\\]/\\&/g')
+    if echo "$EXISTING" | grep -q "^${escaped}\b"; then
         echo "Deleting version: $version"
         "$MIKE" delete "$version"
         PRUNED=$((PRUNED + 1))
