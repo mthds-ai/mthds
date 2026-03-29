@@ -2,8 +2,6 @@
 
 Migration from GitHub Pages to Vercel for proper HTTP redirects, 404 status codes, and SEO control.
 
-Reference: `wip/vercel-docs-migration-v2.md`
-
 ---
 
 ## Phase 1: Code Changes (no user-visible changes)
