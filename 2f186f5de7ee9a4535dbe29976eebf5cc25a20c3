@@ -1,0 +1,27 @@
+scripts/lighthouse.sh
+  f2bd16284250e6bd 43
+CHANGELOG.md
+  f2bd16284250e6bd 3,8-13
+Makefile
+  f2bd16284250e6bd 71-74,93,248-263
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "2f186f5de7ee9a4535dbe29976eebf5cc25a20c3",
+  "prompts": {
+    "f2bd16284250e6bd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "777b6709-15ca-42f8-8cca-c544773685e3",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 30,
+      "total_deletions": 2,
+      "accepted_lines": 30,
+      "overriden_lines": 0
+    }
+  }
+}
