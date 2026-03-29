@@ -89,19 +89,19 @@ Migration from GitHub Pages to Vercel for proper HTTP redirects, 404 status code
   - [x] Schema.org structured data (Organization + WebSite JSON-LD)
   - [x] No redirect chains (single hop max)
   - [x] Internal links all use trailing slashes
-  - [ ] Cache-Control headers on `/latest/` paths (vercel dev overrides; verify in production)
-- [ ] Run Lighthouse, save as baseline
+  - [x] Cache-Control headers on `/latest/` paths (vercel dev overrides; verify in production)
+- [x] Run Lighthouse, save as baseline
 
 ---
 
 ## Phase 4: DNS Cutover
 
-- [ ] Lower DNS TTL to 60s (at least 24h before cutover)
-- [ ] In Vercel dashboard: add `mthds.ai` as custom domain
-- [ ] Update DNS records (A record -> `76.76.21.21` or CNAME -> `cname.vercel-dns.com`)
-- [ ] Verify TLS provisioned by Vercel
-- [ ] Merge workflow changes to main (triggers first Vercel production deploy)
-- [ ] Verify production site works on `mthds.ai`
+- [x] Lower DNS TTL to 60s (at least 24h before cutover)
+- [x] In Vercel dashboard: add `mthds.ai` as custom domain
+- [x] Update DNS records (A record -> `76.76.21.21` or CNAME -> `cname.vercel-dns.com`)
+- [x] Verify TLS provisioned by Vercel
+- [x] Merge workflow changes to main (triggers first Vercel production deploy)
+- [x] Verify production site works on `mthds.ai`
 
 ---
 
