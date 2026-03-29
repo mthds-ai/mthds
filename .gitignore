@@ -17,3 +17,10 @@ temp/
 
 # skill build artifacts
 *.skill
+
+# Vercel
+site-output/
+.vercel/
+.vercel
+.env*.local
+.gstack/
