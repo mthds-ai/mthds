@@ -1,10 +1,16 @@
 # Changelog
 
-## [v0.4.0] - 2026-03-19
+## [v0.4.0] - 2026-03-29
 
 - Expand Document concept and PipeExtract operator to support web page URLs alongside file paths
 - Add PipeExtract web page extraction example
 - Define SearchResult sources: a list of source citations, each a Document with `title`, `url`, and `snippet`
+- Add `title` and `snippet` fields to Document native concept docs
+- Migrate docs deployment from GitHub Pages to Vercel with versioned routing and redirects
+- Add `/know-how-graph/` redirect to `/latest/`
+- Inject `<base>` tags for versioned directory roots to fix asset loading
+- Add docs version pruning script for cleaning up old deployed versions
+- Add Lighthouse performance baseline and comparison scripts
 
 ## [v0.3.8] - 2026-03-19
 

@@ -68,6 +68,10 @@ make docs-build-site                  - Full pipeline: build versioned + assembl
 make docs-prune                       - Delete versions listed in versions-to-delete.txt (local gh-pages)
 make docs-delete VERSION=x.y.z       - Delete a documentation version from local gh-pages
 
+make lighthouse                       - Run a Lighthouse audit against the live site
+make lighthouse-baseline              - Save a Lighthouse baseline report
+make lighthouse-compare               - Compare latest Lighthouse report against baseline
+
 make cleanenv                         - Remove virtual env
 make cleanderived                     - Remove mkdocs build output
 make cleanall                         - Remove all -> cleanenv + cleanderived
@@ -86,6 +90,7 @@ export HELP
 	cleanderived cleanenv cleanall reinstall ri \
 	docs docs-check docs-serve-versioned docs-list \
 	docs-deploy docs-build-versioned docs-assemble-site docs-build-site docs-prune docs-delete \
+	lighthouse lighthouse-baseline lighthouse-compare \
 	update-schema up \
 	li check-uv check-uv-verbose
 
@@ -237,6 +242,23 @@ docs-delete: env
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Usage: make docs-delete VERSION='x.y.z x.y.z ...'"; exit 1; fi
 	$(call PRINT_TITLE,Deleting documentation versions: $(VERSION))
 	$(VENV_MIKE) delete $(VERSION)
+
+
+##########################################################################################
+### LIGHTHOUSE
+##########################################################################################
+
+lighthouse:
+	$(call PRINT_TITLE,Running Lighthouse audit)
+	@bash scripts/lighthouse.sh "$(CURDIR)" "https://mthds.ai/latest/" run
+
+lighthouse-baseline:
+	$(call PRINT_TITLE,Saving Lighthouse baseline)
+	@bash scripts/lighthouse.sh "$(CURDIR)" "https://mthds.ai/latest/" baseline
+
+lighthouse-compare:
+	$(call PRINT_TITLE,Comparing Lighthouse reports)
+	@bash scripts/lighthouse.sh "$(CURDIR)" "https://mthds.ai/latest/" compare
 
 
 ##########################################################################################

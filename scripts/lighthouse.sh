@@ -40,7 +40,7 @@ case "$MODE" in
         echo "Latest:   $LATEST"
         echo ""
         SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-        python3 "$SCRIPT_DIR/lighthouse_compare.py" \
+        "$SCRIPT_DIR/../.venv/bin/python" "$SCRIPT_DIR/lighthouse_compare.py" \
             "$LIGHTHOUSE_DIR/baseline.report.json" "$LATEST"
         ;;
     *)
