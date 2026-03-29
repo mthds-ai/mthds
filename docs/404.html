@@ -91,45 +91,15 @@
             background: var(--accent-hover);
         }
     </style>
-    <script>
-        const path = window.location.pathname;
-        // Get path segments (e.g., "/latest/foo/bar" → ["latest", "foo", "bar"])
-        const segments = path.split('/').filter(seg => seg);
-        const firstSegment = segments[0];
-
-        // Check if it's a version: "latest", "pre-release", or starts with "0." (e.g., "0.17")
-        const hasVersion = firstSegment === 'latest' || firstSegment === 'pre-release' || (firstSegment && firstSegment.startsWith('0.'));
-
-        // Check if we're on a version's root 404 page (exactly /{version}/404.html)
-        const isVersionRoot404 = segments.length === 2 && segments[1] === '404.html';
-
-        if (!hasVersion) {
-            // No version in URL, redirect to /latest/...
-            const newUrl = '/latest' + path + window.location.search + window.location.hash;
-            window.location.replace(newUrl);
-        } else if (isVersionRoot404 && firstSegment !== 'latest') {
-            // We tried a version's 404.html but it doesn't exist (invalid version)
-            // Fall back to /latest/404.html
-            window.location.replace('/latest/404.html');
-        } else if (!isVersionRoot404) {
-            // Has version but not on 404 page, redirect to that version's styled 404 page
-            const version404Url = '/' + firstSegment + '/404.html';
-            window.location.replace(version404Url);
-        }
-    </script>
 </head>
 <body>
     <main>
         <h1>Page not found</h1>
         <p>The page you requested does not exist in this documentation version.</p>
-        <p>If you followed an old link, the redirect rules may already have sent you to the closest matching page under <code>/latest/</code>.</p>
+        <p>The page may have been moved or removed. Try starting from the documentation homepage.</p>
         <div class="actions">
             <a class="button" href="/latest/">Go to the latest docs</a>
         </div>
     </main>
-    <noscript>
-        <h1>Page not found</h1>
-        <p>Enable JavaScript for automatic redirects, or go to <a href="/latest/">the documentation</a>.</p>
-    </noscript>
 </body>
 </html>

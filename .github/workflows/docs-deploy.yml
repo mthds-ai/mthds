@@ -7,6 +7,8 @@ on:
       - "docs/**"
       - "mkdocs.yml"
       - "pyproject.toml"
+      - "vercel.json"
+      - "versions-to-delete.txt"
       - ".github/workflows/docs-deploy.yml"
   workflow_dispatch:
 
@@ -16,6 +18,9 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -41,8 +46,37 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Deploy documentation
-        run: make docs-deploy-stable
+      - name: Prune old documentation versions
+        run: make docs-prune
+
+      - name: Build versioned docs with mike
+        run: make docs-build-versioned
+
+      - name: Assemble site output
+        run: make docs-assemble-site
+
+      - name: Check deployment size
+        run: |
+          SIZE=$(du -sm site-output/ | cut -f1)
+          FILES=$(find site-output/ -type f | wc -l | tr -d ' ')
+          echo "Site output: ${SIZE} MB, ${FILES} files"
+          if [ "$SIZE" -gt 80 ]; then
+            echo "::warning::Site output is ${SIZE} MB (Vercel Hobby limit: 100 MB compressed). Consider pruning old versions."
+          fi
+          if [ "$FILES" -gt 12000 ]; then
+            echo "::warning::Site output has ${FILES} files (Vercel limit: 15,000). Consider pruning old versions."
+          fi
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@50.37.3
+
+      - name: Deploy to Vercel
+        run: vercel deploy --prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Push gh-pages branch
+        run: git push origin gh-pages
 
   github-release:
     name: Create GitHub Release

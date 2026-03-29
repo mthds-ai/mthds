@@ -3,6 +3,7 @@ include .env
 export
 endif
 VIRTUAL_ENV := $(CURDIR)/.venv
+export PATH := $(VIRTUAL_ENV)/bin:$(PATH)
 PROJECT_NAME := $(shell grep '^name = ' pyproject.toml | sed -E 's/name = "(.*)"/\1/')
 
 # The "?" is used to make the variable optional, so that it can be overridden by the user.
@@ -19,18 +20,18 @@ DOCS_VERSION := $(shell grep -m1 '^version = ' pyproject.toml | sed -E 's/versio
 
 define PRINT_TITLE
     $(eval PROJECT_PART := [$(PROJECT_NAME)])
-    $(eval TARGET_PART := ($@))
+    $(eval TARGET_PART := $@)
     $(eval MESSAGE_PART := $(1))
     $(if $(MESSAGE_PART),\
         $(eval FULL_TITLE := === $(PROJECT_PART) ===== $(TARGET_PART) ====== $(MESSAGE_PART) ),\
         $(eval FULL_TITLE := === $(PROJECT_PART) ===== $(TARGET_PART) ====== )\
     )
-    $(eval TITLE_LENGTH := $(shell echo -n "$(FULL_TITLE)" | wc -c | tr -d ' '))
+    $(eval TITLE_LENGTH := $(shell printf '%s' '$(FULL_TITLE)' | wc -c | tr -d ' '))
     $(eval PADDING_LENGTH := $(shell echo $$((126 - $(TITLE_LENGTH)))))
     $(eval PADDING := $(shell printf '%*s' $(PADDING_LENGTH) '' | tr ' ' '='))
     $(eval PADDED_TITLE := $(FULL_TITLE)$(PADDING))
     @echo ""
-    @echo "$(PADDED_TITLE)"
+    @echo '$(PADDED_TITLE)'
 endef
 
 define ROOT_ROBOTS_TXT
@@ -47,61 +48,6 @@ Sitemap: https://mthds.ai/sitemap.xml
 endef
 export ROOT_ROBOTS_TXT
 
-define ROOT_INDEX_HTML
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta http-equiv="refresh" content="0;url=/latest/">
-<link rel="canonical" href="https://mthds.ai/latest/">
-<title>MTHDS — The Language of Executable AI Methods</title>
-<meta name="description" content="MTHDS is an open standard for defining, packaging, and sharing AI methods — giving agents the ability to discover and execute structured, composable AI workflows.">
-<meta property="og:title" content="MTHDS — The Language of Executable AI Methods">
-<meta property="og:description" content="MTHDS is an open standard for defining, packaging, and sharing AI methods — giving agents the ability to discover and execute structured, composable AI workflows.">
-<meta property="og:url" content="https://mthds.ai/latest/">
-<meta property="og:type" content="website">
-<style>
-    body {
-        margin: 0;
-        padding: 2rem;
-        background: #1a1a1a;
-        color: #d4d4d4;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        line-height: 1.6;
-        max-width: 720px;
-        margin: 0 auto;
-    }
-    a { color: #7cb3f0; }
-    h1 { color: #e5e5e5; }
-    ul { padding-left: 1.2rem; }
-    .redirect-notice { color: #888; font-size: 0.85rem; margin-top: 2rem; }
-</style>
-</head>
-<body>
-<h1>MTHDS: The Language of Executable AI Methods</h1>
-<p>MTHDS is a declarative language for defining AI methods: discrete, reusable units of cognitive work like extraction, analysis, synthesis, generation. It is built on TOML and introduces two primitives: concepts (semantically typed data named after real domain things) and pipes (deterministic orchestration steps with explicit typed inputs and outputs). Pipes can invoke LLMs, VLMs, OCR, and image generation models, with built-in structured generation.</p>
-<p>Methods are executable and composable like Unix tools: a method can be saved as a CLI command, combined with others using standard Unix pipes, or invoked directly by Claude Code.</p>
-<h2>Links</h2>
-<ul>
-<li><a href="https://mthds.sh">Hub</a> — Discover and share methods</li>
-<li><a href="https://github.com/mthds-ai/mthds">Spec</a> — The MTHDS open standard repository</li>
-<li><a href="https://github.com/Pipelex/pipelex">Reference implementation</a> — Pipelex runtime</li>
-<li><a href="https://github.com/mthds-ai/skills">Agent skills</a> — Claude Code plugin for MTHDS</li>
-<li><a href="https://go.pipelex.com/vscode">VS Code extension</a></li>
-</ul>
-<h2>Get Started</h2>
-<ul>
-<li><a href="/latest/language/bundles/">Learn the Language</a> — Concepts, pipes, domains, and .mthds files</li>
-<li><a href="/latest/spec/mthds-format/">Read the Specification</a> — File formats, validation rules, resolution algorithms</li>
-<li><a href="/latest/getting-started/first-method/">Write Your First Method</a> — Set up your editor and write your first method</li>
-</ul>
-<p>For AI agents: see <a href="/llms.txt">/llms.txt</a> for a machine-readable index of this documentation.</p>
-<p class="redirect-notice">Redirecting to <a href="/latest/">MTHDS Documentation</a>&#8230;</p>
-</body>
-</html>
-endef
-export ROOT_INDEX_HTML
-
 define HELP
 Manage $(PROJECT_NAME) located in $(CURDIR).
 Usage:
@@ -116,10 +62,15 @@ make docs-check                       - Check documentation build with mkdocs
 make docs-serve-versioned             - Serve versioned docs locally with mike
 make docs-list                        - List deployed documentation versions
 make docs-deploy VERSION=x.y.z       - Deploy docs as version x.y.z (local, no push)
-make docs-deploy-stable               - Deploy stable docs with 'latest' alias (CI only)
-make docs-deploy-specific-version     - Deploy docs for the current version with 'pre-release' alias (CI only)
-make docs-deploy-root                 - Deploy root assets (404, robots.txt, index redirect, JSON Schema) to gh-pages
-make docs-delete VERSION=x.y.z       - Delete a deployed documentation version
+make docs-build-versioned             - Build versioned docs with mike (local gh-pages only, no push)
+make docs-assemble-site               - Extract gh-pages content + root assets into site-output/
+make docs-build-site                  - Full pipeline: build versioned + assemble (for local dev)
+make docs-prune                       - Delete versions listed in versions-to-delete.txt (local gh-pages)
+make docs-delete VERSION=x.y.z       - Delete a documentation version from local gh-pages
+
+make lighthouse                       - Run a Lighthouse audit against the live site
+make lighthouse-baseline              - Save a Lighthouse baseline report
+make lighthouse-compare               - Compare latest Lighthouse report against baseline
 
 make cleanenv                         - Remove virtual env
 make cleanderived                     - Remove mkdocs build output
@@ -138,7 +89,8 @@ export HELP
 	all help env env-verbose lock install update \
 	cleanderived cleanenv cleanall reinstall ri \
 	docs docs-check docs-serve-versioned docs-list \
-	docs-deploy docs-deploy-stable docs-deploy-specific-version docs-deploy-root docs-delete \
+	docs-deploy docs-build-versioned docs-assemble-site docs-build-site docs-prune docs-delete \
+	lighthouse lighthouse-baseline lighthouse-compare \
 	update-schema up \
 	li check-uv check-uv-verbose
 
@@ -158,7 +110,7 @@ check-uv:
 	@uv self update >/dev/null 2>&1 || true
 
 check-uv-verbose:
-	$(call PRINT_TITLE,"Ensuring uv ≥ $(UV_MIN_VERSION)")
+	$(call PRINT_TITLE,Ensuring uv >= $(UV_MIN_VERSION))
 	@command -v uv >/dev/null 2>&1 || { \
 		echo "uv not found – installing latest …"; \
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
@@ -172,7 +124,7 @@ env: check-uv
 	fi
 
 env-verbose: check-uv-verbose
-	$(call PRINT_TITLE,"Creating virtual environment")
+	$(call PRINT_TITLE,Creating virtual environment)
 	@if [ ! -d $(VIRTUAL_ENV) ]; then \
 		echo "Creating Python virtual env in \`${VIRTUAL_ENV}\`"; \
 		uv venv $(VIRTUAL_ENV) --python $(PYTHON_VERSION); \
@@ -181,18 +133,18 @@ env-verbose: check-uv-verbose
 	fi
 
 install: env-verbose
-	$(call PRINT_TITLE,"Installing dependencies")
+	$(call PRINT_TITLE,Installing dependencies)
 	@. $(VIRTUAL_ENV)/bin/activate && \
 	uv sync && \
 	echo "Installed dependencies in ${VIRTUAL_ENV}";
 
 lock: env
-	$(call PRINT_TITLE,"Resolving dependencies without update")
+	$(call PRINT_TITLE,Resolving dependencies without update)
 	@uv lock && \
 	echo "uv lock without update";
 
 update: env-verbose
-	$(call PRINT_TITLE,"Updating all dependencies")
+	$(call PRINT_TITLE,Updating all dependencies)
 	@uv lock --upgrade && \
 	uv sync && \
 	echo "Updated dependencies in ${VIRTUAL_ENV}";
@@ -203,12 +155,12 @@ update: env-verbose
 ##############################################################################################
 
 cleanderived:
-	$(call PRINT_TITLE,"Erasing derived files and directories")
+	$(call PRINT_TITLE,Erasing derived files and directories)
 	@find . -type d -name 'site' -maxdepth 1 -exec rm -rf {} + && \
 	echo "Cleaned up derived files and directories";
 
 cleanenv:
-	$(call PRINT_TITLE,"Erasing virtual environment")
+	$(call PRINT_TITLE,Erasing virtual environment)
 	@find . -type d -wholename './.venv' -exec rm -rf {} + && \
 	echo "Cleaned up virtual env";
 
@@ -227,64 +179,86 @@ cleanall: cleanderived cleanenv
 ##########################################################################################
 
 docs: env
-	$(call PRINT_TITLE,"Serving documentation with mkdocs")
+	$(call PRINT_TITLE,Serving documentation with mkdocs)
 	$(VENV_MKDOCS) serve -a 127.0.0.1:8000 -f "$(CURDIR)/mkdocs.yml" --watch "$(CURDIR)/docs" -s
 
 docs-check: env
-	$(call PRINT_TITLE,"Checking documentation build with mkdocs")
+	$(call PRINT_TITLE,Checking documentation build with mkdocs)
 	$(VENV_MKDOCS) build --strict
 
 docs-serve-versioned: env
-	$(call PRINT_TITLE,"Serving versioned documentation with mike")
+	$(call PRINT_TITLE,Serving versioned documentation with mike)
 	$(VENV_MIKE) serve
 
 docs-list: env
-	$(call PRINT_TITLE,"Listing deployed documentation versions")
+	$(call PRINT_TITLE,Listing deployed documentation versions)
 	$(VENV_MIKE) list
 
 docs-deploy: env
-	$(call PRINT_TITLE,"Deploying documentation version $(if $(VERSION),$(VERSION),$(DOCS_VERSION))")
+	$(call PRINT_TITLE,Deploying documentation version $(if $(VERSION),$(VERSION),$(DOCS_VERSION)))
 	$(VENV_MIKE) deploy $(if $(VERSION),$(VERSION),$(DOCS_VERSION))
 
-docs-deploy-stable: env
-	$(call PRINT_TITLE,"Deploying stable documentation $(DOCS_VERSION) with latest alias")
-	$(VENV_MIKE) deploy --push --update-aliases --alias-type copy $(DOCS_VERSION) latest
-	$(VENV_MIKE) set-default --push latest
-	$(MAKE) docs-deploy-root
+docs-build-versioned: env
+	$(call PRINT_TITLE,Building versioned docs with mike -- local gh-pages only)
+	$(VENV_MIKE) deploy --update-aliases --alias-type copy $(DOCS_VERSION) latest
+	$(VENV_MIKE) set-default latest
 
-docs-deploy-specific-version: env
-	$(call PRINT_TITLE,"Deploying documentation $(DOCS_VERSION) with pre-release alias")
-	$(VENV_MIKE) deploy --push --update-aliases --alias-type copy $(DOCS_VERSION) pre-release
-	$(MAKE) docs-deploy-root
-
-docs-deploy-root:
-	$(call PRINT_TITLE,"Deploying root assets to gh-pages: 404 + robots.txt + index + JSON Schema + llms.txt")
-	@git fetch origin gh-pages:gh-pages 2>/dev/null || true; \
+docs-assemble-site:
+	$(call PRINT_TITLE,Assembling site output from gh-pages + root assets)
+	@rm -rf site-output; \
 	TMPDIR=$$(mktemp -d); \
 	trap "cd '$(CURDIR)'; git worktree remove '$$TMPDIR' 2>/dev/null || true; rm -rf '$$TMPDIR'" EXIT; \
 	git worktree add "$$TMPDIR" gh-pages && \
-	cp docs/404.html "$$TMPDIR/404.html" && \
-	cp docs/mthds_schema.json "$$TMPDIR/mthds_schema.json" && \
-	echo "$$ROOT_ROBOTS_TXT" > "$$TMPDIR/robots.txt" && \
-	echo "$$ROOT_INDEX_HTML" > "$$TMPDIR/index.html" && \
-	if [ -f "$$TMPDIR/latest/sitemap.xml" ]; then \
+	cp -a "$$TMPDIR/." site-output/ && \
+	rm -rf site-output/.git && \
+	rm -f site-output/index.html && \
+	cp docs/404.html site-output/404.html && \
+	cp docs/mthds_schema.json site-output/mthds_schema.json && \
+	echo "$$ROOT_ROBOTS_TXT" > site-output/robots.txt && \
+	if [ -f site-output/latest/sitemap.xml ]; then \
 		sed 's|<loc>https://mthds.ai/[^/]*/|<loc>https://mthds.ai/latest/|g' \
-			"$$TMPDIR/latest/sitemap.xml" > "$$TMPDIR/sitemap.xml"; \
+			site-output/latest/sitemap.xml > site-output/sitemap.xml; \
 	fi && \
-	if [ -f "$$TMPDIR/latest/llms.txt" ]; then cp "$$TMPDIR/latest/llms.txt" "$$TMPDIR/llms.txt"; fi && \
-	if [ -f "$$TMPDIR/latest/llms-full.txt" ]; then cp "$$TMPDIR/latest/llms-full.txt" "$$TMPDIR/llms-full.txt"; fi && \
-	cd "$$TMPDIR" && \
-	git add 404.html robots.txt index.html mthds_schema.json && \
-	if [ -f sitemap.xml ]; then git add sitemap.xml; fi && \
-	if [ -f llms.txt ]; then git add llms.txt; fi && \
-	if [ -f llms-full.txt ]; then git add llms-full.txt; fi && \
-	(git diff --cached --quiet || git commit -m "Update root assets (404.html, robots.txt, index.html, sitemap.xml, mthds_schema.json, llms.txt)") && \
-	git push origin gh-pages
+	if [ -f site-output/latest/llms.txt ]; then cp site-output/latest/llms.txt site-output/llms.txt; fi && \
+	if [ -f site-output/latest/llms-full.txt ]; then cp site-output/latest/llms-full.txt site-output/llms-full.txt; fi && \
+	rm -f site-output/CNAME && \
+	for dir in site-output/[0-9]*.[0-9]*.[0-9]*/; do \
+		version=$$(basename "$$dir"); \
+		if [ -f "$$dir/index.html" ]; then \
+			sed 's|<head>|<head>\n<base href="/'"$$version"'/">|' "$$dir/index.html" > "$$dir/index.html.tmp" && \
+			mv "$$dir/index.html.tmp" "$$dir/index.html"; \
+		fi; \
+	done && \
+	echo "Site output ready in site-output/"
+
+docs-build-site: docs-build-versioned docs-assemble-site
+	@echo "Complete site ready in site-output/. Run 'vercel dev' to preview locally."
+
+docs-prune: env
+	$(call PRINT_TITLE,Pruning versions listed in versions-to-delete.txt)
+	@bash scripts/docs-prune.sh versions-to-delete.txt $(VENV_MIKE)
 
 docs-delete: env
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Usage: make docs-delete VERSION='x.y.z x.y.z ...'"; exit 1; fi
-	$(call PRINT_TITLE,"Deleting documentation versions: $(VERSION)")
-	$(VENV_MIKE) delete --push $(VERSION)
+	$(call PRINT_TITLE,Deleting documentation versions: $(VERSION))
+	$(VENV_MIKE) delete $(VERSION)
+
+
+##########################################################################################
+### LIGHTHOUSE
+##########################################################################################
+
+lighthouse:
+	$(call PRINT_TITLE,Running Lighthouse audit)
+	@bash scripts/lighthouse.sh "$(CURDIR)" "https://mthds.ai/latest/" run
+
+lighthouse-baseline:
+	$(call PRINT_TITLE,Saving Lighthouse baseline)
+	@bash scripts/lighthouse.sh "$(CURDIR)" "https://mthds.ai/latest/" baseline
+
+lighthouse-compare:
+	$(call PRINT_TITLE,Comparing Lighthouse reports)
+	@bash scripts/lighthouse.sh "$(CURDIR)" "https://mthds.ai/latest/" compare
 
 
 ##########################################################################################
@@ -292,7 +266,7 @@ docs-delete: env
 ##########################################################################################
 
 update-schema:
-	$(call PRINT_TITLE,"Downloading latest JSON Schema")
+	$(call PRINT_TITLE,Downloading latest JSON Schema)
 	curl -fSL "$(SCHEMA_URL)" -o "$(CURDIR)/docs/mthds_schema.json"
 
 up: update-schema
