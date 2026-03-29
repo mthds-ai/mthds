@@ -1,0 +1,29 @@
+scripts/docs-prune.sh
+  02d21b7f2f4b652a 15-18,26-27
+wip/vercel-docs-migration-v2.md
+  02d21b7f2f4b652a 405
+scripts/lighthouse.sh
+  02d21b7f2f4b652a 34
+.github/workflows/docs-deploy.yml
+  02d21b7f2f4b652a 21-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "33f67629b87be652e216a79a3cc66277ebba96a9",
+  "prompts": {
+    "02d21b7f2f4b652a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "005a053d-c70e-41fa-a1b1-3620853b8fd8",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 11,
+      "total_deletions": 8,
+      "accepted_lines": 11,
+      "overriden_lines": 0
+    }
+  }
+}
