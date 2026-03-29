@@ -8,12 +8,12 @@ Migration from GitHub Pages to Vercel for proper HTTP redirects, 404 status code
 
 ### Vercel config
 
-- [x] Create `vercel.json` with redirects (`/` and `/index.html` -> `/latest/`), X-Robots-Tag headers, security headers, `trailingSlash: true`, `cleanUrls: false`, `buildCommand: null`, `outputDirectory: site-output`
+- [x] Create `vercel.json` with redirects (`/`, `/index.html`, `/know-how-graph/` -> `/latest/...`), X-Robots-Tag headers, security headers, `trailingSlash: true`, `cleanUrls: false`, `buildCommand: null`, `outputDirectory: site-output`
 
 ### Makefile
 
 - [x] Add `docs-build-versioned` target -- mike deploy without `--push` (local gh-pages only)
-- [x] Add `docs-assemble-site` target -- extract gh-pages into `site-output/`, generate root assets (robots.txt, sitemap.xml, index.html, 404.html, llms.txt, llms-full.txt, mthds_schema.json), remove CNAME
+- [x] Add `docs-assemble-site` target -- extract gh-pages into `site-output/`, delete mike's root index.html, generate root assets (robots.txt, sitemap.xml, 404.html, llms.txt, llms-full.txt, mthds_schema.json), inject `<base href>` into versioned dirs, remove CNAME
 - [x] Add `docs-build-site` target -- combines the above two for local dev
 - [x] Remove old deploy targets (`docs-deploy-stable`, `docs-deploy-specific-version`, `docs-deploy-root`)
 
