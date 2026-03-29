@@ -75,14 +75,23 @@ Reference: `wip/vercel-docs-migration-v2.md`
 
 - [x] Deploy to Vercel preview: `vercel deploy` (no `--prod`)
 - [ ] Verify on preview URL (`mthds-xyz.vercel.app`):
-  - [x] All pages render correctly
-  - [ ] 301 redirects work (`/` -> `/latest/`, `/index.html` -> `/latest/`)
-  - [ ] 404 status on missing pages
-  - [ ] `X-Robots-Tag` headers correct per path (`/latest/` indexable, `/0.*` noindex, `/pre-release/` noindex+nofollow)
-  - [ ] `trailingSlash` works: `/latest/language/bundles` -> `/latest/language/bundles/`
-  - [ ] Security headers present (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`)
-  - [ ] Version selector works in MkDocs UI
-  - [ ] Cache-Control headers on `/latest/` paths
+  - [x] All pages render correctly with full CSS/JS
+  - [x] 301 redirects work (`/` -> `/latest/`, `/index.html` -> `/latest/`)
+  - [x] `trailingSlash: true` works: `/latest` -> 308 -> `/latest/`, `/latest/language/bundles` -> 308 -> `/latest/language/bundles/`
+  - [x] Versioned root pages render correctly (`/0.3.8` served via `<base>` tag after Vercel strips trailing slash)
+  - [x] 404 status on missing pages (not soft 200), with `noindex` meta tag
+  - [x] `X-Robots-Tag` headers correct: `/latest/` = `index, follow`, `/0.*` = `noindex, follow`, `/pre-release/` = `noindex, nofollow`
+  - [x] Security headers present (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`)
+  - [x] Version selector works in MkDocs UI
+  - [x] Canonical tags: all pages point to `/latest/` equivalent, old versions canonical to `/latest/`
+  - [x] Sitemap: only `/latest/` URLs, all with trailing slashes
+  - [x] robots.txt: `Allow: /latest/`, `Disallow: /0.`, `Disallow: /pre-release/`
+  - [x] OG tags complete on `/latest/` (type, title, description, image with dimensions, url)
+  - [x] Meta descriptions present and distinct per page
+  - [x] Schema.org structured data (Organization + WebSite JSON-LD)
+  - [x] No redirect chains (single hop max)
+  - [x] Internal links all use trailing slashes
+  - [ ] Cache-Control headers on `/latest/` paths (vercel dev overrides; verify in production)
 - [ ] Run Lighthouse, save as baseline
 
 ---

@@ -15,6 +15,11 @@
       "source": "/index.html",
       "destination": "/latest/",
       "statusCode": 301
+    },
+    {
+      "source": "/know-how-graph/",
+      "destination": "/latest/know-how-graph/",
+      "statusCode": 301
     }
   ],
 
