@@ -1,0 +1,29 @@
+scripts/docs-prune.sh
+  8f3e2caeeda618c6 27
+scripts/lighthouse.sh
+  8f3e2caeeda618c6 12,42-44
+.github/workflows/docs-deploy.yml
+  8f3e2caeeda618c6 74-76
+scripts/lighthouse_compare.py
+  8f3e2caeeda618c6 1-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "df7fcdb023e880791cace846463b8e4dadeed53a",
+  "prompts": {
+    "8f3e2caeeda618c6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "04c5b872-4e28-4b15-b0d4-32d025512c0f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 61,
+      "total_deletions": 18,
+      "accepted_lines": 61,
+      "overriden_lines": 0
+    }
+  }
+}
