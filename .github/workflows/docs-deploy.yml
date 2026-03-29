@@ -8,6 +8,7 @@ on:
       - "mkdocs.yml"
       - "pyproject.toml"
       - "vercel.json"
+      - "versions-to-delete.txt"
       - ".github/workflows/docs-deploy.yml"
   workflow_dispatch:
 
@@ -45,6 +46,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Prune old documentation versions
+        run: make docs-prune
 
       - name: Build versioned docs with mike
         run: make docs-build-versioned
