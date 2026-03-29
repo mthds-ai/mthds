@@ -1,0 +1,23 @@
+scripts/docs-prune.sh
+  519737de26c51cff 27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "41b4106bfdf14743b99851f8a70fe25ad3761dd9",
+  "prompts": {
+    "519737de26c51cff": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4da885e6-141d-49ac-816d-1d4d613bc29f",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 2,
+      "accepted_lines": 1,
+      "overriden_lines": 0
+    }
+  }
+}
