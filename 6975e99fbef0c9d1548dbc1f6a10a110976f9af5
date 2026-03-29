@@ -1,0 +1,38 @@
+TODOS.md
+  028e7135f31eb230 78-94
+vercel.json
+  29b5caaa9454ef97 18-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "6975e99fbef0c9d1548dbc1f6a10a110976f9af5",
+  "prompts": {
+    "028e7135f31eb230": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "48be8fb1-df92-4b5d-a92e-31a4f8bcc947",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 17,
+      "total_deletions": 8,
+      "accepted_lines": 17,
+      "overriden_lines": 0
+    },
+    "29b5caaa9454ef97": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d5955bf9-48ba-4318-8045-f4a69d19e4be",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 0,
+      "accepted_lines": 5,
+      "overriden_lines": 0
+    }
+  }
+}
