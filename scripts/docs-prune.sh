@@ -24,7 +24,7 @@ while IFS= read -r version || [ -n "$version" ]; do
     [[ -z "$version" || "$version" == \#* ]] && continue
 
     escaped=$(printf '%s\n' "$version" | sed 's/[.[\*^$()+?{|\\]/\\&/g')
-    if echo "$EXISTING" | grep -q "^${escaped}\b"; then
+    if echo "$EXISTING" | grep -Eq "^${escaped}\b"; then
         echo "Deleting version: $version"
         "$MIKE" delete "$version"
         PRUNED=$((PRUNED + 1))

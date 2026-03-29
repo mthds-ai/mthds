@@ -9,7 +9,7 @@ mkdir -p "$LIGHTHOUSE_DIR"
 
 run_audit() {
     local output_path="$1"
-    npx lighthouse@latest "$URL" \
+    npx lighthouse@12 "$URL" \
         --output json --output html \
         --output-path "$output_path" \
         --chrome-flags="--headless=new --no-sandbox" \
@@ -39,21 +39,9 @@ case "$MODE" in
         echo "Baseline: $LIGHTHOUSE_DIR/baseline.report.json"
         echo "Latest:   $LATEST"
         echo ""
-        python3 -c "
-import json
-b = json.load(open('$LIGHTHOUSE_DIR/baseline.report.json'))
-l = json.load(open('$LATEST'))
-cats = ['performance', 'accessibility', 'best-practices', 'seo']
-print(f'{\"Category\":<20} {\"Baseline\":>10} {\"Latest\":>10} {\"Delta\":>10}')
-print('-' * 52)
-for c in cats:
-    bs = b['categories'].get(c, {}).get('score', 0) or 0
-    ls = l['categories'].get(c, {}).get('score', 0) or 0
-    d = ls - bs
-    sign = '+' if d > 0 else ''
-    flag = ' !!!' if d < -0.05 else ''
-    print(f'{c:<20} {bs*100:>9.0f}% {ls*100:>9.0f}% {sign}{d*100:>8.0f}%{flag}')
-"
+        SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+        python3 "$SCRIPT_DIR/lighthouse_compare.py" \
+            "$LIGHTHOUSE_DIR/baseline.report.json" "$LATEST"
         ;;
     *)
         echo "Usage: $0 <project_dir> <url> <run|baseline|compare>"
