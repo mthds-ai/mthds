@@ -19,7 +19,7 @@ Where agent skills handle open-ended tasks, methods handle the parts that benefi
 - Hub: [mthds.sh](https://mthds.sh)
 - Spec: [github.com/mthds-ai/mthds](https://github.com/mthds-ai/mthds)
 - Reference implementation: [github.com/Pipelex/pipelex](https://github.com/Pipelex/pipelex)
-- Agent skills: [github.com/mthds-ai/skills](https://github.com/mthds-ai/skills)
+- Agent plugins: [github.com/mthds-ai/mthds-plugins](https://github.com/mthds-ai/mthds-plugins)
 - VS Code extension: [go.pipelex.com/vscode](https://go.pipelex.com/vscode)
 
 <div class="grid cards" markdown>

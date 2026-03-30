@@ -1,5 +1,11 @@
 # Changelog
 
+## [v0.4.1] - 2026-03-30
+
+- Fix README links to point to versioned `/latest/` docs URLs
+- Update agent skills reference to agent plugins with correct repo URL
+- Change `plxt` install instruction from `pip` to `uv tool install`
+
 ## [v0.4.0] - 2026-03-29
 
 - Expand Document concept and PipeExtract operator to support web page URLs alongside file paths
