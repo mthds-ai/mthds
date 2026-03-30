@@ -1,7 +1,7 @@
 # MTHDS
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Docs](https://img.shields.io/badge/docs-mthds.ai-blue)](https://mthds.ai/)
+[![Docs](https://img.shields.io/badge/docs-mthds.ai-blue)](https://mthds.ai/latest/)
 
 An open standard for defining, packaging, and distributing AI methods — typed descriptions of what an AI should do, with what inputs, and what outputs it produces.
 
@@ -40,10 +40,10 @@ MTHDS has two pillars:
 
 ## Getting Started
 
-- [Write Your First Method](https://mthds.ai/getting-started/first-method/) — Create a working bundle from scratch
-- [Learn the Language](https://mthds.ai/language/bundles/) — Concepts, pipes, domains, and namespace resolution
-- [Editor Support](https://mthds.ai/tooling/editor-support/) — VS Code / Cursor extension for syntax highlighting, validation, and autocomplete
-- [Full Documentation](https://mthds.ai/)
+- [Write Your First Method](https://mthds.ai/latest/getting-started/first-method/) — Create a working bundle from scratch
+- [Learn the Language](https://mthds.ai/latest/language/bundles/) — Concepts, pipes, domains, and namespace resolution
+- [Editor Support](https://mthds.ai/latest/tooling/editor-support/) — VS Code / Cursor extension for syntax highlighting, validation, and autocomplete
+- [Full Documentation](https://mthds.ai/latest/)
 
 ## Contributing
 
