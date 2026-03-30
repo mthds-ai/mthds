@@ -1,0 +1,45 @@
+README.md
+  c2486f6f68b1f8db 4,43-46
+pyproject.toml
+  f514cfe1423c417a 3
+  c2486f6f68b1f8db 21
+docs/tooling/formatting-linting.md
+  c2486f6f68b1f8db 11
+docs/index.md
+  c2486f6f68b1f8db 22
+CHANGELOG.md
+  f514cfe1423c417a 3-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "89a563317e074e26215f1bbcfd666283c9fe4851",
+  "prompts": {
+    "c2486f6f68b1f8db": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0525cc66-2ea7-4673-ae56-4bd05220980d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 8,
+      "total_deletions": 8,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    },
+    "f514cfe1423c417a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a5eaa09-997c-4309-aca8-fa3438803e64",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Louis Choquel <lchoquel@users.noreply.github.com>",
+      "messages": [],
+      "total_additions": 7,
+      "total_deletions": 1,
+      "accepted_lines": 7,
+      "overriden_lines": 0
+    }
+  }
+}
