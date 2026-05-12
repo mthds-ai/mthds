@@ -51,6 +51,13 @@ Each pipe type has specific rules:
 - All prompt and system_prompt variables MUST have matching inputs.
 - All inputs MUST be referenced in prompt or system_prompt.
 
+**PipeStructure:**
+
+- `inputs` MUST contain exactly one entry.
+- The single input concept MUST be `Text` or a concept that refines `Text`.
+- `output` MUST NOT be `Text` and MUST NOT be a concept that refines `Text`.
+- `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`).
+
 **PipeFunc:**
 
 - `function_name` MUST be present and non-empty.

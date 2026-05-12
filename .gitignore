@@ -24,3 +24,6 @@ site-output/
 .vercel
 .env*.local
 .gstack/
+
+# Vercel Analytics drilldown exports
+mthds.ai-*/

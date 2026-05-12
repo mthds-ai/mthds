@@ -1,5 +1,5 @@
 ---
-description: "Discover MTHDS operator pipes: PipeLLM, PipeFunc, PipeImgGen, PipeExtract, PipeSearch, and PipeCompose for single-step AI transformations."
+description: "Discover MTHDS operator pipes: PipeLLM, PipeStructure, PipeFunc, PipeImgGen, PipeExtract, PipeSearch, and PipeCompose for single-step AI transformations."
 ---
 
 # Pipes — Operators
@@ -170,12 +170,14 @@ Text, image, and document inputs can be freely combined in the same pipe.
 
 ### Structuring Method
 
-The `structuring_method` field controls how PipeLLM produces structured output (when the output concept has a `structure` table):
+The `structuring_method` field is a directive that controls how PipeLLM produces structured output (when the output concept has a `structure` table):
 
 - `"direct"` — the model generates JSON conforming to the output schema in a single call. This is the fastest option and works well when the output structure is straightforward (few fields, simple types) and the model reliably produces well-formed JSON.
-- `"preliminary_text"` — a two-step process: the model first generates free-form text reasoning through the problem, then a second call extracts and structures the information into the target schema. Use this mode when the output structure is complex (many fields, nested concepts, or nuanced extraction) or when the model struggles to produce correct JSON in a single pass.
+- `"preliminary_text"` — the runtime first produces free-form text from the prompt, then structures that text into the target concept as a second step. Use this mode when the output structure is complex (many fields, nested concepts, or nuanced extraction) or when the model struggles to produce correct JSON in a single pass.
 
 When `structuring_method` is omitted, the runtime chooses a default. In general, start with the default and switch to `"preliminary_text"` if you observe structuring errors or degraded output quality on complex schemas.
+
+The standard does not prescribe how a runtime achieves `"preliminary_text"`. The reference runtime expands the pipe at load time into a [`PipeSequence`](pipes-controllers.md#pipesequence) of `PipeLLM` (producing `Text`) followed by [`PipeStructure`](#pipestructure) (producing the declared output). Authors who want explicit control over each step — for example, to pick a different model for the structuring call or to reuse the structuring step across several upstream text sources — can author the two pipes by hand instead of using the `structuring_method` shorthand.
 
 **More PipeLLM examples:**
 
@@ -216,6 +218,104 @@ Given this context: $context
 
 Analyze the document and explain how it relates to the context: $reference_doc
 """
+```
+
+## PipeStructure
+
+Turns text into a structured concept — typically by invoking an LLM that fills the declared output schema, though the standard does not prescribe a specific mechanism.
+
+```toml
+[concept.RestaurantReview]
+description = "A structured restaurant review extracted from prose"
+
+[concept.RestaurantReview.structure]
+restaurant_name = { type = "text", description = "Name of the restaurant" }
+overall_rating  = { type = "integer", description = "Overall rating from 1 to 5" }
+highlights      = { type = "list", item_type = "text", description = "Standout positives" }
+complaints      = { type = "list", item_type = "text", description = "Issues mentioned" }
+
+[pipe.structure_review]
+type        = "PipeStructure"
+description = "Turn a free-form review into a RestaurantReview"
+inputs      = { review_text = "Text" }
+output      = "RestaurantReview"
+```
+
+**What this does:** Takes a single `Text` input and produces a typed object (or list of objects) matching the output concept. The reference runtime implements this with an LLM call that fills the schema.
+
+Reach for `PipeStructure` whenever the text comes from somewhere other than a fresh `PipeLLM` call — text that came from a `PipeExtract` over a PDF, from a `PipeSearch` result, from a user message, or from an upstream `PipeLLM` step that intentionally produced free-form prose.
+
+**Key fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `inputs` | Yes | Exactly one input. Its concept must be `Text` or a concept that refines `Text`. |
+| `output` | Yes | The target structured concept, with optional multiplicity (`Foo`, `Foo[]`, `Foo[N]`). Cannot be `Text` or a concept that refines `Text`. |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline LLM settings table (see [Inline LLM Settings](../spec/mthds-format.md#inline-llm-settings)). |
+
+`PipeStructure` does not accept a user-controlled prompt template — the runtime owns whatever prompting (or other mechanism) it uses to produce the structured output. Use a `PipeLLM` instead when prose generation needs prompt control.
+
+!!! note "No images, no documents"
+    `PipeStructure` is intentionally narrow: it takes one `Text` input. To structure an image or a PDF page, run an upstream extraction step (e.g. `PipeExtract` or a vision `PipeLLM`) and feed its text output into `PipeStructure`.
+
+### Output Multiplicity
+
+Use bracket notation in `output` to control how many items the runtime produces:
+
+- `output = "Review"` — exactly one item.
+- `output = "Review[]"` — variable-length list (the model decides).
+- `output = "Review[3]"` — exactly three items.
+
+See [Multiplicity](multiplicity.md) for the full picture.
+
+### Examples
+
+**Structure a list of objects from a transcript:**
+
+```toml
+[pipe.structure_review_batch]
+type        = "PipeStructure"
+description = "Extract one or more reviews from a transcript"
+inputs      = { transcript = "Text" }
+output      = "RestaurantReview[]"
+```
+
+**After a document extraction step:**
+
+```toml
+[pipe.invoice_to_record]
+type        = "PipeSequence"
+description = "Read an invoice PDF and turn it into an InvoiceRecord"
+inputs      = { invoice_pdf = "Document" }
+output      = "InvoiceRecord"
+steps = [
+  { pipe = "extract_invoice_text", result = "invoice_text" },
+  { pipe = "structure_invoice",    result = "invoice_record" },
+]
+
+[pipe.extract_invoice_text]
+type        = "PipeLLM"
+description = "Read the invoice PDF and produce a faithful textual transcript"
+inputs      = { invoice_pdf = "Document" }
+output      = "Text"
+prompt      = "Read this invoice and produce a faithful textual transcript of every line item, total, and metadata: @invoice_pdf"
+
+[pipe.structure_invoice]
+type        = "PipeStructure"
+description = "Turn the invoice transcript into an InvoiceRecord"
+inputs      = { invoice_text = "Text" }
+output      = "InvoiceRecord"
+```
+
+**Pick a different model for the structuring step:**
+
+```toml
+[pipe.structure_review_premium]
+type        = "PipeStructure"
+description = "Use a stronger model for tricky structurings"
+inputs      = { review_text = "Text" }
+output      = "RestaurantReview"
+model       = "@default-premium"
 ```
 
 ## PipeFunc

@@ -4,7 +4,7 @@ description: "Specify which AI model a pipe uses with MTHDS model references —
 
 # Model References
 
-Model references tell pipes which AI model to use. Every `PipeLLM`, `PipeImgGen`, `PipeExtract`, and `PipeSearch` accepts an optional `model` field — a string that identifies the model and, depending on its prefix, how that model is configured.
+Model references tell pipes which AI model to use. Every `PipeLLM`, `PipeStructure`, `PipeImgGen`, `PipeExtract`, and `PipeSearch` accepts an optional `model` field — a string that identifies the model and, depending on its prefix, how that model is configured.
 
 ## At a Glance
 
@@ -88,16 +88,17 @@ Handles are the simplest form. They are convenient for quick experiments but cou
 
 ## Which Pipes Use Model References
 
-Four operator pipe types accept the `model` field:
+The following operator pipe types accept the `model` field:
 
 | Pipe Type | Typical Use |
 |-----------|-------------|
 | `PipeLLM` | Large language model invocation. |
+| `PipeStructure` | Structuring text into a typed concept. |
 | `PipeImgGen` | Image generation. |
 | `PipeExtract` | Document extraction (e.g., PDF to pages). |
 | `PipeSearch` | Web search with structured results. |
 
-All four reference forms (`$`, `@`, `~`, bare) work identically across all four pipe types.
+All four reference forms (`$`, `@`, `~`, bare) work identically across these pipe types.
 
 ## Choosing a Reference Type
 
@@ -116,11 +117,12 @@ The `model` field can also be a TOML table instead of a string, providing full m
 Each pipe type that accepts `model` has a corresponding inline settings structure:
 
 - **PipeLLM** uses `LLMSetting` — includes `model`, `temperature`, `max_tokens`, `image_detail`, `prompting_target`, `reasoning_effort`, `reasoning_budget`.
+- **PipeStructure** uses `LLMSetting` — the same shape as `PipeLLM`, because the typical implementation issues an LLM call for the structuring step.
 - **PipeImgGen** uses `ImgGenSetting` — includes `model`, `quality`, `nb_steps`, `guidance_scale`, `is_moderated`, `safety_tolerance`.
 - **PipeExtract** uses `ExtractSetting` — includes `model`, `max_nb_images`, `image_min_size`.
 - **PipeSearch** uses `SearchSetting` — includes `model`, `include_images`, `include_inline_citations`, `max_results`.
 
-All four require a `model` field (the model handle) and accept an optional `description`.
+All require a `model` field (the model handle) and accept an optional `description`.
 
 **Example — PipeLLM with inline settings:**
 
