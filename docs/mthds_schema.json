@@ -86,6 +86,9 @@
                 "$ref": "#/definitions/PipeSearchBlueprint"
               },
               {
+                "$ref": "#/definitions/PipeStructureBlueprint"
+              },
+              {
                 "$ref": "#/definitions/PipeBatchBlueprint"
               },
               {
@@ -1053,6 +1056,30 @@
           ],
           "default": null,
           "title": "Page Views Dpi"
+        },
+        "render_js": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Render Js"
+        },
+        "include_raw_html": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Include Raw Html"
         }
       },
       "required": [
@@ -1623,6 +1650,66 @@
       "title": "PipeSequenceBlueprint",
       "type": "object"
     },
+    "PipeStructureBlueprint": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "default": "PipeStructure",
+          "title": "Type",
+          "type": "string",
+          "enum": [
+            "PipeStructure"
+          ]
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "inputs": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inputs"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/LLMSetting"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ModelReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        }
+      },
+      "required": [
+        "description",
+        "output"
+      ],
+      "title": "PipeStructureBlueprint",
+      "type": "object"
+    },
     "PromptImageDetail": {
       "enum": [
         "high",
@@ -1659,6 +1746,7 @@
         "low",
         "medium",
         "high",
+        "xhigh",
         "max"
       ],
       "title": "ReasoningEffort",
@@ -1899,7 +1987,7 @@
     }
   },
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$comment": "Generated from PipelexBundleBlueprint v0.20.0. Do not edit manually.",
+  "$comment": "Generated from PipelexBundleBlueprint v0.27.0. Do not edit manually.",
   "x-taplo": {
     "initKeys": [
       "domain"

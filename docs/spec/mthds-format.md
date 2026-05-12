@@ -282,6 +282,7 @@ MTHDS defines pipe types in two categories:
 | Type | Value | Description |
 |------|-------|-------------|
 | PipeLLM | `"PipeLLM"` | Generates output using a large language model. |
+| PipeStructure | `"PipeStructure"` | Turns text into a structured concept using a large language model. |
 | PipeFunc | `"PipeFunc"` | Calls a registered Python function. |
 | PipeImgGen | `"PipeImgGen"` | Generates images using an image generation model. |
 | PipeExtract | `"PipeExtract"` | Extracts structured content from documents. |
@@ -311,7 +312,7 @@ Generates output by invoking a large language model with a prompt.
 | `system_prompt` | string | No | System prompt for the LLM. If omitted, the bundle-level `system_prompt` is used (if any). |
 | `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [LLM settings](#inline-llm-settings) table. |
 | `model_to_structure` | string or table | No | Model used for structuring the LLM output into the declared concept. Accepts the same forms as `model`. |
-| `structuring_method` | string | No | How the output is structured. Values: `"direct"`, `"preliminary_text"`. |
+| `structuring_method` | string | No | Directive controlling how the output is structured. Values: `"direct"` (single LLM call producing JSON) or `"preliminary_text"` (the runtime first produces text, then structures it as a second step). The standard does not prescribe HOW the runtime implements `"preliminary_text"`. |
 
 **Prompt template syntax:**
 
@@ -357,7 +358,7 @@ When the `model` field is a table instead of a string, it defines inline model s
 | `max_tokens` | integer, `"auto"`, or null | No | Maximum tokens for the response. `"auto"` lets the model choose. |
 | `image_detail` | string | No | Image detail level for vision inputs. Values: `high`, `low`, `auto`. |
 | `prompting_target` | string | No | Target provider for prompt formatting. Values: `openai`, `anthropic`, `mistral`, `gemini`, `fal`. |
-| `reasoning_effort` | string | No | Level of reasoning effort. Values: `none`, `minimal`, `low`, `medium`, `high`, `max`. |
+| `reasoning_effort` | string | No | Level of reasoning effort. Values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`. `xhigh` sits between `high` and `max` and maps to provider-specific xhigh values where supported. |
 | `reasoning_budget` | integer | No | Token budget for reasoning. Must be > 0. |
 | `description` | string | No | Human-readable description of this model configuration. |
 
@@ -377,6 +378,46 @@ model = { model = "claude-4.5-sonnet", temperature = 0.1, max_tokens = 4096 }
 
 [pipe.analyze_cv.inputs]
 cv_pages = "Page"
+```
+
+## Operator: PipeStructure
+
+Turns text into a structured concept matching the declared output schema. The standard does not prescribe how a runtime achieves this; a typical implementation uses an LLM call.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | `"PipeStructure"` | Yes | — |
+| `description` | string | Yes | — |
+| `inputs` | table | Yes | MUST contain exactly one entry. |
+| `output` | string | Yes | The target structured concept reference, with optional multiplicity. MUST NOT be `Text` or a concept that refines `Text`. |
+| `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [LLM settings](#inline-llm-settings) table. |
+
+**Validation rules:**
+
+- `inputs` MUST contain exactly one entry. The single input concept MUST be `Text` or a concept that refines `Text`.
+- `output` MUST NOT be `Text` and MUST NOT be a concept that refines `Text`.
+- `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`).
+- `PipeStructure` MUST NOT accept image or document inputs. Use an upstream extraction step to produce text first.
+
+**Example:**
+
+```toml
+[pipe.structure_review]
+type        = "PipeStructure"
+description = "Turn a free-form review into a RestaurantReview"
+inputs      = { review_text = "Text" }
+output      = "RestaurantReview"
+```
+
+**Example — with an explicit structuring model:**
+
+```toml
+[pipe.structure_review_premium]
+type        = "PipeStructure"
+description = "Use a stronger model for tricky structurings"
+inputs      = { review_text = "Text" }
+output      = "RestaurantReview"
+model       = "@default-premium"
 ```
 
 ## Operator: PipeFunc
@@ -483,12 +524,14 @@ Extracts structured content from documents (e.g., PDF, web pages).
 | `page_image_captions` | boolean | No | Whether to generate captions for page images. |
 | `page_views` | boolean | No | Whether to generate page views. |
 | `page_views_dpi` | integer | No | DPI for page view rendering. |
+| `render_js` | boolean | No | Web-page extraction only: render JavaScript before fetching the page content. Honored by backends that support headless rendering. Default: `false`. |
+| `include_raw_html` | boolean | No | Web-page extraction only: include the fetched HTML in each extracted `Page`'s `raw_html` field. Default: `false`. |
 
 **Validation rules:**
 
 - `inputs` MUST contain exactly one entry. The input concept SHOULD be `Document` or a concept that refines `Document` or `Image`.
 - `output` MUST be `"Page[]"` (a variable-length list of `Page`).
-- When the document URL is a web page, PipeExtract fetches and extracts the page content.
+- When the document URL is a web page, PipeExtract fetches and extracts the page content. `render_js` and `include_raw_html` apply only to this case; backends that target local documents (PDFs, images) MAY ignore them.
 
 **Example:**
 

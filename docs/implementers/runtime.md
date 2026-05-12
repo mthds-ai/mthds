@@ -36,6 +36,7 @@ PipeBlueprintUnion = PipeFuncBlueprint
                    | PipeImgGenBlueprint
                    | PipeComposeBlueprint
                    | PipeLLMBlueprint
+                   | PipeStructureBlueprint
                    | PipeExtractBlueprint
                    | PipeSearchBlueprint
                    | PipeBatchBlueprint
@@ -122,7 +123,7 @@ Validation libraries such as Pydantic (Python) or Zod (TypeScript) are natural f
 
 ## Model References
 
-MTHDS defines several forms of model reference (`$` preset, `@` alias, `~` waterfall, and bare handle) that method authors use in the `model` field of `PipeLLM`, `PipeImgGen`, `PipeExtract`, and `PipeSearch`. See [Model References](../language/model-references.md) for the full description and examples.
+MTHDS defines several forms of model reference (`$` preset, `@` alias, `~` waterfall, and bare handle) that method authors use in the `model` field of `PipeLLM`, `PipeStructure`, `PipeImgGen`, `PipeExtract`, and `PipeSearch`. See [Model References](../language/model-references.md) for the full description and examples.
 
 A runtime must resolve each form to a concrete model configuration. The recommended approach:
 
