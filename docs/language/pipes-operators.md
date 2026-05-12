@@ -405,8 +405,10 @@ model       = "@default-extract-web-page"
 | `page_image_captions` | No | Whether to generate captions for page images. |
 | `page_views` | No | Whether to generate page views. |
 | `page_views_dpi` | No | DPI for page view rendering. |
+| `render_js` | No | For web-page extraction: render JavaScript before fetching the page content (when the backend supports it). Default: `false`. |
+| `include_raw_html` | No | For web-page extraction: include the page's raw HTML in each extracted `Page`'s `raw_html` field. Default: `false`. |
 
-**Constraints:** PipeExtract requires exactly one input (typically `Document` or a concept refining it) and the output must be `"Page[]"`. The input document URL can be a web page URL for web content extraction.
+**Constraints:** PipeExtract requires exactly one input (typically `Document` or a concept refining it) and the output must be `"Page[]"`. The input document URL can be a web page URL for web content extraction. `render_js` and `include_raw_html` apply only to web-page extraction; backends extracting from local documents may ignore them.
 
 ## PipeSearch
 

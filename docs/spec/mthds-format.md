@@ -358,7 +358,7 @@ When the `model` field is a table instead of a string, it defines inline model s
 | `max_tokens` | integer, `"auto"`, or null | No | Maximum tokens for the response. `"auto"` lets the model choose. |
 | `image_detail` | string | No | Image detail level for vision inputs. Values: `high`, `low`, `auto`. |
 | `prompting_target` | string | No | Target provider for prompt formatting. Values: `openai`, `anthropic`, `mistral`, `gemini`, `fal`. |
-| `reasoning_effort` | string | No | Level of reasoning effort. Values: `none`, `minimal`, `low`, `medium`, `high`, `max`. |
+| `reasoning_effort` | string | No | Level of reasoning effort. Values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`. `xhigh` sits between `high` and `max` and maps to provider-specific xhigh values where supported. |
 | `reasoning_budget` | integer | No | Token budget for reasoning. Must be > 0. |
 | `description` | string | No | Human-readable description of this model configuration. |
 
@@ -524,12 +524,14 @@ Extracts structured content from documents (e.g., PDF, web pages).
 | `page_image_captions` | boolean | No | Whether to generate captions for page images. |
 | `page_views` | boolean | No | Whether to generate page views. |
 | `page_views_dpi` | integer | No | DPI for page view rendering. |
+| `render_js` | boolean | No | Web-page extraction only: render JavaScript before fetching the page content. Honored by backends that support headless rendering. Default: `false`. |
+| `include_raw_html` | boolean | No | Web-page extraction only: include the fetched HTML in each extracted `Page`'s `raw_html` field. Default: `false`. |
 
 **Validation rules:**
 
 - `inputs` MUST contain exactly one entry. The input concept SHOULD be `Document` or a concept that refines `Document` or `Image`.
 - `output` MUST be `"Page[]"` (a variable-length list of `Page`).
-- When the document URL is a web page, PipeExtract fetches and extracts the page content.
+- When the document URL is a web page, PipeExtract fetches and extracts the page content. `render_js` and `include_raw_html` apply only to this case; backends that target local documents (PDFs, images) MAY ignore them.
 
 **Example:**
 
