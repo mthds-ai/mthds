@@ -13,7 +13,7 @@ The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](
 | Method | Path | Purpose |
 |--------|------|---------|
 | `POST` | `/execute` | Execute a method synchronously; the full output comes back in the response. |
-| `POST` | `/start` | Start a method asynchronously; returns its `run_id` immediately (202). Completion is delivered to `callback_urls`, not polled. |
+| `POST` | `/start` | Start a method asynchronously; returns its `pipeline_run_id` immediately (202). Completion is delivered to `callback_urls`, not polled. |
 | `POST` | `/validate` | Parse, validate, and dry-run an MTHDS bundle. |
 | `GET` | `/models` | The model deck this runner can route to: presets, aliases, waterfalls. Optional `?type=` filter (`llm` · `extract` · `img_gen` · `search`). |
 | `GET` | `/version` | Always public. Protocol and implementation versions — the handshake clients use for feature detection. |
@@ -47,7 +47,7 @@ The protocol itself is versioned by this standard (`protocol_version` in `/versi
 
 At least one of `pipe_code` / `mthds_contents` is required. If `mthds_contents` is provided without `pipe_code`, the first bundle must declare a `main_pipe`. Optional fields: `output_name`, `output_multiplicity`, `dynamic_output_concept_ref`.
 
-The 200 response is a `RunResult`: `run_id`, `state`, `created_at`, `finished_at`, `main_stuff_name`, and `pipe_output` — the method's serialized output working memory, with the main output named by `main_stuff_name`.
+The 200 response is a `RunResult`: `pipeline_run_id`, `state`, `created_at`, `finished_at`, `main_stuff_name`, and `pipe_output` — the method's serialized output working memory, with the main output named by `main_stuff_name`.
 
 The protocol sets no time limit on `/execute`; deployments cap it at their proxy layer. For long-running methods prefer `/start`. Implementations **MAY** answer `202 + StartAck` with a `Location` header pointing at an implementation-defined status resource when they cannot hold the connection open ([RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.3) asynchronous pattern). Simple runners never emit 202; clients that cannot handle it should use `/start` with callbacks.
 
@@ -55,10 +55,10 @@ The protocol sets no time limit on `/execute`; deployments cap it at their proxy
 
 `POST /start` accepts a `StartRequest` — a `RunRequest` plus two optional fields:
 
-- `run_id` — a client-supplied run identifier for correlation or idempotency. The server generates one when absent. Implementations **MAY** decline client-supplied values, but **MUST** then reject the request with a 422 problem — never silently ignore it. The `run_id` in the `StartAck` response is always authoritative.
+- `pipeline_run_id` — a client-supplied run identifier for correlation or idempotency. The server generates one when absent. Implementations **MAY** decline client-supplied values, but **MUST** then reject the request with a 422 problem — never silently ignore it. The `pipeline_run_id` in the `StartAck` response is always authoritative.
 - `callback_urls` — completion webhooks. When the run finishes, the runner POSTs the `RunResult` to each URL, signed with HMAC-SHA256 over the raw body in the `X-Completion-Signature` header. Receivers should verify the signature before trusting the payload. Callback URLs must be `http`/`https` and must not point at private, loopback, link-local, or cloud-metadata addresses (SSRF guard).
 
-The response is `202 + StartAck {run_id, state, created_at}`.
+The response is `202 + StartAck {pipeline_run_id, state, created_at}`.
 
 ### No run store
 
@@ -95,4 +95,4 @@ Implementations may extend the surface — extra routes, extra optional request 
 
 ## Conformance
 
-An implementation claiming conformance states it as: *implements MTHDS Protocol v0.1*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, `/version` is public, callback delivery is HMAC-signed as specified, and a declined client `run_id` is rejected with 422 rather than ignored.
+An implementation claiming conformance states it as: *implements MTHDS Protocol v0.1*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, `/version` is public, callback delivery is HMAC-signed as specified, and a declined client `pipeline_run_id` is rejected with 422 rather than ignored.

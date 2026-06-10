@@ -72,13 +72,13 @@ paths:
     post:
       operationId: startMethod
       tags: [run]
-      summary: Start a method asynchronously; returns its run_id immediately.
+      summary: Start a method asynchronously; returns its pipeline_run_id immediately.
       description: >
         Fire-and-callback. The runner keeps no run store: the protocol's completion
         channel is the callback, not polling. (Implementations may add polling as an
-        extension.) Implementations MAY decline a client-supplied run_id, but MUST
+        extension.) Implementations MAY decline a client-supplied pipeline_run_id, but MUST
         then reject the request with a 422 problem — never silently ignore it.
-        StartAck.run_id is always authoritative.
+        StartAck.pipeline_run_id is always authoritative.
       requestBody:
         required: true
         content:
@@ -233,14 +233,14 @@ components:
         - $ref: '#/components/schemas/RunRequest'
         - type: object
           properties:
-            run_id:
+            pipeline_run_id:
               type: [string, 'null']
               maxLength: 128
               description: >
                 Client-supplied run identifier (correlation / idempotency). Server
                 generates one when absent. Implementations MAY decline client-supplied
                 values, but MUST then reject with 422 — never silently ignore.
-                StartAck.run_id is always authoritative.
+                StartAck.pipeline_run_id is always authoritative.
             callback_urls:
               type: [array, 'null']
               items:
@@ -259,16 +259,16 @@ components:
       enum: [STARTED, RUNNING, COMPLETED, FAILED, CANCELLED, ERROR]
     StartAck:
       type: object
-      required: [run_id, state, created_at]
+      required: [pipeline_run_id, state, created_at]
       properties:
-        run_id: { type: string }
+        pipeline_run_id: { type: string }
         state: { $ref: '#/components/schemas/RunState' }
         created_at: { type: string, format: date-time }
     RunResult:
       type: object
-      required: [run_id, state, created_at, pipe_output]
+      required: [pipeline_run_id, state, created_at, pipe_output]
       properties:
-        run_id: { type: string }
+        pipeline_run_id: { type: string }
         state: { $ref: '#/components/schemas/RunState' }
         created_at: { type: string, format: date-time }
         finished_at: { type: [string, 'null'], format: date-time }
