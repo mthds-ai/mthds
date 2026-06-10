@@ -96,7 +96,10 @@ paths:
           $ref: '#/components/responses/Problem'
       callbacks:
         onCompletion:
-          '{$request.body#/callback_urls}':
+          # One POST is delivered to EVERY entry of callback_urls; OpenAPI callback
+          # expressions cannot fan out over an array, so the first entry stands in
+          # for each of them (all deliveries are identical).
+          '{$request.body#/callback_urls/0}':
             post:
               summary: Completion webhook, one POST per callback URL.
               description: >
@@ -128,6 +131,8 @@ paths:
               schema: { $ref: '#/components/schemas/ValidationReport' }
         '422':
           $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
   /models:
     get:
       operationId: listModels
@@ -147,6 +152,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ModelDeck' }
+        default:
+          $ref: '#/components/responses/Problem'
   /version:
     get:
       operationId: getVersion
@@ -159,6 +166,8 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/VersionInfo' }
+        default:
+          $ref: '#/components/responses/Problem'
 components:
   securitySchemes:
     bearer:
@@ -180,21 +189,33 @@ components:
     RunRequest:
       type: object
       description: >
-        At least one of pipe_code / mthds_contents is required. If mthds_contents is
-        provided without pipe_code, the first bundle must declare a main_pipe.
+        At least one of pipe_code / mthds_contents is required (enforced by the anyOf
+        rule below). If mthds_contents is provided without pipe_code, the first bundle
+        must declare a main_pipe.
+      anyOf:
+        - required: [pipe_code]
+          properties:
+            pipe_code: { type: string, minLength: 1 }
+        - required: [mthds_contents]
+          properties:
+            mthds_contents:
+              type: array
+              minItems: 1
       properties:
         pipe_code:
           type: [string, 'null']
           description: Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents).
         mthds_contents:
           type: [array, 'null']
+          minItems: 1
           items: { type: string }
-          description: MTHDS bundle contents to load (always an array, even for a single file). Implementations bound count and per-file size.
+          description: MTHDS bundle contents to load (always an array, even for a single file; never empty). Implementations bound count and per-file size.
         inputs:
           type: [object, 'null']
-          description: 'Method inputs: map of input name to { concept, content }. Content shapes follow the concept''s structure; validation is deliberately loose here and strict inside the runtime.'
+          description: 'Method inputs: map of input name to { concept, content }. Content shapes follow the concept''s structure; content validation is deliberately loose here and strict inside the runtime.'
           additionalProperties:
             type: object
+            required: [concept, content]
             properties:
               concept: { type: string }
               content: {}
@@ -222,8 +243,17 @@ components:
                 StartAck.run_id is always authoritative.
             callback_urls:
               type: [array, 'null']
-              items: { type: string, format: uri }
-              description: Completion webhooks. http/https only; private, loopback, link-local and metadata hosts are rejected (SSRF guard). HMAC-signed via X-Completion-Signature.
+              items:
+                type: string
+                format: uri
+                pattern: '^https?://'
+              description: >
+                Completion webhooks. http/https only (enforced by the pattern); private,
+                loopback, link-local and metadata hosts MUST additionally be rejected at
+                runtime (SSRF guard — not expressible in JSON Schema). HMAC-signed via
+                X-Completion-Signature. When absent, the protocol defines no completion
+                channel — the caller fires and forgets; implementations may offer
+                completion observation as an extension (e.g. polling routes).
     RunState:
       type: string
       enum: [STARTED, RUNNING, COMPLETED, FAILED, CANCELLED, ERROR]

@@ -182,11 +182,11 @@ docs: env
 	$(call PRINT_TITLE,Serving documentation with mkdocs)
 	$(VENV_MKDOCS) serve -a 127.0.0.1:8000 -f "$(CURDIR)/mkdocs.yml" --watch "$(CURDIR)/docs" -s
 
-docs-check: env spec-check
+docs-check: spec-check
 	$(call PRINT_TITLE,Checking documentation build with mkdocs)
 	$(VENV_MKDOCS) build --strict
 
-spec-check: env
+spec-check: install
 	$(call PRINT_TITLE,Validating the MTHDS Protocol OpenAPI document)
 	$(VIRTUAL_ENV)/bin/openapi-spec-validator "$(CURDIR)/docs/spec/openapi/mthds-protocol.openapi.yaml"
 
