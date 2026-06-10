@@ -1,0 +1,309 @@
+openapi: 3.1.0
+info:
+  title: MTHDS Protocol
+  version: 0.1.0
+  summary: The minimal HTTP contract every MTHDS runner implements.
+  description: >
+    Five routes. Any server implementing them is an MTHDS-compliant runner. A runner
+    executes and validates methods; it keeps no run store and owns no user, billing,
+    or catalog concepts. Paths are relative to an implementation-chosen base URL.
+    Implementations may extend the surface (extra routes, extra request properties)
+    but must not change the meaning or shape of the protocol routes. All errors are
+    RFC 7807 application/problem+json.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: http://localhost:8081/v1
+    description: Example — a self-hosted runner. The version segment belongs to the server base URL; protocol paths are version-agnostic.
+  - url: https://api.example.com/v1
+    description: Example — a hosted, protocol-compliant superset.
+security:
+  - bearer: []
+  - {} # auth is implementation-defined; anonymous allowed self-hosted
+tags:
+  - name: run
+    description: Execute methods, synchronously or fire-and-callback.
+  - name: validate
+    description: Static + dry-run validation of MTHDS bundles.
+  - name: discovery
+    description: What this runner is and what it can route to.
+paths:
+  /execute:
+    post:
+      operationId: executeMethod
+      tags: [run]
+      summary: Execute a method synchronously and return its full output.
+      description: >
+        Blocking. The protocol sets no time limit; deployments cap it at their proxy
+        layer. For long-running methods prefer /start. Implementations MAY return
+        202 + StartAck with a Location header pointing at an implementation-defined
+        status resource when they cannot hold the connection open for the full
+        execution (RFC 9110 asynchronous pattern); clients that cannot handle 202
+        should use /start with callbacks instead.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RunRequest' }
+      responses:
+        '200':
+          description: Method completed; full output included.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RunResult' }
+        '202':
+          description: >
+            OPTIONAL (implementations MAY emit this; simple runners never do):
+            execution continues in the background. The Location header points at an
+            implementation-defined status resource.
+          headers:
+            Location:
+              schema: { type: string }
+              description: Implementation-defined status resource for this run.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StartAck' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
+  /start:
+    post:
+      operationId: startMethod
+      tags: [run]
+      summary: Start a method asynchronously; returns its run_id immediately.
+      description: >
+        Fire-and-callback. The runner keeps no run store: the protocol's completion
+        channel is the callback, not polling. (Implementations may add polling as an
+        extension.) Implementations MAY decline a client-supplied run_id, but MUST
+        then reject the request with a 422 problem — never silently ignore it.
+        StartAck.run_id is always authoritative.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/StartRequest' }
+      responses:
+        '202':
+          description: Accepted; execution proceeds in the background.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StartAck' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
+      callbacks:
+        onCompletion:
+          '{$request.body#/callback_urls}':
+            post:
+              summary: Completion webhook, one POST per callback URL.
+              description: >
+                Signed with HMAC-SHA256 over the raw body; signature in the
+                X-Completion-Signature header. Receivers should verify before
+                trusting. Callback URLs must be http/https and must not point at
+                private, loopback, link-local, or cloud-metadata addresses.
+              requestBody:
+                content:
+                  application/json:
+                    schema: { $ref: '#/components/schemas/RunResult' }
+              responses:
+                '2XX': { description: Receiver acknowledged. }
+  /validate:
+    post:
+      operationId: validateMethod
+      tags: [validate]
+      summary: Parse, validate, and dry-run an MTHDS bundle.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ValidateRequest' }
+      responses:
+        '200':
+          description: Bundle is valid; structural artifacts included.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationReport' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+  /models:
+    get:
+      operationId: listModels
+      tags: [discovery]
+      summary: The model deck available on this runner.
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [llm, extract, img_gen, search]
+          description: Filter the deck by model category.
+      responses:
+        '200':
+          description: Presets, aliases, and routing waterfalls.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ModelDeck' }
+  /version:
+    get:
+      operationId: getVersion
+      tags: [discovery]
+      summary: Protocol and implementation versions.
+      security: [] # always public — used for handshake/feature detection
+      responses:
+        '200':
+          description: Version info.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VersionInfo' }
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: Token semantics are implementation-defined.
+  responses:
+    Problem:
+      description: RFC 7807 problem document.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ValidationProblem:
+      description: The request or bundle failed validation (RFC 7807).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    RunRequest:
+      type: object
+      description: >
+        At least one of pipe_code / mthds_contents is required. If mthds_contents is
+        provided without pipe_code, the first bundle must declare a main_pipe.
+      properties:
+        pipe_code:
+          type: [string, 'null']
+          description: Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents).
+        mthds_contents:
+          type: [array, 'null']
+          items: { type: string }
+          description: MTHDS bundle contents to load (always an array, even for a single file). Implementations bound count and per-file size.
+        inputs:
+          type: [object, 'null']
+          description: 'Method inputs: map of input name to { concept, content }. Content shapes follow the concept''s structure; validation is deliberately loose here and strict inside the runtime.'
+          additionalProperties:
+            type: object
+            properties:
+              concept: { type: string }
+              content: {}
+        output_name:
+          type: [string, 'null']
+          description: Name of the output slot to return as the main output.
+        output_multiplicity:
+          oneOf: [{ type: boolean }, { type: integer }, { type: 'null' }]
+          description: Output multiplicity override (false/true or an explicit count).
+        dynamic_output_concept_ref:
+          type: [string, 'null']
+          description: Override for the dynamic output concept reference.
+    StartRequest:
+      allOf:
+        - $ref: '#/components/schemas/RunRequest'
+        - type: object
+          properties:
+            run_id:
+              type: [string, 'null']
+              maxLength: 128
+              description: >
+                Client-supplied run identifier (correlation / idempotency). Server
+                generates one when absent. Implementations MAY decline client-supplied
+                values, but MUST then reject with 422 — never silently ignore.
+                StartAck.run_id is always authoritative.
+            callback_urls:
+              type: [array, 'null']
+              items: { type: string, format: uri }
+              description: Completion webhooks. http/https only; private, loopback, link-local and metadata hosts are rejected (SSRF guard). HMAC-signed via X-Completion-Signature.
+    RunState:
+      type: string
+      enum: [STARTED, RUNNING, COMPLETED, FAILED, CANCELLED, ERROR]
+    StartAck:
+      type: object
+      required: [run_id, state, created_at]
+      properties:
+        run_id: { type: string }
+        state: { $ref: '#/components/schemas/RunState' }
+        created_at: { type: string, format: date-time }
+    RunResult:
+      type: object
+      required: [run_id, state, created_at, pipe_output]
+      properties:
+        run_id: { type: string }
+        state: { $ref: '#/components/schemas/RunState' }
+        created_at: { type: string, format: date-time }
+        finished_at: { type: [string, 'null'], format: date-time }
+        main_stuff_name: { type: [string, 'null'] }
+        pipe_output:
+          description: The method's output working memory (serialized stuffs; main output named by main_stuff_name).
+          type: object
+    ValidateRequest:
+      type: object
+      required: [mthds_contents]
+      properties:
+        mthds_contents:
+          type: array
+          minItems: 1
+          items: { type: string }
+          description: MTHDS contents to load (always an array, even for a single file).
+        allow_signatures:
+          type: boolean
+          default: false
+          description: When true, the validation sweep tolerates unimplemented pipe signatures (signatures dry-run by minting a mock). Strict by default.
+    ValidationReport:
+      type: object
+      description: Returned only when the bundle is valid; failures are RFC 7807 problems.
+      properties:
+        blueprint:
+          type: object
+          description: The parsed bundle blueprint.
+        graph_spec:
+          type: object
+          description: The method's execution graph specification.
+        pipe_structures:
+          type: object
+          description: Per-pipe input/output structures.
+    ModelDeck:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              type: { type: string, enum: [llm, extract, img_gen, search] }
+        aliases:
+          type: object
+          additionalProperties: { type: string }
+        waterfalls:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+    VersionInfo:
+      type: object
+      required: [protocol_version, implementation, implementation_version]
+      properties:
+        protocol_version: { type: string, description: MTHDS Protocol version implemented. }
+        implementation: { type: string, description: Name of the runner implementation. }
+        implementation_version: { type: string }
+        runtime_version: { type: [string, 'null'], description: Underlying runtime version, when distinct from the implementation. }
+    Problem:
+      type: object
+      description: RFC 7807.
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }

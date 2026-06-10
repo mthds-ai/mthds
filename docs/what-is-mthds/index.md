@@ -117,7 +117,7 @@ output      = "Joke"
 prompt      = "Write a clever one-liner joke about $topic. Be concise and witty."
 ```
 
-This file defines concepts (`Topic` and `Joke`, both refining the built-in `Text` type) and pipes: a sequence that generates topics and then batch-processes them into jokes. It works as a standalone file — save it, point a runner at it, and it runs.
+This file defines concepts (`Topic` and `Joke`, both refining the built-in `Text` type) and pipes: a sequence that generates topics and then batch-processes them into jokes. It works as a standalone file — save it, point a runner at it, and it runs. (A runner is any server implementing the [MTHDS HTTP Runner Protocol](../spec/protocol.md) — five routes; anyone can build one.)
 
 ## Progressive Enhancement
 
