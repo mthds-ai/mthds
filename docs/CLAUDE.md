@@ -69,6 +69,7 @@ The search plugin uses `separator: '[\s\-\.]+'` to properly tokenize hyphenated 
 - `meta-manager` — applies `docs/.meta.yml` defaults to all pages
 - `glightbox` — image lightbox
 - `llmstxt-md` — generates `llms.txt` for LLM-friendly content
+- `neoteroi.mkdocsoad` — renders OpenAPI documents into pages via `OAD` include tags (the protocol page's route reference; the `info` partial is suppressed via `docs/templates/oad/` so the rendered output has no duplicate H1)
 
 ## Common Mistakes to Avoid
 

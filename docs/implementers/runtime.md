@@ -167,3 +167,11 @@ The `category` field influences which Jinja2 filters are available. For example,
 See [Pipes — Operators: Template Mode](../language/pipes-operators.md#template-mode) for the user-facing reference on template categories, filters, and shorthand syntax.
 
 A compliant runtime must support the plain string form of `template`. The table form with `category`, `templating_style`, and `extra_context` is an advanced feature that implementations may support progressively.
+
+## Exposing a Runner over HTTP
+
+A runtime becomes a network-accessible **runner** by implementing the [MTHDS Protocol](../spec/protocol.md) — the minimal HTTP contract of five routes: `POST /execute`, `POST /start`, `POST /validate`, `GET /models`, `GET /version`. The normative artifact is the protocol's [OpenAPI document](../spec/openapi/mthds-protocol.openapi.yaml).
+
+The protocol deliberately excludes everything that is not "run a method": no run store, no completion channel for async runs (webhooks or polling are implementation extensions), no users, no billing, no catalog. Implementations may extend the surface with extra routes or optional request properties, but must not change the protocol routes' shapes — see the [extension policy](../spec/protocol.md#extension-policy).
+
+The reference implementation is `pipelex-api` (MIT, self-hostable Docker image), which implements the protocol and extends it with stateless `/build/*` authoring helpers.

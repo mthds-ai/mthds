@@ -64,6 +64,9 @@ plugins:
       draggable: true
       auto_caption: false
       caption_position: bottom
+  - neoteroi.mkdocsoad:
+      use_pymdownx: true
+      templates_path: docs/templates/oad
   - llmstxt-md:
       sections:
         Home:
@@ -102,6 +105,7 @@ plugins:
         - spec/lock-format.md: "methods.lock Format"
         - spec/namespace-resolution.md: "Namespace Resolution Rules"
         - spec/cli-io-contract.md: "CLI I/O Contract"
+        - spec/protocol.md: "HTTP Runner Protocol"
         - cli/index.md: "CLI Reference"
         - tooling/editor-support.md: "Editor Support"
         - tooling/formatting-linting.md: "Formatting & Linting"
@@ -151,6 +155,7 @@ markdown_extensions:
 extra_css:
   - stylesheets/mermaid.css
   - stylesheets/general.css
+  - stylesheets/neoteroi-oad.css
 
 nav:
   - Home:
@@ -191,6 +196,7 @@ nav:
       - methods.lock Format: spec/lock-format.md
       - Namespace Resolution Rules: spec/namespace-resolution.md
       - CLI I/O Contract: spec/cli-io-contract.md
+      - HTTP Runner Protocol: spec/protocol.md
     - CLI Reference: cli/index.md
     - Tooling:
       - Editor Support: tooling/editor-support.md
