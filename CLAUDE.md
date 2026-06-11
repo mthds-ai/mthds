@@ -85,7 +85,7 @@ The `mkdocs.yml` configures specific plugins and markdown extensions. Use these 
 | `glightbox` | Lightbox for images (click to zoom) |
 | `privacy` | Downloads external assets locally (GDPR) and applies `links_attr_map` (e.g., `target: _blank` on external links) |
 | `llmstxt-md` | Generates `llms.txt` for LLM-friendly content — nav sections must be updated when adding pages |
-| `neoteroi.mkdocsoad` | Renders OpenAPI documents into pages via `[OAD(path)]` tags (used by the protocol OpenAPI reference page; styles in `docs/stylesheets/neoteroi-oad.css`) |
+| `neoteroi.mkdocsoad` | Renders OpenAPI documents into pages via `OAD` include tags (used by the protocol OpenAPI reference page; styles in `docs/stylesheets/neoteroi-oad.css`) |
 
 ### Theme Features (from `mkdocs.yml` theme config)
 
