@@ -1,0 +1,299 @@
+openapi: 3.1.0
+info:
+  title: MTHDS Protocol
+  version: 0.1.0
+  summary: The minimal HTTP contract every MTHDS runner implements.
+  description: >
+    Five routes. Any server implementing them is an MTHDS-compliant runner. A runner
+    executes and validates methods; it keeps no run store and owns no user, billing,
+    or catalog concepts. Paths are relative to an implementation-chosen base URL.
+    Implementations may extend the surface (extra routes, extra request properties)
+    but must not change the meaning or shape of the protocol routes. All errors are
+    RFC 7807 application/problem+json.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: http://localhost:8081/v1
+    description: Example — a self-hosted runner. The version segment belongs to the server base URL; protocol paths are version-agnostic.
+  - url: https://api.example.com/v1
+    description: Example — a hosted, protocol-compliant superset.
+security:
+  - bearer: []
+  - {} # auth is implementation-defined; anonymous allowed self-hosted
+tags:
+  - name: run
+    description: Execute methods, synchronously or asynchronously.
+  - name: validate
+    description: Static + dry-run validation of MTHDS bundles.
+  - name: discovery
+    description: What this runner is and what it can route to.
+paths:
+  /execute:
+    post:
+      operationId: executeMethod
+      tags: [run]
+      summary: Execute a method synchronously and return its full output.
+      description: >
+        Blocking. The protocol sets no time limit; deployments cap it at their proxy
+        layer. For long-running methods prefer /start. Implementations MAY return
+        202 + RunResultStart (id only) with a Location header pointing at an
+        implementation-defined status resource when they cannot hold the connection
+        open for the full execution (RFC 9110 asynchronous pattern); clients that
+        cannot handle 202 should use /start instead.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RunRequest' }
+      responses:
+        '200':
+          description: Method completed; full output included.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RunResultExecute' }
+        '202':
+          description: >
+            OPTIONAL (implementations MAY emit this; simple runners never do):
+            execution continues in the background. The Location header points at an
+            implementation-defined status resource.
+          headers:
+            Location:
+              schema: { type: string }
+              description: Implementation-defined status resource for this run.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RunResultStart' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
+  /start:
+    post:
+      operationId: startMethod
+      tags: [run]
+      summary: Start a method asynchronously; returns its pipeline_run_id immediately.
+      description: >
+        Asynchronous. Returns 202 + RunResultStart immediately (pipeline_run_id only); the
+        runner keeps no run store, and how completion is later delivered (callbacks,
+        polling, anything else) is implementation-defined and outside the protocol.
+        The returned pipeline_run_id is always authoritative (server-generated).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RunRequest' }
+      responses:
+        '202':
+          description: Accepted; execution proceeds in the background.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RunResultStart' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
+  /validate:
+    post:
+      operationId: validateMethod
+      tags: [validate]
+      summary: Parse, validate, and dry-run an MTHDS bundle.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ValidateRequest' }
+      responses:
+        '200':
+          description: Bundle is valid; implementations MAY include their own artifacts.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationReport' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
+  /models:
+    get:
+      operationId: listModels
+      tags: [discovery]
+      summary: The model deck available on this runner.
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [llm, extract, img_gen, search]
+          description: Filter the deck by model category.
+      responses:
+        '200':
+          description: The model deck.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ModelDeck' }
+        default:
+          $ref: '#/components/responses/Problem'
+  /version:
+    get:
+      operationId: getVersion
+      tags: [discovery]
+      summary: Protocol and runner versions.
+      security: [] # always public — used for handshake/feature detection
+      responses:
+        '200':
+          description: Version info.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VersionInfo' }
+        default:
+          $ref: '#/components/responses/Problem'
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: Token semantics are implementation-defined.
+  responses:
+    Problem:
+      description: RFC 7807 problem document.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ValidationProblem:
+      description: The request or bundle failed validation (RFC 7807).
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    RunRequest:
+      type: object
+      description: >
+        At least one of pipe_code / mthds_contents is required (enforced by the anyOf
+        rule below). If mthds_contents is provided without pipe_code, the first bundle
+        must declare a main_pipe. Extension-open: implementations MAY accept extra
+        top-level properties (extension args).
+      additionalProperties: true
+      anyOf:
+        - required: [pipe_code]
+          properties:
+            pipe_code: { type: string, minLength: 1 }
+        - required: [mthds_contents]
+          properties:
+            mthds_contents:
+              type: array
+              minItems: 1
+      properties:
+        pipe_code:
+          type: [string, 'null']
+          description: Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents).
+        mthds_contents:
+          type: [array, 'null']
+          minItems: 1
+          items: { type: string }
+          description: MTHDS bundle contents to load (always an array, even for a single file; never empty). Implementations bound count and per-file size.
+        inputs:
+          type: [object, 'null']
+          description: 'Method inputs: map of input name to { concept, content }. Content shapes follow the concept''s structure; content validation is deliberately loose here and strict inside the runtime.'
+          additionalProperties:
+            type: object
+            required: [concept, content]
+            properties:
+              concept: { type: string }
+              content: {}
+        output_name:
+          type: [string, 'null']
+          description: Name of the output slot to return as the main output.
+        output_multiplicity:
+          oneOf: [{ type: boolean }, { type: integer }, { type: 'null' }]
+          description: Output multiplicity override (false/true or an explicit count).
+        dynamic_output_concept_ref:
+          type: [string, 'null']
+          description: Override for the dynamic output concept reference.
+    RunResultExecute:
+      type: object
+      description: >
+        POST /execute 200 — the completed run. Two base fields: the
+        server-generated authoritative pipeline_run_id and the method's
+        pipe_output (always present — a completed run has output). Extension-open:
+        anything more an implementation returns (a run state, timestamps, output
+        naming) is an extension on top.
+      additionalProperties: true
+      required: [pipeline_run_id, pipe_output]
+      properties:
+        pipeline_run_id:
+          type: string
+          description: The run identifier — server-generated and authoritative.
+        pipe_output:
+          description: The method's serialized output (working memory of serialized stuffs).
+          type: object
+    RunResultStart:
+      type: object
+      description: >
+        POST /start 202 (and the optional /execute 202 degrade) — the started
+        run's authoritative pipeline_run_id, nothing else. A started run has no
+        output yet; how it is delivered later (polling, callbacks, anything else)
+        is implementation-defined and outside the protocol. Extension-open.
+      additionalProperties: true
+      required: [pipeline_run_id]
+      properties:
+        pipeline_run_id:
+          type: string
+          description: The run identifier — server-generated and authoritative.
+    ValidateRequest:
+      type: object
+      required: [mthds_contents]
+      properties:
+        mthds_contents:
+          type: array
+          minItems: 1
+          items: { type: string }
+          description: MTHDS contents to load (always an array, even for a single file).
+        allow_signatures:
+          type: boolean
+          default: false
+          description: When true, the validation sweep tolerates unimplemented pipe signatures (signatures dry-run by minting a mock). Strict by default.
+    ValidationReport:
+      type: object
+      description: >
+        Returned only when the bundle is valid; failures are RFC 7807 problems.
+        The 200 status IS the verdict — the protocol declares no body fields.
+        Implementations MAY include their own artifacts (parsed structures,
+        graphs, anything else) as additional properties.
+      additionalProperties: true
+    ModelDeck:
+      type: object
+      description: >
+        The models this runner can route to. Implementations MAY add their own
+        routing metadata (aliases, fallback chains, anything else) as
+        additional properties — on the deck and on each model entry.
+      additionalProperties: true
+      properties:
+        models:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              name: { type: string }
+              type: { type: string, enum: [llm, extract, img_gen, search] }
+    VersionInfo:
+      type: object
+      description: >
+        The handshake. The protocol defines protocol_version (required) plus an
+        optional runner_version; implementations MAY add their own identification
+        (a name, an underlying runtime version, anything else) as additional properties.
+      required: [protocol_version]
+      additionalProperties: true
+      properties:
+        protocol_version: { type: string, description: MTHDS Protocol version implemented. }
+        runner_version: { type: [string, 'null'], description: Version of the runner serving this protocol (optional). }
+    Problem:
+      type: object
+      description: RFC 7807.
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
