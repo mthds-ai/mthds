@@ -53,11 +53,9 @@ The protocol sets no time limit on `/execute`; deployments cap it at their proxy
 
 ## Starting a method asynchronously
 
-`POST /start` accepts a `StartRequest` — a `RunRequest` plus one optional field:
+`POST /start` accepts the same `RunRequest` body as `/execute` — the protocol declares no start-only request fields. Anything an implementation accepts on top (a client-supplied run identifier, anything else) is an extension arg (see [Extension policy](#extension-policy)), defined and documented by that implementation.
 
-- `pipeline_run_id` — a client-supplied run identifier for correlation or idempotency. The server generates one when absent. Implementations **MAY** decline client-supplied values, but **MUST** then reject the request with a 422 problem — never silently ignore it. The `pipeline_run_id` in the `StartAck` response is always authoritative.
-
-The response is `202 + StartAck {pipeline_run_id, state, created_at}`.
+The response is `202 + StartAck {pipeline_run_id, state, created_at}` — the server-generated `pipeline_run_id` is always authoritative.
 
 ### No run store, no completion channel
 
@@ -92,7 +90,7 @@ Implementations may extend the surface — extra routes, extra optional request 
 
 ## Conformance
 
-An implementation claiming conformance states it as: *implements MTHDS Protocol v0.1*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, `/version` is public, and a declined client `pipeline_run_id` is rejected with 422 rather than ignored.
+An implementation claiming conformance states it as: *implements MTHDS Protocol v0.1*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, and `/version` is public.
 
 ## Route reference
 

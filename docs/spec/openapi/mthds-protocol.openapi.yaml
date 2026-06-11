@@ -76,15 +76,13 @@ paths:
       description: >
         Asynchronous. Returns 202 + StartAck immediately; the runner keeps no run
         store, and how completion is later delivered (callbacks, polling, anything
-        else) is implementation-defined and outside the protocol. Implementations
-        MAY decline a client-supplied pipeline_run_id, but MUST then reject the
-        request with a 422 problem — never silently ignore it.
+        else) is implementation-defined and outside the protocol.
         StartAck.pipeline_run_id is always authoritative.
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/StartRequest' }
+            schema: { $ref: '#/components/schemas/RunRequest' }
       responses:
         '202':
           description: Accepted; execution proceeds in the background.
@@ -210,19 +208,6 @@ components:
         dynamic_output_concept_ref:
           type: [string, 'null']
           description: Override for the dynamic output concept reference.
-    StartRequest:
-      allOf:
-        - $ref: '#/components/schemas/RunRequest'
-        - type: object
-          properties:
-            pipeline_run_id:
-              type: [string, 'null']
-              maxLength: 128
-              description: >
-                Client-supplied run identifier (correlation / idempotency). Server
-                generates one when absent. Implementations MAY decline client-supplied
-                values, but MUST then reject with 422 — never silently ignore.
-                StartAck.pipeline_run_id is always authoritative.
     RunState:
       type: string
       enum: [STARTED, RUNNING, COMPLETED, FAILED, CANCELLED, ERROR]
