@@ -66,6 +66,7 @@ plugins:
       caption_position: bottom
   - neoteroi.mkdocsoad:
       use_pymdownx: true
+      templates_path: docs/templates/oad
   - llmstxt-md:
       sections:
         Home:
@@ -105,7 +106,6 @@ plugins:
         - spec/namespace-resolution.md: "Namespace Resolution Rules"
         - spec/cli-io-contract.md: "CLI I/O Contract"
         - spec/protocol.md: "HTTP Runner Protocol"
-        - spec/protocol-reference.md: "HTTP Runner Protocol — OpenAPI Reference"
         - cli/index.md: "CLI Reference"
         - tooling/editor-support.md: "Editor Support"
         - tooling/formatting-linting.md: "Formatting & Linting"
@@ -197,7 +197,6 @@ nav:
       - Namespace Resolution Rules: spec/namespace-resolution.md
       - CLI I/O Contract: spec/cli-io-contract.md
       - HTTP Runner Protocol: spec/protocol.md
-      - Protocol OpenAPI Reference: spec/protocol-reference.md
     - CLI Reference: cli/index.md
     - Tooling:
       - Editor Support: tooling/editor-support.md

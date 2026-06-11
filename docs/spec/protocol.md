@@ -6,7 +6,7 @@ description: "The MTHDS Protocol — the minimal HTTP contract every MTHDS runne
 
 The MTHDS Protocol is the minimal HTTP contract every MTHDS runner implements. Any server that serves these five routes with the shapes defined here is an MTHDS-compliant runner. A runner is just a runner: it executes methods, validates bundles, and reports what models it can route to and what version it is. It keeps no run store and owns no user, billing, or catalog concepts.
 
-The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), rendered route by route — with every parameter, request body, and response schema — in the [OpenAPI Reference](protocol-reference.md). This page is the prose walkthrough. Where they disagree, the YAML wins.
+The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml). This page walks through it in prose, then renders it route by route — every parameter, request body, and response schema — in the [route reference](#route-reference) below. Where prose and YAML disagree, the YAML wins.
 
 ## The five routes
 
@@ -95,3 +95,9 @@ Implementations may extend the surface — extra routes, extra optional request 
 ## Conformance
 
 An implementation claiming conformance states it as: *implements MTHDS Protocol v0.1*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, `/version` is public, and a declined client `pipeline_run_id` is rejected with 422 rather than ignored.
+
+## Route reference
+
+Everything below is rendered at build time from the normative OpenAPI document — do not edit it by hand; edit [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml).
+
+[OAD(./openapi/mthds-protocol.openapi.yaml)]
