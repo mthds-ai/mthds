@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: MTHDS Protocol
-  version: 0.1.0
+  version: 0.6.0
   summary: The minimal HTTP contract every MTHDS runner implements.
   description: >
     Five routes. Any server implementing them is an MTHDS-compliant runner. A runner
