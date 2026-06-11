@@ -15,8 +15,8 @@ The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](
 | `POST` | `/execute` | Execute a method synchronously; the full output comes back in the response. |
 | `POST` | `/start` | Start a method asynchronously; returns its `pipeline_run_id` immediately (202). Completion delivery is implementation-defined. |
 | `POST` | `/validate` | Parse, validate, and dry-run an MTHDS bundle. |
-| `GET` | `/models` | The model deck this runner can route to: presets, aliases, waterfalls. Optional `?type=` filter (`llm` · `extract` · `img_gen` · `search`). |
-| `GET` | `/version` | Always public. Protocol and implementation versions — the handshake clients use for feature detection. |
+| `GET` | `/models` | The models this runner can route to. Optional `?type=` filter (`llm` · `extract` · `img_gen` · `search`). |
+| `GET` | `/version` | Always public. Protocol and runner versions — the handshake clients use for feature detection. |
 
 All errors are [RFC 7807](https://www.rfc-editor.org/rfc/rfc7807) `application/problem+json` documents. Auth is implementation-defined: a bearer-token slot is reserved, and anonymous access is allowed for self-hosted runners.
 
@@ -69,28 +69,26 @@ The protocol mandates no run store, and it defines **no completion channel for `
 
 ## Validating a bundle
 
-`POST /validate` takes `mthds_contents` (always an array, even for a single file) and an optional `allow_signatures` flag (default `false` — strict; when `true`, the validation sweep tolerates unimplemented pipe signatures by minting a mock). A valid bundle returns 200 with structural artifacts: the parsed `blueprint`, the method's `graph_spec`, and per-pipe `pipe_structures`. An invalid bundle is a 422 problem.
+`POST /validate` takes `mthds_contents` (always an array, even for a single file) and an optional `allow_signatures` flag (default `false` — strict; when `true`, the validation sweep tolerates unimplemented pipe signatures by minting a mock). A valid bundle returns 200 — the status IS the verdict; the protocol declares no body fields, and implementations MAY include their own artifacts (parsed structures, graphs, anything else) as additional properties. An invalid bundle is a 422 problem.
 
 ## Discovery
 
-`GET /models` returns the runner's model deck — the models it can route to, their aliases, and routing waterfalls, optionally filtered by category.
+`GET /models` returns the runner's model deck — the models it can route to (`{name, type}` entries), optionally filtered by category. Implementations may add their own routing metadata (aliases, fallback chains, anything else) as additional properties.
 
-`GET /version` is always public (no auth), and returns:
+`GET /version` is always public (no auth), and returns the two protocol fields — implementations may add their own identification on top:
 
 ```json
 {
   "protocol_version": "0.1.0",
-  "implementation": "example-runner",
-  "implementation_version": "2.3.0",
-  "runtime_version": "1.8.1"
+  "runner_version": "2.3.0"
 }
 ```
 
-Clients use `/version` as the handshake: it identifies the implementation and lets clients detect vendor extensions before relying on them.
+Clients use `/version` as the handshake: it reports the protocol and runner versions, and any additional properties let clients detect vendor extensions before relying on them.
 
 ## Extension policy
 
-Implementations may extend the surface — extra routes, extra optional request properties — but **must not change the meaning or shape of the protocol routes**. A client written against the MTHDS Protocol runs unmodified against any compliant runner; a vendor's superset may accept more, but never diverges on the surface defined here.
+Implementations may extend the surface — extra routes, extra optional request properties, extra response properties — but **must not change the meaning or shape of the protocol routes**. Both sides of the wire are extension-open: request bodies accept implementation-defined args, and the protocol's response schemas declare only the base fields (`additionalProperties` allowed). A client written against the MTHDS Protocol runs unmodified against any compliant runner; a vendor's superset may accept and return more, but never diverges on the surface defined here.
 
 ## Conformance
 

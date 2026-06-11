@@ -107,7 +107,7 @@ paths:
             schema: { $ref: '#/components/schemas/ValidateRequest' }
       responses:
         '200':
-          description: Bundle is valid; structural artifacts included.
+          description: Bundle is valid; implementations MAY include their own artifacts.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ValidationReport' }
@@ -130,7 +130,7 @@ paths:
           description: Filter the deck by model category.
       responses:
         '200':
-          description: Presets, aliases, and routing waterfalls.
+          description: The model deck.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ModelDeck' }
@@ -140,7 +140,7 @@ paths:
     get:
       operationId: getVersion
       tags: [discovery]
-      summary: Protocol and implementation versions.
+      summary: Protocol and runner versions.
       security: [] # always public — used for handshake/feature detection
       responses:
         '200':
@@ -260,43 +260,39 @@ components:
           description: When true, the validation sweep tolerates unimplemented pipe signatures (signatures dry-run by minting a mock). Strict by default.
     ValidationReport:
       type: object
-      description: Returned only when the bundle is valid; failures are RFC 7807 problems.
-      properties:
-        blueprint:
-          type: object
-          description: The parsed bundle blueprint.
-        graph_spec:
-          type: object
-          description: The method's execution graph specification.
-        pipe_structures:
-          type: object
-          description: Per-pipe input/output structures.
+      description: >
+        Returned only when the bundle is valid; failures are RFC 7807 problems.
+        The 200 status IS the verdict — the protocol declares no body fields.
+        Implementations MAY include their own artifacts (parsed structures,
+        graphs, anything else) as additional properties.
+      additionalProperties: true
     ModelDeck:
       type: object
+      description: >
+        The models this runner can route to. Implementations MAY add their own
+        routing metadata (aliases, fallback chains, anything else) as
+        additional properties — on the deck and on each model entry.
+      additionalProperties: true
       properties:
         models:
           type: array
           items:
             type: object
+            additionalProperties: true
             properties:
               name: { type: string }
               type: { type: string, enum: [llm, extract, img_gen, search] }
-        aliases:
-          type: object
-          additionalProperties: { type: string }
-        waterfalls:
-          type: object
-          additionalProperties:
-            type: array
-            items: { type: string }
     VersionInfo:
       type: object
-      required: [protocol_version, implementation, implementation_version]
+      description: >
+        The handshake. The protocol defines two fields; implementations MAY add
+        their own identification (a name, an underlying runtime version,
+        anything else) as additional properties.
+      required: [protocol_version, runner_version]
+      additionalProperties: true
       properties:
         protocol_version: { type: string, description: MTHDS Protocol version implemented. }
-        implementation: { type: string, description: Name of the runner implementation. }
-        implementation_version: { type: string }
-        runtime_version: { type: [string, 'null'], description: Underlying runtime version, when distinct from the implementation. }
+        runner_version: { type: string, description: Version of the runner serving this protocol. }
     Problem:
       type: object
       description: RFC 7807.
