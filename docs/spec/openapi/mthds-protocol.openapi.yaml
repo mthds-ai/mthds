@@ -37,10 +37,10 @@ paths:
       description: >
         Blocking. The protocol sets no time limit; deployments cap it at their proxy
         layer. For long-running methods prefer /start. Implementations MAY return
-        202 + StartAck with a Location header pointing at an implementation-defined
-        status resource when they cannot hold the connection open for the full
-        execution (RFC 9110 asynchronous pattern); clients that cannot handle 202
-        should use /start instead.
+        202 + RunResult (no pipe_output yet) with a Location header pointing at an
+        implementation-defined status resource when they cannot hold the connection
+        open for the full execution (RFC 9110 asynchronous pattern); clients that
+        cannot handle 202 should use /start instead.
       requestBody:
         required: true
         content:
@@ -63,7 +63,7 @@ paths:
               description: Implementation-defined status resource for this run.
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/StartAck' }
+              schema: { $ref: '#/components/schemas/RunResult' }
         '422':
           $ref: '#/components/responses/ValidationProblem'
         default:
@@ -74,10 +74,10 @@ paths:
       tags: [run]
       summary: Start a method asynchronously; returns its pipeline_run_id immediately.
       description: >
-        Asynchronous. Returns 202 + StartAck immediately; the runner keeps no run
-        store, and how completion is later delivered (callbacks, polling, anything
-        else) is implementation-defined and outside the protocol.
-        StartAck.pipeline_run_id is always authoritative.
+        Asynchronous. Returns 202 + RunResult immediately (pipe_output absent); the
+        runner keeps no run store, and how completion is later delivered (callbacks,
+        polling, anything else) is implementation-defined and outside the protocol.
+        The returned pipeline_run_id is always authoritative (server-generated).
       requestBody:
         required: true
         content:
@@ -88,7 +88,7 @@ paths:
           description: Accepted; execution proceeds in the background.
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/StartAck' }
+              schema: { $ref: '#/components/schemas/RunResult' }
         '422':
           $ref: '#/components/responses/ValidationProblem'
         default:
@@ -208,28 +208,22 @@ components:
         dynamic_output_concept_ref:
           type: [string, 'null']
           description: Override for the dynamic output concept reference.
-    RunState:
-      type: string
-      enum: [STARTED, RUNNING, COMPLETED, FAILED, CANCELLED, ERROR]
-    StartAck:
-      type: object
-      required: [pipeline_run_id, state, created_at]
-      properties:
-        pipeline_run_id: { type: string }
-        state: { $ref: '#/components/schemas/RunState' }
-        created_at: { type: string, format: date-time }
     RunResult:
       type: object
-      required: [pipeline_run_id, state, created_at, pipe_output]
+      description: >
+        The protocol's single run response — /execute 200 (pipe_output present),
+        /start 202 and the optional /execute 202 degrade (pipe_output absent).
+        These are the protocol's only run-response fields; anything more an
+        implementation returns (a run state, timestamps, anything else) is an
+        extension, declared and documented by that implementation.
+      required: [pipeline_run_id]
       properties:
-        pipeline_run_id: { type: string }
-        state: { $ref: '#/components/schemas/RunState' }
-        created_at: { type: string, format: date-time }
-        finished_at: { type: [string, 'null'], format: date-time }
-        main_stuff_name: { type: [string, 'null'] }
+        pipeline_run_id:
+          type: string
+          description: The run identifier — server-generated and authoritative.
         pipe_output:
-          description: The method's output working memory (serialized stuffs; main output named by main_stuff_name).
-          type: object
+          description: The method's serialized output. Present on a completed /execute; absent on /start.
+          type: [object, 'null']
     ValidateRequest:
       type: object
       required: [mthds_contents]

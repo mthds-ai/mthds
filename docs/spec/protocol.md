@@ -47,23 +47,19 @@ The protocol itself is versioned by this standard (`protocol_version` in `/versi
 
 At least one of `pipe_code` / `mthds_contents` is required. If `mthds_contents` is provided without `pipe_code`, the first bundle must declare a `main_pipe`. Optional fields: `output_name`, `output_multiplicity`, `dynamic_output_concept_ref`.
 
-The 200 response is a `RunResult`: `pipeline_run_id`, `state`, `created_at`, `finished_at`, `main_stuff_name`, and `pipe_output` — the method's serialized output working memory, with the main output named by `main_stuff_name`.
+The 200 response is a `RunResult` — the protocol's single run response, holding exactly two base fields: `pipeline_run_id` (mandatory, server-generated and authoritative) and `pipe_output` (the method's serialized output, present on a completed `/execute`). Anything more an implementation returns — a run state, timestamps, output naming, anything else — is an extension field (see [Extension policy](#extension-policy)), declared and documented by that implementation.
 
-The protocol sets no time limit on `/execute`; deployments cap it at their proxy layer. For long-running methods prefer `/start`. Implementations **MAY** answer `202 + StartAck` with a `Location` header pointing at an implementation-defined status resource when they cannot hold the connection open ([RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.3) asynchronous pattern). Simple runners never emit 202; clients that cannot handle it should use `/start`.
+The protocol sets no time limit on `/execute`; deployments cap it at their proxy layer. For long-running methods prefer `/start`. Implementations **MAY** answer `202 + RunResult` (no `pipe_output` yet) with a `Location` header pointing at an implementation-defined status resource when they cannot hold the connection open ([RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.3) asynchronous pattern). Simple runners never emit 202; clients that cannot handle it should use `/start`.
 
 ## Starting a method asynchronously
 
 `POST /start` accepts the same `RunRequest` body as `/execute` — the protocol declares no start-only request fields. Anything an implementation accepts on top (a client-supplied run identifier, anything else) is an extension arg (see [Extension policy](#extension-policy)), defined and documented by that implementation.
 
-The response is `202 + StartAck {pipeline_run_id, state, created_at}` — the server-generated `pipeline_run_id` is always authoritative.
+The response is `202 + RunResult` with `pipe_output` absent — just the authoritative server-generated `pipeline_run_id` (plus any implementation extension fields).
 
 ### No run store, no completion channel
 
 The protocol mandates no run store, and it defines **no completion channel for `/start`**: how a caller learns that an asynchronous run finished — webhooks, polling routes, anything else — is implementation-defined and outside the protocol (see [Extension policy](#extension-policy)). A bare runner is not required to answer "what happened to run X?" after the fact. Clients written against the protocol alone must rely on `/execute`'s response.
-
-## Run states
-
-`RunState` is a closed enum: `STARTED`, `RUNNING`, `COMPLETED`, `FAILED`, `CANCELLED`, `ERROR`.
 
 ## Validating a bundle
 
