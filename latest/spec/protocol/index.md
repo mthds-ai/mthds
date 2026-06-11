@@ -69,7 +69,7 @@ The protocol mandates no run store, and it defines **no completion channel for `
 
 ```json
 {
-  "protocol_version": "0.1.0",
+  "protocol_version": "0.6.0",
   "runner_version": "2.3.0"
 }
 ```
