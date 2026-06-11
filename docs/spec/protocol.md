@@ -69,7 +69,7 @@ The protocol mandates no run store, and it defines **no completion channel for `
 
 `GET /models` returns the runner's model deck — the models it can route to (`{name, type}` entries), optionally filtered by category. Implementations may add their own routing metadata (aliases, fallback chains, anything else) as additional properties.
 
-`GET /version` is always public (no auth), and returns the two protocol fields — implementations may add their own identification on top:
+`GET /version` is always public (no auth). It returns `protocol_version` (required) and an optional `runner_version` — implementations may add their own identification on top:
 
 ```json
 {

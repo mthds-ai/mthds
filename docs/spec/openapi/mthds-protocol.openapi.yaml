@@ -171,7 +171,9 @@ components:
       description: >
         At least one of pipe_code / mthds_contents is required (enforced by the anyOf
         rule below). If mthds_contents is provided without pipe_code, the first bundle
-        must declare a main_pipe.
+        must declare a main_pipe. Extension-open: implementations MAY accept extra
+        top-level properties (extension args).
+      additionalProperties: true
       anyOf:
         - required: [pipe_code]
           properties:
@@ -216,6 +218,7 @@ components:
         These are the protocol's only run-response fields; anything more an
         implementation returns (a run state, timestamps, anything else) is an
         extension, declared and documented by that implementation.
+      additionalProperties: true
       required: [pipeline_run_id]
       properties:
         pipeline_run_id:
@@ -264,14 +267,14 @@ components:
     VersionInfo:
       type: object
       description: >
-        The handshake. The protocol defines two fields; implementations MAY add
-        their own identification (a name, an underlying runtime version,
-        anything else) as additional properties.
-      required: [protocol_version, runner_version]
+        The handshake. The protocol defines protocol_version (required) plus an
+        optional runner_version; implementations MAY add their own identification
+        (a name, an underlying runtime version, anything else) as additional properties.
+      required: [protocol_version]
       additionalProperties: true
       properties:
         protocol_version: { type: string, description: MTHDS Protocol version implemented. }
-        runner_version: { type: string, description: Version of the runner serving this protocol. }
+        runner_version: { type: [string, 'null'], description: Version of the runner serving this protocol (optional). }
     Problem:
       type: object
       description: RFC 7807.
