@@ -37,7 +37,7 @@ paths:
       description: >
         Blocking. The protocol sets no time limit; deployments cap it at their proxy
         layer. For long-running methods prefer /start. Implementations MAY return
-        202 + RunResult (no pipe_output yet) with a Location header pointing at an
+        202 + RunResultStart (id only) with a Location header pointing at an
         implementation-defined status resource when they cannot hold the connection
         open for the full execution (RFC 9110 asynchronous pattern); clients that
         cannot handle 202 should use /start instead.
@@ -51,7 +51,7 @@ paths:
           description: Method completed; full output included.
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/RunResult' }
+              schema: { $ref: '#/components/schemas/RunResultExecute' }
         '202':
           description: >
             OPTIONAL (implementations MAY emit this; simple runners never do):
@@ -63,7 +63,7 @@ paths:
               description: Implementation-defined status resource for this run.
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/RunResult' }
+              schema: { $ref: '#/components/schemas/RunResultStart' }
         '422':
           $ref: '#/components/responses/ValidationProblem'
         default:
@@ -74,7 +74,7 @@ paths:
       tags: [run]
       summary: Start a method asynchronously; returns its pipeline_run_id immediately.
       description: >
-        Asynchronous. Returns 202 + RunResult immediately (pipe_output absent); the
+        Asynchronous. Returns 202 + RunResultStart immediately (pipeline_run_id only); the
         runner keeps no run store, and how completion is later delivered (callbacks,
         polling, anything else) is implementation-defined and outside the protocol.
         The returned pipeline_run_id is always authoritative (server-generated).
@@ -88,7 +88,7 @@ paths:
           description: Accepted; execution proceeds in the background.
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/RunResult' }
+              schema: { $ref: '#/components/schemas/RunResultStart' }
         '422':
           $ref: '#/components/responses/ValidationProblem'
         default:
@@ -210,23 +210,36 @@ components:
         dynamic_output_concept_ref:
           type: [string, 'null']
           description: Override for the dynamic output concept reference.
-    RunResult:
+    RunResultExecute:
       type: object
       description: >
-        The protocol's single run response — /execute 200 (pipe_output present),
-        /start 202 and the optional /execute 202 degrade (pipe_output absent).
-        These are the protocol's only run-response fields; anything more an
-        implementation returns (a run state, timestamps, anything else) is an
-        extension, declared and documented by that implementation.
+        POST /execute 200 — the completed run. Two base fields: the
+        server-generated authoritative pipeline_run_id and the method's
+        pipe_output (always present — a completed run has output). Extension-open:
+        anything more an implementation returns (a run state, timestamps, output
+        naming) is an extension on top.
+      additionalProperties: true
+      required: [pipeline_run_id, pipe_output]
+      properties:
+        pipeline_run_id:
+          type: string
+          description: The run identifier — server-generated and authoritative.
+        pipe_output:
+          description: The method's serialized output (working memory of serialized stuffs).
+          type: object
+    RunResultStart:
+      type: object
+      description: >
+        POST /start 202 (and the optional /execute 202 degrade) — the started
+        run's authoritative pipeline_run_id, nothing else. A started run has no
+        output yet; how it is delivered later (polling, callbacks, anything else)
+        is implementation-defined and outside the protocol. Extension-open.
       additionalProperties: true
       required: [pipeline_run_id]
       properties:
         pipeline_run_id:
           type: string
           description: The run identifier — server-generated and authoritative.
-        pipe_output:
-          description: The method's serialized output. Present on a completed /execute; absent on /start.
-          type: [object, 'null']
     ValidateRequest:
       type: object
       required: [mthds_contents]
