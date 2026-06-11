@@ -2,7 +2,8 @@
 
 ## [v0.6.0] - 2026-06-11
 
-- Add the **MTHDS Protocol** — the minimal HTTP contract every MTHDS runner implements: `POST /execute`, `POST /start`, `POST /validate`, `GET /models`, `GET /version`. Normative OpenAPI document at `docs/spec/openapi/mthds-protocol.openapi.yaml` (v0.1.0), prose specification page at `docs/spec/protocol.md`. Paths are version-agnostic (the version segment belongs to the server base URL); errors are RFC 7807 problems; `/start` completion is delivered to HMAC-signed `callback_urls` (no run store in the protocol); `/execute` MAY answer `202 + StartAck + Location`; a declined client `pipeline_run_id` MUST be rejected with 422, never silently ignored.
+- Add the **MTHDS Protocol** — the minimal HTTP contract every MTHDS runner implements: `POST /execute`, `POST /start`, `POST /validate`, `GET /models`, `GET /version`. Normative OpenAPI document at `docs/spec/openapi/mthds-protocol.openapi.yaml` (v0.1.0), prose specification page at `docs/spec/protocol.md`. Paths are version-agnostic (the version segment belongs to the server base URL); errors are RFC 7807 problems; `/start` returns `202 + StartAck` with the authoritative `pipeline_run_id` (no run store in the protocol; completion delivery is implementation-defined); `/execute` MAY answer `202 + StartAck + Location`; a declined client `pipeline_run_id` MUST be rejected with 422, never silently ignored.
+- Add a rendered OpenAPI reference page (`docs/spec/protocol-reference.md`) — every protocol route with its parameters, request bodies, and response schemas, generated at build time from the normative OpenAPI document via the `neoteroi.mkdocsoad` plugin.
 - Add "Exposing a Runner over HTTP" section to the implementers runtime guide.
 - Add `make spec-check` (OpenAPI validation, wired into `docs-check`).
 

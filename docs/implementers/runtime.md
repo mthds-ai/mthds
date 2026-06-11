@@ -172,6 +172,6 @@ A compliant runtime must support the plain string form of `template`. The table 
 
 A runtime becomes a network-accessible **runner** by implementing the [MTHDS Protocol](../spec/protocol.md) — the minimal HTTP contract of five routes: `POST /execute`, `POST /start`, `POST /validate`, `GET /models`, `GET /version`. The normative artifact is the protocol's [OpenAPI document](../spec/openapi/mthds-protocol.openapi.yaml).
 
-The protocol deliberately excludes everything that is not "run a method": no run store (completion is delivered to HMAC-signed callbacks, not polled), no users, no billing, no catalog. Implementations may extend the surface with extra routes or optional request properties, but must not change the protocol routes' shapes — see the [extension policy](../spec/protocol.md#extension-policy).
+The protocol deliberately excludes everything that is not "run a method": no run store, no completion channel for async runs (webhooks or polling are implementation extensions), no users, no billing, no catalog. Implementations may extend the surface with extra routes or optional request properties, but must not change the protocol routes' shapes — see the [extension policy](../spec/protocol.md#extension-policy).
 
 The reference implementation is `pipelex-api` (MIT, self-hostable Docker image), which implements the protocol and extends it with stateless `/build/*` authoring helpers.

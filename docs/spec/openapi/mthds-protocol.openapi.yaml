@@ -23,7 +23,7 @@ security:
   - {} # auth is implementation-defined; anonymous allowed self-hosted
 tags:
   - name: run
-    description: Execute methods, synchronously or fire-and-callback.
+    description: Execute methods, synchronously or asynchronously.
   - name: validate
     description: Static + dry-run validation of MTHDS bundles.
   - name: discovery
@@ -40,7 +40,7 @@ paths:
         202 + StartAck with a Location header pointing at an implementation-defined
         status resource when they cannot hold the connection open for the full
         execution (RFC 9110 asynchronous pattern); clients that cannot handle 202
-        should use /start with callbacks instead.
+        should use /start instead.
       requestBody:
         required: true
         content:
@@ -74,10 +74,11 @@ paths:
       tags: [run]
       summary: Start a method asynchronously; returns its pipeline_run_id immediately.
       description: >
-        Fire-and-callback. The runner keeps no run store: the protocol's completion
-        channel is the callback, not polling. (Implementations may add polling as an
-        extension.) Implementations MAY decline a client-supplied pipeline_run_id, but MUST
-        then reject the request with a 422 problem — never silently ignore it.
+        Asynchronous. Returns 202 + StartAck immediately; the runner keeps no run
+        store, and how completion is later delivered (callbacks, polling, anything
+        else) is implementation-defined and outside the protocol. Implementations
+        MAY decline a client-supplied pipeline_run_id, but MUST then reject the
+        request with a 422 problem — never silently ignore it.
         StartAck.pipeline_run_id is always authoritative.
       requestBody:
         required: true
@@ -94,25 +95,6 @@ paths:
           $ref: '#/components/responses/ValidationProblem'
         default:
           $ref: '#/components/responses/Problem'
-      callbacks:
-        onCompletion:
-          # One POST is delivered to EVERY entry of callback_urls; OpenAPI callback
-          # expressions cannot fan out over an array, so the first entry stands in
-          # for each of them (all deliveries are identical).
-          '{$request.body#/callback_urls/0}':
-            post:
-              summary: Completion webhook, one POST per callback URL.
-              description: >
-                Signed with HMAC-SHA256 over the raw body; signature in the
-                X-Completion-Signature header. Receivers should verify before
-                trusting. Callback URLs must be http/https and must not point at
-                private, loopback, link-local, or cloud-metadata addresses.
-              requestBody:
-                content:
-                  application/json:
-                    schema: { $ref: '#/components/schemas/RunResult' }
-              responses:
-                '2XX': { description: Receiver acknowledged. }
   /validate:
     post:
       operationId: validateMethod
@@ -241,19 +223,6 @@ components:
                 generates one when absent. Implementations MAY decline client-supplied
                 values, but MUST then reject with 422 — never silently ignore.
                 StartAck.pipeline_run_id is always authoritative.
-            callback_urls:
-              type: [array, 'null']
-              items:
-                type: string
-                format: uri
-                pattern: '^https?://'
-              description: >
-                Completion webhooks. http/https only (enforced by the pattern); private,
-                loopback, link-local and metadata hosts MUST additionally be rejected at
-                runtime (SSRF guard — not expressible in JSON Schema). HMAC-signed via
-                X-Completion-Signature. When absent, the protocol defines no completion
-                channel — the caller fires and forgets; implementations may offer
-                completion observation as an extension (e.g. polling routes).
     RunState:
       type: string
       enum: [STARTED, RUNNING, COMPLETED, FAILED, CANCELLED, ERROR]

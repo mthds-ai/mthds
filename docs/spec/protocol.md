@@ -6,14 +6,14 @@ description: "The MTHDS Protocol — the minimal HTTP contract every MTHDS runne
 
 The MTHDS Protocol is the minimal HTTP contract every MTHDS runner implements. Any server that serves these five routes with the shapes defined here is an MTHDS-compliant runner. A runner is just a runner: it executes methods, validates bundles, and reports what models it can route to and what version it is. It keeps no run store and owns no user, billing, or catalog concepts.
 
-The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml). This page is the prose walkthrough. Where they disagree, the YAML wins.
+The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), rendered route by route — with every parameter, request body, and response schema — in the [OpenAPI Reference](protocol-reference.md). This page is the prose walkthrough. Where they disagree, the YAML wins.
 
 ## The five routes
 
 | Method | Path | Purpose |
 |--------|------|---------|
 | `POST` | `/execute` | Execute a method synchronously; the full output comes back in the response. |
-| `POST` | `/start` | Start a method asynchronously; returns its `pipeline_run_id` immediately (202). Completion is delivered to `callback_urls`, not polled. |
+| `POST` | `/start` | Start a method asynchronously; returns its `pipeline_run_id` immediately (202). Completion delivery is implementation-defined. |
 | `POST` | `/validate` | Parse, validate, and dry-run an MTHDS bundle. |
 | `GET` | `/models` | The model deck this runner can route to: presets, aliases, waterfalls. Optional `?type=` filter (`llm` · `extract` · `img_gen` · `search`). |
 | `GET` | `/version` | Always public. Protocol and implementation versions — the handshake clients use for feature detection. |
@@ -49,20 +49,19 @@ At least one of `pipe_code` / `mthds_contents` is required. If `mthds_contents` 
 
 The 200 response is a `RunResult`: `pipeline_run_id`, `state`, `created_at`, `finished_at`, `main_stuff_name`, and `pipe_output` — the method's serialized output working memory, with the main output named by `main_stuff_name`.
 
-The protocol sets no time limit on `/execute`; deployments cap it at their proxy layer. For long-running methods prefer `/start`. Implementations **MAY** answer `202 + StartAck` with a `Location` header pointing at an implementation-defined status resource when they cannot hold the connection open ([RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.3) asynchronous pattern). Simple runners never emit 202; clients that cannot handle it should use `/start` with callbacks.
+The protocol sets no time limit on `/execute`; deployments cap it at their proxy layer. For long-running methods prefer `/start`. Implementations **MAY** answer `202 + StartAck` with a `Location` header pointing at an implementation-defined status resource when they cannot hold the connection open ([RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.3) asynchronous pattern). Simple runners never emit 202; clients that cannot handle it should use `/start`.
 
 ## Starting a method asynchronously
 
-`POST /start` accepts a `StartRequest` — a `RunRequest` plus two optional fields:
+`POST /start` accepts a `StartRequest` — a `RunRequest` plus one optional field:
 
 - `pipeline_run_id` — a client-supplied run identifier for correlation or idempotency. The server generates one when absent. Implementations **MAY** decline client-supplied values, but **MUST** then reject the request with a 422 problem — never silently ignore it. The `pipeline_run_id` in the `StartAck` response is always authoritative.
-- `callback_urls` — completion webhooks. When the run finishes, the runner POSTs the `RunResult` to each URL, signed with HMAC-SHA256 over the raw body in the `X-Completion-Signature` header. Receivers should verify the signature before trusting the payload. Callback URLs must be `http`/`https` and must not point at private, loopback, link-local, or cloud-metadata addresses (SSRF guard).
 
 The response is `202 + StartAck {pipeline_run_id, state, created_at}`.
 
-### No run store
+### No run store, no completion channel
 
-The protocol mandates no run store: **callbacks are the protocol's async completion channel, not polling**. A bare runner is not required to answer "what happened to run X?" after the fact. Implementations may add polling routes as an extension (see [Extension policy](#extension-policy)), but clients written against the protocol alone must rely on `/execute`'s response or `/start`'s callbacks.
+The protocol mandates no run store, and it defines **no completion channel for `/start`**: how a caller learns that an asynchronous run finished — webhooks, polling routes, anything else — is implementation-defined and outside the protocol (see [Extension policy](#extension-policy)). A bare runner is not required to answer "what happened to run X?" after the fact. Clients written against the protocol alone must rely on `/execute`'s response.
 
 ## Run states
 
@@ -95,4 +94,4 @@ Implementations may extend the surface — extra routes, extra optional request 
 
 ## Conformance
 
-An implementation claiming conformance states it as: *implements MTHDS Protocol v0.1*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, `/version` is public, callback delivery is HMAC-signed as specified, and a declined client `pipeline_run_id` is rejected with 422 rather than ignored.
+An implementation claiming conformance states it as: *implements MTHDS Protocol v0.1*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, `/version` is public, and a declined client `pipeline_run_id` is rejected with 422 rather than ignored.
