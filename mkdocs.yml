@@ -64,6 +64,9 @@ plugins:
       draggable: true
       auto_caption: false
       caption_position: bottom
+  - neoteroi.mkdocsoad:
+      use_pymdownx: true
+      templates_path: docs/templates/oad
   - llmstxt-md:
       sections:
         Home:
@@ -152,6 +155,7 @@ markdown_extensions:
 extra_css:
   - stylesheets/mermaid.css
   - stylesheets/general.css
+  - stylesheets/neoteroi-oad.css
 
 nav:
   - Home:
