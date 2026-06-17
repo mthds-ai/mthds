@@ -279,7 +279,7 @@ components:
         protocol declares only the is_valid discriminant and the runnability facts;
         implementations MAY include their own artifacts (parsed structures, graphs,
         anything else) as additional properties.
-      required: [is_valid]
+      required: [is_valid, is_runnable, pending_signatures]
       additionalProperties: true
       properties:
         is_valid:
@@ -315,7 +315,7 @@ components:
         transport failure, so it rides a 200. The structural artifacts of a valid
         report do not exist when load/parse/wiring failed, so this arm carries the
         per-error diagnostics and the runnability facts only.
-      required: [is_valid, validation_errors]
+      required: [is_valid, validation_errors, is_runnable]
       additionalProperties: true
       properties:
         is_valid:
