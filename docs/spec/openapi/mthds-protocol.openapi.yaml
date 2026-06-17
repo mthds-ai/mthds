@@ -98,6 +98,12 @@ paths:
       operationId: validateMethod
       tags: [validate]
       summary: Parse, validate, and dry-run an MTHDS bundle.
+      description: >
+        Diagnostic endpoint. Every verdict the validator can produce — valid or
+        invalid — rides a 200, discriminated in the body on is_valid. Non-2xx is
+        reserved for the cases where no verdict could be produced (a malformed
+        request body, auth, a server fault), so a 422 here is a request-shape
+        problem, never "the bundle is invalid".
       requestBody:
         required: true
         content:
@@ -105,10 +111,10 @@ paths:
             schema: { $ref: '#/components/schemas/ValidateRequest' }
       responses:
         '200':
-          description: Bundle is valid; implementations MAY include their own artifacts.
+          description: A produced verdict — valid (ValidationReport) or invalid (InvalidValidationReport), discriminated on is_valid.
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/ValidationReport' }
+              schema: { $ref: '#/components/schemas/ValidationResult' }
         '422':
           $ref: '#/components/responses/ValidationProblem'
         default:
@@ -161,7 +167,10 @@ components:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
     ValidationProblem:
-      description: The request or bundle failed validation (RFC 7807).
+      description: >
+        The request failed validation (RFC 7807). On /execute and /start a bad
+        bundle also lands here; on /validate an invalid bundle is a 200 verdict,
+        so there a 422 is request-shape only.
       content:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
@@ -253,14 +262,82 @@ components:
           type: boolean
           default: false
           description: When true, the validation sweep tolerates unimplemented pipe signatures (signatures dry-run by minting a mock). Strict by default.
+    ValidationResult:
+      description: >
+        The 200 response of POST /validate — a produced verdict discriminated on
+        the mandatory is_valid field. A client pattern-matches is_valid to learn
+        the verdict; it never inspects a status code or catches an exception body.
+        Non-2xx is a no-verdict condition (a request-shape problem, auth, a server
+        fault), never an invalid bundle.
+      oneOf:
+        - $ref: '#/components/schemas/ValidationReport'
+        - $ref: '#/components/schemas/InvalidValidationReport'
     ValidationReport:
       type: object
       description: >
-        Returned only when the bundle is valid; failures are RFC 7807 problems.
-        The 200 status IS the verdict — the protocol declares no body fields.
-        Implementations MAY include their own artifacts (parsed structures,
-        graphs, anything else) as additional properties.
+        The is_valid:true arm of the validate response — the bundle is valid. The
+        protocol declares only the is_valid discriminant and the runnability facts;
+        implementations MAY include their own artifacts (parsed structures, graphs,
+        anything else) as additional properties.
+      required: [is_valid]
       additionalProperties: true
+      properties:
+        is_valid:
+          type: boolean
+          enum: [true]
+          description: Discriminant — the bundle is valid.
+        is_runnable:
+          type: boolean
+          description: >
+            Whether the validated library is complete enough to run — false when
+            pipe signatures remain unimplemented (a runnability fact, not an error).
+        pending_signatures:
+          type: array
+          items: { type: string }
+          description: Refs of pipes still declared as unimplemented signatures.
+    ValidationError:
+      type: object
+      description: >
+        One structured diagnostic on an invalid verdict. The protocol fixes only
+        the neutral category + message; an implementation narrows category to its
+        own vocabulary and adds locators (the owning source, a pipe/concept code,
+        a field name) as additional properties.
+      required: [category, message]
+      additionalProperties: true
+      properties:
+        category: { type: string, description: Implementation-defined diagnostic category. }
+        message: { type: string }
+    InvalidValidationReport:
+      type: object
+      description: >
+        The is_valid:false arm of the validate response — the bundle is invalid. An
+        invalid bundle is the successful product of a diagnostic call, not a
+        transport failure, so it rides a 200. The structural artifacts of a valid
+        report do not exist when load/parse/wiring failed, so this arm carries the
+        per-error diagnostics and the runnability facts only.
+      required: [is_valid, validation_errors]
+      additionalProperties: true
+      properties:
+        is_valid:
+          type: boolean
+          enum: [false]
+          description: Discriminant — the bundle is invalid.
+        validation_errors:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ValidationError' }
+          description: Per-error diagnostics — non-empty on every invalid verdict.
+        pending_signatures:
+          type: array
+          items: { type: string }
+          description: Outstanding signatures (best-effort; empty when no library could be assembled).
+        is_runnable:
+          type: boolean
+          enum: [false]
+          description: An invalid bundle is never runnable.
+        message:
+          type: string
+          description: Human-readable summary of the verdict.
     ModelDeck:
       type: object
       description: >
