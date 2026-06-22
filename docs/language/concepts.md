@@ -230,7 +230,6 @@ MTHDS provides a set of built-in concepts that are always available in every bun
 | `Html` | HTML content. |
 | `TextAndImages` | Combined text and image content. |
 | `Number` | A numeric value. |
-| `ImgGenPrompt` | A prompt for image generation. |
 | `Page` | A single page extracted from a document. |
 | `JSON` | A JSON value. |
 | `SearchResult` | A web search result with answer and sources. |

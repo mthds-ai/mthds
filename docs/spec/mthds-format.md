@@ -214,7 +214,6 @@ Native concepts are built-in types that are always available in every bundle wit
 | `Html` | `native.Html` | HTML content. |
 | `TextAndImages` | `native.TextAndImages` | Combined text and image content. |
 | `Number` | `native.Number` | A numeric value. |
-| `ImgGenPrompt` | `native.ImgGenPrompt` | A prompt for image generation. |
 | `Page` | `native.Page` | A single page extracted from a document. |
 | `JSON` | `native.JSON` | A JSON value. |
 | `SearchResult` | `native.SearchResult` | A web search result with answer and sources. |
@@ -445,7 +444,7 @@ function_name = "my_package.text_utils.capitalize"
 
 ## Operator: PipeImgGen
 
-Generates images using an image generation model.
+Generates images using an image generation model. The pipe carries a required `prompt` string template (and an optional `negative_prompt` template); it does not take a dedicated prompt concept as input. Declared `inputs` are injected into the `prompt` at runtime: `Text` inputs are interpolated into the prompt text, while `Image` inputs (a single image or a list) are referenced in the prompt and injected as reference images — each becomes an `[Image N]` token in the rendered text and is passed to the generator alongside it, enabling image-to-image, reference-image, and image-editing generation.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -453,8 +452,8 @@ Generates images using an image generation model.
 | `description` | string | Yes | — |
 | `inputs` | table | No | — |
 | `output` | string | Yes | — |
-| `prompt` | string | Yes | The image generation prompt. Supports Jinja2 and `$variable` shorthand. |
-| `negative_prompt` | string | No | A negative prompt (concepts to avoid in generation). |
+| `prompt` | string | Yes | The image generation prompt template. Supports Jinja2 and `$variable` shorthand; declared inputs are injected into it. |
+| `negative_prompt` | string | No | An optional prompt template describing what to avoid in the generated image. |
 | `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [image generation settings](#inline-image-generation-settings) table. |
 | `aspect_ratio` | string | No | Desired aspect ratio. Values: `square`, `landscape_4_3`, `landscape_3_2`, `landscape_16_9`, `landscape_21_9`, `portrait_3_4`, `portrait_2_3`, `portrait_9_16`, `portrait_9_21`. |
 | `is_raw` | boolean | No | Whether to use raw mode (less post-processing). |
@@ -465,6 +464,8 @@ Generates images using an image generation model.
 **Validation rules:**
 
 - Every variable referenced in `prompt` MUST correspond to a declared input.
+- `output` MUST resolve to an `Image`-compatible concept.
+- Any input referenced as a reference image in the `prompt` MUST resolve to an `Image`-compatible concept (single or list).
 
 **Example:**
 
@@ -476,6 +477,17 @@ inputs      = { description = "Text" }
 output      = "Image"
 prompt      = "A professional portrait: $description"
 model       = "$gen-image-testing"
+```
+
+**Example with a reference image (image-to-image):**
+
+```toml
+[pipe.restyle_photo]
+type        = "PipeImgGen"
+description = "Restyle a source photo following a textual instruction"
+inputs      = { source = "Image", instruction = "Text" }
+output      = "Image"
+prompt      = "Restyle this image: $source. $instruction"
 ```
 
 ### Inline Image Generation Settings
