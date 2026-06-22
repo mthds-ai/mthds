@@ -1,0 +1,376 @@
+openapi: 3.1.0
+info:
+  title: MTHDS Protocol
+  version: 0.6.0
+  summary: The minimal HTTP contract every MTHDS runner implements.
+  description: >
+    Five routes. Any server implementing them is an MTHDS-compliant runner. A runner
+    executes and validates methods; it keeps no run store and owns no user, billing,
+    or catalog concepts. Paths are relative to an implementation-chosen base URL.
+    Implementations may extend the surface (extra routes, extra request properties)
+    but must not change the meaning or shape of the protocol routes. All errors are
+    RFC 7807 application/problem+json.
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+  - url: http://localhost:8081/v1
+    description: Example — a self-hosted runner. The version segment belongs to the server base URL; protocol paths are version-agnostic.
+  - url: https://api.example.com/v1
+    description: Example — a hosted, protocol-compliant superset.
+security:
+  - bearer: []
+  - {} # auth is implementation-defined; anonymous allowed self-hosted
+tags:
+  - name: run
+    description: Execute methods, synchronously or asynchronously.
+  - name: validate
+    description: Static + dry-run validation of MTHDS bundles.
+  - name: discovery
+    description: What this runner is and what it can route to.
+paths:
+  /execute:
+    post:
+      operationId: executeMethod
+      tags: [run]
+      summary: Execute a method synchronously and return its full output.
+      description: >
+        Blocking. The protocol sets no time limit; deployments cap it at their proxy
+        layer. For long-running methods prefer /start. Implementations MAY return
+        202 + RunResultStart (id only) with a Location header pointing at an
+        implementation-defined status resource when they cannot hold the connection
+        open for the full execution (RFC 9110 asynchronous pattern); clients that
+        cannot handle 202 should use /start instead.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RunRequest' }
+      responses:
+        '200':
+          description: Method completed; full output included.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RunResultExecute' }
+        '202':
+          description: >
+            OPTIONAL (implementations MAY emit this; simple runners never do):
+            execution continues in the background. The Location header points at an
+            implementation-defined status resource.
+          headers:
+            Location:
+              schema: { type: string }
+              description: Implementation-defined status resource for this run.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RunResultStart' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
+  /start:
+    post:
+      operationId: startMethod
+      tags: [run]
+      summary: Start a method asynchronously; returns its pipeline_run_id immediately.
+      description: >
+        Asynchronous. Returns 202 + RunResultStart immediately (pipeline_run_id only); the
+        runner keeps no run store, and how completion is later delivered (callbacks,
+        polling, anything else) is implementation-defined and outside the protocol.
+        The returned pipeline_run_id is always authoritative (server-generated).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RunRequest' }
+      responses:
+        '202':
+          description: Accepted; execution proceeds in the background.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RunResultStart' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
+  /validate:
+    post:
+      operationId: validateMethod
+      tags: [validate]
+      summary: Parse, validate, and dry-run an MTHDS bundle.
+      description: >
+        Diagnostic endpoint. Every verdict the validator can produce — valid or
+        invalid — rides a 200, discriminated in the body on is_valid. Non-2xx is
+        reserved for the cases where no verdict could be produced (a malformed
+        request body, auth, a server fault), so a 422 here is a request-shape
+        problem, never "the bundle is invalid".
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ValidateRequest' }
+      responses:
+        '200':
+          description: A produced verdict — valid (ValidationReport) or invalid (InvalidValidationReport), discriminated on is_valid.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ValidationResult' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
+  /models:
+    get:
+      operationId: listModels
+      tags: [discovery]
+      summary: The model deck available on this runner.
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [llm, extract, img_gen, search]
+          description: Filter the deck by model category.
+      responses:
+        '200':
+          description: The model deck.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ModelDeck' }
+        default:
+          $ref: '#/components/responses/Problem'
+  /version:
+    get:
+      operationId: getVersion
+      tags: [discovery]
+      summary: Protocol and runner versions.
+      security: [] # always public — used for handshake/feature detection
+      responses:
+        '200':
+          description: Version info.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/VersionInfo' }
+        default:
+          $ref: '#/components/responses/Problem'
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      description: Token semantics are implementation-defined.
+  responses:
+    Problem:
+      description: RFC 7807 problem document.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+    ValidationProblem:
+      description: >
+        The request failed validation (RFC 7807). On /execute and /start a bad
+        bundle also lands here; on /validate an invalid bundle is a 200 verdict,
+        so there a 422 is request-shape only.
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/Problem' }
+  schemas:
+    RunRequest:
+      type: object
+      description: >
+        At least one of pipe_code / mthds_contents is required (enforced by the anyOf
+        rule below). If mthds_contents is provided without pipe_code, the first bundle
+        must declare a main_pipe. Extension-open: implementations MAY accept extra
+        top-level properties (extension args).
+      additionalProperties: true
+      anyOf:
+        - required: [pipe_code]
+          properties:
+            pipe_code: { type: string, minLength: 1 }
+        - required: [mthds_contents]
+          properties:
+            mthds_contents:
+              type: array
+              minItems: 1
+      properties:
+        pipe_code:
+          type: [string, 'null']
+          description: Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents).
+        mthds_contents:
+          type: [array, 'null']
+          minItems: 1
+          items: { type: string }
+          description: MTHDS bundle contents to load (always an array, even for a single file; never empty). Implementations bound count and per-file size.
+        inputs:
+          type: [object, 'null']
+          description: 'Method inputs: map of input name to { concept, content }. Content shapes follow the concept''s structure; content validation is deliberately loose here and strict inside the runtime.'
+          additionalProperties:
+            type: object
+            required: [concept, content]
+            properties:
+              concept: { type: string }
+              content: {}
+        output_name:
+          type: [string, 'null']
+          description: Name of the output slot to return as the main output.
+        output_multiplicity:
+          oneOf: [{ type: boolean }, { type: integer }, { type: 'null' }]
+          description: Output multiplicity override (false/true or an explicit count).
+        dynamic_output_concept_ref:
+          type: [string, 'null']
+          description: Override for the dynamic output concept reference.
+    RunResultExecute:
+      type: object
+      description: >
+        POST /execute 200 — the completed run. Two base fields: the
+        server-generated authoritative pipeline_run_id and the method's
+        pipe_output (always present — a completed run has output). Extension-open:
+        anything more an implementation returns (a run state, timestamps, output
+        naming) is an extension on top.
+      additionalProperties: true
+      required: [pipeline_run_id, pipe_output]
+      properties:
+        pipeline_run_id:
+          type: string
+          description: The run identifier — server-generated and authoritative.
+        pipe_output:
+          description: The method's serialized output (working memory of serialized stuffs).
+          type: object
+    RunResultStart:
+      type: object
+      description: >
+        POST /start 202 (and the optional /execute 202 degrade) — the started
+        run's authoritative pipeline_run_id, nothing else. A started run has no
+        output yet; how it is delivered later (polling, callbacks, anything else)
+        is implementation-defined and outside the protocol. Extension-open.
+      additionalProperties: true
+      required: [pipeline_run_id]
+      properties:
+        pipeline_run_id:
+          type: string
+          description: The run identifier — server-generated and authoritative.
+    ValidateRequest:
+      type: object
+      required: [mthds_contents]
+      properties:
+        mthds_contents:
+          type: array
+          minItems: 1
+          items: { type: string }
+          description: MTHDS contents to load (always an array, even for a single file).
+        allow_signatures:
+          type: boolean
+          default: false
+          description: When true, the validation sweep tolerates unimplemented pipe signatures (signatures dry-run by minting a mock). Strict by default.
+    ValidationResult:
+      description: >
+        The 200 response of POST /validate — a produced verdict discriminated on
+        the mandatory is_valid field. A client pattern-matches is_valid to learn
+        the verdict; it never inspects a status code or catches an exception body.
+        Non-2xx is a no-verdict condition (a request-shape problem, auth, a server
+        fault), never an invalid bundle.
+      oneOf:
+        - $ref: '#/components/schemas/ValidationReport'
+        - $ref: '#/components/schemas/InvalidValidationReport'
+    ValidationReport:
+      type: object
+      description: >
+        The is_valid:true arm of the validate response — the bundle is valid. The
+        protocol declares only the is_valid discriminant and the runnability facts;
+        implementations MAY include their own artifacts (parsed structures, graphs,
+        anything else) as additional properties.
+      required: [is_valid, is_runnable, pending_signatures]
+      additionalProperties: true
+      properties:
+        is_valid:
+          type: boolean
+          enum: [true]
+          description: Discriminant — the bundle is valid.
+        is_runnable:
+          type: boolean
+          description: >
+            Whether the validated library is complete enough to run — false when
+            pipe signatures remain unimplemented (a runnability fact, not an error).
+        pending_signatures:
+          type: array
+          items: { type: string }
+          description: Refs of pipes still declared as unimplemented signatures.
+    ValidationError:
+      type: object
+      description: >
+        One structured diagnostic on an invalid verdict. The protocol fixes only
+        the neutral category + message; an implementation narrows category to its
+        own vocabulary and adds locators (the owning source, a pipe/concept code,
+        a field name) as additional properties.
+      required: [category, message]
+      additionalProperties: true
+      properties:
+        category: { type: string, description: Implementation-defined diagnostic category. }
+        message: { type: string }
+    InvalidValidationReport:
+      type: object
+      description: >
+        The is_valid:false arm of the validate response — the bundle is invalid. An
+        invalid bundle is the successful product of a diagnostic call, not a
+        transport failure, so it rides a 200. The structural artifacts of a valid
+        report do not exist when load/parse/wiring failed, so this arm carries the
+        per-error diagnostics and the runnability facts only.
+      required: [is_valid, validation_errors, is_runnable]
+      additionalProperties: true
+      properties:
+        is_valid:
+          type: boolean
+          enum: [false]
+          description: Discriminant — the bundle is invalid.
+        validation_errors:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ValidationError' }
+          description: Per-error diagnostics — non-empty on every invalid verdict.
+        pending_signatures:
+          type: array
+          items: { type: string }
+          description: Outstanding signatures (best-effort; empty when no library could be assembled).
+        is_runnable:
+          type: boolean
+          enum: [false]
+          description: An invalid bundle is never runnable.
+        message:
+          type: string
+          description: Human-readable summary of the verdict.
+    ModelDeck:
+      type: object
+      description: >
+        The models this runner can route to. Implementations MAY add their own
+        routing metadata (aliases, fallback chains, anything else) as
+        additional properties — on the deck and on each model entry.
+      additionalProperties: true
+      properties:
+        models:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+            properties:
+              name: { type: string }
+              type: { type: string, enum: [llm, extract, img_gen, search] }
+    VersionInfo:
+      type: object
+      description: >
+        The handshake. The protocol defines protocol_version (required) plus an
+        optional runner_version; implementations MAY add their own identification
+        (a name, an underlying runtime version, anything else) as additional properties.
+      required: [protocol_version]
+      additionalProperties: true
+      properties:
+        protocol_version: { type: string, description: MTHDS Protocol version implemented. }
+        runner_version: { type: [string, 'null'], description: Version of the runner serving this protocol (optional). }
+    Problem:
+      type: object
+      description: RFC 7807.
+      properties:
+        type: { type: string, format: uri }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
