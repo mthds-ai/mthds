@@ -463,9 +463,9 @@ Generates images using an image generation model. The pipe carries a required `p
 
 **Validation rules:**
 
-- Every variable referenced in `prompt` MUST correspond to a declared input.
+- Every variable referenced in `prompt` or `negative_prompt` MUST correspond to a declared input.
 - `output` MUST resolve to an `Image`-compatible concept.
-- Any input referenced as a reference image in the `prompt` MUST resolve to an `Image`-compatible concept (single or list).
+- Any input referenced as a reference image in the `prompt` or `negative_prompt` MUST resolve to an `Image`-compatible concept (single or list).
 
 **Example:**
 
@@ -683,7 +683,7 @@ MTHDS defines three shorthand patterns that a compliant preprocessor MUST expand
 - When a matched name ends with a `.` (dot), the preprocessor MUST strip the trailing dot from the variable name and place it after the expanded expression (treating it as sentence punctuation).
 - Raw Jinja2 syntax (`{{ }}`, `{% %}`) MUST always be accepted alongside the shorthands.
 
-These shorthands apply to the `template` field of PipeCompose, the `prompt` and `system_prompt` fields of PipeLLM, and the `prompt` field of PipeImgGen and PipeSearch. See [Pipes — Operators: Template Mode](../language/pipes-operators.md#template-mode) for the full reference on categories and filters.
+These shorthands apply to the `template` field of PipeCompose, the `prompt` and `system_prompt` fields of PipeLLM, the `prompt` and `negative_prompt` fields of PipeImgGen, and the `prompt` field of PipeSearch. See [Pipes — Operators: Template Mode](../language/pipes-operators.md#template-mode) for the full reference on categories and filters.
 
 **Template blueprint fields (table form):**
 

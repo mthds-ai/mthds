@@ -23,7 +23,7 @@ After parsing TOML into a dictionary, validate the bundle structure:
 2. `domain` MUST be a valid domain code: one or more `snake_case` segments (`[a-z][a-z0-9_]*`) separated by `.`.
 3. `main_pipe`, if present, MUST be `snake_case` and MUST reference a pipe defined in the same bundle.
 4. Concept codes MUST be `PascalCase` (`[A-Z][a-zA-Z0-9]*`).
-5. Concept codes MUST NOT match any native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `Page`, `JSON`, `Anything`).
+5. Concept codes MUST NOT match any native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `Page`, `JSON`, `SearchResult`, `Anything`).
 6. Pipe codes MUST be `snake_case` (`[a-z][a-z0-9_]*`).
 7. `refines` and `structure` MUST NOT both be set on the same concept.
 

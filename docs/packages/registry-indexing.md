@@ -168,7 +168,7 @@ For every concept in every indexed package, the registry creates a `ConceptNode`
 
 The node key is `{package_address}::{concept_ref}` (e.g., `github.com/acme/legal-tools::legal.contracts.ContractClause`).
 
-The registry MUST also create concept nodes for all native concepts (`Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `Page`, `JSON`, `Anything`, `Dynamic`). Native concepts use the package address `__native__` and concept references prefixed with `native.` (e.g., `native.Text`).
+The registry MUST also create concept nodes for all native concepts (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `Page`, `JSON`, `SearchResult`, `Anything`). Native concepts use the package address `__native__` and concept references prefixed with `native.` (e.g., `native.Text`).
 
 ### Step 2: Resolve Refinement Targets
 
