@@ -67,7 +67,7 @@ Each segment of a domain path MUST be `snake_case`:
 
 When resolving a bare concept code (no domain qualifier, no package prefix):
 
-1. **Native concepts** — check if the code matches a native concept code (`Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `ImgGenPrompt`, `Page`, `JSON`, `Dynamic`, `Anything`). Native concepts always take priority.
+1. **Native concepts** — check if the code matches a native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `Page`, `JSON`, `SearchResult`, `Anything`). Native concepts always take priority.
 2. **Current bundle** — check concepts declared in the same `.mthds` file.
 3. **Same domain, other bundles** — if the bundle is part of a package, check concepts in other bundles that declare the same domain.
 4. **Error** — if not found in any of the above, the reference is invalid.

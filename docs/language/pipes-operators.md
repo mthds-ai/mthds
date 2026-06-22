@@ -355,20 +355,49 @@ prompt      = "A professional portrait: $description"
 model       = "$gen-image-testing"
 ```
 
-**What this does:** Takes a `Text` description, sends it to an image generation model, and produces an `Image` output.
+**What this does:** Renders the `prompt` template — interpolating the `Text` input `description` — sends the result to an image generation model, and produces an `Image` output.
+
+PipeImgGen does not consume a dedicated "prompt" concept. The prompt is a string template declared directly on the pipe, and the pipe's declared `inputs` are injected into that template at runtime:
+
+- **`Text` inputs** are interpolated into the prompt text via `$variable` shorthand or Jinja2.
+- **`Image` inputs** (a single image or a list) are referenced in the prompt and injected as **reference images**: each referenced image is replaced by an `[Image N]` token in the rendered text and passed to the generator alongside it. This is the same vision pattern used for image inputs to `PipeLLM`, and it enables image-to-image, reference-image, and image-editing generation, bounded by the model's image limit.
 
 **Key fields:**
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `prompt` | Yes | The image generation prompt. Supports Jinja2 and `$variable` shorthand. |
-| `negative_prompt` | No | Concepts to avoid in generation. |
+| `prompt` | Yes | The image generation prompt template. Supports Jinja2 and `$variable` shorthand; declared inputs are injected into it. |
+| `negative_prompt` | No | An optional prompt template describing what to avoid in the generated image. |
 | `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
 | `aspect_ratio` | No | Desired aspect ratio. Values: `square`, `landscape_4_3`, `landscape_3_2`, `landscape_16_9`, `landscape_21_9`, `portrait_3_4`, `portrait_2_3`, `portrait_9_16`, `portrait_9_21`. |
 | `is_raw` | No | Whether to use raw mode (less post-processing). |
 | `seed` | No | Random seed for reproducibility. Integer value, or `"auto"` to let the model randomize it. |
 | `background` | No | Background setting. Values: `transparent`, `opaque`, `auto`. |
 | `output_format` | No | Image output format. Values: `png`, `jpeg`, `webp`. |
+
+**Reference images (image-to-image):** declare `Image` inputs and reference them in the prompt to condition generation on existing images. A single reference image:
+
+```toml
+[pipe.restyle_photo]
+type        = "PipeImgGen"
+description = "Restyle a photo following a textual instruction"
+inputs      = { source = "Image", instruction = "Text" }
+output      = "Image"
+prompt      = "Restyle this image: $source. $instruction"
+```
+
+A list of reference images, referenced as a group:
+
+```toml
+[pipe.blend_references]
+type        = "PipeImgGen"
+description = "Blend multiple reference images into one composition"
+inputs      = { refs = "Image[]" }
+output      = "Image"
+prompt      = "Combine these references into a single coherent scene: $refs"
+```
+
+Each referenced image becomes an `[Image N]` token in the rendered prompt and is passed to the generator as a reference image, up to the model's image limit.
 
 ## PipeExtract
 
