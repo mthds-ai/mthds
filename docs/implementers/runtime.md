@@ -26,10 +26,10 @@ A `.mthds` file is valid TOML. Parse it with any compliant TOML parser, then val
 1. Parse the TOML into a generic dictionary.
 2. Extract header fields (`domain`, `description`, `system_prompt`, `main_pipe`).
 3. Extract the `concept` table — a mix of simple declarations (string values) and structured declarations (sub-tables with `description`, `structure`, `refines`).
-4. Extract `pipe` sub-tables. Each pipe has a `type` field that determines the discriminated union variant (one of the supported pipe types).
+4. Extract `pipe` sub-tables. Concrete pipes have a `type` field that determines the discriminated union variant (one of the supported pipe types). A typeless pipe section is valid only as a contract-only signature.
 5. Validate all fields against the rules in the [Specification](../spec/mthds-format.md).
 
-The reference implementation uses Pydantic's discriminated union on the `type` field to dispatch pipe parsing:
+The reference implementation uses Pydantic's discriminated union on the `type` field to dispatch concrete pipe parsing, and normalizes valid typeless signatures into an internal signature variant:
 
 ```
 PipeBlueprintUnion = PipeFuncBlueprint
@@ -43,9 +43,10 @@ PipeBlueprintUnion = PipeFuncBlueprint
                    | PipeConditionBlueprint
                    | PipeParallelBlueprint
                    | PipeSequenceBlueprint
+                   | PipeSignatureBlueprint
 ```
 
-This means an invalid `type` value is rejected at parse time, before any field-level validation occurs.
+This means an invalid concrete `type` value is rejected at parse time, before any field-level validation occurs. `PipeSignature` is not a user-written `type` value; authors omit `type` for contract-only signatures.
 
 ## Manifest Discovery
 

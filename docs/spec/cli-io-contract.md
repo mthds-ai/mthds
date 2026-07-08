@@ -33,7 +33,7 @@ mthds-agent pipelex run method extract-terms | jq '.clauses[] | select(.risk_lev
 extract-terms | jq '.clauses[] | select(.risk_level == "high")'
 ```
 
-When the method has no main output (empty working memory), an empty object `{}` is emitted.
+A completed method always has a main output. If the declared output resolves as absent (for example, an optional `?` output produced no value), the CLI emits an explicit absence document rather than an empty or missing result.
 
 ### Full Output (`--with-memory`)
 

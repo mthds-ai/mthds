@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **Optionality in the language:** Documented first-class `?` / `!` presence markers, recorded absences, liftable pipes, guarded template requirements, and optionality validation diagnostics.
+
+### Changed
+
+- **PipeSignature authoring:** Contract-only pipe signatures now omit `type`; `type = "PipeSignature"` is no longer author-facing syntax.
+- **PipeParallel output model:** `PipeParallel` now always combines branch results into its declared `output`, which must be `Composite` or a structured concept matching branch `result` names. The old `combined_output` field is removed; `add_each_output` only exposes branch outputs individually.
+- **Bundled MTHDS schema:** Updated the committed schema to pipelex `v0.38.0`, including `PipeSignatureBlueprint`, `PipeType`, image-size schema additions, nullable `ImgGenSetting.is_moderated`, required concrete pipe type tags, and removal of `PipeParallelBlueprint.combined_output`.
+
 ## [v0.8.0] - 2026-06-22
 
 ### Removed

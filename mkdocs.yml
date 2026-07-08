@@ -80,6 +80,7 @@ plugins:
         - language/concepts.md: "Concepts"
         - language/pipes-operators.md: "Pipes — Operators"
         - language/pipes-controllers.md: "Pipes — Controllers"
+        - language/optionality.md: "Optionality"
         - language/working-memory.md: "Working Memory"
         - language/multiplicity.md: "Multiplicity"
         - language/model-references.md: "Model References"
@@ -169,6 +170,7 @@ nav:
     - Concepts: language/concepts.md
     - Pipes — Operators: language/pipes-operators.md
     - Pipes — Controllers: language/pipes-controllers.md
+    - Optionality: language/optionality.md
     - Working Memory: language/working-memory.md
     - Multiplicity: language/multiplicity.md
     - Model References: language/model-references.md
