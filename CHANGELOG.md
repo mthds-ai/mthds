@@ -5,6 +5,7 @@
 ### Added
 
 - **Optionality in the language:** Documented first-class `?` / `!` presence markers, recorded absences, liftable pipes, guarded template requirements, and optionality validation diagnostics.
+- **Native concepts `YesNo` and `Date`:** Documented first-class yes/no and date outputs, including their content fields and native concept references.
 
 ### Changed
 
@@ -24,7 +25,7 @@
 
 ### Fixed
 
-- **Native-concept lists:** Completed and aligned the inline native-concept lists in the validation rules, namespace resolution, and registry indexing references — they were missing `SearchResult`. All native-concept lists across the docs now share one canonical order (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `Page`, `JSON`, `SearchResult`, `Anything`).
+- **Native-concept lists:** Completed and aligned the inline native-concept lists in the validation rules, namespace resolution, and registry indexing references — they were missing `SearchResult`. All native-concept lists across the docs now share one canonical order (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Date`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`).
 
 ## [v0.7.0] - 2026-06-17
 
