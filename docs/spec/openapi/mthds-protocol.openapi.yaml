@@ -224,7 +224,8 @@ components:
       description: >
         POST /execute 200 — the completed run. Two base fields: the
         server-generated authoritative pipeline_run_id and the method's
-        pipe_output (always present — a completed run has output). Extension-open:
+        pipe_output (always present — a completed run has output, either a value
+        or an explicit absence document). Extension-open:
         anything more an implementation returns (a run state, timestamps, output
         naming) is an extension on top.
       additionalProperties: true

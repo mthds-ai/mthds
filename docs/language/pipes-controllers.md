@@ -42,14 +42,14 @@ Inline batching (`batch_over` / `batch_as`) allows iterating over a list within 
 
 ## PipeParallel
 
-Executes multiple pipes concurrently. Each branch operates independently.
+Executes multiple pipes concurrently. Each branch operates independently, then the branch results are combined into the pipe's declared `output`.
 
 ```toml
 [pipe.extract_documents]
 type        = "PipeParallel"
 description = "Extract text from both CV and job offer concurrently"
 inputs      = { cv_pdf = "Document", job_offer_pdf = "Document" }
-output      = "Page[]"
+output      = "Composite"
 add_each_output = true
 branches = [
     { pipe = "extract_cv", result = "cv_pages" },
@@ -57,17 +57,17 @@ branches = [
 ]
 ```
 
-**What this does:** Runs `extract_cv` and `extract_job_offer` at the same time. With `add_each_output = true`, each branch's output is individually stored in working memory under its `result` name.
+**What this does:** Runs `extract_cv` and `extract_job_offer` at the same time, then combines the two branch results into the main `Composite` output. With `add_each_output = true`, each branch's output is also stored individually in working memory under its `result` name.
 
 **Key fields:**
 
 | Field | Required | Description |
 |-------|----------|-------------|
 | `branches` | Yes | List of sub-pipe invocations to execute concurrently. |
-| `add_each_output` | No | If `true`, each branch's output is stored individually. Default: `false`. |
-| `combined_output` | No | Concept reference for a combined output that merges all branch results. |
+| `output` | Yes | Combined output concept. Must be `Composite` or a structured concept whose fields match branch `result` names. Multiplicity is not allowed. |
+| `add_each_output` | No | If `true`, each branch's output is also stored individually. Default: `false`. |
 
-At least one of `add_each_output` or `combined_output` must be set — otherwise the pipe produces no usable output.
+The combined `output` is always the pipe's main output. `add_each_output` is only for exposing branch outputs to downstream pipes by their individual `result` names.
 
 ## PipeCondition
 

@@ -229,11 +229,11 @@ Pipes are typed transformations. Each pipe has a typed signature: it declares wh
 
 ### Common Pipe Fields
 
-All pipe types share these base fields:
+Concrete pipe types share these base fields:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `type` | string | Yes | The pipe type. Determines which category and additional fields are available. |
+| `type` | string | Yes for concrete pipes | The pipe type. Determines which category and additional fields are available. Omitted only for contract-only `PipeSignature` declarations. |
 | `description` | string | Yes | Human-readable description of what this pipe does. |
 | `inputs` | table | No | Input declarations. Keys are input names (`snake_case`), values are concept references with optional multiplicity. |
 | `output` | string | Yes | The output concept reference with optional multiplicity. |
@@ -250,15 +250,23 @@ All pipe types share these base fields:
 
 **Concept references in inputs and output:**
 
-Concept references in `inputs` and `output` support an optional multiplicity suffix:
+Concept references in `inputs` and `output` support an optional multiplicity suffix and, for pipe declarations only, a presence marker:
 
 | Syntax | Meaning |
 |--------|---------|
 | `ConceptName` | A single instance. |
 | `ConceptName[]` | A variable-length list (runtime determines count). |
 | `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 1). |
+| `ConceptName?` | Optional single value. The slot may resolve as a recorded absence. |
+| `ConceptName!` | Forced single input. If the slot is absent at run time, the run fails loudly. Inputs only. |
 
 Concept references MAY be bare codes (`Text`), domain-qualified (`legal.ContractClause`), or cross-package qualified (`alias->domain.ConceptCode`).
+
+Presence markers have these constraints:
+
+- Markers apply only to pipe `inputs` and `output`, not concept definitions, `refines`, or structure fields.
+- Markers MUST NOT be combined with multiplicity. `Concept[]?`, `Concept[N]?`, `Concept[]!`, and `Concept[N]!` are invalid because plural slots use an empty list when no items are produced.
+- `!` MUST NOT appear on `output`. A force marker is an input-side assertion.
 
 **Example:**
 
@@ -296,6 +304,29 @@ MTHDS defines pipe types in two categories:
 | PipeParallel | `"PipeParallel"` | Executes pipes concurrently. |
 | PipeCondition | `"PipeCondition"` | Routes execution based on a condition. |
 | PipeBatch | `"PipeBatch"` | Maps a pipe over each item in a list. |
+
+### Contract-Only Pipe Signatures
+
+A `[pipe.<pipe_code>]` section with no `type` is a `PipeSignature` when it contains only contract fields:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `description` | string | Yes | Human-readable description of the intended pipe. |
+| `inputs` | table | No | Input declarations. |
+| `output` | string | Yes | Output concept reference. Multiplicity and `?` are supported. |
+| `signature_for` | string | No | Optional hint naming the concrete pipe type expected later, such as `"PipeLLM"`. |
+
+`PipeSignature` is not a pipe type value. Authors MUST NOT write `type = "PipeSignature"`. A typeless pipe section that contains implementation fields such as `prompt`, `steps`, `branches`, or `model` is invalid because concrete implementations must declare their `type`.
+
+**Example:**
+
+```toml
+[pipe.summarize_doc]
+description   = "Summarize a source document"
+inputs        = { document = "Document" }
+output        = "Text"
+signature_for = "PipeLLM"
+```
 
 ## Operator: PipeLLM
 
@@ -796,22 +827,24 @@ steps = [
 
 ## Controller: PipeParallel
 
-Executes multiple sub-pipes concurrently. Each branch operates independently.
+Executes multiple sub-pipes concurrently. Each branch operates independently, then the branch results are combined into the pipe's declared `output`.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `type` | `"PipeParallel"` | Yes | — |
 | `description` | string | Yes | — |
 | `inputs` | table | No | — |
-| `output` | string | Yes | — |
+| `output` | string | Yes | Combined output concept. MUST be `Composite` or a structured concept whose fields match branch `result` names. MUST NOT use multiplicity. |
 | `branches` | array of tables | Yes | List of sub-pipe invocations to execute concurrently. |
 | `add_each_output` | boolean | No | If `true`, each branch's output is individually added to working memory under its `result` name. Default: `false`. |
-| `combined_output` | string | No | Concept reference for a combined output that merges all branch results. |
 
 **Validation rules:**
 
-- At least one of `add_each_output` or `combined_output` MUST be set (otherwise the pipe produces no output).
-- `combined_output`, if present, MUST be a valid concept reference.
+- `branches` MUST contain at least one entry.
+- `output` MUST be `Composite` or a structured concept.
+- `output` MUST NOT use multiplicity brackets (`[]` or `[N]`).
+- For structured output, required fields MUST be produced by matching branch `result` names and branch output concepts MUST be compatible with the corresponding fields.
+- `add_each_output` controls only whether branch results are also exposed individually in working memory. It does not control the main output.
 - Each branch follows the same sub-pipe blueprint format as `PipeSequence` steps.
 
 **Example:**
@@ -821,7 +854,7 @@ Executes multiple sub-pipes concurrently. Each branch operates independently.
 type        = "PipeParallel"
 description = "Extract text from both CV and job offer concurrently"
 inputs      = { cv_pdf = "Document", job_offer_pdf = "Document" }
-output      = "Page[]"
+output      = "Composite"
 add_each_output = true
 branches = [
     { pipe = "extract_cv", result = "cv_pages" },
@@ -946,7 +979,6 @@ Concept references appear in:
 - `output`
 - `refines`
 - `concept_ref` and `item_concept_ref` in structure field blueprints
-- `combined_output` (PipeParallel)
 
 ## Complete Bundle Example
 
