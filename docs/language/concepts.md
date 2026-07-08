@@ -230,10 +230,13 @@ MTHDS provides a set of built-in concepts that are always available in every bun
 | `Html` | HTML content. |
 | `TextAndImages` | Combined text and image content. |
 | `Number` | A numeric value. |
+| `YesNo` | The answer to a yes/no question. |
+| `Date` | A calendar date, optionally with a time of day. |
 | `Page` | A single page extracted from a document. |
 | `JSON` | A JSON value. |
 | `SearchResult` | A web search result with answer and sources. |
 | `Anything` | Accepts any type. |
+| `Composite` | A named composition of contents. |
 
 Native concepts can be referenced by bare code (`Text`, `Image`) or by qualified reference (`native.Text`, `native.Image`). Bare native codes always take priority during name resolution.
 
@@ -251,6 +254,10 @@ The most commonly used native concepts have the following fields. These are the 
 
 **Number** — a single `number` field (integer or floating-point).
 
+**YesNo** — a single `yes_no` field (boolean). Renders as `yes` when true and `no` when false.
+
+**Date** — `date` (ISO 8601 calendar date), `time` (optional ISO 8601 time, with UTC offset when the source states one). A Date never uses numeric epoch input and never invents a midnight time.
+
 **TextAndImages** — `text` (the text content), `images` (a list of images associated with the text).
 
 **Page** — `text_and_images` (the extracted text and embedded images from the page), `page_view` (a screenshot or rendering of the entire page as an image).
@@ -258,6 +265,8 @@ The most commonly used native concepts have the following fields. These are the 
 **SearchResult** — `answer` (the synthesized answer text), `sources` (a list of source citations, each a Document with `title`, `url`, and `snippet`).
 
 **JSON** — a single `json_obj` field containing the JSON object.
+
+**Composite** — dynamically named component fields. PipeParallel uses this when branch results are combined without a bespoke structured output concept.
 
 ## See Also
 

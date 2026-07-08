@@ -214,10 +214,13 @@ Native concepts are built-in types that are always available in every bundle wit
 | `Html` | `native.Html` | HTML content. |
 | `TextAndImages` | `native.TextAndImages` | Combined text and image content. |
 | `Number` | `native.Number` | A numeric value. |
+| `YesNo` | `native.YesNo` | The answer to a yes/no question. |
+| `Date` | `native.Date` | A calendar date, optionally with a time of day. |
 | `Page` | `native.Page` | A single page extracted from a document. |
 | `JSON` | `native.JSON` | A JSON value. |
 | `SearchResult` | `native.SearchResult` | A web search result with answer and sources. |
 | `Anything` | `native.Anything` | Accepts any type. |
+| `Composite` | `native.Composite` | A named composition of contents. |
 
 Native concepts MAY be referenced by bare code (`Text`, `Image`) or by qualified reference (`native.Text`, `native.Image`). Bare native concept codes always take priority during resolution.
 
