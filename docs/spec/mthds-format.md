@@ -250,7 +250,7 @@ Concrete pipe types share these base fields:
 
 **Concept references in inputs and output:**
 
-Concept references in `inputs` and `output` support an optional multiplicity suffix and, for pipe contracts only, a presence marker:
+Concept references in `inputs` and `output` support an optional multiplicity suffix and, for pipe declarations only, a presence marker:
 
 | Syntax | Meaning |
 |--------|---------|

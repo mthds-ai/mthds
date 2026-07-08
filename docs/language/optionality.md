@@ -38,8 +38,8 @@ A completed pipe always resolves its declared output: either a value or a record
 
 Templates that reference optional inputs must guard those references. Valid guard forms include:
 
-- `@?note` shorthand, which renders the content only when present.
-- `{% if note %}...{% endif %}` blocks.
+- `@?note` shorthand in fields that run shorthand preprocessing: `PipeLLM.prompt`, `PipeLLM.system_prompt`, `PipeImgGen.prompt`, `PipeImgGen.negative_prompt`, `PipeSearch.prompt`, and `PipeCompose.template`. It renders content only when present.
+- Raw Jinja2 `{% if note %}...{% endif %}` blocks for Jinja2-rendered fields, including fields where shorthand preprocessing does not run.
 - Inline conditionals such as `{{ note.text if note else "" }}`.
 
 Unguarded optional references are validation errors.
@@ -64,4 +64,3 @@ Compliant runtimes should surface optionality problems with structured diagnosti
 | `optional_branch_required_field` | A maybe-absent `PipeParallel` branch feeds a required structured field. |
 
 Valid reports may also include `liftable_pipes`, listing pipes that may be skipped at run time, and advisory `warnings` such as redundant force markers.
-

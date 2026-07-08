@@ -44,7 +44,7 @@ For each field in a concept's `structure`:
 
 ## Stage 4: Pipe Type-Specific Validation
 
-Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section is valid only when it is a contract-only signature containing `description`, optional `inputs`, required `output`, optional `signature_for`, and no implementation fields.
+Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section is valid only when it is a contract-only signature containing `description`, optional `inputs`, required `output`, optional `signature_for` (when present, one of the concrete `PipeType` values), and no implementation fields.
 
 **PipeLLM:**
 
