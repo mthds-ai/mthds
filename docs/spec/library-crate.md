@@ -94,7 +94,9 @@ After this step, no bare, same-domain-implicit, or `->`-qualified reference rema
 
 ### 3. Flatten Refinement
 
-Concept refinement (`refines`) is flattened into effective structures. A refining concept's normalized structure is its **complete effective field set** — the fields inherited from its refinement base(s) together with its own — so a consumer never has to walk a refinement chain to know a concept's full shape. The `refines` linkage MAY be retained for provenance, but the materialized structure MUST be sufficient on its own.
+Concept refinement (`refines`) over an **in-crate structured base** is flattened into effective structures. A refining concept's normalized structure is its **complete effective field set** — the fields inherited from its refinement base(s) together with its own — so a consumer never has to walk a refinement chain to know a concept's full shape. The `refines` linkage MAY be retained for provenance, but the materialized structure MUST be sufficient on its own.
+
+A concept whose refinement chain bottoms out at a **native** is the exception: it retains its `refines: native.<Code>` link rather than inlining the native's fields. The native is materialized into the crate as its own `native.<Code>` concept by [step 4](#4-expand-native-concepts), so the base is already resolvable in-crate without chain-walking — and keeping the link (rather than flattening) is what preserves the native's identity, so a consumer projecting the concept renders it as extending the native (e.g. a `Text`-refining concept remains a text type) instead of a bare structure that has lost its native base. Sufficiency is satisfied either way: the base is present in the crate.
 
 ### 4. Expand Native Concepts
 
