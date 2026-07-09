@@ -13,6 +13,10 @@ A crate exists in one of two forms:
 
 The normalized library crate is not a new format. It is MTHDS content — the same blueprint model every validator, runner, and loader already operates on — carrying a guarantee: **closed** (needs nothing outside itself), **canonical** (byte-reproducible), and **valid** (built only from a library that passed validation). That guarantee is what lets a consumer with only a JSON or TOML parser emit correct types, render a correct form, or register a correct tool — with no MTHDS frontend, no namespace resolver, and no hardcoded knowledge of native concepts.
 
+## Specification Status
+
+This document specifies the **target** normal form and its guarantees. A reference implementation assembles a flat, qualified, fingerprinted multi-bundle snapshot today (the seed of this artifact), but does **not** yet apply the full [normalization pass](#normalization-pass) (in-body reference qualification, refinement flattening, native materialization, defaults/multiplicity, string-concept promotion), emit the [TOML encoding](#toml), or compute the fingerprint over the [full scope](#scope) defined here. Where a section below describes behavior a reference implementation has not yet realized, it is the **forward contract** that implementation is brought into conformance with — the same convention [METHODS.toml Manifest Format](./manifest-format.md#the-dependencies-section) uses to spec the not-yet-implemented `[dependencies]` section. Conformance is asserted against this document as each piece lands.
+
 ## The Three Units: Bundle, Library, Pipe
 
 MTHDS methods are deliberately *not* one-file-one-method. A pipe's sub-pipes and the concepts it references are spread across sibling bundles, and cross-package references pull in whole other methods. A single bundle is therefore not self-contained and is the wrong unit to resolve. The standard distinguishes three units precisely:
@@ -36,7 +40,12 @@ The library closure is assembled from two sources:
 
 A compliant implementation discovers the local method cache by walking up from each working bundle's directory toward the filesystem root, collecting every `.mthds/methods/` directory it finds (the same ancestor-walk used for manifest discovery in [METHODS.toml Manifest Format](./manifest-format.md#manifest-discovery)). Cross-package references (`alias->domain_path.name`) resolve against the cached dependency identified by the alias, following [Namespace Resolution Rules](./namespace-resolution.md#resolution-of-package-qualified-references).
 
-> **Physical resolution is a local cache.** A cross-package reference's *logical identity* is its package address (e.g. `github.com/Pipelex/methods/documents`); its *physical resolution* in scope for this specification is the vendored copy under `.mthds/methods/<name>/`. Populating that cache from a remote address over the network (VCS fetch, lock-pinned SHAs) is a separate, deferred concern that slots in *before* closure assembly — see [Package Loading: VCS Fetching](../implementers/package-loading.md#vcs-fetching). Nothing in this specification depends on how the cache was populated; resolution reads from disk and is fully deterministic.
+> **Two caches, one deterministic read.** There are two distinct dependency caches, and closure assembly reads only the first:
+>
+> - the **project-local method cache** — `.mthds/methods/<name>/`, keyed by dependency name, vendored inside the consuming project and discovered by the ancestor-walk above. This is the cache closure assembly resolves against.
+> - the **global VCS cache** — `~/.mthds/packages/{address}/{version}/`, keyed by address and resolved version, described in [Namespace Resolution: Cache Layout](./namespace-resolution.md#cache-layout) and [Package Loading: VCS Fetching](../implementers/package-loading.md#vcs-fetching).
+>
+> A cross-package reference's *logical identity* is its package address (e.g. `github.com/Pipelex/methods/documents`); its *physical resolution* in scope for this specification is the vendored copy in the project-local cache. Populating that cache from a remote address over the network — fetching into the global VCS cache and materializing it project-local, lock-pinned to a SHA — is a separate, deferred concern that slots in *before* closure assembly. Nothing in this specification depends on how the project-local cache was populated; resolution reads from disk and is fully deterministic.
 
 The closure is the transitive union of the working bundles and every dependency bundle reachable through cross-package references, indexed by domain and package exactly as described in [Package Loading: Library Assembly](../implementers/package-loading.md#library-assembly). Namespace isolation between packages is preserved during assembly; the normalization pass below flattens the result into a single qualified keyspace.
 
@@ -46,7 +55,8 @@ A normalized library crate is an object with the following members. The same log
 
 | Member | Type | Required | Description |
 |--------|------|----------|-------------|
-| `concepts` | map of qualified concept ref → concept object | Yes | Every concept in the closure, keyed by fully-qualified `concept_ref` (`domain_path.ConceptCode`). |
+| `mthds_version` | string | Yes | The MTHDS standard version the crate was normalized against, so native expansion (below) is self-describing. |
+| `concepts` | map of qualified concept ref → concept object | Yes | Every concept in the closure, keyed by fully-qualified `concept_ref` (`domain_path.ConceptCode`). Includes materialized `native.<Code>` entries for every native concept referenced (see [step 4](#4-expand-native-concepts)). |
 | `pipes` | map of qualified pipe ref → pipe object | Yes | Every pipe in the closure, keyed by fully-qualified `pipe_ref` (`domain_path.pipe_code`). |
 | `domains` | map of domain code → domain object | Yes | Domain metadata (`description`, `system_prompt`, `main_pipe`) keyed by domain code. |
 | `source_map` | map of qualified ref → source path | No | Provenance: `concept_ref` or `pipe_ref` → the source file it came from, for error tracing. Excluded from the fingerprint. |
@@ -54,6 +64,7 @@ A normalized library crate is an object with the following members. The same log
 
 - Domain is encoded in the **keys**, not in a structural container: `scoring.WeightedScore`, `scoring.compute_score`. There is no per-domain nesting of concepts or pipes.
 - Concept and pipe objects are the standard blueprint shapes defined by the published MTHDS schema (`mthds_schema.json`) — a normalized crate contains no members outside that model.
+- **Provenance is dual and both parts are non-semantic.** The top-level `source_map` is the primary trace. Additionally, a concept, pipe, or domain object MAY carry an inline `source` field (from the blueprint model). Both are provenance — an inline `source` and its `source_map` entry name the same origin file — and **both are excluded from the fingerprint** (see [Fingerprint](#fingerprint)).
 
 ## Normalization Pass
 
@@ -63,7 +74,9 @@ Normalization is defined **only over a valid library** — a library that has pa
 
 ### 1. Merge
 
-All bundles in the closure are merged into a single flat namespace. Each concept and pipe is keyed by its fully-qualified reference. Within a package, same-domain bundles merge into one namespace; across packages, references are rewritten to canonical qualified refs (below), so the merged keyspace is global and collision-free. Domain metadata for a given domain code is merged deterministically and order-independently (an omitted field defers to whichever same-domain bundle declared it).
+All bundles in the closure are merged into a single flat namespace. Each concept and pipe is keyed by its fully-qualified reference. Within a package, same-domain bundles merge into one namespace; across packages, references are rewritten to canonical qualified refs (below), so the merged keyspace is global and collision-free.
+
+Domain metadata for a given domain code is merged per field with two rules: an **omitted** field defers to whichever same-domain bundle declared it (order-independent — the outcome does not depend on load order); a genuine **conflict** (two bundles declare different non-empty values for the same field) resolves to the established (first-declared) value and a warning is emitted. Duplicate concept or pipe refs across the closure are collisions, not merges, and are rejected per [Namespace Resolution: Conflict Rules](./namespace-resolution.md#conflict-rules).
 
 ### 2. Fully Qualify Every Reference
 
@@ -85,7 +98,7 @@ Concept refinement (`refines`) is flattened into effective structures. A refinin
 
 ### 4. Expand Native Concepts
 
-References to native concepts (`Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Date`, `Page`, `JSON`, `SearchResult`, `Dynamic`, `Anything`, `Composite`) are expanded to their canonical `native.<Code>` qualified form, and the crate is self-describing about them: their structural definition is **pinned to the MTHDS spec version** the crate was produced against, so a consumer needs no hardcoded native-concept table. A consumer that understands the crate's declared spec version can resolve every native reference from the crate alone.
+References to native concepts (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Date`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`) are rewritten to their canonical `native.<Code>` qualified form, and for every native concept a crate references, its structural definition is **materialized into `concepts`** as a `native.<Code>` entry — the same concept-object shape as any other concept. A consumer therefore needs no hardcoded native-concept table: every native a crate uses is present in the crate itself. The `mthds_version` member records the standard version those materialized definitions correspond to, so a consumer can confirm it understands them; it is a version stamp, not a lookup key the consumer must resolve externally.
 
 ### 5. Materialize Defaults and Multiplicity
 
@@ -107,15 +120,15 @@ Every normalized library crate carries a deterministic `fingerprint`: the lowerc
 The fingerprint is computed over exactly three members: `concepts`, `pipes`, and `domains`.
 
 - Each domain contributes its `code`, `description`, `system_prompt`, and `main_pipe`. `system_prompt` and `main_pipe` affect execution semantics and the default runnable entry point; `description` surfaces in generated documentation — all three are meaning.
-- The top-level `source_map` and any per-object source path are **excluded**: they are provenance (file locations), not meaning, and hashing them would make the fingerprint unstable under relocation.
+- The top-level `source_map`, any per-object `source`, and the `mthds_version` stamp are **excluded**: the first two are provenance (file locations) that would make the fingerprint unstable under relocation, and the version's semantic effect is already captured in the materialized native definitions inside `concepts` (a version that changes a native's shape changes that hashed concept; a pure version bump that changes nothing does not change the digest).
 - The `fingerprint` member itself is excluded (it cannot hash itself).
 
 ### Canonicalization
 
 To make independent implementations byte-agree on the digest, the hashed payload MUST be canonicalized as follows:
 
-1. Build a payload object `{ "concepts": …, "pipes": …, "domains": … }` where each member is the corresponding map with its per-object provenance (`source`) removed.
-2. Serialize the payload as JSON with keys **sorted lexicographically** at every level, ASCII-only output (non-ASCII escaped), and no insignificant whitespace.
+1. Build a payload object `{ "concepts": …, "pipes": …, "domains": … }` where each member is the corresponding map with its per-object `source` removed.
+2. Serialize the payload as JSON per **RFC 8785 (JSON Canonicalization Scheme, JCS)**, which fully fixes the byte form: keys sorted lexicographically at every level, no whitespace between tokens (a `,` and `:` with no surrounding space), minimal string escaping with non-ASCII emitted as literal UTF-8, and numbers in the JCS canonical number form. Deferring to JCS verbatim is what guarantees two independent producers emit byte-identical output for identical content.
 3. Encode the serialized string as UTF-8 and compute its SHA-256 digest.
 4. Format the digest as a 64-character lowercase hexadecimal string.
 
@@ -131,7 +144,9 @@ The machine-native encoding, keyed to the published MTHDS schema (`mthds_schema.
 
 ### TOML
 
-The human-diffable encoding. A crate serialized as TOML is a valid TOML document that is **directly runnable** — it can be fed back to a validator or runner as a bundle set and behaves identically to the authored bundles it was resolved from. TOML is the encoding to commit for review, because a semantic diff of two crates reads cleanly.
+The human-diffable encoding, meant to be committed so that a semantic diff of two crates reads cleanly. A crate serialized as TOML is a valid TOML document that a validator or runner can load directly as a bundle set — a normalized crate is a distinct document shape from an authored bundle (one flat, fully-qualified, multi-domain document versus one `domain`-headed file per bundle), so "loadable as a bundle set" requires the loader to accept the crate's flat qualified keyspace; that loader accommodation is part of realizing this encoding, not an authored-bundle equivalence.
+
+Because crate keys are dotted qualified refs (`scoring.WeightedScore`), each key **MUST be quoted** as a single TOML key (`["concepts"."scoring.WeightedScore"]`), never written as an unquoted dotted path (which TOML would parse as nested tables) — the same rule [methods.lock Format](./lock-format.md#structure) applies to its dotted package-address keys.
 
 ### Canonical Serialization
 
@@ -139,6 +154,7 @@ For a given encoding, a compliant producer MUST emit crates deterministically so
 
 - map entries (`concepts`, `pipes`, `domains`, `source_map`) sorted by key;
 - object members emitted in a fixed, schema-defined order;
+- dotted qualified refs quoted as single keys (see [TOML](#toml) above);
 - no encoding-specific ambiguity (e.g. consistent string quoting, no trailing insignificant whitespace).
 
 The `fingerprint` is a property of the *logical* crate (computed via the JSON canonicalization above), not of a particular encoding's bytes, so both encodings of one crate carry the same fingerprint.
