@@ -104,6 +104,7 @@ plugins:
         - spec/mthds-format.md: ".mthds File Format"
         - spec/manifest-format.md: "METHODS.toml Format"
         - spec/lock-format.md: "methods.lock Format"
+        - spec/library-crate.md: "Library Crate Format"
         - spec/namespace-resolution.md: "Namespace Resolution Rules"
         - spec/cli-io-contract.md: "CLI I/O Contract"
         - spec/protocol.md: "HTTP Runner Protocol"
@@ -196,6 +197,7 @@ nav:
       - .mthds File Format: spec/mthds-format.md
       - METHODS.toml Format: spec/manifest-format.md
       - methods.lock Format: spec/lock-format.md
+      - Library Crate Format: spec/library-crate.md
       - Namespace Resolution Rules: spec/namespace-resolution.md
       - CLI I/O Contract: spec/cli-io-contract.md
       - HTTP Runner Protocol: spec/protocol.md

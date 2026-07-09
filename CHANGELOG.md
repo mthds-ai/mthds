@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Library Crate Format:** New specification (`spec/library-crate.md`) for the normalized library crate — the flat, fully-qualified, self-contained, fingerprinted snapshot a library resolves into. Covers the three units (bundle / library / pipe) and the resolution rule, closure assembly from working bundles plus the local method cache, the normalization pass (merge, fully qualify every reference, flatten refinement, expand and version-pin natives, materialize defaults and multiplicity, promote string-described concepts, built only from a valid library), the semantic-hash fingerprint definition, the JSON and TOML encodings, and the sufficiency guarantee.
 - **Optionality in the language:** Documented first-class `?` / `!` presence markers, recorded absences, liftable pipes, guarded template requirements, and optionality validation diagnostics.
 - **Native concepts `YesNo` and `Date`:** Documented first-class yes/no and date outputs, including their content fields and native concept references.
 
