@@ -116,7 +116,9 @@ Each field in a concept's `structure` is defined by a field blueprint. The `type
 | `integer` | A whole number. | `42` |
 | `number` | A numeric value (integer or floating-point). | `3.14` |
 | `boolean` | A true/false value. | `true` |
-| `date` | A date value. | *(datetime)* |
+| `date` | A calendar date value. | *(datetime)* |
+| `datetime` | A date with a time of day (a point in time). | *(datetime)* |
+| `time` | A time of day, optionally with a UTC offset. | *(time)* |
 | `list` | An ordered collection. Use `item_type` to specify element type. | `["a", "b"]` |
 | `dict` | A key-value mapping. Requires `key_type` and `value_type`. | *(table)* |
 | `concept` | A reference to another concept. Requires `concept_ref`. Cannot have a `default_value`. | *(not allowed)* |
@@ -232,6 +234,7 @@ MTHDS provides a set of built-in concepts that are always available in every bun
 | `Number` | A numeric value. |
 | `YesNo` | The answer to a yes/no question. |
 | `Date` | A calendar date, optionally with a time of day. |
+| `Time` | A time of day, optionally with a UTC offset. |
 | `Page` | A single page extracted from a document. |
 | `JSON` | A JSON value. |
 | `SearchResult` | A web search result with answer and sources. |
@@ -248,7 +251,7 @@ The most commonly used native concepts have the following fields. These are the 
 
 **Text** — a single `text` field containing the string value.
 
-**Image** — `url` (location of the image), `source_prompt` (the prompt used to generate it, if applicable), `caption` (descriptive text), `base_64` (base64-encoded image data, alternative to URL).
+**Image** — `url` (location of the image: a storage URI, an HTTP(S) URL, or a base64 data URL), `source_prompt` (the prompt used to generate it, if applicable), `caption` (descriptive text), `width` / `height` (pixel dimensions, present together or not at all).
 
 **Document** — `url` (location of the document file or web page), `mime_type` (e.g., `"application/pdf"`), `title` (optional display name), `snippet` (optional text excerpt).
 
@@ -257,6 +260,8 @@ The most commonly used native concepts have the following fields. These are the 
 **YesNo** — a single `yes_no` field (boolean). Renders as `yes` when true and `no` when false.
 
 **Date** — `date` (ISO 8601 calendar date), `time` (optional ISO 8601 time, with UTC offset when the source states one). A Date never uses numeric epoch input and never invents a midnight time.
+
+**Time** — a single `time` field (ISO 8601 time of day, with UTC offset when the source states one).
 
 **TextAndImages** — `text` (the text content), `images` (a list of images associated with the text).
 
@@ -273,3 +278,4 @@ The most commonly used native concepts have the following fields. These are the 
 - [Specification: Concept Definitions](../spec/mthds-format.md#concept-definitions) — normative reference for all concept fields and validation rules.
 - [Pipes — Operators](pipes-operators.md) — how concepts are used as pipe inputs and outputs.
 - [Native Concepts table](../spec/mthds-format.md#native-concepts) — full list with qualified references.
+- [Native Concept Definitions](../spec/native-concepts.md) — the version-pinned normative blueprint form of every native concept.

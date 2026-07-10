@@ -165,7 +165,9 @@ The `type` field accepts the following values:
 | `integer` | A whole number. | `integer` |
 | `number` | A numeric value (integer or floating-point). | `integer` or `float` |
 | `boolean` | A true/false value. | `boolean` |
-| `date` | A date value. | `datetime` |
+| `date` | A calendar date value. | `datetime` |
+| `datetime` | A date with a time of day (a point in time). | `datetime` |
+| `time` | A time of day, optionally with a UTC offset. | `time` |
 | `list` | An ordered collection. Use `item_type` to specify element type. | `array` |
 | `dict` | A key-value mapping. Requires `key_type` and `value_type`. | `table` |
 | `concept` | A reference to another concept. Requires `concept_ref`. Cannot have `default_value`. | *(not allowed)* |
@@ -216,6 +218,7 @@ Native concepts are built-in types that are always available in every bundle wit
 | `Number` | `native.Number` | A numeric value. |
 | `YesNo` | `native.YesNo` | The answer to a yes/no question. |
 | `Date` | `native.Date` | A calendar date, optionally with a time of day. |
+| `Time` | `native.Time` | A time of day, optionally with a UTC offset. |
 | `Page` | `native.Page` | A single page extracted from a document. |
 | `JSON` | `native.JSON` | A JSON value. |
 | `SearchResult` | `native.SearchResult` | A web search result with answer and sources. |
@@ -225,6 +228,8 @@ Native concepts are built-in types that are always available in every bundle wit
 Native concepts MAY be referenced by bare code (`Text`, `Image`) or by qualified reference (`native.Text`, `native.Image`). Bare native concept codes always take priority during resolution.
 
 A bundle MUST NOT declare a concept with the same code as a native concept. A compliant implementation MUST reject such declarations.
+
+Each native concept's exact blueprint form — its fields, their types, and their descriptions — is pinned per standard version in [Native Concept Definitions](./native-concepts.md). Implementations MUST use the pinned definitions verbatim (no reflection over internal runtime types) wherever a native's structural definition is needed, such as [library crate materialization](./library-crate.md#4-expand-native-concepts).
 
 ## Pipe Definitions
 

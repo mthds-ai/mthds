@@ -102,6 +102,7 @@ plugins:
         - packages/registry-distribution.md: "Registry Distribution Protocol"
         Reference:
         - spec/mthds-format.md: ".mthds File Format"
+        - spec/native-concepts.md: "Native Concept Definitions"
         - spec/manifest-format.md: "METHODS.toml Format"
         - spec/lock-format.md: "methods.lock Format"
         - spec/library-crate.md: "Library Crate Format"
@@ -195,6 +196,7 @@ nav:
   - Reference:
     - Specification:
       - .mthds File Format: spec/mthds-format.md
+      - Native Concept Definitions: spec/native-concepts.md
       - METHODS.toml Format: spec/manifest-format.md
       - methods.lock Format: spec/lock-format.md
       - Library Crate Format: spec/library-crate.md
