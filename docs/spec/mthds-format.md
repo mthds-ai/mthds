@@ -177,6 +177,7 @@ When `type` is omitted and `choices` is provided, the field is an enumeration fi
 **Validation rules for field types:**
 
 - `type = "dict"`: `key_type` and `value_type` MUST both be non-empty.
+- `value_type = "Any"` is a **reserved marker** declaring the dict's value type unspecified: the values are arbitrary, and a consumer surfaces the field as declared imprecision (e.g. `dict[str, Any]` with a caveat), never as a guessed value shape. It appears primarily in materialized [native concept definitions](./native-concepts.md); authors SHOULD declare a concrete value type instead.
 - `type = "concept"`: `concept_ref` MUST be set. `default_value` MUST NOT be set.
 - `type = "list"` with `item_type = "concept"`: `item_concept_ref` MUST be set.
 - `item_concept_ref` MUST NOT be set unless `item_type = "concept"`.

@@ -117,7 +117,7 @@ A compliant runtime validates the output of every pipe against the declared outp
 **Recommended approach:**
 
 1. After a pipe produces output, resolve the output concept's definition (including its `structure` fields if any).
-2. Validate the produced data against the concept's type and field constraints — required fields, field types (`text`, `integer`, `boolean`, `list`, `dict`, `number`, `date`, `concept`), and any `choices` enums.
+2. Validate the produced data against the concept's type and field constraints — required fields, field types (`text`, `integer`, `boolean`, `list`, `dict`, `number`, `date`, `datetime`, `time`, `concept`), and any `choices` enums.
 3. If validation fails, report the error with the pipe code and step index, and halt execution of the current pipeline.
 
 Validation libraries such as Pydantic (Python) or Zod (TypeScript) are natural fits for implementing these checks. Beyond mapping MTHDS concept structures to schema definitions, these libraries also support custom validation logic — expressed in Python or TypeScript — that goes beyond what the MTHDS standard defines.

@@ -15,7 +15,7 @@ Two consequences follow:
 
 ## Reading the Definitions
 
-Each definition is written in authored TOML form. In a crate, the same definition appears as the JSON concept object keyed `native.<Code>`: the `description`, and the `structure` table with one field blueprint per field, exactly as pinned — field order preserved, `required` explicit only where `true` (the default is `false`).
+Each definition is written in authored TOML form. In a crate, the same definition appears as the JSON concept object keyed `native.<Code>`: the `description`, and the `structure` table with one field blueprint per field, exactly as pinned — field order preserved, `required` explicit only where `true` (the default is `false`). Materialized natives carry no `source` field: they originate from this page, not from a file in the closure. The preserved field order governs the crate's *emitted encodings*; the [fingerprint](./library-crate.md#fingerprint) is computed separately over the canonicalized (key-sorted) hash payload, per the crate spec's canonicalization rules.
 
 Three natives are **structureless by design**: their shape is intentionally open, so they carry a `description` and no `structure`. A consumer treats them per the [sufficiency guarantee](./library-crate.md#sufficiency-guarantee): surface the openness (an opaque, pass-through type), never invent a shape.
 
