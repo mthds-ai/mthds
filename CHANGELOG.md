@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Updated the bundled MTHDS JSON Schema to pipelex v0.41.0.** The schema is generated from the pipelex blueprint models and gitignored there, so drift never shows up in a PR — this copy had fallen behind. Concept structure field types gain `datetime` and `time`: a `.mthds` declaring either was **valid at runtime but rejected by this copy**, which is the user-visible half of the drift. Copied from the released `pipelex` v0.41.0 tree rather than fetched via `make update-schema`, because the release chain it pulls from (S3 `mthds_schema_latest.json` → `mthds.ai`) is still serving **v0.27.0** — the refresh target would have pulled a schema fourteen releases older than what was already committed here. Republishing that object is a separate manual, outward-facing step and is not done here.
+
 ### Added
 
 - **Native Concept Definitions (breaking):** New specification (`spec/native-concepts.md`) pinning the normative blueprint form of every native concept per standard version — fields, types, and descriptions are now standard-owned and version-pinned. Implementations MUST materialize natives by lookup into the pinned set, never by reflection over their own runtime types; this is what makes library-crate fingerprints byte-agree across implementations. Breaking definition changes carried by the pinned set: `native.Image` flattens its nested size object into paired optional `width`/`height` integer fields, and `native.Date` declares real structure (`date` required, `time` optional) instead of being structureless.
