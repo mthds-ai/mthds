@@ -322,6 +322,8 @@
         "boolean",
         "number",
         "date",
+        "datetime",
+        "time",
         "concept"
       ],
       "title": "ConceptStructureBlueprintFieldType",
@@ -2116,7 +2118,7 @@
     }
   },
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$comment": "Generated from PipelexBundleBlueprint v0.38.0. Do not edit manually.",
+  "$comment": "Generated from PipelexBundleBlueprint v0.41.0. Do not edit manually.",
   "x-taplo": {
     "initKeys": [
       "domain"
