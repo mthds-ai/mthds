@@ -2,10 +2,6 @@
 
 ## [Unreleased]
 
-### Changed
-
-- **Updated the bundled MTHDS JSON Schema to pipelex v0.41.0.** The schema is generated from the pipelex blueprint models and gitignored there, so drift never shows up in a PR — this copy had fallen behind. Concept structure field types gain `datetime` and `time`: a `.mthds` declaring either was **valid at runtime but rejected by this copy**, which is the user-visible half of the drift. Copied from the released `pipelex` v0.41.0 tree rather than fetched via `make update-schema`, because the release chain it pulls from (S3 `mthds_schema_latest.json` → `mthds.ai`) is still serving **v0.27.0** — the refresh target would have pulled a schema fourteen releases older than what was already committed here. Republishing that object is a separate manual, outward-facing step and is not done here.
-
 ### Added
 
 - **Native Concept Definitions (breaking):** New specification (`spec/native-concepts.md`) pinning the normative blueprint form of every native concept per standard version — fields, types, and descriptions are now standard-owned and version-pinned. Implementations MUST materialize natives by lookup into the pinned set, never by reflection over their own runtime types; this is what makes library-crate fingerprints byte-agree across implementations. Breaking definition changes carried by the pinned set: `native.Image` flattens its nested size object into paired optional `width`/`height` integer fields, and `native.Date` declares real structure (`date` required, `time` optional) instead of being structureless.
@@ -20,7 +16,7 @@
 - **Library crate native materialization:** Normalization step 4 is re-pointed from implementation-derived structural definitions to a verbatim copy of the pinned Native Concept Definitions for the crate's `mthds_version` — materialization is a lookup, not a computation. The specification-status callout now reflects the reference implementation's current conformance (steps 1–4 and 6, both encodings, full-scope fingerprint), leaving defaults/multiplicity materialization and cross-package fold-in as the remaining forward contract.
 - **PipeSignature authoring:** Contract-only pipe signatures now omit `type`; `type = "PipeSignature"` is no longer author-facing syntax.
 - **PipeParallel output model:** `PipeParallel` now always combines branch results into its declared `output`, which must be `Composite` or a structured concept matching branch `result` names. The old `combined_output` field is removed; `add_each_output` only exposes branch outputs individually.
-- **Bundled MTHDS schema:** Updated the committed schema to pipelex `v0.38.0`, including `PipeSignatureBlueprint`, `PipeType`, image-size schema additions, nullable `ImgGenSetting.is_moderated`, required concrete pipe type tags, and removal of `PipeParallelBlueprint.combined_output`.
+- **Bundled MTHDS schema:** Updated the committed schema to pipelex `v0.41.0`, including `PipeSignatureBlueprint`, `PipeType`, image-size schema additions, nullable `ImgGenSetting.is_moderated`, required concrete pipe type tags, removal of `PipeParallelBlueprint.combined_output`, and the `datetime` and `time` concept structure field types. The schema is generated from the pipelex blueprint models and gitignored there, so drift never shows up in a PR — this copy had fallen behind. The temporal field types are the user-visible half: a `.mthds` declaring `datetime` or `time` was **valid at runtime but rejected by this copy**. Copied from the released `pipelex` v0.41.0 tree rather than fetched via `make update-schema`, because the release chain it pulls from (S3 `mthds_schema_latest.json` → `mthds.ai`) is still serving **v0.27.0** — the refresh target would have pulled a schema fourteen releases older than what was already committed here. Republishing that object is a separate manual, outward-facing step and is not done here.
 
 ## [v0.8.0] - 2026-06-22
 

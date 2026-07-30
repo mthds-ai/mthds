@@ -197,6 +197,8 @@ years_experience = { type = "integer", description = "Years of professional expe
 gpa              = { type = "number", description = "Grade point average" }
 is_active        = { type = "boolean", description = "Whether actively looking", default_value = true }
 graduation_date  = { type = "date", description = "Date of graduation" }
+last_seen_at     = { type = "datetime", description = "Last activity timestamp" }
+preferred_slot   = { type = "time", description = "Preferred interview time of day" }
 skills           = { type = "list", item_type = "text", description = "List of skills" }
 metadata         = { type = "dict", key_type = "text", value_type = "text", description = "Additional metadata" }
 seniority_level  = { description = "Seniority level", choices = ["junior", "mid", "senior", "lead"] }
