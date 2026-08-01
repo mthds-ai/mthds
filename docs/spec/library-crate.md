@@ -45,7 +45,7 @@ A compliant implementation discovers the local method cache by walking up from e
 > - the **project-local method cache** — `.mthds/methods/<name>/`, keyed by dependency name, vendored inside the consuming project and discovered by the ancestor-walk above. This is the cache closure assembly resolves against.
 > - the **global VCS cache** — `~/.mthds/packages/{address}/{version}/`, keyed by address and resolved version, described in [Namespace Resolution: Cache Layout](./namespace-resolution.md#cache-layout) and [Package Loading: VCS Fetching](../implementers/package-loading.md#vcs-fetching).
 >
-> A cross-package reference's *logical identity* is its package address (e.g. `github.com/Pipelex/methods/documents`); its *physical resolution* in scope for this specification is the vendored copy in the project-local cache. Populating that cache from a remote address over the network — fetching into the global VCS cache and materializing it project-local, lock-pinned to a SHA — is a separate, deferred concern that slots in *before* closure assembly. Nothing in this specification depends on how the project-local cache was populated; resolution reads from disk and is fully deterministic.
+> A cross-package reference's *logical identity* is its package address (e.g. `github.com/mthds/document-processing`); its *physical resolution* in scope for this specification is the vendored copy in the project-local cache. Populating that cache from a remote address over the network — fetching into the global VCS cache and materializing it project-local, lock-pinned to a SHA — is a separate, deferred concern that slots in *before* closure assembly. Nothing in this specification depends on how the project-local cache was populated; resolution reads from disk and is fully deterministic.
 
 The closure is the transitive union of the working bundles and every dependency bundle reachable through cross-package references, indexed by domain and package exactly as described in [Package Loading: Library Assembly](../implementers/package-loading.md#library-assembly). Namespace isolation between packages is preserved during assembly; the normalization pass below flattens the result into a single qualified keyspace.
 
@@ -56,14 +56,14 @@ A normalized library crate is an object with the following members. The same log
 | Member | Type | Required | Description |
 |--------|------|----------|-------------|
 | `mthds_version` | string | Yes | The MTHDS standard version the crate was normalized against, so native expansion (below) is self-describing. |
-| `concepts` | map of qualified concept ref → concept object | Yes | Every concept in the closure, keyed by fully-qualified `concept_ref` (`domain_path.ConceptCode`). Includes materialized `native.<Code>` entries for every native concept referenced (see [step 4](#4-expand-native-concepts)). |
+| `concepts` | map of qualified concept ref → concept object | Yes | Every concept in the closure, keyed by fully-qualified `concept_ref` (`domain_path.ConceptCode`). Includes materialized `native.<Code>` entries for every native concept referenced, and for every native those pinned definitions themselves reference (see [step 4](#4-expand-native-concepts)). |
 | `pipes` | map of qualified pipe ref → pipe object | Yes | Every pipe in the closure, keyed by fully-qualified `pipe_ref` (`domain_path.pipe_code`). |
 | `domains` | map of domain code → domain object | Yes | Domain metadata (`description`, `system_prompt`, `main_pipe`) keyed by domain code. |
 | `source_map` | map of qualified ref → source path | No | Provenance: `concept_ref` or `pipe_ref` → the source file it came from, for error tracing. Excluded from the fingerprint. |
 | `fingerprint` | string | Yes | Lowercase SHA-256 hex digest of the normalized content (see [Fingerprint](#fingerprint)). |
 
 - Domain is encoded in the **keys**, not in a structural container: `scoring.WeightedScore`, `scoring.compute_score`. There is no per-domain nesting of concepts or pipes.
-- Concept and pipe objects are the standard blueprint shapes defined by the published MTHDS schema (`mthds_schema.json`) — a normalized crate contains no members outside that model.
+- Concept and pipe objects are the standard blueprint shapes defined by the published MTHDS schema (`mthds_schema.json`) — a normalized crate's concept and pipe objects contain no members outside that blueprint model. The schema describes an authored `.mthds` *file*, not a crate: the crate envelope above (`mthds_version`, `concepts`, `pipes`, `domains`, `source_map`, `fingerprint`) is defined by this section, and a crate document is not itself an instance of that schema.
 - **Provenance is dual and both parts are non-semantic.** The top-level `source_map` is the primary trace. Additionally, a concept, pipe, or domain object MAY carry an inline `source` field (from the blueprint model). Both are provenance — an inline `source` and its `source_map` entry name the same origin file — and **both are excluded from the fingerprint** (see [Fingerprint](#fingerprint)).
 
 ## Normalization Pass
@@ -74,9 +74,11 @@ Normalization is defined **only over a valid library** — a library that has pa
 
 ### 1. Merge
 
-All bundles in the closure are merged into a single flat namespace. Each concept and pipe is keyed by its fully-qualified reference. Within a package, same-domain bundles merge into one namespace; across packages, references are rewritten to canonical qualified refs (below), so the merged keyspace is global and collision-free.
+All bundles in the closure are merged into a single flat namespace. Each concept and pipe is keyed by its fully-qualified reference. Within a package, same-domain bundles merge into one namespace.
 
-Domain metadata for a given domain code is merged per field with two rules: an **omitted** field defers to whichever same-domain bundle declared it (order-independent — the outcome does not depend on load order); a genuine **conflict** (two bundles declare different non-empty values for the same field) resolves to the established (first-declared) value and a warning is emitted. Duplicate concept or pipe refs across the closure are collisions, not merges, and are rejected per [Namespace Resolution: Conflict Rules](./namespace-resolution.md#conflict-rules).
+Across packages there is no such merge. MTHDS permits two packages to declare the same domain, and their concepts and pipes remain completely independent (see [Namespace Resolution: Package Namespace Isolation](./namespace-resolution.md#package-namespace-isolation)) — so a bare `domain_path.Code` key is not a global identity, and two dependencies that each declare `recruitment.CandidateProfile` are two distinct definitions, not one. How package identity is carried in the merged keyspace once the closure is flattened is settled as part of cross-package closure fold-in, which this document does not yet specify (see [Specification Status](#specification-status)). Until it is, the normalization pass below is fully specified only for a closure drawn from a single package.
+
+Domain metadata for a given domain code is merged per field with two rules: an **omitted** field defers to whichever same-domain bundle declared it (order-independent — the outcome does not depend on load order); a genuine **conflict** (two bundles declare different non-empty values for the same field) resolves to the established (first-declared) value and a warning is emitted. Duplicate concept or pipe refs contributed by a **single** package are collisions, not merges, and are rejected per [Namespace Resolution: Conflict Rules](./namespace-resolution.md#conflict-rules). The same domain and code declared by two *different* packages is not a collision — the same table records it as no conflict — and is subject to the open question above.
 
 ### 2. Fully Qualify Every Reference
 
@@ -88,7 +90,7 @@ Every reference is rewritten to its fully-qualified canonical form — **not onl
 - each concept's `refines` target;
 - each structure field's `concept_ref` and `item_concept_ref`.
 
-Bare references (`ContractClause`) and same-domain references resolve to `domain_path.ConceptCode`. Cross-package references (`alias->domain.Code`) resolve through the dependency and are rewritten to the **canonical qualified ref of the target in the merged keyspace** — the `->` alias syntax does not survive normalization. Special pipe outcomes (`fail`, `continue`) are not references and are left as-is.
+Bare references (`ContractClause`) and same-domain references resolve to `domain_path.ConceptCode`. Cross-package references (`alias->domain.Code`) resolve through the dependency, and the `->` alias syntax does not survive normalization — an alias is a key in the *consuming* package's `[dependencies]` (see [Namespace Resolution: Resolution of Package-Qualified References](./namespace-resolution.md#resolution-of-package-qualified-references)), so it is local to one consumer and cannot serve as a canonical identity. What such a reference is rewritten *to* depends on the merged-keyspace key form, which is part of the cross-package fold-in this document does not yet specify (see [Merge](#1-merge)). Special pipe outcomes (`fail`, `continue`) are not references and are left as-is.
 
 After this step, no bare, same-domain-implicit, or `->`-qualified reference remains anywhere in the crate.
 
@@ -103,6 +105,10 @@ A concept whose refinement chain bottoms out at a **native** is the exception: i
 References to native concepts (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`) are rewritten to their canonical `native.<Code>` qualified form, and for every native concept a crate references, its definition is **materialized into `concepts`** as a `native.<Code>` entry — the same concept-object shape as any other concept. A consumer therefore needs no hardcoded native-concept table: every native a crate uses is present in the crate itself.
 
 Materialization is a **lookup, not a computation**: each materialized entry is the [pinned normative definition](./native-concepts.md) of that native for the crate's `mthds_version`, copied verbatim. An implementation MUST NOT derive the materialized form from its own runtime types — pinning is what makes two independent implementations byte-agree on materialized natives, and therefore on the [fingerprint](#fingerprint). The `mthds_version` member records which pinned set was used, so a consumer can confirm it understands the definitions; it is a version stamp, not a lookup key the consumer must resolve externally.
+
+The materialized set is **transitively closed**. A native's pinned definition may itself reference other natives through a structure field's `concept_ref` or `item_concept_ref`, and those natives are materialized too. A producer MUST materialize exactly the least set of natives that contains every native the library references and is closed under the references appearing in the pinned definitions themselves — no more, no less. The reference graph over the pinned set is finite and acyclic, so that closure is reached in finitely many steps and is uniquely determined by the library and the crate's `mthds_version`.
+
+Both halves of that rule are load-bearing. Omitting a transitively-referenced native leaves a materialized concept pointing at a `native.<Code>` absent from `concepts` — a crate carrying `native.Page` without `native.TextAndImages` and `native.Image` is not closed, and [sufficiency](#sufficiency-guarantee) fails for exactly the consumer this format exists for: the one with no native table to fall back on. Materializing *beyond* the closure is equally non-conforming, because `concepts` is hashed: a producer that padded a crate with unreferenced natives would compute a different [fingerprint](#fingerprint) for the same library. Pinning fixes what each materialized entry *contains*; this rule fixes which entries are *present*. Both are required for two independent implementations to byte-agree.
 
 ### 5. Materialize Defaults and Multiplicity
 
@@ -144,7 +150,7 @@ The normalized library crate has two canonical encodings of the same blueprint m
 
 ### JSON
 
-The machine-native encoding, keyed to the published MTHDS schema (`mthds_schema.json`). A crate serialized as JSON is a single object with the members defined in [Crate Structure](#crate-structure). JSON is the encoding third-party generators consume as emitter input.
+The machine-native encoding. A crate serialized as JSON is a single object with the members defined in [Crate Structure](#crate-structure); its concept and pipe objects follow the blueprint shapes of the published MTHDS schema (`mthds_schema.json`), while the crate envelope itself is defined by this document rather than by that schema. JSON is the encoding third-party generators consume as emitter input.
 
 ### TOML
 
@@ -169,7 +175,7 @@ The defining property of the normalized library crate is **sufficiency**, stated
 
 > Given only a JSON or TOML parser and a single normalized library crate — with **no** MTHDS loader, **no** namespace resolver, and **no** hardcoded table of native concepts — a consumer can, for any concept in the crate's concept set, emit a correct type; for any pipe, render a correct input form and register a correct tool.
 
-This holds because normalization has already done every job that would otherwise require a frontend: references are fully qualified (no resolver needed), structured refinement is flattened and native-backed refinement resolves via the crate's own materialized `native.<Code>` entry — a single guaranteed in-crate lookup, never a multi-hop chain to walk, natives are expanded and version-pinned (no native table needed), defaults and multiplicity are explicit (no shorthand to interpret), and string-described concepts are promoted (no dual concept representation to handle). Where the source is genuinely imprecise — a concept with no structure, a list with no item type, a dict whose `value_type` is the reserved `"Any"` marker — the crate preserves that imprecision explicitly, so a consumer can *surface* it (a caveat, a TODO) rather than guess a shape.
+This holds because normalization has already done every job that would otherwise require a frontend: references are fully qualified (no resolver needed), structured refinement is flattened and native-backed refinement resolves via the crate's own materialized `native.<Code>` entry — a single guaranteed in-crate lookup, never a multi-hop chain to walk, natives are expanded to a transitively closed set and version-pinned (no native table needed, and no materialized native points outside the crate), defaults and multiplicity are explicit (no shorthand to interpret), and string-described concepts are promoted (no dual concept representation to handle). Where the source is genuinely imprecise — a concept with no structure, a list with no item type, a dict whose `value_type` is the reserved `"Any"` marker — the crate preserves that imprecision explicitly, so a consumer can *surface* it (a caveat, a TODO) rather than guess a shape.
 
 Sufficiency is the same property that makes a crate portable to a remote worker with no access to the original files, and portable to a third-party code generator with no MTHDS frontend. They are one requirement, met once.
 

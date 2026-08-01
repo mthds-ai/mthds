@@ -8,10 +8,11 @@ Native concepts are the built-in vocabulary of the MTHDS standard: always availa
 
 These definitions are **pinned per MTHDS standard version**. The set below is normative for MTHDS `1.0.0`. Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard and requires a version bump. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by **lookup into this pinned set**, selected by the standard version it implements.
 
-Two consequences follow:
+Three consequences follow:
 
 - **Crate materialization is a copy, not a computation.** When a [library crate](./library-crate.md) expands native concepts ([normalization step 4](./library-crate.md#4-expand-native-concepts)), each referenced native is materialized into `concepts` as the `native.<Code>` concept object equivalent to its definition below. The crate's `mthds_version` records which pinned set was used.
 - **Fingerprints byte-agree across implementations.** Because the materialized form derives from this page rather than from any implementation's internals, two independent implementations normalizing the same library produce the same materialized natives — and therefore the same [fingerprint](./library-crate.md#fingerprint). Every part of a definition participates in the hash, including field `description` strings.
+- **Some definitions reference other definitions.** `native.TextAndImages` references `native.Text` and `native.Image`; `native.Page` references `native.TextAndImages` and `native.Image`; `native.SearchResult` references `native.Document`. Every other definition in the pinned set is a leaf, and the graph is acyclic, so materializing a native into a crate pulls in at most two further hops and always terminates. A crate MUST carry that whole transitive closure — materializing `native.Page` without `native.TextAndImages`, `native.Image`, and `native.Text` produces a crate that is not closed ([normalization step 4](./library-crate.md#4-expand-native-concepts)).
 
 ## Reading the Definitions
 
@@ -60,7 +61,7 @@ height = { type = "integer", description = "The height of the image, in pixels" 
 filename = { type = "text", description = "The original filename of the image" }
 ```
 
-`width` and `height` are each optional but paired: a compliant value carries both or neither.
+`width` and `height` are each optional but paired: a compliant value carries both or neither. The pairing constrains values, not the blueprint — the structure language has no cross-field form, so a consumer projecting this definition emits two independently optional integers, and a validating runtime is what enforces the pairing.
 
 ### native.Document
 
