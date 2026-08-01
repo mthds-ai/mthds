@@ -165,7 +165,9 @@ The `type` field accepts the following values:
 | `integer` | A whole number. | `integer` |
 | `number` | A numeric value (integer or floating-point). | `integer` or `float` |
 | `boolean` | A true/false value. | `boolean` |
-| `date` | A date value. | `datetime` |
+| `date` | A calendar date value. | `datetime` |
+| `datetime` | A date with a time of day (a point in time). | `datetime` |
+| `time` | A time of day, optionally with a UTC offset. | `time` |
 | `list` | An ordered collection. Use `item_type` to specify element type. | `array` |
 | `dict` | A key-value mapping. Requires `key_type` and `value_type`. | `table` |
 | `concept` | A reference to another concept. Requires `concept_ref`. Cannot have `default_value`. | *(not allowed)* |
@@ -175,6 +177,7 @@ When `type` is omitted and `choices` is provided, the field is an enumeration fi
 **Validation rules for field types:**
 
 - `type = "dict"`: `key_type` and `value_type` MUST both be non-empty.
+- `value_type = "Any"` is a **reserved marker** declaring the dict's value type unspecified: the values are arbitrary, and a consumer surfaces the field as declared imprecision (e.g. `dict[str, Any]` with a caveat), never as a guessed value shape. It appears primarily in materialized [native concept definitions](./native-concepts.md); authors SHOULD declare a concrete value type instead.
 - `type = "concept"`: `concept_ref` MUST be set. `default_value` MUST NOT be set.
 - `type = "list"` with `item_type = "concept"`: `item_concept_ref` MUST be set.
 - `item_concept_ref` MUST NOT be set unless `item_type = "concept"`.
@@ -194,6 +197,8 @@ years_experience = { type = "integer", description = "Years of professional expe
 gpa              = { type = "number", description = "Grade point average" }
 is_active        = { type = "boolean", description = "Whether actively looking", default_value = true }
 graduation_date  = { type = "date", description = "Date of graduation" }
+last_seen_at     = { type = "datetime", description = "Last activity timestamp" }
+preferred_slot   = { type = "time", description = "Preferred interview time of day" }
 skills           = { type = "list", item_type = "text", description = "List of skills" }
 metadata         = { type = "dict", key_type = "text", value_type = "text", description = "Additional metadata" }
 seniority_level  = { description = "Seniority level", choices = ["junior", "mid", "senior", "lead"] }
@@ -216,6 +221,7 @@ Native concepts are built-in types that are always available in every bundle wit
 | `Number` | `native.Number` | A numeric value. |
 | `YesNo` | `native.YesNo` | The answer to a yes/no question. |
 | `Date` | `native.Date` | A calendar date, optionally with a time of day. |
+| `Time` | `native.Time` | A time of day, optionally with a UTC offset. |
 | `Page` | `native.Page` | A single page extracted from a document. |
 | `JSON` | `native.JSON` | A JSON value. |
 | `SearchResult` | `native.SearchResult` | A web search result with answer and sources. |
@@ -225,6 +231,8 @@ Native concepts are built-in types that are always available in every bundle wit
 Native concepts MAY be referenced by bare code (`Text`, `Image`) or by qualified reference (`native.Text`, `native.Image`). Bare native concept codes always take priority during resolution.
 
 A bundle MUST NOT declare a concept with the same code as a native concept. A compliant implementation MUST reject such declarations.
+
+Each native concept's exact blueprint form — its fields, their types, and their descriptions — is pinned per standard version in [Native Concept Definitions](./native-concepts.md). Implementations MUST use the pinned definitions verbatim (no reflection over internal runtime types) wherever a native's structural definition is needed, such as [library crate materialization](./library-crate.md#4-expand-native-concepts).
 
 ## Pipe Definitions
 
