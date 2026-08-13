@@ -84,6 +84,10 @@ When resolving a bare pipe code (no domain qualifier, no package prefix):
 
 Bare pipe references do NOT fall through to other domains or other packages.
 
+!!! note "Why no fall-through is a visibility guarantee, not a lookup convenience"
+
+    This rule is what makes `[exports]` enforceable. The visibility rules exempt bare references from the export check precisely because they cannot leave their own domain. A resolver that let a bare pipe reference fall through to another domain would resolve it without ever reaching that check, making every non-exported pipe reachable simply by spelling its code bare. Because bare references stop at the domain boundary, every cross-domain reference is forced through the qualified forms, where visibility is enforced.
+
 ## Resolution of Domain-Qualified References
 
 When resolving `domain_path.name` (no package prefix):
