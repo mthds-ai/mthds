@@ -15,7 +15,7 @@ The normalized library crate is not a new format. It is MTHDS content — the sa
 
 ## Specification Status
 
-This document specifies the **target** normal form and its guarantees. A reference implementation now realizes most of it: the [normalization pass](#normalization-pass) steps 1–4 and 6 (merge, in-body reference qualification, refinement flattening, native materialization from the pinned definitions, string-concept promotion), both [encodings](#encodings), and the fingerprint over the [full scope](#scope). Step 5 ([defaults and multiplicity materialization](#5-materialize-defaults-and-multiplicity)) and cross-package closure fold-in are not yet applied. Where a section below describes behavior a reference implementation has not yet realized, it is the **forward contract** that implementation is brought into conformance with — the same convention [METHODS.toml Manifest Format](./manifest-format.md#the-dependencies-section) uses to spec the not-yet-implemented `[dependencies]` section. Conformance is asserted against this document as each piece lands.
+This document specifies the **target** normal form and its guarantees. A reference implementation now realizes most of it: the [normalization pass](#normalization-pass) steps 1–4 and 6 (merge, in-body reference qualification, refinement flattening, native materialization from the pinned definitions, string-concept promotion), both [encodings](#encodings), and the fingerprint over the [full scope](#scope). Step 5 ([defaults and multiplicity materialization](#5-materialize-defaults-and-multiplicity)), the effective-hints assembly in step 3 (added with [Intent Hints](./intent-hints.md), itself a forward contract), and cross-package closure fold-in are not yet applied. Where a section below describes behavior a reference implementation has not yet realized, it is the **forward contract** that implementation is brought into conformance with — the same convention [METHODS.toml Manifest Format](./manifest-format.md#the-dependencies-section) uses to spec the not-yet-implemented `[dependencies]` section. Conformance is asserted against this document as each piece lands.
 
 ## The Three Units: Bundle, Library, Pipe
 
@@ -100,6 +100,8 @@ Concept refinement (`refines`) over an **in-crate structured base** is flattened
 
 A concept whose refinement chain bottoms out at a **native** is the exception: it retains its `refines: native.<Code>` link rather than inlining the native's fields. The native is materialized into the crate as its own `native.<Code>` concept by [step 4](#4-expand-native-concepts), so the base is already resolvable in-crate without chain-walking — and keeping the link (rather than flattening) is what preserves the native's identity, so a consumer projecting the concept renders it as extending the native (e.g. a `Text`-refining concept remains a text type) instead of a bare structure that has lost its native base. Sufficiency is satisfied either way: the base is present in the crate.
 
+Flattening is also where a concept's **effective hints** are assembled. While the chain is walked, the concept's own `hints` are merged key by key with those inherited from each base, a nearer declaration winning (see [Intent Hints: Precedence and Inheritance](./intent-hints.md#precedence-and-inheritance)), and the merged table is what the normalized concept carries. This applies to every refining concept — one flattened to a bare structure and one retaining its `native.<Code>` link alike — because the chain is walked here and nowhere later: after this step a consumer reads a concept's hints exactly as it reads its complete effective field set, without walking anything.
+
 ### 4. Expand Native Concepts
 
 References to native concepts (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`) are rewritten to their canonical `native.<Code>` qualified form, and for every native concept a crate references, its definition is **materialized into `concepts`** as a `native.<Code>` entry — the same concept-object shape as any other concept. A consumer therefore needs no hardcoded native-concept table: every native a crate uses is present in the crate itself.
@@ -115,7 +117,8 @@ Both halves of that rule are load-bearing. Omitting a transitively-referenced na
 Elided authoring conveniences are made explicit:
 
 - field default values become explicit on each structure field;
-- multiplicity — list markers (`Concept[]`) and presence markers (optional `?`, required `!`) — becomes explicit on each field and on each pipe input/output, rather than implied by shorthand.
+- multiplicity — list markers (`Concept[]`) and presence markers (optional `?`, required `!`) — becomes explicit on each field and on each pipe input/output, rather than implied by shorthand;
+- empty `hints` tables are removed, and a slot, field, or concept carrying no hints normalizes exactly as it did before hints existed — so a library that authors no hints keeps its [fingerprint](#fingerprint). (A concept's effective hints are assembled earlier, in [step 3](#3-flatten-refinement), where the refinement chain is walked.)
 
 ### 6. Promote String-Described Concepts
 
