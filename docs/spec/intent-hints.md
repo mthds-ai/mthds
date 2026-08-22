@@ -67,9 +67,9 @@ The `intent` key takes one word from a closed vocabulary, pinned per standard ve
 
 **Applicability:**
 
-- A **text-valued site** is a structure field with `type = "text"`, a concept that is `native.Text` or whose refinement chain reaches `native.Text`, or an input slot whose concept is one of those.
-- A **number-valued site** is a structure field with `type = "integer"` or `type = "number"`, a concept that is `native.Number` or whose refinement chain reaches `native.Number`, or an input slot whose concept is one of those.
-- On a **plural site** — an input slot with `[]` or `[N]` multiplicity, or a structure field of list type — an applicable word refines the presentation of each item. The collection's own presentation follows from its semantics.
+- A **text-valued site** is a structure field with `type = "text"`; a concept that is `native.Text` or whose refinement chain reaches `native.Text`; a structure field with `type = "concept"` whose `concept_ref` names such a concept; or an input slot whose concept is such a concept.
+- A **number-valued site** is a structure field with `type = "integer"` or `type = "number"`; a concept that is `native.Number` or whose refinement chain reaches `native.Number`; a structure field with `type = "concept"` whose `concept_ref` names such a concept; or an input slot whose concept is such a concept.
+- On a **plural site** — an input slot with `[]` or `[N]` multiplicity, or a structure field with `type = "list"` — applicability is judged against the item: the slot's concept, the field's `item_type`, or the concept its `item_concept_ref` names when `item_type = "concept"`. An applicable word refines the presentation of each item. The collection's own presentation follows from its semantics.
 - An intent word attached to a site it does not apply to has no defined meaning: a consumer ignores it, and a validating implementation SHOULD report it as a warning, never as an error.
 
 How a consumer honors a word is the consumer's decision, and this specification deliberately names no controls. A consumer might give `prose` room to write, keep `label` to a single line, and present a `rating` against its bounds where the semantic layer provides them — or do none of that and remain conformant.
@@ -129,6 +129,8 @@ The effective hints of a site are assembled **key by key** from at most two laye
 
 The site layer wins, key by key. A key absent at every layer is absent, and the consumer's defaults apply.
 
+A key declared at a farther layer can be **overridden** at a nearer one, but not **cleared**: there is no syntax to unset an inherited key. An empty `hints` table is equivalent to no hints and so inherits everything; an empty string is an unknown word, not a clearing mark. A refinement or site that wants a different presentation names the intent it wants. Should a later version of the standard define a clearing mark, it is a vocabulary addition under [Vocabulary Growth and Versioning](#vocabulary-growth-and-versioning).
+
 ```toml
 [concept.Summary]
 description = "A summary of the source material"
@@ -148,10 +150,10 @@ summary = { concept = "Summary", hints = { intent = "label" } }
 
 ## Hints in the Library Crate
 
-Hints ride the concept and pipe objects of the [normalized library crate](./library-crate.md) — they are blueprint content like any other. Normalization gives them their canonical form (see [Materialize Defaults and Multiplicity](./library-crate.md#5-materialize-defaults-and-multiplicity)):
+Hints ride the concept and pipe objects of the [normalized library crate](./library-crate.md) — they are blueprint content like any other. Normalization gives them their canonical form in two steps:
 
-- Each concept carries its **effective hints** — the key-by-key merge along its refinement chain — so a consumer reads a concept's hints without walking the chain, the same principle that gives a flattened concept its complete effective field set.
-- Empty `hints` tables are removed. A slot, field, or concept carrying no hints normalizes exactly as it did before hints existed, so a library that authors no hints keeps its fingerprint.
+- Each concept carries its **effective hints** — the key-by-key merge along its refinement chain — assembled when refinement is flattened (see [Flatten Refinement](./library-crate.md#3-flatten-refinement)), the same pass that gives a flattened concept its complete effective field set. A consumer reads a concept's hints without walking the chain, which after that step no longer exists.
+- Empty `hints` tables are removed when defaults and multiplicity are materialized (see [Materialize Defaults and Multiplicity](./library-crate.md#5-materialize-defaults-and-multiplicity)). A slot, field, or concept carrying no hints normalizes exactly as it did before hints existed, so a library that authors no hints keeps its fingerprint.
 
 Hints live inside the crate's hashed members and are therefore part of its [fingerprint](./library-crate.md#fingerprint): a hint edit is a change to the method's authored presentation, and two crates differing only in hints are distinct artifacts — the same reasoning that fingerprints a domain's `description`.
 
