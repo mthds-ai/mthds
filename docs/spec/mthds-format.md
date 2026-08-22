@@ -110,6 +110,7 @@ When using the structured form `[concept.<ConceptCode>]`, the following fields a
 | `description` | string | Yes | Human-readable description of the concept. |
 | `structure` | table or string | No | Field definitions for the concept. If a string, it is a shorthand description (equivalent to a simple declaration). If a table, each key is a field name mapped to a field blueprint. |
 | `refines` | string | No | A concept reference indicating that this concept is a specialization of another concept. |
+| `hints` | table | No | Optional [intent hints](./intent-hints.md) for the concept — non-normative presentation intent that applies wherever the concept is presented. |
 
 **Validation rules:**
 
@@ -154,6 +155,7 @@ Each field in a concept structure is defined by a field blueprint:
 | `item_type` | string | No | Item type for `list` fields. When set to `"concept"`, `item_concept_ref` is required. |
 | `concept_ref` | string | Conditional | Concept reference for `concept`-typed fields. Required when `type = "concept"`. |
 | `item_concept_ref` | string | Conditional | Concept reference for list items when `item_type = "concept"`. |
+| `hints` | table | No | Optional [intent hints](./intent-hints.md) for the field — non-normative presentation intent. |
 
 #### Field Types
 
@@ -246,7 +248,7 @@ Concrete pipe types share these base fields:
 |-------|------|----------|-------------|
 | `type` | string | Yes for concrete pipes | The pipe type. Determines which category and additional fields are available. Omitted only for contract-only `PipeSignature` declarations. |
 | `description` | string | Yes | Human-readable description of what this pipe does. |
-| `inputs` | table | No | Input declarations. Keys are input names (`snake_case`), values are concept references with optional multiplicity. |
+| `inputs` | table | No | Input declarations. Keys are input names (`snake_case`), values are input slot declarations (see **Input slot declarations** below). |
 | `output` | string | Yes | The output concept reference with optional multiplicity. |
 
 **Pipe codes:**
@@ -278,6 +280,28 @@ Presence markers have these constraints:
 - Markers apply only to pipe `inputs` and `output`, not concept definitions, `refines`, or structure fields.
 - Markers MUST NOT be combined with multiplicity. `Concept[]?`, `Concept[N]?`, `Concept[]!`, and `Concept[N]!` are invalid because plural slots use an empty list when no items are produced.
 - `!` MUST NOT appear on `output`. A force marker is an input-side assertion.
+
+**Input slot declarations:**
+
+Each value in `inputs` declares one input slot, in one of two forms. The **string form** is a concept reference with optional multiplicity and presence marker, as specified above. The **expanded form** is a table:
+
+```toml
+[pipe.summarize]
+type        = "PipeLLM"
+description = "Summarize a contract, following optional steering instructions"
+output      = "Summary"
+
+[pipe.summarize.inputs]
+contract     = "legal.Contract"
+instructions = { concept = "Text?", hints = { intent = "prose" } }
+```
+
+Rules for the expanded form:
+
+- `concept` (string) is required and carries exactly the same grammar as the string form — a concept reference with optional multiplicity and optional presence marker. `x = "S"` and `x = { concept = "S" }` are equivalent.
+- `hints` (table) is optional and attaches [intent hints](./intent-hints.md) to the slot.
+- No other keys are defined in this version of the standard. An unknown key in an input slot table MUST be rejected. (The form is deliberately shaped so that future versions can add per-slot authoring fields — such as a slot description — without a second syntax.)
+- The expanded form applies to `inputs` only. `output` is always a string.
 
 **Example:**
 

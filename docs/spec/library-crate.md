@@ -115,7 +115,9 @@ Both halves of that rule are load-bearing. Omitting a transitively-referenced na
 Elided authoring conveniences are made explicit:
 
 - field default values become explicit on each structure field;
-- multiplicity — list markers (`Concept[]`) and presence markers (optional `?`, required `!`) — becomes explicit on each field and on each pipe input/output, rather than implied by shorthand.
+- multiplicity — list markers (`Concept[]`) and presence markers (optional `?`, required `!`) — becomes explicit on each field and on each pipe input/output, rather than implied by shorthand;
+- intent hints become **effective hints** on each concept — the key-by-key merge of the concept's own `hints` with those inherited along its refinement chain, nearer declarations winning (see [Intent Hints: Precedence and Inheritance](./intent-hints.md#precedence-and-inheritance)) — so a consumer reads a concept's hints without walking the chain, the same principle that gives a flattened concept its complete effective field set;
+- empty `hints` tables are removed, and a slot, field, or concept carrying no hints normalizes exactly as it did before hints existed — so a library that authors no hints keeps its [fingerprint](#fingerprint).
 
 ### 6. Promote String-Described Concepts
 
