@@ -1,0 +1,3766 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  
+    <meta name="description" content="Formal specification of the input-form descriptor — the per-pipe, ordered presentation view of a method's inputs a renderer turns into a fill-in form with no heuristics.">
+  
+  
+  
+  <link rel="canonical" href="https://mthds.ai/latest/spec/input-form-descriptor/">
+  
+    <link rel="prev" href="../pipe-io-contracts/">
+  
+  
+    <link rel="next" href="../namespace-resolution/">
+  
+  
+    
+  
+
+    
+      
+        <title>Input-Form Descriptor - MTHDS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../../assets/external/fonts.googleapis.com/css.49ea35f2.css">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/mermaid.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/general.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/neoteroi-oad.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+
+<link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="128x128" href="../../images/favicon-128.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../images/favicon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../../images/favicon-192.png">
+
+
+
+
+
+
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTHDS">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Input-Form Descriptor">
+<meta property="og:description" content="Formal specification of the input-form descriptor — the per-pipe, ordered presentation view of a method's inputs a renderer turns into a fill-in form with no heuristics.">
+<meta property="og:image" content="https://mthds.ai/latest/images/og-banner.jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://mthds.ai/latest/spec/input-form-descriptor/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Input-Form Descriptor">
+<meta name="twitter:description" content="Formal specification of the input-form descriptor — the per-pipe, ordered presentation view of a method's inputs a renderer turns into a fill-in form with no heuristics.">
+<meta name="twitter:image" content="https://mthds.ai/latest/images/og-banner.jpeg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "MTHDS",
+  "url": "https://mthds.ai",
+  "logo": "https://mthds.ai/images/mthds-black_on_transparent.png",
+  "description": "Official documentation for the MTHDS open standard: to give AI methods to AI agents."
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Input-Form Descriptor",
+  "description": "Formal specification of the input-form descriptor \u2014 the per-pipe, ordered presentation view of a method\u0027s inputs a renderer turns into a fill-in form with no heuristics.",
+  "url": "https://mthds.ai/latest/spec/input-form-descriptor/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "MTHDS",
+    "url": "https://mthds.ai"
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "MTHDS",
+    "url": "https://mthds.ai"
+  }
+}
+</script>
+
+
+<!-- PostHog analytics -->
+<script>
+  !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing identify alias people.set people.set_once set_config reset get_distinct_id getFeatureFlag getFeatureFlagPayload isFeatureEnabled onFeatureFlags reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+  posthog.init('phc_LRwe2lybfPTNCzAT1ScpnsWznrxAvmc1pmCaXEr1hwJ', {
+    api_host: 'https://eu.i.posthog.com',
+    person_profiles: 'identified_only'
+  });
+</script>
+<!-- Vercel Web Analytics — script served by Vercel's edge when Web Analytics
+     is enabled for the project; 404s harmlessly under `mkdocs serve`. -->
+<script defer src="/_vercel/insights/script.js"></script>
+
+
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#input-form-descriptor" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MTHDS" class="md-header__button md-logo" aria-label="MTHDS" data-md-component="logo">
+      
+  <img src="../../images/mthds-black_on_transparent.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MTHDS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Input-Form Descriptor
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mthds-ai/mthds" title="Go to repository" class="md-source" data-md-component="source" target="_blank" rel="noopener">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    MTHDS on GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../language/bundles/" class="md-tabs__link">
+          
+  
+  
+  The Language
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../packages/structure/" class="md-tabs__link">
+          
+  
+  
+  The Package System
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../mthds-format/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/first-method/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../implementers/runtime/" class="md-tabs__link">
+          
+  
+  
+  For Implementers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/roadmap/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://mthds.sh" class="md-tabs__link" target="_blank" rel="noopener">
+        
+  
+  
+    
+  
+  Hub ↗
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MTHDS" class="md-nav__button md-logo" aria-label="MTHDS" data-md-component="logo">
+      
+  <img src="../../images/mthds-black_on_transparent.png" alt="logo">
+
+    </a>
+    MTHDS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mthds-ai/mthds" title="Go to repository" class="md-source" data-md-component="source" target="_blank" rel="noopener">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    MTHDS on GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Home
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../what-is-mthds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What is MTHDS?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/philosophy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Philosophy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/comparison-agent-skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparison with Agent Skills
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../know-how-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Know-How Graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Language
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Language
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/pipes-operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipes — Operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/pipes-controllers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipes — Controllers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/optionality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optionality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/working-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/multiplicity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiplicity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/model-references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/putting-it-all-together/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Putting It All Together
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/domains/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domains
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/namespace-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespace Resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Package System
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Package System
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/manifest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/exports-visibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exports &amp; Visibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/cross-package-references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Package References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/lock-file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Lock File
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/distribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/version-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_9">
+        
+          
+          <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Registry
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Registry
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/registry-indexing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Indexing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/registry-search/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Search
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/registry-distribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Distribution Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specification
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specification
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mthds-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    .mthds File Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../native-concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Native Concept Definitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intent-hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intent Hints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../manifest-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    METHODS.toml Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lock-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    methods.lock Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../library-crate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library Crate Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pipe-io-contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipe I/O Contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input-Form Descriptor
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input-Form Descriptor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#specification-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Specification Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-per-pipe-descriptor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Per-Pipe Descriptor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#field-descriptors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Descriptors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field Descriptors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-slots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Slots
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Slots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gating
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Kinds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kind-assignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kind Assignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structured-multiplicity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured Multiplicity
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#intent-hints-on-a-descriptor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intent Hints on a Descriptor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strictness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strictness
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#derivation-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Derivation Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-Goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationship-to-other-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Relationship to Other Specifications
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../namespace-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespace Resolution Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli-io-contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI I/O Contract
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP Runner Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tooling
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tooling
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tooling/editor-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tooling/formatting-linting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatting &amp; Linting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tooling/json-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MTHDS JSON Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/first-method/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Write Your First Method
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/create-package/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Create a Package
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/use-dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/discover-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discover Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Implementers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For Implementers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building a Runtime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/validation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/package-loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/editor-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building Editor Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to MTHDS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CODE_OF_CONDUCT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://mthds.sh" class="md-nav__link" target="_blank" rel="noopener">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hub ↗
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#specification-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Specification Status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-per-pipe-descriptor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Per-Pipe Descriptor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#field-descriptors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Descriptors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Field Descriptors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-slots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Slots
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Slots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gating
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#field-kinds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field Kinds
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#kind-assignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kind Assignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structured-multiplicity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured Multiplicity
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#intent-hints-on-a-descriptor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Intent Hints on a Descriptor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strictness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strictness
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#derivation-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Derivation Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-Goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationship-to-other-specifications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Relationship to Other Specifications
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="input-form-descriptor">Input-Form Descriptor</h1>
+<p>The <strong>input-form descriptor</strong> is a presentation view of a method's inputs: for each pipe, an ordered list of field descriptors that a renderer turns into a fill-in form with no schema heuristics, no hardcoded native-concept table, and no description matching.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"legal.summarize_contract"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"fields"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"document"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"contract"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"concept_ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"legal.Contract"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"refines"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"native.Document"</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The contract to summarize"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"presence"</span><span class="p">:</span><span class="w"> </span><span class="s2">"plain"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"gating"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"prose"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"instructions"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"concept_ref"</span><span class="p">:</span><span class="w"> </span><span class="s2">"native.Text"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Optional steering instructions"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"required"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"presence"</span><span class="p">:</span><span class="w"> </span><span class="s2">"optional"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"gating"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>A renderer reading that descriptor knows to offer a file control for <code>contract</code> because the descriptor <strong>says</strong> the concept refines <code>native.Document</code> — not because it recognized a <code>url</code> property in a schema, and not because the description contained the word "document". That is the whole point of the artifact: every fact a form needs is stated, so the guessing that a JSON Schema forces on a renderer stops being necessary.</p>
+<p>The descriptor exists because a schema is a lossy projection of a method's inputs. Projecting a concept onto JSON Schema destroys concept identity, the refinement chain, the authored presence marker, a fixed item count, and the measured meaning of a default — and a renderer that needs those back can only re-infer them, imprecisely and differently in every consumer. The descriptor states them instead, deriving from the same resolved library the schema does, so the two cannot disagree.</p>
+<p>The descriptor is a <strong>recommended extension field</strong> of the <a href="../protocol/#validating-a-bundle">HTTP Runner Protocol</a>'s validate response, where it rides the field name <code>input_form</code>. It is equally derivable offline from a resolved library, with no server involved; how a caller <em>asks</em> a particular implementation for it is that implementation's decision, and outside this standard.</p>
+<h2 id="specification-status">Specification Status</h2>
+<p>This document specifies an artifact implementations already produce, and makes it standard-owned so that independent implementations agree on it by conformance rather than by imitation. Where a rule below names behavior an implementation has not yet realized, it is the forward contract that implementation is brought into conformance with — the same convention <a href="../library-crate/#specification-status">Library Crate Format</a> uses.</p>
+<p>Two slots are shaped now and filled by the language later. <code>examples</code> and the text and numeric constraint slots are on the wire because the descriptor's shape should settle once: an implementation may already hold such facts about a concept's payload, and the language will grow the authoring side without reopening the wire. A producer that has nothing to put in them omits them.</p>
+<p>Until the language defines how such a fact is <em>authored</em>, these are the one part of the artifact whose content is a producer's own, and the standard says so rather than pretending otherwise: two conforming implementations agree on every language-derived slot and may differ on whether they fill these. A consumer reads them as advisory enrichment and never as a fact it depends on, and the <a href="#derivation-requirements">comparability guarantee</a> below is stated over the language-derived slots.</p>
+<h2 id="the-per-pipe-descriptor">The Per-Pipe Descriptor</h2>
+<p>The artifact is a map from <strong>namespaced pipe reference</strong> to one descriptor object, over the <strong>same key set as <a href="../pipe-io-contracts/#the-map">pipe I/O contracts</a></strong> — the descriptor is per pipe input, and that map's key space is its natural address. Keys are fully-qualified <code>pipe_ref</code>s (<code>domain_path.pipe_code</code>).</p>
+<p>Each entry is an object with one member: <code>fields</code>, an <strong>ordered list holding one field descriptor per declared input slot, in authored input order</strong>.</p>
+<p>Order is why the descriptor is a sibling artifact rather than a decoration inside each contract's input entry. A form is ordered; the contract's <code>inputs</code> map deliberately contracts no order. The list carries the order as a fact, and the contract stays byte-stable whatever a renderer asks for.</p>
+<p>A pipe with no inputs maps to <code>{"fields": []}</code>. An empty form is a valid form, not an omitted entry.</p>
+<h2 id="field-descriptors">Field Descriptors</h2>
+<p>A field descriptor is a <strong>recursive object, discriminated on <code>kind</code></strong>: one node per rendered field. An <code>object</code> node recurses through <code>fields</code>, a <code>list</code> node through <code>item</code>.</p>
+<p>The vocabulary is field <em>kinds</em> and semantic slots — bounds, choices, defaults — and never control names. How a renderer maps a kind to a control is the renderer's decision, and this document deliberately names no controls.</p>
+<h3 id="common-slots">Common Slots</h3>
+<p>Every field descriptor carries:</p>
+<table>
+<thead>
+<tr>
+<th>Slot</th>
+<th>Type</th>
+<th>Presence</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kind</code></td>
+<td>string</td>
+<td>always</td>
+<td>The field kind, from the <a href="#field-kinds">closed union</a> below.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td>on every node except a <code>list</code>'s <code>item</code></td>
+<td>The identifier as authored — the input slot name on a top-level field, the structure field name on a nested one. A <code>list</code>'s <code>item</code> has no authored name and carries <strong>no <code>name</code> member</strong> at all: the index labels items, and a sentinel would be a value two producers could pick differently.</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>string</td>
+<td>optional</td>
+<td>Human label. A renderer falls back to <code>name</code>. A generated or internal type name is not a title and MUST NOT be reported as one.</td>
+</tr>
+<tr>
+<td><code>concept_ref</code></td>
+<td>string</td>
+<td>on every concept-typed node</td>
+<td>The fully-qualified concept reference the node carries (<code>native.Document</code>, <code>legal.Invoice</code>). Present on every top-level field and on every nested node that is concept-typed. This is the fact whose absence forces consumers into hardcoded native-reference tables.</td>
+</tr>
+<tr>
+<td><code>refines</code></td>
+<td>list of strings</td>
+<td>on concept-typed nodes with a refinement chain</td>
+<td>The concept's <a href="../mthds-format/#concept-refinement">refinement</a> chain, immediate parent first, walked to its end (<code>["legal.BaseClause", "native.Text"]</code>, <code>["native.Document"]</code>). Absent when the concept refines nothing. "Does this refine <code>native.X</code>?" is a membership test on this list — a stated fact, never shape sniffing.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>string</td>
+<td>optional</td>
+<td>Helper text, from the authored concept or field description.</td>
+</tr>
+<tr>
+<td><code>required</code></td>
+<td>boolean</td>
+<td>always</td>
+<td>On a <strong>top-level</strong> field: the caller must supply the slot, derived as <code>presence != "optional"</code>. On a <strong>nested</strong> field: the field must be present within its concept's payload. The two levels are independent facts and never interact. <code>required</code> drives layout — a required field always shows, an optional one may collapse; whether the <em>user</em> must put content in before the run may start is the separate <code>gating</code> fact.</td>
+</tr>
+<tr>
+<td><code>presence</code></td>
+<td><code>"optional"</code> | <code>"plain"</code> | <code>"force"</code></td>
+<td>top-level fields only</td>
+<td>The authored <a href="../pipe-io-contracts/#presence">presence marker</a> on the pipe's input slot, three-valued so that <code>!</code> is not flattened away. Nested fields carry no <code>presence</code>: presence is a pipe-slot fact.</td>
+</tr>
+<tr>
+<td><code>gating</code></td>
+<td>boolean</td>
+<td>top-level fields only</td>
+<td>The declared <a href="#gating">gating fact</a> — the run cannot start until the caller provides content for this slot.</td>
+</tr>
+<tr>
+<td><code>default_value</code></td>
+<td>any</td>
+<td>optional</td>
+<td>The value applied when the caller omits the field. Absent unless a default was authored; the <code>null</code> that a schema projection attaches to every optional field is an emission artifact and MUST NOT be reported as a <code>default_value</code>. A descriptor never carries both <code>required: true</code> and a <code>default_value</code> — the pair is two contradictory instructions on one field and is rejected at validation — so a defaulted field always reports <code>required: false</code>.</td>
+</tr>
+<tr>
+<td><code>examples</code></td>
+<td>list</td>
+<td>optional</td>
+<td>Example values for the field.</td>
+</tr>
+<tr>
+<td><code>hints</code></td>
+<td>object</td>
+<td>optional</td>
+<td>The node's effective <a href="#intent-hints-on-a-descriptor">intent hints</a>, a flat map of string to string.</td>
+</tr>
+</tbody>
+</table>
+<p>A slot that does not apply to a node is <strong>absent</strong>, never <code>null</code>. Applicable falsy values (<code>required: false</code>, <code>integer: false</code>) are stated.</p>
+<h4 id="gating">Gating</h4>
+<p><code>gating</code> is the single answer to "must the user put something in before the run may start", and a renderer blocks the run on exactly the top-level descriptors whose <code>gating</code> is <code>true</code> (a nested field gates through its parent).</p>
+<p>It is stated rather than left to a consumer to re-derive, because it is <strong>not</strong> the same question as <code>required</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Slot</th>
+<th><code>required</code></th>
+<th><code>gating</code></th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Concept</code>, <code>Concept!</code></td>
+<td><code>true</code></td>
+<td><code>true</code></td>
+<td>The method demands a value.</td>
+</tr>
+<tr>
+<td><code>Concept?</code></td>
+<td><code>false</code></td>
+<td><code>false</code></td>
+<td>The method states the slot may be omitted.</td>
+</tr>
+<tr>
+<td><code>Concept[]</code></td>
+<td><code>true</code></td>
+<td><code>false</code></td>
+<td>The empty list is a legitimate value, and the language cannot declare "at least one item".</td>
+</tr>
+<tr>
+<td><code>Concept[N]</code>, N ≥ 2</td>
+<td><code>true</code></td>
+<td><code>true</code></td>
+<td>A list whose empty form the method has explicitly ruled out.</td>
+</tr>
+</tbody>
+</table>
+<p>The rule is <code>presence != "optional"</code> and not (<code>kind == "list"</code> without <code>item_count</code>). The variable-list row is the one that makes the two facts distinct: such a slot is required — a caller must send the property — yet a renderer submitting <code>[]</code> for it has satisfied the method, so blocking the run there would demand something the method never asked for. Stating <code>gating</code> on the wire is what lets a later language-level minimum change the answer without touching a single renderer.</p>
+<h3 id="field-kinds">Field Kinds</h3>
+<p><code>kind</code> is a <strong>closed union</strong>. This version of the standard defines:</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>The value is</th>
+<th>Additional slots</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>text</code></td>
+<td>a short single-line string</td>
+<td><code>min_length</code>, <code>max_length</code>, <code>pattern</code>, <code>format</code> — all optional</td>
+</tr>
+<tr>
+<td><code>prose</code></td>
+<td>flowing free text</td>
+<td>the same as <code>text</code></td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>a calendar date, or a point in time</td>
+<td><code>datetime</code> (boolean) — <strong>required</strong>: <code>true</code> when the value carries a time of day, <code>false</code> for a bare calendar date</td>
+</tr>
+<tr>
+<td><code>number</code></td>
+<td>an integer or a floating-point number</td>
+<td><code>integer</code> (boolean) — <strong>required</strong>; <code>minimum</code>, <code>maximum</code>, <code>exclusive_minimum</code>, <code>exclusive_maximum</code> — all optional</td>
+</tr>
+<tr>
+<td><code>boolean</code></td>
+<td>true or false</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>enum</code></td>
+<td>one of a fixed set of values</td>
+<td><code>choices</code> (list) — <strong>required</strong>, and always a list <strong>even for a single choice</strong>, so that no consumer has to read a single-value form</td>
+</tr>
+<tr>
+<td><code>document</code></td>
+<td>a document supplied as a file or a URL</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>image</code></td>
+<td>an image, which a renderer may preview</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>object</code></td>
+<td>a structured concept</td>
+<td><code>fields</code> (list of field descriptors) — <strong>required</strong>; the concept's resolved payload fields, in declared order</td>
+</tr>
+<tr>
+<td><code>list</code></td>
+<td>an array of one element type</td>
+<td><code>item</code> (field descriptor) — <strong>required</strong>; <code>item_count</code> (integer) — optional, present exactly on a fixed <code>[N]</code> slot, where <code>N</code> is always at least 2</td>
+</tr>
+<tr>
+<td><code>unknown</code></td>
+<td>not honestly describable as any of the above</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><code>document</code> and <code>image</code> carry no accept-list and no upload affordance: <em>what the value is</em> rides <code>concept_ref</code> and <code>refines</code>, and how a renderer offers a file is the renderer's decision.</p>
+<p><code>unknown</code> is the <strong>escape hatch, and it is mandatory rather than optional</strong>: a producer that cannot map a node honestly MUST report <code>unknown</code> rather than guess a kind. A renderer then falls back to raw entry against the slot's <a href="../pipe-io-contracts/#the-input-schema"><code>json_schema</code></a>. A derivation is total — every node gets a descriptor — and <code>unknown</code> is what makes totality truthful.</p>
+<p>The constraint slots (<code>min_length</code>, <code>max_length</code>, <code>pattern</code>, <code>format</code> on the text kinds; the four numeric bounds on <code>number</code>) are stated where a producer holds them. <code>format</code> is an open string set carrying schema formats the <code>date</code> kind does not absorb (<code>time</code>, <code>uri</code>, …).</p>
+<h3 id="kind-assignment">Kind Assignment</h3>
+<p>Kind is decided from <strong>stated facts</strong> — a concept's identity, its refinement chain, its resolved structure — and never by sniffing a schema's shape or matching a description. A concept refining <code>native.Document</code> is <code>kind: "document"</code> because it says so, not because its payload happens to hold a <code>url</code> property.</p>
+<p><strong>A concept-typed node</strong> takes its kind from what the concept resolves to. The rows below are tried <strong>in order, and the first one that matches decides</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>The concept</th>
+<th>Kind</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>is a native</td>
+<td>the native's kind, from the table below</td>
+</tr>
+<tr>
+<td>has a refinement chain that reaches a native</td>
+<td>that native's kind</td>
+</tr>
+<tr>
+<td>declares a <code>structure</code> table — its own, or one inherited along the refinement chain</td>
+<td><code>object</code>, whose <code>fields</code> are the effective field set in declared order</td>
+</tr>
+<tr>
+<td>resolves to no structure — a <a href="../library-crate/#6-promote-string-described-concepts">string-described concept</a>, one declaring neither <code>structure</code> nor <code>refines</code>, or one whose refinement chain reaches such a concept</td>
+<td><code>prose</code></td>
+</tr>
+<tr>
+<td>resolves to none of the above, or is not present in the library</td>
+<td><code>unknown</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>The order is the rule, not a formatting accident.</strong> Most natives declare a structure of their own — <code>native.Document</code> is a <code>url</code>, a <code>mime_type</code>, a <code>filename</code> — so a table that asked about structure first would put every native and every native-backed concept on the <code>object</code> arm and never reach the native rows at all. <code>legal.Contract refines native.Document</code> is <code>kind: "document"</code>, not an <code>object</code> of <code>url</code> and <code>mime_type</code>, and it is the ordering that says so.</p>
+<p>The chain is walked rather than the concept read alone because the language keeps <a href="../mthds-format/#concept-definitions"><code>refines</code> and <code>structure</code> mutually exclusive</a>: a refining concept never carries a structure of its own, so inheritance along the chain is the only way one reaches the <code>object</code> arm — and a chain that reaches a native reaches it <em>through</em> that native's structure, which is exactly the case the native rows catch first.</p>
+<p>A concept that resolves to no structure is text-valued, per the language's own rule that <a href="../intent-hints/#the-intent-vocabulary">a description-only concept is text</a> — and the chain clause matters: <code>Foo refines Bar</code> where <code>Bar</code> is description-only resolves to no structure just as <code>Bar</code> does, so it is <code>prose</code> and not the <code>unknown</code> a literal reading of the concept alone would give. That fact reaches the wire as <code>kind: "prose"</code> and <strong>never as a fabricated refinement link</strong>: the language states description-only text-valuedness as an arm of its own, not as refinement of <code>native.Text</code>, and a producer inventing that link would be reporting ancestry no one authored — precisely what the <a href="#derivation-requirements">derivation requirement</a> below forbids. A consumer asking "is this text-valued?" reads <code>kind</code>; <code>refines</code> answers the different question "what does this specialize?", and on a structureless concept the honest answer is nothing.</p>
+<p><strong>A native concept</strong> maps by identity, over the <a href="../native-concepts/">pinned definitions</a>:</p>
+<table>
+<thead>
+<tr>
+<th>Native</th>
+<th>Kind</th>
+<th>Additional slots</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Text</code></td>
+<td><code>prose</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>Number</code></td>
+<td><code>number</code></td>
+<td><code>integer: false</code></td>
+</tr>
+<tr>
+<td><code>YesNo</code></td>
+<td><code>boolean</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>Time</code></td>
+<td><code>text</code></td>
+<td><code>format: "time"</code></td>
+</tr>
+<tr>
+<td><code>Document</code></td>
+<td><code>document</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>Image</code></td>
+<td><code>image</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>Date</code>, <code>Html</code>, <code>Page</code>, <code>TextAndImages</code>, <code>SearchResult</code></td>
+<td><code>object</code></td>
+<td><code>fields</code> from the pinned definition</td>
+</tr>
+<tr>
+<td><code>Dynamic</code>, <code>JSON</code>, <code>Anything</code>, <code>Composite</code></td>
+<td><code>unknown</code></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>A structure field</strong> maps from its declared <a href="../mthds-format/#field-types">field type</a> — except that a field carrying <code>choices</code> is an <code>enum</code>, which the language already guarantees by requiring <code>type</code> to be omitted there:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Kind</th>
+<th>Additional slots</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>choices</code> present</td>
+<td><code>enum</code></td>
+<td><code>choices</code>, verbatim</td>
+</tr>
+<tr>
+<td><code>type = "text"</code></td>
+<td><code>text</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>type = "integer"</code></td>
+<td><code>number</code></td>
+<td><code>integer: true</code></td>
+</tr>
+<tr>
+<td><code>type = "number"</code></td>
+<td><code>number</code></td>
+<td><code>integer: false</code></td>
+</tr>
+<tr>
+<td><code>type = "boolean"</code></td>
+<td><code>boolean</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>type = "date"</code></td>
+<td><code>date</code></td>
+<td><code>datetime: false</code></td>
+</tr>
+<tr>
+<td><code>type = "datetime"</code></td>
+<td><code>date</code></td>
+<td><code>datetime: true</code></td>
+</tr>
+<tr>
+<td><code>type = "time"</code></td>
+<td><code>text</code></td>
+<td><code>format: "time"</code></td>
+</tr>
+<tr>
+<td><code>type = "list"</code></td>
+<td><code>list</code></td>
+<td><code>item</code>, derived from <code>item_type</code> and <code>item_concept_ref</code></td>
+</tr>
+<tr>
+<td><code>type = "concept"</code></td>
+<td>the referenced concept's node</td>
+<td>as that node carries</td>
+</tr>
+<tr>
+<td><code>type = "dict"</code></td>
+<td><code>unknown</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>the <a href="../mthds-format/#concept-structure-fields">shorthand string form</a></td>
+<td><code>text</code></td>
+<td><code>required: true</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>dict</code> is <code>unknown</code> rather than a kind of its own because the language's dict declares a key type and a value type, not a set of fields, and a form built from that would be guessing at entries the method never named.</p>
+<h3 id="structured-multiplicity">Structured Multiplicity</h3>
+<p>Plurality is a stated fact and is never re-derived from a schema's <code>type: "array"</code>:</p>
+<ul>
+<li>An input slot authored <code>Concept[]</code> is a <code>list</code> field whose <code>item</code> describes the concept, with <strong>no</strong> <code>item_count</code>.</li>
+<li>An input slot authored <code>Concept[N]</code>, N ≥ 2, is a <code>list</code> field with <code>item_count: N</code> — the fixed count as a structured fact.</li>
+<li>A nested structure field of <code>list</code> type is likewise a <code>list</code> node, its <code>item</code> derived from <code>item_type</code> and, where that is <code>"concept"</code>, <code>item_concept_ref</code>. A field that declares no <code>item_type</code>, or whose element type the field blueprint cannot express (a list of lists, a list of dicts), is still a <code>list</code> node — the plurality is stated — carrying <code>item</code> with <code>kind: "unknown"</code>.</li>
+<li><code>Concept[1]</code> is <strong>single</strong> — one item, no list framing — exactly as in <a href="../pipe-io-contracts/#multiplicity-and-item-count">pipe I/O contracts</a>, so a stated <code>item_count</code> is always greater than one.</li>
+</ul>
+<p><code>item_count</code> is <strong>absent</strong> when it does not apply. The <a href="../pipe-io-contracts/#multiplicity-and-item-count">contract</a> makes the opposite choice and carries the slot as <code>null</code> off the fixed arm; the two artifacts differ deliberately, and each states its own rule so that neither is guessed from the other.</p>
+<p>On a <code>list</code> node, <code>concept_ref</code> and <code>refines</code> name the <strong>element</strong> concept — the authored reference with its multiplicity suffix stripped, exactly as the contract reports it — and the <code>item</code> descriptor carries the same <code>concept_ref</code>. The list node is where a renderer reads the slot's identity; the item is what it renders once per entry.</p>
+<h2 id="intent-hints-on-a-descriptor">Intent Hints on a Descriptor</h2>
+<p>Every field descriptor carries an optional <code>hints</code> object: the node's <strong>effective</strong> <a href="../intent-hints/">intent hints</a>, a flat map of string to string.</p>
+<p>The value is the final key-by-key merge the language defines — along the concept's refinement chain, nearer declaration winning, and then the site layer (a structure field's or an input slot's own <code>hints</code>) over the concept layer — so a consumer reads one map and walks nothing. Everything well-formed rides it, unknown keys and unknown words included: content leniency is the language's rule, and a descriptor preserves content for consumers that know more than this version does.</p>
+<p>On a <strong>plural node</strong> the merged hints appear on the <code>list</code> node <em>and</em> on its <code>item</code>, mirroring the <code>concept_ref</code> duplication: applicability is judged per item, and a renderer reading either node finds the same answer.</p>
+<p>A node with <strong>no effective hints has no <code>hints</code> member</strong>, so a hint-free method's descriptor is byte-identical to what it would have been before hints existed.</p>
+<p>An applicable <code>intent</code> word is an <strong>input to kind assignment, never a second answer competing with it</strong>. On a text-valued node, an effective <code>intent = "prose"</code> yields <code>kind: "prose"</code> and <code>intent = "label"</code> yields <code>kind: "text"</code>. An absent, unknown, or inapplicable word leaves the kind that <a href="#kind-assignment">kind assignment</a> already decided. <code>rating</code> and <code>quantity</code> never change a kind — both describe a <code>number</code>, and this version's union has no finer kind — and ride the slot for the renderer.</p>
+<p>Applicability is judged exactly as <a href="../intent-hints/#the-intent-vocabulary">Intent Hints</a> defines it, which is narrower than a kind: a <code>text</code> node carrying <code>format: "time"</code> is neither text-valued nor number-valued, so no word of this version applies to it.</p>
+<p>The language's two governing rules bind the slot, and neither is weakened by the descriptor carrying it: hints are <strong>non-normative</strong> — no hint changes a verdict, the gating rule, or the payload contract — and a <strong>renderer that ignores hints stays correct</strong>, because the kind assignment above is complete without them.</p>
+<h2 id="strictness">Strictness</h2>
+<p>Every object this document defines — a per-pipe descriptor, a field descriptor — is a <strong>closed shape</strong>. A producer MUST NOT emit a member this version of the standard does not define, and a consumer MAY reject one. An unrecognized member is version drift, and catching it where a payload is parsed is more useful than discovering it three layers later.</p>
+<p>The <code>hints</code> map is the deliberate exception, and it is an exception in <em>content</em>, not in shape: its shape is fixed — a flat map of string to string — while unknown keys and unknown words inside it are carried through, exactly as the <a href="../intent-hints/#the-hints-table">language's leniency rule</a> requires.</p>
+<p>This strictness is the opposite of the <a href="../protocol/#extension-policy">protocol's extension policy</a>, which keeps the validate <em>report</em> extension-open: an implementation may add fields to the report — that is how this artifact reached the report in the first place — but it may not add members inside the artifact and still call it an input-form descriptor. The report is the envelope and grows; the artifact is the view and does not. Growth happens through the standard, as a minor version.</p>
+<h2 id="derivation-requirements">Derivation Requirements</h2>
+<ul>
+<li><strong>Derived from the resolved library, never from a projected schema.</strong> Deriving the descriptor <em>from</em> a JSON Schema would re-import every loss the descriptor exists to end. The descriptor and the contract's <code>json_schema</code> are two projections of one library, which is why they cannot disagree.</li>
+<li><strong>The refinement chain needs pre-flattening facts.</strong> <code>refines</code> reports the chain as authored, and the crate's <a href="../library-crate/#3-flatten-refinement">normalization step 3</a> deliberately flattens in-crate structured refinement away. A producer therefore derives the descriptor from the closure <em>before</em> that flattening — fully qualified and native-materialized, with its <code>refines</code> links intact. A producer holding only a normalized crate derives every other slot unchanged and reports the <code>refines</code> link normalization retains — the terminal <code>native.&lt;Code&gt;</code> link, where the chain reaches one, which is what the membership test consumers run on <code>refines</code> depends on. It MUST NOT reconstruct intermediate links it does not hold.</li>
+<li><strong>Deterministic.</strong> The same library yields the same descriptor: field order is authored order, and no content depends on the environment or on the request.</li>
+<li><strong>One derivation, every surface.</strong> An implementation that reports the descriptor from more than one path MUST derive it through one shared derivation, so the artifact cannot differ by which backend answered.</li>
+<li><strong>Same projection from every engine.</strong> The derivation is mechanism-free — nothing in it requires a network, a model, or a server — so two independent implementations derive the same descriptor from the same library, and their outputs are comparable as values. The <a href="#specification-status">slots the language does not yet author</a> are the stated exception: comparability is asserted over the slots this version derives from the library.</li>
+</ul>
+<h2 id="non-goals">Non-Goals</h2>
+<ul>
+<li><strong>No widget vocabulary.</strong> Kinds and hints name intent; <code>textarea</code>, <code>slider</code>, and <code>dropdown</code> never appear on this wire.</li>
+<li><strong>No validation semantics.</strong> The descriptor never becomes something a machine consumer must read to validate a payload — <a href="../pipe-io-contracts/#the-input-schema"><code>json_schema</code></a> keeps that job. A caller ignoring the descriptor entirely loses no fact it needs.</li>
+<li><strong>No layout or styling.</strong> Field order is the authored order, not a layout. Grouping, sizing, and theming belong to consumers.</li>
+<li><strong>No committed artifacts.</strong> The descriptor is derived on demand. Nothing is generated into a consumer's repository, stamped, or locked.</li>
+<li><strong>No result presentation.</strong> The descriptor describes a method's <em>inputs</em>. Presenting what a run produced is a separate concern this artifact does not address.</li>
+</ul>
+<h2 id="relationship-to-other-specifications">Relationship to Other Specifications</h2>
+<ul>
+<li><a href="../mthds-format/">.mthds File Format</a> defines the input slots, concepts, and structure fields the descriptor projects.</li>
+<li><a href="../library-crate/">Library Crate Format</a> defines the resolved library the descriptor derives from — the authority on refinement, presence, multiplicity, and defaults.</li>
+<li><a href="../pipe-io-contracts/">Pipe I/O Contracts</a> is the machine contract over the same pipes, keyed by the same <code>pipe_ref</code> set, and carries the <code>json_schema</code> the <code>unknown</code> kind falls back to.</li>
+<li><a href="../intent-hints/">Intent Hints</a> owns the hint vocabulary the <code>hints</code> slot carries; this page defines only how the effective merge reaches the wire.</li>
+<li><a href="../native-concepts/">Native Concept Definitions</a> pins the native concepts the kind-assignment table maps.</li>
+<li><a href="../protocol/#validating-a-bundle">HTTP Runner Protocol</a> carries the artifact as a recommended extension field of the validate response.</li>
+</ul>
+        <div id="llms-copy-button" style="position: fixed; z-index: 1100; top: 80px; right: 20px;">
+            <button onclick="copyMarkdownToClipboard()" style="cursor: pointer; background: #007acc; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Copy Markdown</button>
+        </div>
+        <script>
+        async function copyMarkdownToClipboard() {
+            try {
+                const currentPath = window.location.pathname;
+                const mdPath = currentPath.endsWith('/') ? currentPath + 'index.md' : currentPath.replace(/\.html$/, '.md');
+
+                const response = await fetch(mdPath);
+                if (response.ok) {
+                    const markdown = await response.text();
+                    await navigator.clipboard.writeText(markdown);
+                    // Show feedback
+                    const button = document.querySelector('#llms-copy-button button');
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.style.background = '#28a745';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '#007acc';
+                    }, 2000);
+                } else {
+                    throw new Error('Markdown file not found');
+                }
+            } catch (err) {
+                console.error('Failed to copy markdown:', err);
+                alert('Failed to copy markdown content');
+            }
+        }
+        </script>
+        
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../pipe-io-contracts/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Pipe I/O Contracts">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Pipe I/O Contracts
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../namespace-resolution/" class="md-footer__link md-footer__link--next" aria-label="Next: Namespace Resolution Rules">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Namespace Resolution Rules
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Reference runtime: <a href="https://github.com/Pipelex/pipelex" target="_blank" rel="noopener">Pipelex</a> (MIT)<br>© 2025-2026 Evotis S.A.S.
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/mthds-ai/mthds" target="_blank" rel="noopener" title="MTHDS on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.footer", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">document.querySelectorAll('.glightbox').forEach(function(element) {
+    try {
+        var img = element.querySelector('img');
+        if (img && img.src) {
+            element.setAttribute('href', img.src);
+        } else {
+            console.log('No img element with src attribute found');
+        }
+    } catch (error) {
+        console.log('Error:', error);
+    }
+});
+const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>
