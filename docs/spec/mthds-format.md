@@ -157,6 +157,8 @@ Each field in a concept structure is defined by a field blueprint:
 | `item_concept_ref` | string | Conditional | Concept reference for list items when `item_type = "concept"`. |
 | `hints` | table | No | Optional [intent hints](./intent-hints.md) for the field — non-normative presentation intent. |
 
+The keys of a field blueprint are a **closed set**, exactly like an [input slot table](#input-slot-declarations)'s. A key this table does not define MUST be rejected — a hopeful key (`minimum`, `examples`, `unit`, …) that validated green would be silently dropped, and an author would have no way to learn the field never carried what they wrote.
+
 #### Field Types
 
 The `type` field accepts the following values:
@@ -186,6 +188,7 @@ When `type` is omitted and `choices` is provided, the field is an enumeration fi
 - `concept_ref` MUST NOT be set unless `type = "concept"`.
 - If `choices` is provided and `type` is omitted, `default_value` (if present) MUST be one of the values in `choices`.
 - If both `type` and `default_value` are set, the runtime type of `default_value` MUST match the declared `type`.
+- A field MUST NOT declare both `required = true` and `default_value`. A default means "applied when the caller omits the field", which makes absence legal; `required` means "must be present". The pair is two contradictory instructions on one field, and it fails validation rather than resolving to whichever the implementation happens to check first.
 
 **Example — concept with all field types:**
 
@@ -257,11 +260,13 @@ Concrete pipe types share these base fields:
 - Pipe codes MUST be `snake_case`, matching the pattern `[a-z][a-z0-9_]*`.
 
 **Input names:**
+{ #input-names }
 
 - Input names MUST be `snake_case`.
 - Dotted input names are allowed for nested field access (e.g., `my_input.field_name`), where each segment MUST be `snake_case`. A dotted input name MUST be written as a single quoted TOML key (`"my_input.field_name" = "Text"`), never as an unquoted dotted path: TOML parses the latter as nested tables, which the [expanded slot form](#input-slot-declarations) would misread as a slot table.
 
 **Concept references in inputs and output:**
+{ #concept-references-in-inputs-and-output }
 
 Concept references in `inputs` and `output` support an optional multiplicity suffix and, for pipe declarations only, a presence marker:
 
@@ -269,9 +274,12 @@ Concept references in `inputs` and `output` support an optional multiplicity suf
 |--------|---------|
 | `ConceptName` | A single instance. |
 | `ConceptName[]` | A variable-length list (runtime determines count). |
-| `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 1). |
+| `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 2). |
+| `ConceptName[1]` | A single instance — the same slot as `ConceptName`, with the count written out. Not a one-item list. |
 | `ConceptName?` | Optional single value. The slot may resolve as a recorded absence. |
 | `ConceptName!` | Forced single input. If the slot is absent at run time, the run fails loudly. Inputs only. |
+
+`N` MUST be at least 1: `ConceptName[0]` is invalid, because a fixed count of zero declares a slot that can hold nothing. A count of exactly one is **single throughout the standard** — `ConceptName[1]` is a way of writing `ConceptName`, never a one-element list — so nothing downstream wraps such a value in an array, and a fixed count reported on any wire is always greater than one. Every artifact that carries multiplicity states the same rule: the [library crate](./library-crate.md#5-materialize-defaults-and-multiplicity) materializes it, and [pipe I/O contracts](./pipe-io-contracts.md#multiplicity-and-item-count) and the [input-form descriptor](./input-form-descriptor.md#structured-multiplicity) report it.
 
 Concept references MAY be bare codes (`Text`), domain-qualified (`legal.ContractClause`), or cross-package qualified (`alias->domain.ConceptCode`).
 

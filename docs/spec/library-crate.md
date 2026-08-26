@@ -117,7 +117,7 @@ Both halves of that rule are load-bearing. Omitting a transitively-referenced na
 Elided authoring conveniences are made explicit:
 
 - field default values become explicit on each structure field;
-- multiplicity — list markers (`Concept[]`) and presence markers (optional `?`, required `!`) — becomes explicit on each field and on each pipe input/output, rather than implied by shorthand;
+- multiplicity — list markers (`Concept[]`) and presence markers (optional `?`, required `!`) — becomes explicit on each field and on each pipe input/output, rather than implied by shorthand. A fixed count of exactly one materializes as **single**, per the language's [`[1]`-is-single rule](./mthds-format.md#concept-references-in-inputs-and-output), so a materialized fixed count is always greater than one;
 - empty `hints` tables are removed, absent hints are an absent member (never `null`, never an empty table), and a hint-free input slot normalizes exactly as the string form does whichever form authored it — so a slot, field, or concept carrying no hints normalizes exactly as it did before hints existed, and a library that authors no hints keeps its [fingerprint](#fingerprint). A hinted slot is carried in the expanded form, `hints` beside the slot's concept reference, its multiplicity and presence materialized exactly as a string-form slot's are; a field's or slot's `hints` are carried as authored, the site-over-concept merge being the consumer's (see [Intent Hints: Hints in the Library Crate](./intent-hints.md#hints-in-the-library-crate)). (A concept's effective hints are assembled earlier, in [step 3](#3-flatten-refinement), where the refinement chain is walked.)
 
 ### 6. Promote String-Described Concepts
@@ -182,6 +182,8 @@ This holds because normalization has already done every job that would otherwise
 
 Sufficiency is the same property that makes a crate portable to a remote worker with no access to the original files, and portable to a third-party code generator with no MTHDS frontend. They are one requirement, met once.
 
+The two halves of that promise have standard-owned artifacts of their own, so a consumer need not re-derive them: [Pipe I/O Contracts](./pipe-io-contracts.md) states, per pipe, the concept, presence, multiplicity and JSON Schema of every input and the concept and multiplicity of the output — what "register a correct tool" needs; and the [Input-Form Descriptor](./input-form-descriptor.md) states the ordered, kind-discriminated presentation view of the same inputs — what "render a correct input form" needs. Both are projections of a resolved library and are derivable from a crate with a JSON parser and nothing else, which is sufficiency demonstrated rather than asserted. The one place a normalized crate is a lossy input is the descriptor's `refines` chain, which needs the refinement links [step 3](#3-flatten-refinement) deliberately flattens; the descriptor page states what a crate-only producer reports there.
+
 ## Relationship to Other Formats
 
 - [.mthds File Format](./mthds-format.md) defines the bundle — the authored unit a crate is assembled from.
@@ -189,3 +191,4 @@ Sufficiency is the same property that makes a crate portable to a remote worker 
 - [methods.lock Format](./lock-format.md) pins *which versions* of remote dependencies a package resolves to; it is an input to closure assembly, not part of the crate.
 - [Namespace Resolution Rules](./namespace-resolution.md) define the reference-resolution semantics the normalization pass applies.
 - [Package Loading](../implementers/package-loading.md) details the dependency resolution and library assembly the closure is built by.
+- [Pipe I/O Contracts](./pipe-io-contracts.md) and the [Input-Form Descriptor](./input-form-descriptor.md) are the two standard-owned projections of a resolved library — the machine contract and the presentation view of a pipe's inputs.

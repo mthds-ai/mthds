@@ -30,7 +30,8 @@ All concrete pipe types share these base fields. Contract-only signatures omit `
 |--------|---------|
 | `ConceptName` | A single instance. |
 | `ConceptName[]` | A variable-length list. |
-| `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 1). |
+| `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 2). |
+| `ConceptName[1]` | A single instance — the same as `ConceptName`, with the count written out. Not a one-item list. |
 | `ConceptName?` | Optional single value; the slot may resolve as absent. |
 | `ConceptName!` | Forced single input; absence fails the run. Inputs only. |
 
