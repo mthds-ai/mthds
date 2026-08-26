@@ -19,7 +19,7 @@ All concrete pipe types share these base fields. Contract-only signatures omit `
 |-------|----------|-------------|
 | `type` | Yes for concrete pipes | The pipe type (e.g., `"PipeLLM"`, `"PipeSequence"`). |
 | `description` | Yes | Human-readable description of what this pipe does. |
-| `inputs` | No | Input declarations. Keys are input names (`snake_case`), values are concept references. |
+| `inputs` | No | Input declarations. Keys are input names (`snake_case`), values are input slot declarations — a concept reference, or the expanded form `{ concept = "...", hints = { ... } }` (see [Input slot declarations](../spec/mthds-format.md#input-slot-declarations) and [Intent Hints](../spec/intent-hints.md)). |
 | `output` | Yes | The output concept reference. |
 
 **Pipe codes** are the keys in `[pipe.<pipe_code>]` tables. They must be `snake_case`, matching `[a-z][a-z0-9_]*`.
@@ -30,7 +30,8 @@ All concrete pipe types share these base fields. Contract-only signatures omit `
 |--------|---------|
 | `ConceptName` | A single instance. |
 | `ConceptName[]` | A variable-length list. |
-| `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 1). |
+| `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 2). |
+| `ConceptName[1]` | A single instance — the same as `ConceptName`, with the count written out. Not a one-item list. |
 | `ConceptName?` | Optional single value; the slot may resolve as absent. |
 | `ConceptName!` | Forced single input; absence fails the run. Inputs only. |
 

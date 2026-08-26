@@ -86,8 +86,10 @@ description = "HTML content"
 
 [concept.Html.structure]
 inner_html = { type = "text", required = true, description = "The inner HTML of the content" }
-css_class = { type = "text", required = true, description = "The CSS class of the content" }
+css_class = { type = "text", description = "The CSS class of the content" }
 ```
+
+`css_class` is optional: it names a class for a wrapper a consumer may put around `inner_html`, and content that needs no wrapper simply omits it. Only `inner_html` is required — an `Html` value is its markup, and the class is presentation a producer states when it has one.
 
 ### native.TextAndImages
 

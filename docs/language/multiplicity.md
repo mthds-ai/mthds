@@ -153,6 +153,10 @@ Describe their similarities, differences, and relative strengths.
 """
 ```
 
+!!! note "A count of one is not a list"
+
+    `Concept[1]` declares a **single** instance, not a one-item list — it is the same slot as `Concept`, with the count written out. Nothing wraps such a value in an array, so a fixed count only ever means a real list when it is 2 or more. `Concept[0]` is invalid.
+
 ## Practical Use Cases
 
 ### Batch Processing with Variable Input

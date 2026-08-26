@@ -139,6 +139,8 @@ The `refines` field accepts:
 
 When `structure` is a table, each key is a field name and each value is a field blueprint. Field names MUST NOT start with an underscore (`_`), as these are reserved for internal use. Field names MUST NOT collide with reserved field names (Pydantic model attributes and internal metadata fields).
 
+A field's value is either a **field blueprint table** or a **bare string**, which is shorthand for a required text field: `summary = "A one-line summary"` declares exactly what `summary = { type = "text", required = true, description = "A one-line summary" }` declares. The shorthand carries a description and nothing else, so a field needing any other key is written as a table.
+
 #### Field Blueprint
 
 Each field in a concept structure is defined by a field blueprint:
@@ -156,6 +158,8 @@ Each field in a concept structure is defined by a field blueprint:
 | `concept_ref` | string | Conditional | Concept reference for `concept`-typed fields. Required when `type = "concept"`. |
 | `item_concept_ref` | string | Conditional | Concept reference for list items when `item_type = "concept"`. |
 | `hints` | table | No | Optional [intent hints](./intent-hints.md) for the field — non-normative presentation intent. |
+
+The keys of a field blueprint are a **closed set**, exactly like an [input slot table](#input-slot-declarations)'s. A key this table does not define MUST be rejected — a hopeful key (`minimum`, `examples`, `unit`, …) that validated green would be silently dropped, and an author would have no way to learn the field never carried what they wrote.
 
 #### Field Types
 
@@ -186,6 +190,7 @@ When `type` is omitted and `choices` is provided, the field is an enumeration fi
 - `concept_ref` MUST NOT be set unless `type = "concept"`.
 - If `choices` is provided and `type` is omitted, `default_value` (if present) MUST be one of the values in `choices`.
 - If both `type` and `default_value` are set, the runtime type of `default_value` MUST match the declared `type`.
+- A field MUST NOT declare both `required = true` and `default_value`. A default means "applied when the caller omits the field", which makes absence legal; `required` means "must be present". The pair is two contradictory instructions on one field, and it fails validation rather than resolving to whichever the implementation happens to check first.
 
 **Example — concept with all field types:**
 
@@ -248,7 +253,7 @@ Concrete pipe types share these base fields:
 |-------|------|----------|-------------|
 | `type` | string | Yes for concrete pipes | The pipe type. Determines which category and additional fields are available. Omitted only for contract-only `PipeSignature` declarations. |
 | `description` | string | Yes | Human-readable description of what this pipe does. |
-| `inputs` | table | No | Input declarations. Keys are input names (`snake_case`), values are input slot declarations (see **Input slot declarations** below). |
+| `inputs` | table | No | Input declarations. Keys are input names (`snake_case`), values are input slot declarations (see [Input slot declarations](#input-slot-declarations)). |
 | `output` | string | Yes | The output concept reference with optional multiplicity. |
 
 **Pipe codes:**
@@ -257,11 +262,13 @@ Concrete pipe types share these base fields:
 - Pipe codes MUST be `snake_case`, matching the pattern `[a-z][a-z0-9_]*`.
 
 **Input names:**
+{ #input-names }
 
 - Input names MUST be `snake_case`.
-- Dotted input names are allowed for nested field access (e.g., `my_input.field_name`), where each segment MUST be `snake_case`.
+- Dotted input names are allowed for nested field access (e.g., `my_input.field_name`), where each segment MUST be `snake_case`. A dotted input name MUST be written as a single quoted TOML key (`"my_input.field_name" = "Text"`), never as an unquoted dotted path: TOML parses the latter as nested tables, which the [expanded slot form](#input-slot-declarations) would misread as a slot table.
 
 **Concept references in inputs and output:**
+{ #concept-references-in-inputs-and-output }
 
 Concept references in `inputs` and `output` support an optional multiplicity suffix and, for pipe declarations only, a presence marker:
 
@@ -269,9 +276,12 @@ Concept references in `inputs` and `output` support an optional multiplicity suf
 |--------|---------|
 | `ConceptName` | A single instance. |
 | `ConceptName[]` | A variable-length list (runtime determines count). |
-| `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 1). |
+| `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 2). |
+| `ConceptName[1]` | A single instance — the same slot as `ConceptName`, with the count written out. Not a one-item list. |
 | `ConceptName?` | Optional single value. The slot may resolve as a recorded absence. |
 | `ConceptName!` | Forced single input. If the slot is absent at run time, the run fails loudly. Inputs only. |
+
+The **bracketed count** MUST be at least 1: `ConceptName[0]` is invalid, because a fixed count of zero declares a slot that can hold nothing. A count of exactly one is **single throughout the standard** — `ConceptName[1]` is a way of writing `ConceptName`, never a one-element list — so nothing downstream wraps such a value in an array, and a fixed count reported on any wire is always greater than one. Every artifact that carries multiplicity states the same rule: the [library crate](./library-crate.md#5-materialize-defaults-and-multiplicity) materializes it, and [pipe I/O contracts](./pipe-io-contracts.md#multiplicity-and-item-count) and the [input-form descriptor](./input-form-descriptor.md#structured-multiplicity) report it.
 
 Concept references MAY be bare codes (`Text`), domain-qualified (`legal.ContractClause`), or cross-package qualified (`alias->domain.ConceptCode`).
 
@@ -282,6 +292,7 @@ Presence markers have these constraints:
 - `!` MUST NOT appear on `output`. A force marker is an input-side assertion.
 
 **Input slot declarations:**
+{ #input-slot-declarations }
 
 Each value in `inputs` declares one input slot, in one of two forms. The **string form** is a concept reference with optional multiplicity and presence marker, as specified above. The **expanded form** is a table:
 
@@ -347,7 +358,7 @@ A `[pipe.<pipe_code>]` section with no `type` is a `PipeSignature` when it conta
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `description` | string | Yes | Human-readable description of the intended pipe. |
-| `inputs` | table | No | Input declarations. |
+| `inputs` | table | No | Input declarations, in either [input slot form](#input-slot-declarations) — the string form, or the expanded form with `hints`. |
 | `output` | string | Yes | Output concept reference. Multiplicity and `?` are supported. |
 | `signature_for` | string | No | Optional hint naming the concrete pipe type expected later, such as `"PipeLLM"`. |
 
@@ -1010,7 +1021,7 @@ The disambiguation between concepts and pipes in a domain-qualified reference re
 
 Concept references appear in:
 
-- `inputs` values
+- `inputs` values — the string form, or the `concept` key of the [expanded form](#input-slot-declarations)
 - `output`
 - `refines`
 - `concept_ref` and `item_concept_ref` in structure field blueprints

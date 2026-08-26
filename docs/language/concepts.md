@@ -103,6 +103,7 @@ When using the structured form `[concept.<ConceptCode>]`:
 | `description` | Yes | Human-readable description of the concept. |
 | `structure` | No | Field definitions. If a string, it is a shorthand description (equivalent to a simple declaration). If a table, each key is a field name mapped to a field blueprint. |
 | `refines` | No | A concept reference indicating specialization of another concept. |
+| `hints` | No | Optional [intent hints](../spec/intent-hints.md) — non-normative presentation intent that travels with the concept. |
 
 `refines` and `structure` cannot both be present on the same concept. A concept either refines another concept or defines its own structure, not both.
 
@@ -141,6 +142,7 @@ The complete set of attributes available on each field in a concept's `structure
 | `item_type` | No | Item type for `list` fields. When `"concept"`, requires `item_concept_ref`. |
 | `concept_ref` | Conditional | Concept reference for `concept`-typed fields. Required when `type = "concept"`. |
 | `item_concept_ref` | Conditional | Concept reference for list items when `item_type = "concept"`. |
+| `hints` | No | Optional [intent hints](../spec/intent-hints.md) for the field — non-normative presentation intent. |
 
 ## A Complete Example
 
