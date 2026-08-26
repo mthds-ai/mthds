@@ -22,7 +22,7 @@ Deferred findings from the review-agent triage of [PR #57](https://github.com/mt
 
 There is repo precedent for this exact class of deferral: `wip/intent-hints-design.md:76` already records that the OpenAPI defines no advisory-warnings member for the hints spec's SHOULD-warn rules and calls it its own follow-up. And `library-crate.md` — a full normative artifact format — has no machine-readable counterpart in this repo at all. The house pattern is that prose pages own artifact shapes while the YAML owns the HTTP surface.
 
-**Recommendation.** Do it once Checkpoint 1 ratifies the slot names, and preferably when that file is next opened anyway — there is already an opportunistic item queued against it, `L-260826-11f836` (swap the three single-value `enum: [x]` to `const: x`). The minimal edit is two properties under `ValidationReport.properties`, neither in `required`:
+**Recommendation.** Do it once Checkpoint 1 ratifies the slot names, and preferably when that file is next opened anyway — there is already an opportunistic item queued against it, `L-260826-11f836` (swap the three single-value `enum: [x]` to `const: x`). Be clear about what the edit is, though: it is deliberately the loose declaration reason 4 argues against, so it is worth taking only if the open question below is answered *yes, a discoverable name is worth having on its own*. It buys that name and nothing more — it states nothing true about either shape, and a reader who takes `type: object` for the whole story reads the strictness rule backwards. On those terms, the smallest edit is two properties under `ValidationReport.properties`, neither in `required`:
 
 ```yaml
 pipe_io_contracts:
@@ -40,3 +40,21 @@ input_form:
 **One thing that edit must not forget:** it makes the sentence at `protocol.md:94` ("the protocol's response schemas declare only the base fields") inaccurate, so the two move together. That buys discoverability only — full typing stays with the Stage 2 protocol packages, which is where the plan already puts it.
 
 **Open question for the owner:** is discoverability-without-shape worth having at all, or should the YAML stay silent until the two shapes are pinned tightly enough to declare faithfully? The thread on the PR is left open for that call.
+
+## The intent-hints follow-up bullet describes a divergence that does not exist
+
+**Where:** `wip/intent-hints-design.md:75`, the third bullet under "Follow-ups after acceptance". Predates the review rounds — it arrived with the branch's first commit, `c8832e7`.
+
+**Reporter:** cubic-dev-ai (P3, confidence 6). [Thread on PR #57](https://github.com/mthds-ai/mthds/pull/57#discussion_r3864869240).
+
+**The issue.** The bullet reads: "The hints spec treats a description-only concept (neither `structure` nor `refines`) as text-valued, as the reference implementation does (it refines `native.Text` at run time); Library Crate step 6 still promotes the string-shorthand form to a 'structureless' concept with no `refines`. Aligning step 6 with that reading is a follow-up on the crate spec." Cubic is right that there is nothing to align, and every citation checks out:
+
+- `docs/spec/intent-hints.md:70` already makes a concept "that declares neither `structure` nor `refines`" text-valued, in the applicability list itself.
+- `docs/spec/input-form-descriptor.md:145` states that this text-valuedness reaches the wire "as `kind: \"prose\"` and **never as a fabricated refinement link**", because "the language states description-only text-valuedness as an arm of its own, not as refinement of `native.Text`, and a producer inventing that link would be reporting ancestry no one authored — precisely what the derivation requirement below forbids".
+- `docs/spec/library-crate.md:125` (step 6) promotes the string-shorthand form to a **structureless** concept with no `refines`, which is that rule correctly applied — not a divergence from it.
+
+So the crate spec is already saying the right thing, and the "alignment" the bullet gestures at — giving the promoted concept a `refines native.Text` — is the one move a normative page explicitly forbids. The bullet also aims at the wrong repo: the fabricated `refines native.Text` link is the *reference implementation's* run-time behaviour, and dropping it is already filed as ledger item `L-260826-0ed8dd` (owner `pipelex`).
+
+**Why deferred.** It is a pre-existing inaccuracy in a work-in-progress design note rather than a regression this PR's review rounds introduced, and it blocks no merge — which puts it below the bar a second review round applies. It is real, though, and left alone it is the kind of follow-up someone eventually acts on.
+
+**Recommendation.** Rewrite the bullet, or drop it. If rewritten, it should say the opposite of what it says now: Library Crate step 6 is correct as written, the descriptor forbids the `refines native.Text` link, and the outstanding work is on the implementation side under `L-260826-0ed8dd` — nothing is owed by the crate spec.
