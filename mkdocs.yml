@@ -42,6 +42,9 @@ extra:
   version:
     provider: mike
 
+validation:
+  anchors: warn
+
 plugins:
   - mike:
       alias_type: copy

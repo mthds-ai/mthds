@@ -248,7 +248,7 @@ Concrete pipe types share these base fields:
 |-------|------|----------|-------------|
 | `type` | string | Yes for concrete pipes | The pipe type. Determines which category and additional fields are available. Omitted only for contract-only `PipeSignature` declarations. |
 | `description` | string | Yes | Human-readable description of what this pipe does. |
-| `inputs` | table | No | Input declarations. Keys are input names (`snake_case`), values are input slot declarations (see **Input slot declarations** below). |
+| `inputs` | table | No | Input declarations. Keys are input names (`snake_case`), values are input slot declarations (see [Input slot declarations](#input-slot-declarations)). |
 | `output` | string | Yes | The output concept reference with optional multiplicity. |
 
 **Pipe codes:**
@@ -259,7 +259,7 @@ Concrete pipe types share these base fields:
 **Input names:**
 
 - Input names MUST be `snake_case`.
-- Dotted input names are allowed for nested field access (e.g., `my_input.field_name`), where each segment MUST be `snake_case`.
+- Dotted input names are allowed for nested field access (e.g., `my_input.field_name`), where each segment MUST be `snake_case`. A dotted input name MUST be written as a single quoted TOML key (`"my_input.field_name" = "Text"`), never as an unquoted dotted path: TOML parses the latter as nested tables, which the [expanded slot form](#input-slot-declarations) would misread as a slot table.
 
 **Concept references in inputs and output:**
 
@@ -282,6 +282,7 @@ Presence markers have these constraints:
 - `!` MUST NOT appear on `output`. A force marker is an input-side assertion.
 
 **Input slot declarations:**
+{ #input-slot-declarations }
 
 Each value in `inputs` declares one input slot, in one of two forms. The **string form** is a concept reference with optional multiplicity and presence marker, as specified above. The **expanded form** is a table:
 
@@ -347,7 +348,7 @@ A `[pipe.<pipe_code>]` section with no `type` is a `PipeSignature` when it conta
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `description` | string | Yes | Human-readable description of the intended pipe. |
-| `inputs` | table | No | Input declarations. |
+| `inputs` | table | No | Input declarations, in either [input slot form](#input-slot-declarations) — the string form, or the expanded form with `hints`. |
 | `output` | string | Yes | Output concept reference. Multiplicity and `?` are supported. |
 | `signature_for` | string | No | Optional hint naming the concrete pipe type expected later, such as `"PipeLLM"`. |
 
@@ -1010,7 +1011,7 @@ The disambiguation between concepts and pipes in a domain-qualified reference re
 
 Concept references appear in:
 
-- `inputs` values
+- `inputs` values — the string form, or the `concept` key of the [expanded form](#input-slot-declarations)
 - `output`
 - `refines`
 - `concept_ref` and `item_concept_ref` in structure field blueprints
