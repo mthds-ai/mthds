@@ -148,14 +148,13 @@ A concept that resolves to no structure is text-valued, per the language's own r
 
 | Native | Kind | Additional slots |
 |---|---|---|
-| `Text`, `Html` | `prose` | — |
+| `Text` | `prose` | — |
 | `Number` | `number` | `integer: false` |
 | `YesNo` | `boolean` | — |
-| `Date` | `date` | `datetime: false` |
 | `Time` | `text` | `format: "time"` |
 | `Document` | `document` | — |
 | `Image` | `image` | — |
-| `Page`, `TextAndImages`, `SearchResult` | `object` | `fields` from the pinned definition |
+| `Date`, `Html`, `Page`, `TextAndImages`, `SearchResult` | `object` | `fields` from the pinned definition |
 | `Dynamic`, `JSON`, `Anything`, `Composite` | `unknown` | — |
 
 **A structure field** maps from its declared [field type](./mthds-format.md#field-types) — except that a field carrying `choices` is an `enum`, which the language already guarantees by requiring `type` to be omitted there:
@@ -202,7 +201,7 @@ A node with **no effective hints has no `hints` member**, so a hint-free method'
 
 An applicable `intent` word is an **input to kind assignment, never a second answer competing with it**. On a text-valued node, an effective `intent = "prose"` yields `kind: "prose"` and `intent = "label"` yields `kind: "text"`. An absent, unknown, or inapplicable word leaves the kind that [kind assignment](#kind-assignment) already decided. `rating` and `quantity` never change a kind — both describe a `number`, and this version's union has no finer kind — and ride the slot for the renderer.
 
-Applicability is judged exactly as [Intent Hints](./intent-hints.md#the-intent-vocabulary) defines it, which is narrower than a kind: a `prose` node reached through `native.Html` and a `text` node carrying `format: "time"` are neither text-valued nor number-valued, so no word of this version applies to them.
+Applicability is judged exactly as [Intent Hints](./intent-hints.md#the-intent-vocabulary) defines it, which is narrower than a kind: a `text` node carrying `format: "time"` is neither text-valued nor number-valued, so no word of this version applies to it.
 
 The language's two governing rules bind the slot, and neither is weakened by the descriptor carrying it: hints are **non-normative** — no hint changes a verdict, the gating rule, or the payload contract — and a **renderer that ignores hints stays correct**, because the kind assignment above is complete without them.
 

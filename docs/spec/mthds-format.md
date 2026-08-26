@@ -139,6 +139,8 @@ The `refines` field accepts:
 
 When `structure` is a table, each key is a field name and each value is a field blueprint. Field names MUST NOT start with an underscore (`_`), as these are reserved for internal use. Field names MUST NOT collide with reserved field names (Pydantic model attributes and internal metadata fields).
 
+A field's value is either a **field blueprint table** or a **bare string**, which is shorthand for a required text field: `summary = "A one-line summary"` declares exactly what `summary = { type = "text", required = true, description = "A one-line summary" }` declares. The shorthand carries a description and nothing else, so a field needing any other key is written as a table.
+
 #### Field Blueprint
 
 Each field in a concept structure is defined by a field blueprint:
@@ -279,7 +281,7 @@ Concept references in `inputs` and `output` support an optional multiplicity suf
 | `ConceptName?` | Optional single value. The slot may resolve as a recorded absence. |
 | `ConceptName!` | Forced single input. If the slot is absent at run time, the run fails loudly. Inputs only. |
 
-`N` MUST be at least 1: `ConceptName[0]` is invalid, because a fixed count of zero declares a slot that can hold nothing. A count of exactly one is **single throughout the standard** — `ConceptName[1]` is a way of writing `ConceptName`, never a one-element list — so nothing downstream wraps such a value in an array, and a fixed count reported on any wire is always greater than one. Every artifact that carries multiplicity states the same rule: the [library crate](./library-crate.md#5-materialize-defaults-and-multiplicity) materializes it, and [pipe I/O contracts](./pipe-io-contracts.md#multiplicity-and-item-count) and the [input-form descriptor](./input-form-descriptor.md#structured-multiplicity) report it.
+The **bracketed count** MUST be at least 1: `ConceptName[0]` is invalid, because a fixed count of zero declares a slot that can hold nothing. A count of exactly one is **single throughout the standard** — `ConceptName[1]` is a way of writing `ConceptName`, never a one-element list — so nothing downstream wraps such a value in an array, and a fixed count reported on any wire is always greater than one. Every artifact that carries multiplicity states the same rule: the [library crate](./library-crate.md#5-materialize-defaults-and-multiplicity) materializes it, and [pipe I/O contracts](./pipe-io-contracts.md#multiplicity-and-item-count) and the [input-form descriptor](./input-form-descriptor.md#structured-multiplicity) report it.
 
 Concept references MAY be bare codes (`Text`), domain-qualified (`legal.ContractClause`), or cross-package qualified (`alias->domain.ConceptCode`).
 
