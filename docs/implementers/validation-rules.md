@@ -23,7 +23,7 @@ After parsing TOML into a dictionary, validate the bundle structure:
 2. `domain` MUST be a valid domain code: one or more `snake_case` segments (`[a-z][a-z0-9_]*`) separated by `.`.
 3. `main_pipe`, if present, MUST be `snake_case` and MUST reference a pipe defined in the same bundle.
 4. Concept codes MUST be `PascalCase` (`[A-Z][a-zA-Z0-9]*`).
-5. Concept codes MUST NOT match any native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `Page`, `JSON`, `SearchResult`, `Anything`).
+5. Concept codes MUST NOT match any native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`).
 6. Pipe codes MUST be `snake_case` (`[a-z][a-z0-9_]*`).
 7. `refines` and `structure` MUST NOT both be set on the same concept.
 
@@ -44,7 +44,7 @@ For each field in a concept's `structure`:
 
 ## Stage 4: Pipe Type-Specific Validation
 
-Each pipe type has specific rules:
+Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section is valid only when it is a contract-only signature containing `description`, optional `inputs`, required `output`, optional `signature_for` (when present, one of the concrete `PipeType` values), and no implementation fields.
 
 **PipeLLM:**
 
@@ -93,7 +93,19 @@ Each pipe type has specific rules:
 
 **PipeParallel:**
 
-- At least one of `add_each_output` or `combined_output` MUST be set.
+- `branches` MUST have at least one entry.
+- `output` MUST be `Composite` or a structured concept.
+- `output` MUST NOT use multiplicity brackets (`[]` or `[N]`).
+- For structured output, required fields MUST be produced by matching branch `result` names and branch output concepts MUST be compatible with the corresponding fields.
+
+**Optionality:**
+
+- Presence markers (`?` and `!`) MAY appear only on pipe `inputs` and `output`.
+- Presence markers MUST NOT be combined with multiplicity brackets.
+- `!` MUST NOT appear on `output`.
+- A `PipeCondition` that can resolve to `continue` MUST declare an optional (`?`) output.
+- A template-rendering pipe MUST guard references to declared-optional inputs.
+- A maybe-absent `PipeParallel` branch MUST NOT feed a required structured output field.
 
 **PipeCondition:**
 
@@ -148,4 +160,3 @@ For `methods.lock`:
 1. Each entry's `version` MUST be valid semver.
 2. Each entry's `hash` MUST match `sha256:[0-9a-f]{64}`.
 3. Each entry's `source` MUST start with `https://`.
-

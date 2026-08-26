@@ -26,10 +26,10 @@ A `.mthds` file is valid TOML. Parse it with any compliant TOML parser, then val
 1. Parse the TOML into a generic dictionary.
 2. Extract header fields (`domain`, `description`, `system_prompt`, `main_pipe`).
 3. Extract the `concept` table — a mix of simple declarations (string values) and structured declarations (sub-tables with `description`, `structure`, `refines`).
-4. Extract `pipe` sub-tables. Each pipe has a `type` field that determines the discriminated union variant (one of the supported pipe types).
+4. Extract `pipe` sub-tables. Concrete pipes have a `type` field that determines the discriminated union variant (one of the supported pipe types). A typeless pipe section is valid only as a contract-only signature.
 5. Validate all fields against the rules in the [Specification](../spec/mthds-format.md).
 
-The reference implementation uses Pydantic's discriminated union on the `type` field to dispatch pipe parsing:
+The reference implementation uses Pydantic's discriminated union on the `type` field to dispatch concrete pipe parsing, and normalizes valid typeless signatures into an internal signature variant:
 
 ```
 PipeBlueprintUnion = PipeFuncBlueprint
@@ -43,9 +43,10 @@ PipeBlueprintUnion = PipeFuncBlueprint
                    | PipeConditionBlueprint
                    | PipeParallelBlueprint
                    | PipeSequenceBlueprint
+                   | PipeSignatureBlueprint
 ```
 
-This means an invalid `type` value is rejected at parse time, before any field-level validation occurs.
+This means an invalid concrete `type` value is rejected at parse time, before any field-level validation occurs. `PipeSignature` is not a user-written `type` value; authors omit `type` for contract-only signatures.
 
 ## Manifest Discovery
 
@@ -116,7 +117,7 @@ A compliant runtime validates the output of every pipe against the declared outp
 **Recommended approach:**
 
 1. After a pipe produces output, resolve the output concept's definition (including its `structure` fields if any).
-2. Validate the produced data against the concept's type and field constraints — required fields, field types (`text`, `integer`, `boolean`, `list`, `dict`, `number`, `date`, `concept`), and any `choices` enums.
+2. Validate the produced data against the concept's type and field constraints — required fields, field types (`text`, `integer`, `boolean`, `list`, `dict`, `number`, `date`, `datetime`, `time`, `concept`), and any `choices` enums.
 3. If validation fails, report the error with the pipe code and step index, and halt execution of the current pipeline.
 
 Validation libraries such as Pydantic (Python) or Zod (TypeScript) are natural fits for implementing these checks. Beyond mapping MTHDS concept structures to schema definitions, these libraries also support custom validation logic — expressed in Python or TypeScript — that goes beyond what the MTHDS standard defines.

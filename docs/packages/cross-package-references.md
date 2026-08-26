@@ -56,7 +56,7 @@ steps = [
 
 ## Referencing Concepts
 
-Cross-package concept references work the same way, appearing in `inputs`, `output`, `refines`, `concept_ref`, `item_concept_ref`, and `combined_output`:
+Cross-package concept references work the same way, appearing in `inputs`, `output`, `refines`, `concept_ref`, and `item_concept_ref`:
 
 ```toml
 [concept.DetailedScore]

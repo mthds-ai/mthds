@@ -99,6 +99,9 @@
               },
               {
                 "$ref": "#/definitions/PipeSequenceBlueprint"
+              },
+              {
+                "$ref": "#/definitions/PipeSignatureBlueprint"
               }
             ]
           },
@@ -124,10 +127,14 @@
         "landscape_3_2",
         "landscape_16_9",
         "landscape_21_9",
+        "landscape_4_1",
+        "landscape_8_1",
         "portrait_3_4",
         "portrait_2_3",
         "portrait_9_16",
-        "portrait_9_21"
+        "portrait_9_21",
+        "portrait_1_4",
+        "portrait_1_8"
       ],
       "title": "AspectRatio",
       "type": "string"
@@ -315,6 +322,8 @@
         "boolean",
         "number",
         "date",
+        "datetime",
+        "time",
         "concept"
       ],
       "title": "ConceptStructureBlueprintFieldType",
@@ -519,6 +528,28 @@
       "title": "ImageFormat",
       "type": "string"
     },
+    "ImageSize": {
+      "properties": {
+        "width": {
+          "exclusiveMinimum": true,
+          "title": "Width",
+          "type": "integer",
+          "minimum": 0
+        },
+        "height": {
+          "exclusiveMinimum": true,
+          "title": "Height",
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "title": "ImageSize",
+      "type": "object"
+    },
     "ImgGenSetting": {
       "additionalProperties": false,
       "properties": {
@@ -566,9 +597,16 @@
           "title": "Guidance Scale"
         },
         "is_moderated": {
-          "default": false,
-          "title": "Is Moderated",
-          "type": "boolean"
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Is Moderated"
         },
         "safety_tolerance": {
           "anyOf": [
@@ -786,7 +824,8 @@
         "output",
         "branch_pipe_code",
         "input_list_name",
-        "input_item_name"
+        "input_item_name",
+        "type"
       ],
       "title": "PipeBatchBlueprint",
       "type": "object"
@@ -854,7 +893,8 @@
       },
       "required": [
         "description",
-        "output"
+        "output",
+        "type"
       ],
       "title": "PipeComposeBlueprint",
       "type": "object"
@@ -952,7 +992,8 @@
         "description",
         "output",
         "default_outcome",
-        "outcomes"
+        "outcomes",
+        "type"
       ],
       "title": "PipeConditionBlueprint",
       "type": "object"
@@ -1084,7 +1125,8 @@
       },
       "required": [
         "description",
-        "output"
+        "output",
+        "type"
       ],
       "title": "PipeExtractBlueprint",
       "type": "object"
@@ -1132,7 +1174,8 @@
       "required": [
         "description",
         "output",
-        "function_name"
+        "function_name",
+        "type"
       ],
       "title": "PipeFuncBlueprint",
       "type": "object"
@@ -1216,6 +1259,25 @@
           ],
           "default": null
         },
+        "size": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SizeTier"
+            },
+            {
+              "pattern": "^([1-9]\\d*)x([1-9]\\d*)$",
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ImageSize"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Size"
+        },
         "is_raw": {
           "anyOf": [
             {
@@ -1272,7 +1334,8 @@
       "required": [
         "description",
         "output",
-        "prompt"
+        "prompt",
+        "type"
       ],
       "title": "PipeImgGenBlueprint",
       "type": "object"
@@ -1385,7 +1448,8 @@
       },
       "required": [
         "description",
-        "output"
+        "output",
+        "type"
       ],
       "title": "PipeLLMBlueprint",
       "type": "object"
@@ -1435,24 +1499,13 @@
           "default": false,
           "title": "Add Each Output",
           "type": "boolean"
-        },
-        "combined_output": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Combined Output"
         }
       },
       "required": [
         "description",
         "output",
-        "branches"
+        "branches",
+        "type"
       ],
       "title": "PipeParallelBlueprint",
       "type": "object"
@@ -1595,7 +1648,8 @@
       "required": [
         "description",
         "output",
-        "prompt"
+        "prompt",
+        "type"
       ],
       "title": "PipeSearchBlueprint",
       "type": "object"
@@ -1645,9 +1699,57 @@
       "required": [
         "description",
         "output",
-        "steps"
+        "steps",
+        "type"
       ],
       "title": "PipeSequenceBlueprint",
+      "type": "object"
+    },
+    "PipeSignatureBlueprint": {
+      "additionalProperties": false,
+      "description": "Contract-only pipe blueprint.\n\nA `PipeSignature` declares inputs and output but has no implementation. It exists so\nthat an in-progress pipeline can be validated (dry-run mocks the declared output)\nbefore all its pipes are implemented.",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "inputs": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inputs"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "signature_for": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/PipeType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Intended downstream pipe type when this signature is implemented (optional hint for agents)."
+        }
+      },
+      "required": [
+        "description",
+        "output"
+      ],
+      "title": "PipeSignatureBlueprint",
       "type": "object"
     },
     "PipeStructureBlueprint": {
@@ -1705,10 +1807,28 @@
       },
       "required": [
         "description",
-        "output"
+        "output",
+        "type"
       ],
       "title": "PipeStructureBlueprint",
       "type": "object"
+    },
+    "PipeType": {
+      "enum": [
+        "PipeFunc",
+        "PipeImgGen",
+        "PipeCompose",
+        "PipeLLM",
+        "PipeExtract",
+        "PipeSearch",
+        "PipeStructure",
+        "PipeBatch",
+        "PipeCondition",
+        "PipeParallel",
+        "PipeSequence"
+      ],
+      "title": "PipeType",
+      "type": "string"
     },
     "PromptImageDetail": {
       "enum": [
@@ -1800,6 +1920,17 @@
       ],
       "title": "SearchSetting",
       "type": "object"
+    },
+    "SizeTier": {
+      "description": "Portable image size classes.\n\nA tier promises a pixel class at the pipe's chosen aspect ratio, not identical\npixel dimensions across providers: each provider maps the tier to its own grid\nor computed dimensions.",
+      "enum": [
+        "0.5k",
+        "1k",
+        "2k",
+        "4k"
+      ],
+      "title": "SizeTier",
+      "type": "string"
     },
     "SpecialOutcome": {
       "enum": [
@@ -1987,7 +2118,7 @@
     }
   },
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$comment": "Generated from PipelexBundleBlueprint v0.27.0. Do not edit manually.",
+  "$comment": "Generated from PipelexBundleBlueprint v0.41.0. Do not edit manually.",
   "x-taplo": {
     "initKeys": [
       "domain"

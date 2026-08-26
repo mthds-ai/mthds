@@ -1,5 +1,35 @@
 # Changelog
 
+## [v0.9.0] - 2026-08-26
+
+### Added
+
+- **Pipe I/O Contracts** (`spec/pipe-io-contracts.md`): New specification for the per-pipe map of declared input and output slots, stating each slot's concept reference, presence, multiplicity, and JSON schema. A plural slot's schema is an array wrapper carrying `minItems`/`maxItems` exactly on the fixed arm, so a stock validator enforces a declared count; concept identity is read from `concept_ref`, never sniffed out of the schema.
+- **Input-Form Descriptor** (`spec/input-form-descriptor.md`): New specification for the ordered presentation view of a method's inputs — the artifact a renderer turns into a fill-in form with no schema heuristics, no hardcoded native table, and no description matching. Field kinds are assigned by ordered tables rather than inference, with a mandatory `unknown` escape hatch, and `gating` is kept deliberately distinct from `required`.
+- **Intent Hints** (`spec/intent-hints.md`): New specification for an optional, non-normative presentation intent layer. A `hints` table attaches to a concept, a structure field, or a pipe input slot, with one defined key `intent` over a closed vocabulary (`prose`, `label`, `rating`, `quantity`). Execution and validation never read hints, and consumers that ignore them stay correct.
+- **Library Crate Format** (`spec/library-crate.md`): New specification for the flat, fully-qualified, self-contained, fingerprinted snapshot a library resolves into — closure assembly, the normalization pass, the semantic-hash fingerprint, both encodings, and the sufficiency guarantee.
+- **Native Concept Definitions** (`spec/native-concepts.md`): New specification pinning the normative blueprint form of every native concept per standard version. Implementations MUST materialize natives by lookup into the pinned set, never by reflection over their own runtime types — which is what makes crate fingerprints byte-agree across implementations.
+- **Optionality** (`language/optionality.md`): Documented first-class presence markers for pipe inputs and outputs (`?` optional, `!` forced), recorded absences, liftable pipes, guarded template requirements, and the matching diagnostics.
+- **Native concepts `YesNo`, `Date`, `Time` and `Composite`:** All four now appear in the documented native set. `Time` (a time of day, optionally with a UTC offset) is new to the standard and joins the reserved native codes — **breaking** for a bundle that declared its own `Time`. The other three already existed and gained the documentation they were missing.
+- **Field types `datetime` and `time`:** The concept structure language gains `datetime` (a point in time, already accepted by the reference implementation but absent from the field-type table) and `time` (a time of day), completing the temporal triple alongside `date`.
+- **Expanded input slot form:** An input slot may now be written as a table, `name = { concept = "Ref", hints = { ... } }`, to carry intent hints and future per-slot authoring fields. The string form is unchanged and exactly equivalent to a `concept`-only table.
+- **Contract-only pipe signatures:** A `[pipe.*]` section may declare inputs and outputs with no implementation by omitting `type`.
+
+### Changed
+
+- **`native.Image`, `native.Date`, `native.Html` (breaking):** `Image` flattens its nested size object into paired optional `width`/`height` integers; `Date` declares real structure (`date` required, `time` optional) instead of being structureless; `Html` makes `css_class` optional, leaving `inner_html` as its only required field — the requirement was a modeling accident that forced every generating pipe to invent a class name for content needing no wrapper.
+- **PipeParallel output model:** Branch results are now always combined into the pipe's declared `output`, which must be `Composite` or a structured concept whose fields match the branch `result` names. `combined_output` is removed; `add_each_output` only exposes branch outputs individually.
+- **`Concept[1]` is a single value:** The multiplicity suffix table read `[N]` as a fixed-length list for N ≥ 1, making `Concept[1]` a one-item list on paper while every artifact reporting multiplicity treats it as a plain single value. `[N]` is now a list for N ≥ 2, `[1]` is a way of writing `Concept`, and `[0]` is invalid — so a fixed count on any wire is always greater than one.
+- **Structure-field validation:** A field blueprint's keys are a closed set, so a hopeful key (`minimum`, `examples`, `unit`, …) is rejected rather than validating green and being silently dropped. A field MUST NOT declare both `required = true` and `default_value` — two contradictory instructions on one field. The long-accepted bare-string field form (`summary = "A one-line summary"`) is now documented.
+- **Library crate normalization:** Native materialization is transitively closed — a crate carries exactly the least native set covering every native the library references and the references inside the pinned definitions themselves, since both a missing and a padded entry are wrong for a hashed member. Corrected the merged-keyspace and schema-scope claims: two packages may declare the same domain, so a bare `domain_path.Code` key is not a global identity, and a crate document is not an instance of `mthds_schema.json`.
+- **HTTP runner protocol:** The validate response's `is_valid: true` arm SHOULD carry `pipe_io_contracts` and `input_form`. Base fields are unchanged and a conformant runner may omit both; what is fixed is that a runner reporting them reports those shapes under those names.
+- **Bundled MTHDS schema:** Updated the committed `mthds_schema.json` to pipelex `v0.41.0` — `PipeSignatureBlueprint`, image-size additions, removal of `PipeParallelBlueprint.combined_output`, and the `datetime` and `time` field types. That last pair is the user-visible half: a `.mthds` declaring either was valid at runtime but rejected by this copy.
+- **Bare pipe references (clarification):** Namespace Resolution now explains why no-fall-through is load-bearing — bare references are exempt from the export visibility check precisely because they cannot leave their own domain, so a resolver falling through to other domains would make `[exports]` unenforceable. The rule itself is unchanged.
+
+### Removed
+
+- **`type = "PipeSignature"`:** No longer author-facing syntax. A contract-only signature omits `type` instead.
+
 ## [v0.8.0] - 2026-06-22
 
 ### Removed
@@ -12,7 +42,7 @@
 
 ### Fixed
 
-- **Native-concept lists:** Completed and aligned the inline native-concept lists in the validation rules, namespace resolution, and registry indexing references — they were missing `SearchResult`. All native-concept lists across the docs now share one canonical order (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `Page`, `JSON`, `SearchResult`, `Anything`).
+- **Native-concept lists:** Completed and aligned the inline native-concept lists in the validation rules, namespace resolution, and registry indexing references — they were missing `SearchResult`. All native-concept lists across the docs now share one canonical order (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Date`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`).
 
 ## [v0.7.0] - 2026-06-17
 

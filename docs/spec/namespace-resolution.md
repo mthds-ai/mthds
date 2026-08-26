@@ -67,7 +67,7 @@ Each segment of a domain path MUST be `snake_case`:
 
 When resolving a bare concept code (no domain qualifier, no package prefix):
 
-1. **Native concepts** — check if the code matches a native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `Page`, `JSON`, `SearchResult`, `Anything`). Native concepts always take priority.
+1. **Native concepts** — check if the code matches a native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`). Native concepts always take priority.
 2. **Current bundle** — check concepts declared in the same `.mthds` file.
 3. **Same domain, other bundles** — if the bundle is part of a package, check concepts in other bundles that declare the same domain.
 4. **Error** — if not found in any of the above, the reference is invalid.
@@ -83,6 +83,10 @@ When resolving a bare pipe code (no domain qualifier, no package prefix):
 3. **Error** — if not found, the reference is invalid.
 
 Bare pipe references do NOT fall through to other domains or other packages.
+
+!!! note "Why no fall-through is a visibility guarantee, not a lookup convenience"
+
+    This rule is what makes `[exports]` enforceable. The visibility rules exempt bare references from the export check precisely because they cannot leave their own domain. A resolver that let a bare pipe reference fall through to another domain would resolve it without ever reaching that check, making every non-exported pipe reachable simply by spelling its code bare. Because bare references stop at the domain boundary, every cross-domain reference is forced through the qualified forms, where visibility is enforced.
 
 ## Resolution of Domain-Qualified References
 
@@ -335,7 +339,7 @@ This section consolidates the validation rules scattered throughout this specifi
 5. **PipeExtract**: Exactly one input MUST be declared. `output` MUST be `"Page[]"`.
 6. **PipeCompose**: Exactly one of `template` or `construct` MUST be present. Output MUST NOT use multiplicity.
 7. **PipeSequence**: `steps` MUST have at least one entry.
-8. **PipeParallel**: At least one of `add_each_output` or `combined_output` MUST be set.
+8. **PipeParallel**: `output` MUST be `Composite` or a structured concept, MUST NOT use multiplicity, and structured output fields MUST match branch `result` names.
 9. **PipeCondition**: Exactly one of `expression_template` or `expression` MUST be present. `outcomes` MUST have at least one entry.
 10. **PipeBatch**: `input_list_name` MUST be in `inputs`. `input_item_name` MUST NOT equal `input_list_name` or any `inputs` key.
 

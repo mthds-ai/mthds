@@ -42,6 +42,9 @@ extra:
   version:
     provider: mike
 
+validation:
+  anchors: warn
+
 plugins:
   - mike:
       alias_type: copy
@@ -80,6 +83,7 @@ plugins:
         - language/concepts.md: "Concepts"
         - language/pipes-operators.md: "Pipes — Operators"
         - language/pipes-controllers.md: "Pipes — Controllers"
+        - language/optionality.md: "Optionality"
         - language/working-memory.md: "Working Memory"
         - language/multiplicity.md: "Multiplicity"
         - language/model-references.md: "Model References"
@@ -101,8 +105,13 @@ plugins:
         - packages/registry-distribution.md: "Registry Distribution Protocol"
         Reference:
         - spec/mthds-format.md: ".mthds File Format"
+        - spec/native-concepts.md: "Native Concept Definitions"
+        - spec/intent-hints.md: "Intent Hints"
         - spec/manifest-format.md: "METHODS.toml Format"
         - spec/lock-format.md: "methods.lock Format"
+        - spec/library-crate.md: "Library Crate Format"
+        - spec/pipe-io-contracts.md: "Pipe I/O Contracts"
+        - spec/input-form-descriptor.md: "Input-Form Descriptor"
         - spec/namespace-resolution.md: "Namespace Resolution Rules"
         - spec/cli-io-contract.md: "CLI I/O Contract"
         - spec/protocol.md: "HTTP Runner Protocol"
@@ -169,6 +178,7 @@ nav:
     - Concepts: language/concepts.md
     - Pipes — Operators: language/pipes-operators.md
     - Pipes — Controllers: language/pipes-controllers.md
+    - Optionality: language/optionality.md
     - Working Memory: language/working-memory.md
     - Multiplicity: language/multiplicity.md
     - Model References: language/model-references.md
@@ -192,8 +202,13 @@ nav:
   - Reference:
     - Specification:
       - .mthds File Format: spec/mthds-format.md
+      - Native Concept Definitions: spec/native-concepts.md
+      - Intent Hints: spec/intent-hints.md
       - METHODS.toml Format: spec/manifest-format.md
       - methods.lock Format: spec/lock-format.md
+      - Library Crate Format: spec/library-crate.md
+      - Pipe I/O Contracts: spec/pipe-io-contracts.md
+      - Input-Form Descriptor: spec/input-form-descriptor.md
       - Namespace Resolution Rules: spec/namespace-resolution.md
       - CLI I/O Contract: spec/cli-io-contract.md
       - HTTP Runner Protocol: spec/protocol.md
