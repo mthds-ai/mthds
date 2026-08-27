@@ -18,20 +18,21 @@ my-methods/
 
 ## Step 1: Initialize the Manifest
 
-Run `mthds pkg init` from the package directory:
+Run `mthds package init` from the package directory:
 
 ```bash
 cd my-methods
-mthds pkg init
+mthds package init
 ```
 
-This scans all `.mthds` files, extracts domains and pipe names, and generates a `METHODS.toml` skeleton:
+This generates a `METHODS.toml` skeleton to fill in:
 
 ```toml
 [package]
+name        = "my_methods"
 address     = "example.com/yourorg/my_methods"
 version     = "0.1.0"
-description = "Package generated from 2 .mthds file(s)"
+description = "Text summarization and document classification methods"
 
 [exports.summarization]
 pipes = ["summarize"]
@@ -40,12 +41,15 @@ pipes = ["summarize"]
 pipes = ["classify_document"]
 ```
 
+The `name` is the package's snake_case identity. It does not need to match the directory name — `my-methods/` holding a package named `my_methods` is perfectly fine.
+
 ## Step 2: Set the Package Address
 
 Edit the `address` field to your actual repository location:
 
 ```toml
 [package]
+name        = "my_methods"
 address     = "github.com/yourorg/my-methods"
 version     = "0.1.0"
 description = "Text summarization and document classification methods"
@@ -55,7 +59,7 @@ The address must start with a hostname (containing at least one dot), followed b
 
 ## Step 3: Configure Exports
 
-Review the `[exports]` section. The generated manifest exports all pipes found during scanning. Narrow it down to your public API:
+Review the `[exports]` section and declare your public API — the pipes consumers may call:
 
 ```toml
 [exports.summarization]
@@ -65,7 +69,7 @@ pipes = ["summarize"]
 pipes = ["classify_document"]
 ```
 
-Pipes not listed in `[exports]` are private — they are implementation details invisible to consumers. Pipes declared as `main_pipe` in a bundle header are auto-exported regardless of whether they appear here.
+Pipes not listed in `[exports]` are private — they are implementation details invisible to consumers. Pipes designated as `main_pipe` — in the manifest or in a bundle header — are auto-exported regardless of whether they appear here.
 
 Concepts are always public — they do not need to be listed.
 
@@ -75,6 +79,7 @@ Add optional but recommended fields:
 
 ```toml
 [package]
+name          = "my_methods"
 address       = "github.com/yourorg/my-methods"
 version       = "0.1.0"
 description   = "Text summarization and document classification methods"
@@ -85,13 +90,14 @@ mthds_version = ">=1.0.0"
 
 ## Step 5: Validate
 
-Verify your package is well-formed:
+Verify the manifest and the package are well-formed:
 
 ```bash
+mthds package validate
 mthds validate --all
 ```
 
-This validates all pipes across all bundles in the package, checking concept references, pipe references, and visibility rules.
+The first command checks the manifest itself; the second validates all pipes across all bundles in the package, checking concept references, pipe references, and visibility rules.
 
 ## The Result
 
@@ -104,7 +110,7 @@ my-methods/
 └── classifier.mthds
 ```
 
-You have a distributable package with a globally unique address, versioned identity, and controlled exports. Other packages can now depend on it.
+You have a distributable package with a globally unique address, versioned identity, and controlled exports. Other packages can now depend on it — and publishing is nothing more than pushing the repository and tagging a release (see [Distribution](../packages/distribution.md)).
 
 ## See Also
 

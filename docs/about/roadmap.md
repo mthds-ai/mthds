@@ -1,5 +1,5 @@
 ---
-description: "Planned directions for MTHDS: registry implementation, package signing, cross-package validation, and conditional logic."
+description: "Planned directions for MTHDS: dependency implementation, cross-package crate fold-in, registry growth, and the specified future directions."
 ---
 
 # Roadmap
@@ -8,14 +8,14 @@ The MTHDS standard is at version `1.0.0`. This page outlines planned and potenti
 
 ## Near-Term
 
-- **Registry reference implementation.** A reference implementation for the registry index, enabling `mthds pkg search` to query remote registries in addition to local packages.
-- **Package signing.** Optional signed manifests for enterprise use, enabling verifiable authorship and integrity beyond SHA-256 content hashes.
+- **Dependency implementation.** The `[dependencies]` section, Minimum Version Selection, lock generation, and install-time verification are fully specified (see the [manifest](../spec/manifest-format.md#the-dependencies-section) and [lock](../spec/lock-format.md) specifications); bringing the reference implementations into conformance is the standard's main open implementation item.
+- **Cross-package crate fold-in.** The [library crate](../spec/library-crate.md) specifies its multi-package keyspace (host-relative `::` address keys); applying the fold-in pass — producing a self-contained crate for a closure that spans packages — is the other open implementation item.
+- **Registry growth.** The registry surface is specified at [The Registry](../packages/registry.md) — index, package pages, validation badges, freshness signals — and the live index at [mthds.sh](https://mthds.sh) grows toward it.
 - **Cross-package concept refinement validation at install time.** The specification allows validation of concept refinement across packages at both install time and load time. The current reference implementation validates at load time only. Install-time validation would detect breaking changes earlier.
 
-## Medium-Term
+## Future Directions
 
-- **Know-How Graph web interface.** A web-based explorer for the Know-How Graph, enabling visual navigation of concept hierarchies and pipe chains across the public ecosystem.
-- **Proxy/mirror support.** Configurable proxy for package fetching, supporting speed, reliability, and air-gapped environments (similar to Go's `GOPROXY`).
+Typed signature search, the Know-How Graph's query surface, signed manifests with a trust store, and registry proxy/mirror chains are worked-out ambitions preserved on the [Future Directions](../packages/future-directions.md) page — deliberately kept distinct from the specified system.
 
 ## Long-Term
 
