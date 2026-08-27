@@ -101,8 +101,7 @@ plugins:
         - packages/version-resolution.md: "Version Resolution"
         - packages/registry.md: "The Registry"
         - packages/registry-indexing.md: "Registry Indexing"
-        - packages/registry-search.md: "Registry Search"
-        - packages/registry-distribution.md: "Registry Distribution Protocol"
+        - packages/future-directions.md: "Future Directions"
         Reference:
         - spec/mthds-format.md: ".mthds File Format"
         - spec/native-concepts.md: "Native Concept Definitions"
@@ -197,8 +196,7 @@ nav:
     - The Registry:
       - Registry Overview: packages/registry.md
       - Registry Indexing: packages/registry-indexing.md
-      - Registry Search: packages/registry-search.md
-      - Registry Distribution Protocol: packages/registry-distribution.md
+    - Future Directions: packages/future-directions.md
   - Reference:
     - Specification:
       - .mthds File Format: spec/mthds-format.md
