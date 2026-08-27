@@ -38,7 +38,7 @@ The `[package]` section defines the package's identity:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | Yes | The name of the method. Must be `snake_case` (matching `[a-z][a-z0-9_]*`), 2-25 characters. The package directory name must match the `name` field exactly. |
+| `name` | Yes | The name of the method. Must be `snake_case` (matching `[a-z][a-z0-9_]*`), 2-25 characters. The manifest is the identity — the directory holding the package may carry any name. |
 | `address` | Yes | Globally unique identifier. Must follow the hostname/path pattern (e.g., `github.com/org/repo`). |
 | `display_name` | No | Human-friendly label for CLI output and registry listings. Cosmetic only — never used as an identifier. Max 128 characters. |
 | `version` | Yes | [Semantic version](https://semver.org/) (`MAJOR.MINOR.PATCH`, with optional pre-release and build metadata). |
@@ -46,7 +46,7 @@ The `[package]` section defines the package's identity:
 | `authors` | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | No | [SPDX license identifier](https://spdx.org/licenses/) (e.g., `"MIT"`, `"Apache-2.0"`). |
 | `mthds_version` | No | MTHDS standard version constraint. The current standard version is `1.0.0`. |
-| `main_pipe` | No | The package's entry-point pipe. Must reference a pipe declared in the `[exports]` section. See [Main Pipe](#main-pipe) below. |
+| `main_pipe` | No | The package's entry-point pipe. Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe) below. |
 
 ## Package Addresses
 
@@ -81,7 +81,7 @@ Examples: `1.0.0`, `0.3.0`, `2.1.3-beta.1`, `1.0.0-rc.1+build.42`
 
 ## Main Pipe
 
-The `main_pipe` field designates the package's primary entry point — the pipe that runs when a user invokes the package by slug or address:
+The `main_pipe` field designates the package's primary entry point — the pipe that runs when a user invokes the package by name or address:
 
 ```bash
 mthds run method nda_analyzer
@@ -90,7 +90,7 @@ mthds run method github.com/acme/legal-tools
 
 Both commands above execute the pipe referenced by `main_pipe`.
 
-The value is a `snake_case` pipe code that **must** match a pipe declared in the `[exports]` section:
+The value is a `snake_case` pipe code:
 
 ```toml
 main_pipe = "analyze_nda"
@@ -99,12 +99,10 @@ main_pipe = "analyze_nda"
 **Validation rules:**
 
 - The value MUST be a valid `snake_case` pipe code (matching `[a-z][a-z0-9_]*`).
-- The referenced pipe **must** be declared in the `[exports]` section. A manifest that sets `main_pipe` to a pipe not present in exports is invalid.
+- The referenced pipe is **auto-exported** — it is part of the package's public surface by virtue of being `main_pipe`, whether or not it also appears in `[exports]`.
 - The field is optional. Packages without a `main_pipe` can still be used as libraries — consumers import specific pipes by their qualified names.
 
 ## The `[dependencies]` Section
-
-> **Not yet implemented.** Dependencies between packages are planned but not yet supported.
 
 Dependencies are covered in detail on the [Dependencies](dependencies.md) page.
 

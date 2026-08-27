@@ -107,8 +107,8 @@ When resolving `alias->domain_path.name`:
 
 **Visibility constraints for cross-package pipe references:**
 
-- The referenced pipe MUST be exported by the dependency package (listed in its `[exports]` section or declared as `main_pipe` in its bundle header).
-- If the pipe is not exported, the reference is a visibility error.
+- The referenced pipe MUST be exported by the dependency package (listed in its `[exports]` section or auto-exported as a `main_pipe`).
+- If the pipe is not exported, the reference is a visibility error. A compliant implementation MUST diagnose it at validation time, naming the dependency and its export surface — it MUST NOT silently omit the pipe at load time and let the reference fail later or resolve elsewhere.
 
 **Visibility for cross-package concept references:**
 
@@ -161,7 +161,7 @@ Within a single package, bundles that share the same domain DO merge their names
 
 ## Version Resolution Strategy
 
-When resolving dependency versions, a compliant implementation SHOULD use **Minimum Version Selection** (MVS), following Go's approach:
+When resolving dependency versions, a compliant implementation MUST use **Minimum Version Selection** (MVS), following Go's approach:
 
 1. Collect all version constraints for a given package address from all dependents (direct and transitive).
 2. List all available versions (from VCS tags).
@@ -170,11 +170,18 @@ When resolving dependency versions, a compliant implementation SHOULD use **Mini
 
 If no version satisfies all constraints, the resolution fails with an error.
 
+Constraints are read as **floors**: a declared constraint states the minimum version a dependent is known to work with, and for plain floor constraints the selected version is the maximum of the declared floors across the graph. A newly published version is never adopted implicitly — it becomes eligible only when some manifest raises a floor to it.
+
 **Properties of MVS:**
 
-- **Deterministic** — the same set of constraints always produces the same result.
+- **Deterministic** — the same set of constraints always produces the same result. The build list is fully determined by the manifests alone, with no registry oracle; the lock file is a verification record, not a resolution record (see [methods.lock Format](./lock-format.md#a-verification-record-not-a-resolution-record)).
 - **Reproducible** — no dependency on a "latest" query or timestamp.
-- **Simple** — no backtracking solver needed.
+- **Simple** — no backtracking solver needed, and no conflicts by construction within an admissible range: a resolvable answer exists whenever the constraint sets overlap.
+
+**Raising versions is a manifest edit.** Because re-resolution alone never moves a version, the version-raising gestures are defined as edits to `METHODS.toml` followed by a re-lock:
+
+- **`add`** fetches the dependency's latest version and records it as the floor.
+- **`update`** raises the floors of existing dependencies to the latest available versions, then re-locks. This is the deliberate-adoption gesture: nothing upgrades silently, and tooling SHOULD surface what moved between the old and new resolved versions (the lock's `fingerprint` field makes that diff semantic rather than textual).
 
 ## Transitive Dependency Resolution
 
@@ -228,8 +235,9 @@ Package B (`METHODS.toml`):
 
 ```toml
 [package]
-address = "github.com/mthds/scoring-lib"
-version = "0.5.0"
+name        = "scoring_lib"
+address     = "github.com/mthds/scoring-lib"
+version     = "0.5.0"
 description = "Scoring utilities"
 
 [exports.scoring]
@@ -343,27 +351,35 @@ This section consolidates the validation rules scattered throughout this specifi
 9. **PipeCondition**: Exactly one of `expression_template` or `expression` MUST be present. `outcomes` MUST have at least one entry.
 10. **PipeBatch**: `input_list_name` MUST be in `inputs`. `input_item_name` MUST NOT equal `input_list_name` or any `inputs` key.
 
-### Package-Level Validation
+### Manifest Validation
 
 1. `[package]` section MUST be present in `METHODS.toml`.
-2. `address` MUST match the hostname/path pattern.
-3. `version` MUST be valid semver.
-4. `description` MUST NOT be empty.
-5. All dependency aliases MUST be unique.
-6. All dependency aliases MUST be `snake_case`.
-7. All dependency addresses MUST match the hostname/path pattern.
-8. All dependency version constraints MUST be valid.
-9. Domain paths in `[exports]` MUST NOT use reserved domains.
-10. All pipe codes in `[exports]` MUST be valid `snake_case`.
-11. Cross-package references MUST reference known dependency aliases.
-12. Cross-package pipe references MUST target exported pipes.
-13. Bundles MUST NOT use reserved domains as their first segment.
+2. `name` MUST be present, `snake_case`, and 2–25 characters.
+3. `address` MUST match the hostname/path pattern.
+4. `version` MUST be valid semver.
+5. `description` MUST NOT be empty.
+6. `main_pipe`, if present, MUST be a valid `snake_case` pipe code.
+7. All dependency aliases MUST be unique and `snake_case`.
+8. All dependency addresses MUST match the hostname/path pattern.
+9. All dependency version constraints MUST be valid.
+10. Domain paths in `[exports]` MUST be valid domain codes and MUST NOT use reserved domains.
+11. All pipe codes in `[exports]` MUST be valid `snake_case`.
+
+### Package-Level Validation
+
+1. Bundles MUST NOT declare a domain starting with a reserved segment.
+2. Cross-package references MUST reference known dependency aliases.
+3. Cross-package pipe references MUST target pipes exported by the dependency — diagnosed at validation time, never silently filtered at load time.
+4. Exported pipes MUST exist in the scanned bundles.
+5. Same-domain concept and pipe code collisions across bundles (within one package) are errors.
 
 ### Lock File Validation
 
 1. Each entry's `version` MUST be valid semver.
 2. Each entry's `hash` MUST match `sha256:[0-9a-f]{64}`.
-3. Each entry's `source` MUST start with `https://`.
+3. Each entry's `fingerprint` MUST be a 64-character lowercase hex digest.
+4. Each entry's `source` MUST start with `https://` and end with `.git`.
+5. Each entry's `commit` MUST be a 40-character lowercase hex digest.
 
 ## Summary: Reference Resolution Flowchart
 

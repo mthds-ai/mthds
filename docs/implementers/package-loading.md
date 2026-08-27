@@ -56,11 +56,13 @@ This is Minimum Version Selection applied to multiple constraints simultaneously
 3. Sorts versions in ascending order.
 4. Selects the first version that satisfies ALL constraints.
 
+Each constraint acts as a floor: the selected version is the lowest that satisfies everyone, so a newly published tag never enters the build list until some manifest raises a floor to it. See [Version Resolution Strategy](../spec/namespace-resolution.md#version-resolution-strategy) for the normative statement.
+
 When a diamond re-resolution picks a different version than previously resolved, the stale sub-dependency constraints contributed by the old version are recursively removed before re-resolving.
 
 ## VCS Fetching
 
-Remote packages are fetched via Git with a three-tier resolution chain:
+Remote packages are fetched via Git, trying each source in order (this fetch sequence is distinct from the three reference *tiers* of [namespace resolution](../spec/namespace-resolution.md#reference-syntax-overview)):
 
 1. **Local cache check** — look in `~/.mthds/packages/{address}/{version}/`.
 2. **VCS fetch** — if not cached, clone the repository:
@@ -123,6 +125,9 @@ function check_visibility(manifest, bundles):
                 skip
             if pipe_ref is cross-package (contains "->"):
                 validate alias exists in dependencies
+                resolve target pipe in the dependency's namespace
+                if target not in dependency's exports and target is not a main_pipe:
+                    errors.append(cross-package visibility error)
             else:
                 ref = parse_pipe_ref(pipe_ref)
                 if ref is qualified and not same domain as bundle:
@@ -137,7 +142,7 @@ The checker runs three passes:
 
 1. **Reserved domain check** — ensures no bundle uses `native`, `mthds`, or `pipelex` as the first domain segment.
 2. **Intra-package visibility** — ensures cross-domain pipe references target exported or main_pipe pipes.
-3. **Cross-package alias validation** — ensures `->` references use aliases declared in `[dependencies]`.
+3. **Cross-package visibility** — ensures `->` references use aliases declared in `[dependencies]` and target pipes the dependency actually exports (its `[exports]` union its auto-exported main pipes). A reference to a dependency's non-exported pipe is a validation error diagnosed here, naming the dependency's export surface — it is never silently filtered at load time.
 
 ## See Also
 

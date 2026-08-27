@@ -4,9 +4,10 @@ description: "Declare and manage dependencies between MTHDS packages using alias
 
 # Dependencies
 
-> **Not yet implemented.** Dependencies between packages are planned but not yet supported. The documentation below describes the intended behavior for a future release.
-
 Dependencies allow a package to build on other packages. Each dependency is declared in the `[dependencies]` section of `METHODS.toml` with an alias, an address, and a version constraint.
+
+!!! note "Implementation status"
+    Dependency declaration and resolution are committed design; see the [normative status note](../spec/manifest-format.md#the-dependencies-section) for how conformance is asserted as implementations land.
 
 ## Declaring Dependencies
 
@@ -56,6 +57,8 @@ Version constraints specify which versions of a dependency are acceptable:
 | Wildcard | `*`, `MAJOR.*` | `1.*` | Any version matching the prefix. |
 
 Additional operators `>`, `<=`, `==`, and `!=` are also supported. Partial versions are allowed: `1.0` is equivalent to `1.0.*`.
+
+Under [Minimum Version Selection](version-resolution.md), a constraint is read as a **floor**: it states the minimum version your package is known to work with, and resolution picks the lowest version satisfying every declared constraint. To move a dependency forward, raise its floor — the `update` gesture does exactly that, then re-locks (see [Adding and Updating](version-resolution.md#adding-and-updating-deliberate-adoption)).
 
 ## Local Path Dependencies
 

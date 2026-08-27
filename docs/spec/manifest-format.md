@@ -1,5 +1,5 @@
 ---
-description: "Normative specification of the METHODS.toml manifest — package identity, dependencies, exports, and model configuration."
+description: "Normative specification of the METHODS.toml manifest — package identity, dependencies, exports, and visibility."
 ---
 
 # METHODS.toml Manifest Format
@@ -17,7 +17,7 @@ A `METHODS.toml` file contains up to three top-level sections:
 | Section | Required | Description |
 |---------|----------|-------------|
 | `[package]` | Yes | Package identity and metadata. |
-| `[dependencies]` | No | Dependencies on other MTHDS packages. **Not yet implemented.** |
+| `[dependencies]` | No | Dependencies on other MTHDS packages. |
 | `[exports]` | No | Visibility declarations for pipes. |
 
 ## The `[package]` Section
@@ -32,7 +32,7 @@ A `METHODS.toml` file contains up to three top-level sections:
 | `authors` | array of strings | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | string | No | SPDX license identifier (e.g., `"MIT"`, `"Apache-2.0"`). |
 | `mthds_version` | string | No | MTHDS standard version constraint. If set, MUST be a valid version constraint. |
-| `main_pipe` | string | No | The package's entry-point pipe code. MUST be `snake_case` (matching `[a-z][a-z0-9_]*`). MUST reference a pipe declared in the `[exports]` section. See [Main Pipe](#main-pipe). |
+| `main_pipe` | string | No | The package's entry-point pipe code. MUST be `snake_case` (matching `[a-z][a-z0-9_]*`). Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe). |
 
 ### Address Format
 
@@ -67,12 +67,13 @@ The `name` field is the name of the method. It is the primary identifier for the
 - MUST be between 2 and 25 characters.
 - MUST NOT be empty.
 
-The package directory name MUST match the `name` field exactly. A compliant tool MUST reject a package whose directory name does not match its manifest name.
+The manifest is the identity: the directory (or repository) that contains a package may carry any name, and a compliant tool MUST NOT require the directory name to match `name`. Where a fetched or cached copy of a package lives on disk is a tool concern, not part of the standard.
+
+The `name` also participates in locating a package inside a repository that hosts several packages: a package's full address is its `address` when the package sits at the repository root, or `address + "/" + name` when it is one of several packages in a library repository. See [Distribution: Locating a Package Inside a Clone](../packages/distribution.md#locating-a-package-inside-a-clone).
 
 **Example:**
 
 ```toml
-# Inside nda_analyzer/METHODS.toml
 [package]
 name    = "nda_analyzer"
 address = "github.com/acme/legal-tools"
@@ -117,7 +118,7 @@ The current MTHDS standard version is `1.0.0`.
 
 ### Main Pipe
 
-The optional `main_pipe` field designates the package's primary entry point — the pipe that runs when a user invokes the package by slug or address:
+The optional `main_pipe` field designates the package's primary entry point — the pipe that runs when a user invokes the package by name or address:
 
 ```bash
 mthds run method nda_analyzer
@@ -127,7 +128,7 @@ mthds run method github.com/acme/legal-tools
 **Constraints:**
 
 - The value MUST be a valid `snake_case` pipe code (matching `[a-z][a-z0-9_]*`).
-- The referenced pipe MUST be declared in the `[exports]` section. A manifest that sets `main_pipe` to a pipe not listed in exports is invalid.
+- The referenced pipe is **auto-exported**: it is part of the package's public surface by virtue of being `main_pipe`, whether or not it also appears in `[exports]`. There is no requirement to list it there. See [The `[exports]` Section](#the-exports-section).
 - When `main_pipe` is not set, the package has no default entry point. It can still be consumed as a library by importing specific pipes.
 
 **Example:**
@@ -142,7 +143,8 @@ main_pipe = "analyze_nda"
 
 ## The `[dependencies]` Section
 
-> **Not yet implemented.** Dependencies between packages are planned but not yet supported. The specification below describes the intended behavior for a future release.
+!!! note "Implementation status"
+    Dependency declaration is committed design. This section is the contract implementations are brought into conformance with — the same forward-contract convention the [Library Crate Format](./library-crate.md#specification-status) uses for its unrealized sections. Conformance is asserted against this document as each piece lands.
 
 Each entry in `[dependencies]` declares a dependency on another MTHDS package. The key is the **alias** — a `snake_case` identifier used in cross-package references (`->` syntax).
 
@@ -201,6 +203,8 @@ Version constraints specify which versions of a dependency are acceptable.
 
 Partial versions are allowed: `1.0` is equivalent to `1.0.*`.
 
+**Constraints are read as floors.** Version resolution follows [Minimum Version Selection](./namespace-resolution.md#version-resolution-strategy): the resolver selects the *lowest* version that satisfies every constraint declared for a package across the dependency graph. A declared constraint therefore states the minimum a dependent is known to work with — its floor — and the resolved version is, for plain floor constraints, the maximum of the declared floors. Upper bounds and exclusions still narrow the admissible set, but a newly published version is never adopted merely for being newer: it becomes eligible only when some manifest raises a floor to it.
+
 ## The `[exports]` Section
 
 The `[exports]` section controls which pipes are visible to consumers of the package.
@@ -209,7 +213,7 @@ The `[exports]` section controls which pipes are visible to consumers of the pac
 
 - **Concepts are always public.** Concepts are vocabulary — they are always accessible from outside the package.
 - **Pipes are private by default.** A pipe not listed in `[exports]` is an implementation detail, invisible to consumers.
-- **`main_pipe` must be exported.** If a package declares a `main_pipe`, that pipe MUST appear in the `[exports]` section.
+- **`main_pipe` is auto-exported.** A pipe designated as `main_pipe` — in the manifest's `[package]` section or in a bundle header — is exported by virtue of being `main_pipe`, whether or not it also appears in `[exports]`. The export surface of a package is the union of `[exports]` and its auto-exported main pipes.
 
 ### Exports Table Structure
 
@@ -279,7 +283,8 @@ legal_tools/
 - `METHODS.toml` MUST be at the directory root.
 - `methods.lock` MUST be at the directory root, alongside `METHODS.toml`.
 - `.mthds` files MAY be at the root or in subdirectories. A compliant implementation MUST discover all `.mthds` files recursively.
-- A single directory SHOULD contain one package. Multiple packages in subdirectories with distinct addresses are possible but outside the scope of this specification.
+- A single directory SHOULD contain one package. A repository MAY host several packages in subdirectories — a **library repository** — in which case each package is identified by its own manifest, and a specific package is located by manifest identity, never by directory path (see [Distribution: Locating a Package Inside a Clone](../packages/distribution.md#locating-a-package-inside-a-clone)).
+- The directory name is not part of the package's identity and MAY differ from the manifest `name` (see [Name](#name)).
 
 ## Manifest Discovery
 

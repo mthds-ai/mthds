@@ -12,7 +12,7 @@ Three rules govern visibility:
 
 - **Concepts are always public.** Concepts are vocabulary — they are always accessible from outside the package.
 - **Pipes are private by default.** A pipe not listed in `[exports]` is an implementation detail, invisible to consumers.
-- **`main_pipe` must be exported.** If a package declares a `main_pipe`, that pipe MUST appear in the `[exports]` section.
+- **`main_pipe` is auto-exported.** A pipe designated as `main_pipe` — in the manifest or in a bundle header — is public by virtue of being `main_pipe`, whether or not it appears in `[exports]`. The public surface of a package is the union of `[exports]` and its auto-exported main pipes.
 
 ## Declaring Exports
 

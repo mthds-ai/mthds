@@ -94,8 +94,9 @@ Package B's manifest (`METHODS.toml`):
 
 ```toml
 [package]
-address = "github.com/mthds/scoring-lib"
-version = "0.5.0"
+name        = "scoring_lib"
+address     = "github.com/mthds/scoring-lib"
+version     = "0.5.0"
 description = "Scoring utilities"
 
 [exports.scoring]
