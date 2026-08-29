@@ -65,7 +65,7 @@ The package system follows a progressive enhancement principle:
 1. **Single file** — a `.mthds` bundle works on its own. No configuration, no manifest.
 2. **Package** — add a `METHODS.toml` to get exports, visibility, and a globally unique identity.
 3. **Dependencies** — add `[dependencies]` to compose with other packages.
-4. **Ecosystem** — publish, search, and discover through the Know-How Graph.
+4. **Ecosystem** — publish by pushing a tag; [registries](registry.md) index, search, and surface what you published. At the horizon, the [Know-How Graph](../know-how-graph/index.md) makes discovery typed.
 
 Each layer adds capability without breaking the previous one.
 

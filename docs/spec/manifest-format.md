@@ -38,6 +38,8 @@ A `METHODS.toml` file contains up to three top-level sections:
 
 The package address is the globally unique identifier for the package. It doubles as the fetch location for VCS-based distribution.
 
+For a package at its repository root, the manifest `address` alone is that identity. In a **library repository** — a repository hosting several packages — the packages share the repository's `address` in their manifests, and each package's full, globally unique address is `address + "/" + name` (see [Name](#name) and [Distribution: Locating a Package Inside a Clone](../packages/distribution.md#locating-a-package-inside-a-clone)).
+
 **Pattern:** `^[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+/[a-zA-Z0-9._/-]+$`
 
 In plain language: the address MUST start with a hostname (containing at least one dot), followed by a `/`, followed by one or more path segments.

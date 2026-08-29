@@ -50,7 +50,7 @@ The `[package]` section defines the package's identity:
 
 ## Package Addresses
 
-The address is the globally unique identifier for a package. It doubles as the fetch location for distribution (see [Distribution](distribution.md)).
+The address is the globally unique identifier for a package. It doubles as the fetch location for distribution (see [Distribution](distribution.md)). In a repository hosting several packages, the packages share the repository's `address` and each one's full address is `address + "/" + name` (see [Distribution: Locating a Package Inside a Clone](distribution.md#locating-a-package-inside-a-clone)).
 
 Addresses follow a hostname/path pattern:
 
