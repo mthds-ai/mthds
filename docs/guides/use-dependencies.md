@@ -6,12 +6,15 @@ description: "Add dependencies on other MTHDS packages and use their concepts an
 
 This guide shows how to add dependencies on other MTHDS packages and use their concepts and pipes in your bundles.
 
+!!! note "Implementation status"
+    The dependency lifecycle commands shown here are committed design; see the [normative status note](../spec/manifest-format.md#the-dependencies-section) for how conformance is asserted as implementations land.
+
 ## Step 1: Add a Dependency
 
-Use `mthds pkg add` to add a dependency to your `METHODS.toml`:
+Use `mthds package add` to add a dependency to your `METHODS.toml`:
 
 ```bash
-mthds pkg add github.com/mthds/document-processing --version "^1.0.0"
+mthds package add github.com/mthds/document-processing --version "^1.0.0"
 ```
 
 This adds an entry to the `[dependencies]` section:
@@ -24,7 +27,7 @@ document_processing = { address = "github.com/mthds/document-processing", versio
 The alias (`document_processing`) is auto-derived from the last segment of the address. To choose a shorter alias:
 
 ```bash
-mthds pkg add github.com/mthds/document-processing --alias docproc --version "^1.0.0"
+mthds package add github.com/mthds/document-processing --alias docproc --version "^1.0.0"
 ```
 
 ```toml
@@ -37,13 +40,13 @@ docproc = { address = "github.com/mthds/document-processing", version = "^1.0.0"
 Generate the lock file to pin exact versions:
 
 ```bash
-mthds pkg lock
+mthds package lock
 ```
 
 Then install the dependencies into the local cache:
 
 ```bash
-mthds pkg install
+mthds package install
 ```
 
 ## Step 3: Use Cross-Package References
@@ -91,7 +94,7 @@ Validation checks that:
 During development, you can point a dependency to a local directory instead of fetching it remotely:
 
 ```bash
-mthds pkg add github.com/mthds/document-processing --path ../document-processing --version "^1.0.0"
+mthds package add github.com/mthds/document-processing --path ../document-processing --version "^1.0.0"
 ```
 
 ```toml
@@ -103,13 +106,13 @@ Local path dependencies are resolved from the filesystem at load time. They are 
 
 ## Updating Dependencies
 
-To update all dependencies to their latest compatible versions:
+Under [Minimum Version Selection](../packages/version-resolution.md), re-resolving never moves a version on its own — your floors decide. To move forward:
 
 ```bash
-mthds pkg update
+mthds package update
 ```
 
-This performs a fresh resolution, writes an updated `methods.lock`, and shows a diff of what changed.
+This raises the floors in `METHODS.toml` to the latest available versions, re-locks, and shows what moved. Adding a dependency (`mthds package add`) records its latest version as the floor, so a fresh `add` always gets you the newest release.
 
 ## See Also
 

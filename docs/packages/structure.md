@@ -30,7 +30,15 @@ legal_tools/
 └── LICENSE
 ```
 
-This package has multiple bundles, each declaring its own domain (`legal`, `legal.contracts`, `legal.contracts.shareholder`, `scoring`). The `methods.lock` file records exact dependency versions for reproducible builds.
+This package has multiple bundles, each declaring its own domain (`legal`, `legal.contracts`, `legal.contracts.shareholder`, `scoring`). The `methods.lock` file records exact dependency versions for verifiable installs.
+
+## The Three Artifacts
+
+Three artifacts carry a package through its life, and each answers a different question:
+
+- **`METHODS.toml`** — the [manifest](manifest.md) — resolves *which files* make up the package and what its identity is.
+- **`methods.lock`** — the [lock file](lock-file.md) — pins *which versions* of its remote dependencies it resolves to.
+- **The [library crate](../spec/library-crate.md)** — the resolution artifact — captures *what the resolved files mean*: the flat, fully-qualified, fingerprinted snapshot the whole library resolves into. It is derived and recomputable, never authored.
 
 ## Directory Layout Rules
 
@@ -38,6 +46,7 @@ This package has multiple bundles, each declaring its own domain (`legal`, `lega
 - `methods.lock` must be alongside `METHODS.toml` at the root.
 - `.mthds` files can be at the root or in subdirectories. A compliant runtime discovers all `.mthds` files recursively.
 - A single directory should contain one package.
+- The directory name is not part of the package's identity — the manifest `name` is. A kebab-case repository holding a snake_case-named package is perfectly fine.
 
 ## Standalone Bundles (No Package)
 
@@ -56,7 +65,7 @@ The package system follows a progressive enhancement principle:
 1. **Single file** — a `.mthds` bundle works on its own. No configuration, no manifest.
 2. **Package** — add a `METHODS.toml` to get exports, visibility, and a globally unique identity.
 3. **Dependencies** — add `[dependencies]` to compose with other packages.
-4. **Ecosystem** — publish, search, and discover through the Know-How Graph.
+4. **Ecosystem** — publish by pushing a tag; [registries](registry.md) index, search, and surface what you published. At the horizon, the [Know-How Graph](../know-how-graph/index.md) makes discovery typed.
 
 Each layer adds capability without breaking the previous one.
 
@@ -73,3 +82,4 @@ When loading a `.mthds` bundle, a compliant runtime discovers the manifest by wa
 
 - [Specification: Package Directory Structure](../spec/manifest-format.md#package-directory-structure) — normative reference for layout rules.
 - [The Manifest](manifest.md) — what goes inside `METHODS.toml`.
+- [Specification: Library Crate Format](../spec/library-crate.md) — the resolution artifact a package's library resolves into.

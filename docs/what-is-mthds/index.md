@@ -52,7 +52,7 @@ The infrastructure for distributing and composing methods at scale.
 
 When a standalone bundle is not enough — when you want to share methods, depend on other people's work, or control which methods are public — you add a `METHODS.toml` manifest. This turns a directory of bundles into a **package**: a distributable unit with a globally unique address, semantic versioning, declared dependencies, and explicit exports.
 
-Packages are stored in Git repositories. The package address (e.g., `github.com/acme/legal-tools`) doubles as the fetch location — no upload step, no proprietary hosting. A lock file (`methods.lock`) pins exact versions with SHA-256 integrity hashes for reproducible builds.
+Packages are stored in Git repositories. The package address (e.g., `github.com/acme/legal-tools`) doubles as the fetch location — no upload step, no proprietary hosting. A lock file (`methods.lock`) pins exact versions with integrity hashes and semantic fingerprints for verifiable installs.
 
 Cross-package references use the `->` syntax: `scoring_lib->scoring.compute_weighted_score` reads as "from the `scoring_lib` dependency, get `compute_weighted_score` in the `scoring` domain." The separator was chosen for readability by non-technical audiences — arrows are intuitive, visually distinct from dots, and universally understood.
 
@@ -129,7 +129,7 @@ MTHDS is designed so you can start simple and add complexity only when you need 
 
 3. **Dependencies** — add a `[dependencies]` section to compose with other packages. Reference their concepts and pipes using the `->` syntax.
 
-4. **Ecosystem** — publish packages to Git repositories. Registry indexes crawl and index them, enabling search by domain, by concept, or by typed pipe signature. The **Know-How Graph** — a typed network of AI methods — lets you ask "I have a `Document`, I need a `NonCompeteClause`" and find the pipes (or chains of pipes) that get you there.
+4. **Ecosystem** — publish packages to Git repositories by pushing a tag. Registry indexes crawl and index them, enabling search and package pages with validation badges and freshness signals. At the horizon, the **Know-How Graph** — a typed network of AI methods, specified as a [future direction](../packages/future-directions.md) — lets you ask "I have a `Document`, I need a `NonCompeteClause`" and find the pipes (or chains of pipes) that get you there.
 
 Each layer builds on the previous one without breaking it. A standalone bundle that works today continues to work unchanged inside a package.
 
@@ -141,7 +141,7 @@ MTHDS differs from other approaches to describing AI capabilities in three ways:
 
 - **Composition built in.** Controllers (sequence, parallel, condition, batch) are part of the language, not an external orchestration layer. Multi-step methods are defined in the same file as the individual steps.
 
-- **A real package system.** Versioned dependencies, lock files, visibility controls, cross-package references — the same infrastructure that makes code ecosystems work, applied to AI methods.
+- **A real package system.** Visibility controls and cross-package references are live today; versioned dependencies and lock files are fully specified and being implemented — the same infrastructure that makes code ecosystems work, applied to AI methods.
 
 ## Where to Go Next
 

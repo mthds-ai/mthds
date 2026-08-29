@@ -52,7 +52,7 @@ steps = [
 ]
 ```
 
-**Visibility constraint:** The referenced pipe must be exported by the dependency package — listed in its `[exports]` section.
+**Visibility constraint:** The referenced pipe must be exported by the dependency package — listed in its `[exports]` section or auto-exported as a `main_pipe`. A reference to a non-exported pipe is diagnosed as a validation error naming the dependency's export surface.
 
 ## Referencing Concepts
 
@@ -74,6 +74,7 @@ Package B's manifest:
 
 ```toml
 [package]
+name        = "scoring_lib"
 address     = "github.com/mthds/scoring-lib"
 version     = "0.5.0"
 description = "Scoring utilities"
