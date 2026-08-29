@@ -174,7 +174,7 @@ Constraints are read as **floors**: a declared constraint states the minimum ver
 
 **Properties of MVS:**
 
-- **Deterministic** — the same set of constraints always produces the same result. The build list is fully determined by the manifests alone, with no registry oracle; the lock file is a verification record, not a resolution record (see [methods.lock Format](./lock-format.md#a-verification-record-not-a-resolution-record)).
+- **Deterministic** — the same set of constraints always produces the same result. The build list is fully determined by the manifests and the published version tags, with no registry oracle; the lock file is a verification record, not a resolution record (see [methods.lock Format](./lock-format.md#a-verification-record-not-a-resolution-record)).
 - **Reproducible** — no dependency on a "latest" query or timestamp.
 - **Simple** — no backtracking solver needed, and no conflicts by construction within an admissible range: a resolvable answer exists whenever the constraint sets overlap.
 
@@ -194,12 +194,9 @@ Dependencies are resolved transitively with the following rules:
 
 ## Fetching Remote Dependencies
 
-Package addresses map to Git clone URLs by the following rule:
+Package addresses map to Git clone URLs by the derivation rule of [Distribution: Clone URL Derivation](../packages/distribution.md#clone-url-derivation): the hostname and the first two path segments name the repository — prepend `https://`, append `.git`. Any further path segments are not part of the clone URL; they select a package *within* the clone, located by manifest identity per [Distribution: Locating a Package Inside a Clone](../packages/distribution.md#locating-a-package-inside-a-clone).
 
-1. Prepend `https://`.
-2. Append `.git` (if not already present).
-
-For example: `github.com/acme/legal-tools` → `https://github.com/acme/legal-tools.git`
+For example: `github.com/acme/legal-tools` → `https://github.com/acme/legal-tools.git`, and `github.com/mthds/methods/documents` → `https://github.com/mthds/methods.git` with `documents` locating the package inside the clone.
 
 The resolution chain for fetching a dependency is:
 

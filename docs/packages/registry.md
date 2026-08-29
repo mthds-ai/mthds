@@ -16,7 +16,7 @@ The [distribution model](distribution.md) separates storage from discovery:
 - **Storage** remains decentralized — packages live in Git repositories controlled by their authors.
 - **Discovery** is centralized per registry — a registry crawls known package addresses, builds an index, and serves queries over HTTP.
 
-**The registry is off the install path — a design guarantee.** [Version resolution](version-resolution.md) is deterministic from manifests alone and packages are fetched straight from their repositories, so bare Git access suffices to resolve, lock, and install. A registry adds discovery, social proof, and freshness signals on top; it is never load-bearing infrastructure for running or installing a method.
+**The registry is off the install path — a design guarantee.** [Version resolution](version-resolution.md) needs nothing beyond the manifests and the repositories' own tags, and packages are fetched straight from their repositories, so bare Git access suffices to resolve, lock, and install. A registry adds discovery, social proof, and freshness signals on top; it is never load-bearing infrastructure for running or installing a method.
 
 Multiple registries can coexist, each with its own crawl set and policies.
 

@@ -11,7 +11,7 @@ The `methods.lock` file records, for every remote dependency of a package, the e
 
 ## A Verification Record, Not a Resolution Record
 
-Because version resolution is [Minimum Version Selection](./namespace-resolution.md#version-resolution-strategy), the build list is fully determined by the manifests alone: the lock file can be regenerated at any time from the manifests plus the fetched sources, and regeneration always reproduces the same entries. The lock is therefore a **verification record** — it exists so that a later install can prove it fetched the same bytes and the same meaning the original resolution saw — not a resolution record that a resolver consults to decide versions. This is the same relationship `go.sum` has to `go.mod`.
+Because version resolution is [Minimum Version Selection](./namespace-resolution.md#version-resolution-strategy), the build list is fully determined by the manifests and the published version tags — no resolution-time state and no registry oracle enters it: the lock file can be regenerated at any time from the manifests plus the fetched sources, and regeneration reproduces the same entries as long as the published tag set has not changed. The lock is therefore a **verification record** — it exists so that a later install can prove it fetched the same bytes and the same meaning the original resolution saw — not a resolution record that a resolver consults to decide versions. This is the same relationship `go.sum` has to `go.mod`.
 
 ## File Name and Location
 
@@ -82,7 +82,7 @@ The `fingerprint` is the [library crate fingerprint](./library-crate.md#fingerpr
 
 The lock file is regenerated when the manifests change or when a tool re-locks:
 
-- **`lock`** — resolves all dependencies from the manifests and writes the lock file. Because resolution is deterministic, re-running `lock` against unchanged manifests reproduces the same file.
+- **`lock`** — resolves all dependencies from the manifests and writes the lock file. Because resolution is deterministic, re-running `lock` against unchanged manifests and an unchanged published tag set reproduces the same file.
 - **`add`** — records the added dependency's latest version as its floor in `METHODS.toml`, then re-locks.
 - **`update`** — raises the floors in `METHODS.toml` to the latest available versions, then re-locks. Under MVS, re-resolution alone never moves a version: updating is a deliberate manifest edit, and the re-lock records its result. See [Version Resolution Strategy](./namespace-resolution.md#version-resolution-strategy).
 

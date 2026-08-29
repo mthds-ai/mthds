@@ -39,6 +39,9 @@ github.com/mthds/methods/documents     → https://github.com/mthds/methods.git
 
 Any path segments after the first two are not part of the clone URL — they select a package *within* the clone.
 
+!!! note "Open question: hosts with nested repository namespaces"
+    The two-segment rule matches hosts whose repositories live at `<host>/<owner>/<repo>` — the layout of every address in this specification. On hosts that allow nested repository namespaces (such as GitLab subgroups), the repository/package boundary inside an address is ambiguous under this rule; how such addresses are partitioned is an open question of the standard, deliberately recorded rather than silently decided. Until it is settled, portable package addresses SHOULD use a `<host>/<owner>/<repo>` repository.
+
 ## Locating a Package Inside a Clone
 
 A package is located inside a clone **by manifest identity, not by directory path**. Directory names carry no meaning: a compliant tool scans the clone for `METHODS.toml` files and selects the package whose identity matches the requested address:
@@ -53,6 +56,9 @@ If no manifest matches, or more than one does, the tool MUST fail loudly, listin
 Version tags in remote repositories may use a `v` prefix (e.g., `v1.0.0`). The prefix is stripped during version parsing. Both `v1.0.0` and `1.0.0` are recognized.
 
 Tags are listed using `git ls-remote --tags`, and only those that parse as valid semantic versions are considered. Fetching a resolved version clones at its tag: `git clone --depth 1 --branch {tag}`.
+
+!!! note "Open question: version tags in a library repository"
+    Git tags are repository-wide, while each package in a library repository carries its own manifest `version`. How repository tags map to per-package versions — per-package tag prefixes are the anticipated direction — is an open question of the standard, deliberately recorded rather than silently decided. Until it is settled, packages that need independently versioned releases SHOULD live in their own repositories, and a library repository SHOULD version its packages in lockstep.
 
 A tag can be re-pointed; the commit it resolved to cannot. Tools therefore record the **resolved commit SHA** of every fetch — it is the provenance entry in the [lock file](lock-file.md) and the honest key for any clone cache. Every fetched-package operation SHOULD be attributable to its `(address, tag, commit)` triple.
 
@@ -73,7 +79,7 @@ A fetched package directory may contain files beyond `.mthds` bundles — docume
 
 One or more [registries](registry.md) index packages without owning them: they crawl known package addresses, parse manifests and bundles, and serve search, package pages, validation badges, and freshness signals.
 
-**The registry is off the install path — by design, not by accident.** Because [version resolution](version-resolution.md) is deterministic from manifests alone and packages are fetched straight from their repositories, bare Git access is sufficient to resolve, lock, and install anything. A registry can disappear without breaking a single build.
+**The registry is off the install path — by design, not by accident.** Because [version resolution](version-resolution.md) needs nothing beyond the manifests and the repositories' own tags, and packages are fetched straight from their repositories, bare Git access is sufficient to resolve, lock, and install anything. A registry can disappear without breaking a single build.
 
 ## Multi-Tier Deployment
 
