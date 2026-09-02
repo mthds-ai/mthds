@@ -1,5 +1,38 @@
 # Changelog
 
+## [v0.10.0] - 2026-09-02
+
+### Added
+
+- **Future Directions** (`packages/future-directions.md`): New page preserving the package ecosystem's ambitions — typed signature search, the Know-How Graph, signed manifests, and registry proxy/mirror chains — explicitly as non-normative directions, kept distinct from the specified system.
+- **Schema updates for pipelex v0.55.0:** `docs/mthds_schema.json` gains the `hints` members on concepts and structure fields, the `InputSlotBlueprint` (the expanded input slot form), and `PipeLLMBlueprint.templating_style`. The pipe-level `templating_style` is now documented in the `.mthds` file format specification, in both its accepted forms.
+
+### Changed
+
+- **The package system specification is rewritten to the decided design.** The packaging corpus — manifest, lock, resolution, crate, distribution, and registry pages — now describes one coherent, committed system rather than a mix of live rules and speculative plans.
+- **The package management CLI group is renamed** from `mthds pkg` to `mthds package` (breaking).
+- **Manifest (`METHODS.toml`) rules (breaking):** `name` is strictly required and serves as the package identity (the directory-name-match rule is deleted), and `main_pipe` is auto-exported rather than requiring an explicit `[exports]` entry.
+- **Version resolution commits to Minimum Version Selection (breaking):** Constraints are read strictly as floors. `update` raises floors to the latest available versions and re-locks; `add` records the added dependency's latest version as the new floor.
+- **Lock file semantics:** `methods.lock` is specified as a regenerable verification record with semantic identity. Entries pin a semantic `fingerprint`, the resolved `commit` SHA, and a `source` clone URL that consistently carries its `.git` suffix.
+- **Library crate keyspace:** The multi-package keyspace uses host-relative `::` address keys. Dependency-contributed entries are keyed by package address (`github.com/acme/legal-tools::legal.ContractClause`), so no two packages can collide.
+- **Cross-package visibility:** A reference to a dependency's non-exported pipe is diagnosed as a validation error naming the export surface, instead of being silently omitted at load time.
+- **Distribution and caching:** The versioned reference grammar (`<address>[@<tag>]`) is formalized, along with the two-cache system — the global VCS cache and the project-local method cache.
+- **The registry specification is re-scoped** to its implemented surface: index, package pages, text search, validation badges, and freshness signals.
+
+### Fixed
+
+- **The VCS fetching algorithm derives the clone URL from the repository segments.** The implementer guide told implementations to prepend `https://` and append `.git` to the whole package address, which produces a nonexistent URL for a package in a library repository; it now follows the Clone URL Derivation rule and uses the hostname plus the first two path segments.
+- **`LLMSetting.prompting_target` is gone from the language and format documentation.** The field was removed from a schema whose `LLMSetting` is closed, so the pages that still advertised it described input the schema rejects.
+- **The export surface in the language guide includes manifest main pipes.** A pipe made public solely by `[package].main_pipe` was public per the specification and private per the guide.
+- **The determinism and regeneration guarantees state their real precondition.** Resolution and lock regeneration were described as holding under an "unchanged published tag set" and "regardless of when you run the resolver"; both are conditioned on which version tags exist *and* which commits they point at, since tags may be added, deleted or re-pointed. The lock file is regenerable and still the record of what was fetched — not "regenerable rather than load-bearing".
+- **The documentation build is gated on the pull requests that carry the work.** `docs-check` now triggers on pull requests targeting `dev` as well as `main`, and `CHANGELOG.md`, `CODE_OF_CONDUCT.md` and `LICENSE` join the path filters, so an edit to any snippet-included repo-root file triggers the strict build.
+
+### Removed
+
+- **Deprecated schema fields:** `LLMSetting.prompting_target` and its `PromptingTarget` definition are gone from the MTHDS schema, having already been dropped from the language.
+- **Speculative registry pages:** `packages/registry-search.md` and `packages/registry-distribution.md` are removed; their implemented content merged into the registry overview and their speculative content moved to Future Directions.
+- **Speculative registry CLI commands:** `search`, `graph`, `inspect` and `index` are removed from the CLI reference, which now documents only the live manifest and dependency lifecycle.
+
 ## [v0.9.0] - 2026-08-26
 
 ### Added

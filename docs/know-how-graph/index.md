@@ -42,7 +42,7 @@ When no single pipe transforms X into Y, the Know-How Graph can find a **chain**
 Document → [extract_pages] → Page[] → [analyze_content] → AnalysisResult
 ```
 
-This is auto-composition — discovering multi-step pipelines by traversing the graph. The `mthds pkg graph` command supports this with the `--from` and `--to` options.
+This is auto-composition — discovering multi-step pipelines by traversing the graph.
 
 ## Cross-Package Concept Refinement
 
@@ -66,6 +66,8 @@ The Know-How Graph emerges naturally from the package system:
 3. Dependencies connect packages, enabling cross-package references.
 4. Registry indexes crawl this information and make it searchable.
 
+The graph is a **vision the package system is built to support**, not a shipped query surface: the typed search and graph queries it calls for are specified as [future directions](../packages/future-directions.md) of the registry, layered over the package and index foundations that exist today.
+
 The result is a federated network of composable, discoverable, type-safe AI methods — where finding the right method is as precise as asking "I have X, I need Y."
 
 The Know-How Graph is infrastructure that agents can navigate. An agent can discover methods by typed signature, compose multi-step chains through intermediate concepts, and build new methods that extend the graph. Each method an agent creates or refines becomes a node that other agents — or humans — can discover and reuse. The graph grows as the ecosystem grows.
@@ -78,5 +80,5 @@ The ecosystem follows an open-commons model. Common tasks — contract extractio
 - [Concepts](../language/concepts.md) — how concepts define typed data and refinement.
 - [Exports & Visibility](../packages/exports-visibility.md) — which pipes are visible in the graph.
 - [Distribution](../packages/distribution.md) — how registries index packages.
-- [The Registry](../packages/registry.md) — the HTTP service that exposes the Know-How Graph for remote queries.
-- [Registry Search](../packages/registry-search.md) — type-aware search semantics and graph query rules.
+- [The Registry](../packages/registry.md) — the HTTP index the graph would be layered over.
+- [Future Directions](../packages/future-directions.md) — typed search and graph query semantics, preserved as ambition.

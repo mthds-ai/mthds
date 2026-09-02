@@ -2,12 +2,18 @@ name: Documentation Check
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, dev]
     paths:
       - "docs/**"
       - "mkdocs.yml"
       - "pyproject.toml"
+      # The repo-root files the docs pages pull in with `--8<--` snippet
+      # includes; a build is strict about their links, so an edit to one of
+      # them can break the site without touching docs/.
+      - "CHANGELOG.md"
+      - "CODE_OF_CONDUCT.md"
       - "CONTRIBUTING.md"
+      - "LICENSE"
       - ".github/workflows/docs-check.yml"
 
 jobs:

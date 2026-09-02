@@ -71,7 +71,7 @@ When resolving `alias->domain_path.name` (e.g., `docproc->extraction.extract_tex
 
 **Visibility rules for cross-package pipe references:**
 
-- The referenced pipe must be exported by the dependency package (listed in its `[exports]` section or declared as `main_pipe` in a bundle header).
+- The referenced pipe must be exported by the dependency package (listed in its `[exports]` section or auto-exported as a `main_pipe` — declared in the manifest's `[package]` section or in a bundle header).
 - If the pipe is not exported, the reference fails with a visibility error.
 
 **Concepts are always public.** No visibility check is needed for cross-package concept references.
@@ -94,8 +94,9 @@ Package B's manifest (`METHODS.toml`):
 
 ```toml
 [package]
-address = "github.com/mthds/scoring-lib"
-version = "0.5.0"
+name        = "scoring_lib"
+address     = "github.com/mthds/scoring-lib"
+version     = "0.5.0"
 description = "Scoring utilities"
 
 [exports.scoring]

@@ -133,15 +133,16 @@ Within a single bundle:
 For `METHODS.toml`:
 
 1. `[package]` section MUST be present.
-2. `address` MUST match the pattern `^[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+/[a-zA-Z0-9._/-]+$`.
-3. `version` MUST be valid semver.
-4. `description` MUST NOT be empty.
-5. All dependency aliases MUST be unique and `snake_case`.
-6. All dependency addresses MUST match the hostname/path pattern.
-7. All dependency version constraints MUST be valid.
-8. Domain paths in `[exports]` MUST be valid domain codes.
-9. Domain paths in `[exports]` MUST NOT use reserved domains (`native`, `mthds`, `pipelex`).
-10. All pipe codes in `[exports]` MUST be valid `snake_case`.
+2. `name` MUST be present, `snake_case`, and 2–25 characters.
+3. `address` MUST match the pattern `^[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+/[a-zA-Z0-9._/-]+$`.
+4. `version` MUST be valid semver.
+5. `description` MUST NOT be empty.
+6. `main_pipe`, if present, MUST be a valid `snake_case` pipe code.
+7. All dependency aliases MUST be unique and `snake_case`.
+8. All dependency addresses MUST match the hostname/path pattern.
+9. All dependency version constraints MUST be valid.
+10. Domain paths in `[exports]` MUST be valid domain codes and MUST NOT use reserved domains (`native`, `mthds`, `pipelex`).
+11. All pipe codes in `[exports]` MUST be valid `snake_case`.
 
 ## Stage 7: Package-Level Validation
 
@@ -149,9 +150,9 @@ After loading all bundles and resolving dependencies:
 
 1. Bundles MUST NOT declare a domain starting with a reserved segment.
 2. Cross-package references MUST reference known dependency aliases.
-3. Cross-package pipe references MUST target exported pipes.
+3. Cross-package pipe references MUST target pipes exported by the dependency — diagnosed at validation time, never silently filtered at load time.
 4. Exported pipes MUST exist in the scanned bundles.
-5. Same-domain concept and pipe code collisions across bundles are errors.
+5. Same-domain concept and pipe code collisions across bundles (within one package) are errors.
 
 ## Stage 8: Lock File Validation
 
@@ -159,4 +160,6 @@ For `methods.lock`:
 
 1. Each entry's `version` MUST be valid semver.
 2. Each entry's `hash` MUST match `sha256:[0-9a-f]{64}`.
-3. Each entry's `source` MUST start with `https://`.
+3. Each entry's `fingerprint` MUST be a 64-character lowercase hex digest.
+4. Each entry's `source` MUST start with `https://` and end with `.git`.
+5. Each entry's `commit` MUST be a 40-character lowercase hex digest.

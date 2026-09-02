@@ -4,6 +4,8 @@ Deferred findings from the review-agent triage of [PR #54](https://github.com/mt
 
 ## How package identity is carried in the merged keyspace
 
+> **Resolved 2026-08-27.** The owner decision was taken in the packaging interview (workspace `docs/package/interview.md`, round 2.2): **host-relative `::` keys**, exactly as recommended below — dependency-contributed entries keyed by package address, host entries bare, existing single-package fingerprints preserved. Adopted into `docs/spec/library-crate.md` (§1 Merge, §2 Fully Qualify) by the package-spec rewrite. The analysis below is kept as the record of why.
+
 **Where:** `docs/spec/library-crate.md` §1 Merge and §2 Fully Qualify Every Reference.
 
 **Reporters:** greptile-apps (P1) and cubic-dev-ai (P2), both on the same underlying issue.
