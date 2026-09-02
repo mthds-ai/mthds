@@ -66,7 +66,7 @@ Remote packages are fetched via Git, trying each source in order (this fetch seq
 
 1. **Local cache check** — look in `~/.mthds/packages/{address}/{version}/`.
 2. **VCS fetch** — if not cached, clone the repository:
-    - Map address to clone URL: prepend `https://`, append `.git`.
+    - Map address to clone URL per [Clone URL Derivation](../packages/distribution.md#clone-url-derivation): take the hostname and the first two path segments, prepend `https://`, append `.git`.
     - List remote tags: `git ls-remote --tags {url}`.
     - Filter tags that parse as valid semver (strip optional `v` prefix).
     - Select version via MVS.

@@ -31,8 +31,8 @@ A maximum-version resolver would select `2.0.0`. MVS deliberately avoids this: y
 
 ## Why MVS?
 
-- **Deterministic** — the same set of constraints always produces the same result, regardless of when you run the resolver. The build list is fully determined by the manifests and the repositories' published tags: no registry has to be consulted, or even exist, for resolution to succeed.
-- **Reproducible** — no dependency on a "latest" query or timestamp. The result depends only on the constraints and the available tags, which is why the [lock file](lock-file.md) is regenerable rather than load-bearing.
+- **Deterministic** — the same constraints against the same published tags always produce the same result. The build list is fully determined by the manifests and the repositories' published tags: no registry has to be consulted, or even exist, for resolution to succeed.
+- **Reproducible** — no dependency on a "latest" query or timestamp. The result depends only on the constraints and the available tags, which is why the [lock file](lock-file.md) is regenerable from them rather than consulted to decide versions — it remains the record that pins what was actually fetched.
 - **Explainable** — an agent or a person can predict the resolved versions by reading the manifests, and a resolution error is explainable in one sentence.
 - **Simple** — no backtracking solver needed. Sort and pick the first match.
 - **Safe for a prompt ecosystem** — a method's payload is prompts, and a "patch" release can change behavior. Because nothing upgrades implicitly, a freshly published version — including a malicious one — is never auto-adopted into anyone's method.

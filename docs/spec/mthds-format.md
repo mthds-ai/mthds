@@ -389,6 +389,7 @@ Generates output by invoking a large language model with a prompt.
 | `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [LLM settings](#inline-llm-settings) table. |
 | `model_to_structure` | string or table | No | Model used for structuring the LLM output into the declared concept. Accepts the same forms as `model`. |
 | `structuring_method` | string | No | Directive controlling how the output is structured. Values: `"direct"` (single LLM call producing JSON) or `"preliminary_text"` (the runtime first produces text, then structures it as a second step). The standard does not prescribe HOW the runtime implements `"preliminary_text"`. |
+| `templating_style` | string or table | No | How the pipe's inputs are tagged and formatted when interpolated into the prompt. Either a tag style string (`no_tag`, `ticks`, `xml`, `square_brackets`) or a [templating style](#templating-style) table carrying `tag_style` and `text_format`. If omitted, the runtime default applies. |
 
 **Prompt template syntax:**
 
@@ -433,7 +434,6 @@ When the `model` field is a table instead of a string, it defines inline model s
 | `temperature` | number | Yes | Sampling temperature. Range: 0–1. |
 | `max_tokens` | integer, `"auto"`, or null | No | Maximum tokens for the response. `"auto"` lets the model choose. |
 | `image_detail` | string | No | Image detail level for vision inputs. Values: `high`, `low`, `auto`. |
-| `prompting_target` | string | No | Target provider for prompt formatting. Values: `openai`, `anthropic`, `mistral`, `gemini`, `fal`. |
 | `reasoning_effort` | string | No | Level of reasoning effort. Values: `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`. `xhigh` sits between `high` and `max` and maps to provider-specific xhigh values where supported. |
 | `reasoning_budget` | integer | No | Token budget for reasoning. Must be > 0. |
 | `description` | string | No | Human-readable description of this model configuration. |
