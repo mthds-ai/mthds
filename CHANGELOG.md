@@ -22,6 +22,10 @@
 
 - **Future Directions** (`packages/future-directions.md`): New page preserving the package ecosystem's ambitions — typed signature search, the Know-How Graph's query surface, Ed25519-signed manifests with a trust store, and registry proxy/mirror chains — explicitly as non-normative directions, each compatible with the registry-off-the-install-path invariant.
 
+### Fixed
+
+- **The documentation build is gated on the pull requests that carry the work.** `docs-check` declared `on: pull_request: branches: [main]`, but by convention every ordinary pull request targets `dev`, so the gate ran only on release pull requests and a broken docs build surfaced at the release rather than at the change that caused it. It now runs on both bases. Its `paths` filter also watched only one of the four repo-root files the docs pull in through `--8<--` snippet includes, so an edit to `CHANGELOG.md`, `CODE_OF_CONDUCT.md` or `LICENSE` could break the strict build without triggering it; all four are watched now.
+
 ### Removed
 
 - **`packages/registry-search.md` and `packages/registry-distribution.md`:** Their honest content (text search, package signals) moved into the registry overview; the speculative content (typed search semantics, graph queries, signed manifests, proxy chains) moved to the Future Directions page.
