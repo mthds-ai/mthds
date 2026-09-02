@@ -28,7 +28,7 @@ Each entry records a package address, the exact resolved version, a SHA-256 inte
 
 ## Why the Lock Is Regenerable
 
-Version resolution is [Minimum Version Selection](version-resolution.md): the resolved versions are fully determined by the manifests and the published version tags — a newer release never changes the answer, and no registry has to be consulted. The lock file can therefore be regenerated from the manifests plus the fetched sources, and regeneration reproduces the same entries as long as the published tag set has not changed. It is a verification record — proof of what was fetched and what it meant — not the thing that decides versions. (`go.sum` plays the same role next to `go.mod`.)
+Version resolution is [Minimum Version Selection](version-resolution.md): the resolved versions are fully determined by the manifests and the published version tags — a newer release never changes the answer, and no registry has to be consulted. The lock file can therefore be regenerated from the manifests plus the fetched sources, and regeneration reproduces the same entries as long as the repositories' published version tags — which tags exist, and which commits they point at — have not changed. It is a verification record — proof of what was fetched and what it meant — not the thing that decides versions. (`go.sum` plays the same role next to `go.mod`.)
 
 ## File Location
 

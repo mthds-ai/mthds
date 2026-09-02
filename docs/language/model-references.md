@@ -116,7 +116,7 @@ The `model` field can also be a TOML table instead of a string, providing full m
 
 Each pipe type that accepts `model` has a corresponding inline settings structure:
 
-- **PipeLLM** uses `LLMSetting` — includes `model`, `temperature`, `max_tokens`, `image_detail`, `prompting_target`, `reasoning_effort`, `reasoning_budget`.
+- **PipeLLM** uses `LLMSetting` — includes `model`, `temperature`, `max_tokens`, `image_detail`, `reasoning_effort`, `reasoning_budget`.
 - **PipeStructure** uses `LLMSetting` — the same shape as `PipeLLM`, because the typical implementation issues an LLM call for the structuring step.
 - **PipeImgGen** uses `ImgGenSetting` — includes `model`, `quality`, `nb_steps`, `guidance_scale`, `is_moderated`, `safety_tolerance`.
 - **PipeExtract** uses `ExtractSetting` — includes `model`, `max_nb_images`, `image_min_size`.

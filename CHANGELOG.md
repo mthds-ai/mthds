@@ -5,7 +5,7 @@
 ### Added
 
 - **Future Directions** (`packages/future-directions.md`): New page preserving the package ecosystem's ambitions — typed signature search, the Know-How Graph, signed manifests, and registry proxy/mirror chains — explicitly as non-normative directions, kept distinct from the specified system.
-- **Schema updates for pipelex v0.55.0:** `docs/mthds_schema.json` gains the `hints` members on concepts and structure fields, the `InputSlotBlueprint` (the expanded input slot form), and `PipeLLMBlueprint.templating_style`.
+- **Schema updates for pipelex v0.55.0:** `docs/mthds_schema.json` gains the `hints` members on concepts and structure fields, the `InputSlotBlueprint` (the expanded input slot form), and `PipeLLMBlueprint.templating_style`. The pipe-level `templating_style` is now documented in the `.mthds` file format specification, in both its accepted forms.
 
 ### Changed
 
@@ -21,6 +21,10 @@
 
 ### Fixed
 
+- **The VCS fetching algorithm derives the clone URL from the repository segments.** The implementer guide told implementations to prepend `https://` and append `.git` to the whole package address, which produces a nonexistent URL for a package in a library repository; it now follows the Clone URL Derivation rule and uses the hostname plus the first two path segments.
+- **`LLMSetting.prompting_target` is gone from the language and format documentation.** The field was removed from a schema whose `LLMSetting` is closed, so the pages that still advertised it described input the schema rejects.
+- **The export surface in the language guide includes manifest main pipes.** A pipe made public solely by `[package].main_pipe` was public per the specification and private per the guide.
+- **The determinism and regeneration guarantees state their real precondition.** Resolution and lock regeneration were described as holding under an "unchanged published tag set" and "regardless of when you run the resolver"; both are conditioned on which version tags exist *and* which commits they point at, since tags may be added, deleted or re-pointed. The lock file is regenerable and still the record of what was fetched — not "regenerable rather than load-bearing".
 - **The documentation build is gated on the pull requests that carry the work.** `docs-check` now triggers on pull requests targeting `dev` as well as `main`, and `CHANGELOG.md`, `CODE_OF_CONDUCT.md` and `LICENSE` join the path filters, so an edit to any snippet-included repo-root file triggers the strict build.
 
 ### Removed
