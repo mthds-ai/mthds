@@ -191,6 +191,21 @@
           ],
           "default": null,
           "title": "Refines"
+        },
+        "hints": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hints"
         }
       },
       "required": [
@@ -200,6 +215,8 @@
       "type": "object"
     },
     "ConceptStructureBlueprint": {
+      "additionalProperties": false,
+      "description": "One field of a concept's structure table. Unknown keys are rejected — the field table's\nkeys are strict, exactly like an input slot table's; hint *content* stays lenient (unknown\nhint keys warn and are preserved, per intent-hints.md).",
       "properties": {
         "description": {
           "title": "Description",
@@ -305,6 +322,21 @@
           "default": false,
           "title": "Required",
           "type": "boolean"
+        },
+        "hints": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hints"
         }
       },
       "required": [
@@ -641,6 +673,36 @@
       "title": "ImgGenSetting",
       "type": "object"
     },
+    "InputSlotBlueprint": {
+      "additionalProperties": false,
+      "description": "The expanded input-slot form: `name = { concept = \"…\", hints = { … } }` (spec: intent-hints.md).\n\n`concept` carries the full slot grammar of the string form (ref, optional multiplicity, optional\npresence marker). The form is deliberately closed (`extra=\"forbid\"` implements the spec's\n\"unknown slot-table keys MUST be rejected\") so future per-slot semantic keys land here without a\nsecond syntax. A slot table carrying no hints collapses to its plain string at parse time (see\n`PipeBlueprint.collapse_hint_free_slot_tables`), so a slot value that IS a table carries\nnon-empty hints — hint-free bundles produce byte-identical blueprints to the string form.",
+      "properties": {
+        "concept": {
+          "title": "Concept",
+          "type": "string"
+        },
+        "hints": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hints"
+        }
+      },
+      "required": [
+        "concept"
+      ],
+      "title": "InputSlotBlueprint",
+      "type": "object"
+    },
     "LLMSetting": {
       "additionalProperties": false,
       "properties": {
@@ -675,17 +737,6 @@
           "anyOf": [
             {
               "$ref": "#/definitions/PromptImageDetail"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "prompting_target": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/PromptingTarget"
             },
             {
               "type": "null"
@@ -791,7 +842,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -849,7 +907,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -918,7 +983,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -1017,7 +1089,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -1150,7 +1229,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -1199,7 +1285,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -1359,7 +1452,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -1444,6 +1544,21 @@
             }
           ],
           "default": null
+        },
+        "templating_style": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TagStyle"
+            },
+            {
+              "$ref": "#/definitions/TemplatingStyle"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Templating Style"
         }
       },
       "required": [
@@ -1473,7 +1588,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -1529,7 +1651,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -1673,7 +1802,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -1717,7 +1853,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -1771,7 +1914,14 @@
           "anyOf": [
             {
               "additionalProperties": {
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "$ref": "#/definitions/InputSlotBlueprint"
+                  }
+                ]
               },
               "type": "object"
             },
@@ -1837,17 +1987,6 @@
         "auto"
       ],
       "title": "PromptImageDetail",
-      "type": "string"
-    },
-    "PromptingTarget": {
-      "enum": [
-        "openai",
-        "anthropic",
-        "mistral",
-        "gemini",
-        "fal"
-      ],
-      "title": "PromptingTarget",
       "type": "string"
     },
     "Quality": {
@@ -2033,6 +2172,8 @@
       "type": "string"
     },
     "TemplateBlueprint": {
+      "additionalProperties": false,
+      "description": "The rich form of a template: its Jinja2 source and category, plus an optional templating style and extra context.",
       "properties": {
         "template": {
           "description": "Raw template source",
@@ -2049,7 +2190,7 @@
             }
           ],
           "default": null,
-          "description": "Style of prompting to use (typically for different LLMs)"
+          "description": "How the tag and format filters render in this template; omit it to take the runtime default templating style"
         },
         "category": {
           "$ref": "#/definitions/TemplateCategory",
@@ -2091,6 +2232,8 @@
       "type": "string"
     },
     "TemplatingStyle": {
+      "additionalProperties": false,
+      "description": "How a pipe's inputs are tagged and formatted into its prompt: a tag style and a text format.",
       "properties": {
         "tag_style": {
           "$ref": "#/definitions/TagStyle"
@@ -2118,7 +2261,7 @@
     }
   },
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$comment": "Generated from PipelexBundleBlueprint v0.41.0. Do not edit manually.",
+  "$comment": "Generated from PipelexBundleBlueprint v0.55.0. Do not edit manually.",
   "x-taplo": {
     "initKeys": [
       "domain"
