@@ -103,6 +103,7 @@ plugins:
         - packages/registry-indexing.md: "Registry Indexing"
         - packages/future-directions.md: "Future Directions"
         Reference:
+        - spec/versioning.md: "Versioning"
         - spec/mthds-format.md: ".mthds File Format"
         - spec/native-concepts.md: "Native Concept Definitions"
         - spec/intent-hints.md: "Intent Hints"
@@ -199,6 +200,7 @@ nav:
     - Future Directions: packages/future-directions.md
   - Reference:
     - Specification:
+      - Versioning: spec/versioning.md
       - .mthds File Format: spec/mthds-format.md
       - Native Concept Definitions: spec/native-concepts.md
       - Intent Hints: spec/intent-hints.md

@@ -1,5 +1,31 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v2.0.0 · MTHDS standard 2.0.0 · MTHDS Protocol 0.6.0**
+
+### Added
+
+- **Versioning** (`spec/versioning.md`): New specification page defining how MTHDS is versioned — the two numbers, what bumps each, where they appear, and the contract every changelog heading follows. The standard version and the protocol version move independently: the standard covers the language, the native set, and the manifest, lock, crate and namespace formats; the protocol covers the HTTP runner contract alone.
+- **A version-consistency check** (`make version-check`, run by `make docs-check` and so by CI on every documentation pull request): every written copy of either number must agree, or the check names the sites that disagree and fails. It reads the standard version from the versioning page, the manifest specification, the manifest guide and the package-creation guide — their prose and the `mthds_version` constraint in their example manifests alike — the roadmap, the agent guide's `MTHDS_STANDARD_VERSION`, and the version the changelog announces; and the protocol version from the OpenAPI document, the `/version` example, the conformance statement, the versioning page and the agent guide's `PROTOCOL_VERSION`. The two pinned-set versions are deliberately excluded, since each lags the current standard version by design. The `1.0.0` that sat still for six months did so because nothing compared it to anything.
+
+### Fixed
+
+- **The version-check workflow no longer runs its release-branch steps on other pull requests.** `exit 0` in the branch-detection step ends that step, not the job, so a non-release pull request to `main` went on to compare `pyproject.toml` against an empty release version and failed. The later steps are now guarded on the branch actually being a release branch.
+- **The version check reads the changelog's topmost heading, not merely the first well-formed one.** It searched the whole file for a released heading carrying its version line, so a newer heading that omitted the line was skipped in silence and an older heading was validated in its place — the one drift shape the contract exists to forbid, passing unnoticed. The `[Unreleased]` heading was already enforced strictly; released headings now are too.
+- **An edit to `CLAUDE.md` alone triggers the documentation check.** That file states both version numbers and the check reads them, but it was absent from the workflow's path filter, so a pull request touching nothing else ran no version gate at all.
+- **The archived-version crawl exclusions cover the 2.x line.** `ROOT_ROBOTS_TXT` and the `noindex` headers in `vercel.json` matched `/0.` only, dating from when every archived version began with a zero. Cutting `2.0.0` would have published `/2.0.0/` as an indexable duplicate of `/latest/`, against the latest-only crawl policy. Both lists are per major release line, and `docs/CLAUDE.md` now says so.
+
+### Changed
+
+- **The standard version is unified with the release version of the specification, and cut at `2.0.0` (breaking).** There is no longer a separate documentation release number running alongside a standard version: the specification's release, its changelog heading, and `MTHDS_STANDARD_VERSION` in every implementation are one number. The cut is major because it accounts for changes already shipped without one — a native concept removed in `v0.8.0`, another added and three reshaped in `v0.9.0`, and the breaking manifest, lock and resolution rules in `v0.10.0` — all of them made while the standard version read `1.0.0`. It moves forwards rather than down to the `0.x` release line, so no manifest in the wild is invalidated by the unification itself: a constraint of `>=1.0.0` stays satisfiable. Crate stamps are the exception, and cannot be otherwise: `2.0.0` is the first version at which a native set is pinned, so a crate stamped `1.0.0` predates the pinning regime rather than naming an older pinned set, and re-normalizing it restamps it at the set pinned here.
+- **The pinned native set is identified by the version in which it last changed**, not by the current standard version. Under one number a patch release moves the standard version while changing nothing normative, so an implementation of standard version `V` materializes the pinned set of the greatest version less than or equal to `V`. Two implementations on different patch or minor versions therefore still byte-agree on materialized natives, and so on crate fingerprints.
+- **The intent vocabulary names the standard version it is pinned at.** `spec/intent-hints.md` pins a closed vocabulary per standard version — the same construct as the native set — but identified it only as "this version", which stops being a well-defined reference the moment a normatively inert release moves the standard version. The vocabulary is now pinned at `2.0.0` and resolved by the same greatest-version-less-than-or-equal-to rule as the native set.
+- **The protocol version is reconciled at `0.6.0`.** That is what the normative OpenAPI document and the shipped client libraries already reported; the conformance statement in `spec/protocol.md` said "implements MTHDS Protocol v0.1" beside a `0.6.0` example and now says v0.6. The protocol page states the protocol's own bump rule and its independence from the standard version.
+- **`mthds_version` examples are raised to `>=2.0.0`** in the manifest specification, the manifest guide and the package-creation guide, so a package created by following the documentation declares the standard it was actually written against.
+- **The release gates run the version check.** `changelog-check` and `version-check` both run `scripts/check_versions.py`, which needs nothing installed, so a release cut that leaves a page naming the previous standard version fails before it reaches `main`.
+- **Changelog headings name the versions they carry.** From `v2.0.0` onward, every released heading states the standard and protocol versions of that release. Earlier headings are left as published rather than retrofitted: the standard version those releases nominally carried is the `1.0.0` that never moved, and writing it back into them would inscribe the claim this release exists to correct.
+
 ## [v0.10.0] - 2026-09-02
 
 ### Added

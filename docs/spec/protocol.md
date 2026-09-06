@@ -29,7 +29,7 @@ http://localhost:8081/v1/execute
 https://api.example.com/v1/execute
 ```
 
-The protocol itself is versioned by this standard (`protocol_version` in `/version`); each implementation versions its own mount point. A client written against the protocol composes `{base_url}/{path}` and never inspects the base URL's structure.
+The protocol itself is versioned by this standard (`protocol_version` in `/version`), on its own cadence and independently of the [standard version](./versioning.md); each implementation versions its own mount point. A client written against the protocol composes `{base_url}/{path}` and never inspects the base URL's structure.
 
 ## Executing a method
 
@@ -95,7 +95,9 @@ Implementations may extend the surface — extra routes, extra optional request 
 
 ## Conformance
 
-An implementation claiming conformance states it as: *implements MTHDS Protocol v0.1*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, and `/version` is public.
+An implementation claiming conformance states it as: *implements MTHDS Protocol v0.6*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, and `/version` is public.
+
+The protocol number moves under its own rule — a new route or a new optional field is a minor bump, a changed shape or meaning is a major one — independently of the standard version. See [Versioning](./versioning.md#the-protocol-version).
 
 ## Route reference
 
