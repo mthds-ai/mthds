@@ -217,6 +217,14 @@ def main() -> int:
             )
     elif released is not None:
         heading_version, heading_standard, heading_protocol = released.groups()
+        topmost = re.search(r"^## \[", changelog, re.MULTILINE)
+        if topmost is not None and topmost.start() != released.start():
+            fail(
+                f"{CHANGELOG}: the topmost heading is not the one carrying "
+                f"'**MTHDS standard X.Y.Z · MTHDS Protocol A.B.C**' — v{heading_version} "
+                f"was read instead. Every heading from v2.0.0 onward names the versions it "
+                f"carries (see {VERSIONING_PAGE}, 'The Changelog Contract')"
+            )
         if heading_version != heading_standard:
             fail(
                 f"{CHANGELOG}: heading v{heading_version} carries standard {heading_standard}; "

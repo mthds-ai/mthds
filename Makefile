@@ -34,6 +34,10 @@ define PRINT_TITLE
     @echo '$(PADDED_TITLE)'
 endef
 
+# Only /latest/ is indexed. Every archived version directory is disallowed, and since
+# robots.txt has no numeric wildcard the exclusions are listed one per major release
+# line -- a new line (3.) needs a new Disallow here and a matching noindex header in
+# vercel.json.
 define ROOT_ROBOTS_TXT
 User-agent: *
 Allow: /latest/
@@ -41,6 +45,7 @@ Allow: /sitemap.xml
 Allow: /llms.txt
 Allow: /llms-full.txt
 Disallow: /0.
+Disallow: /2.
 Disallow: /pre-release/
 Disallow: /404.html
 

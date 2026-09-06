@@ -11,6 +11,9 @@ on:
       # and the target that invokes it must trigger the job that runs them.
       - "scripts/**"
       - "Makefile"
+      # The agent guide states both version numbers and the gate reads them, so an
+      # edit to it can fail `make version-check` with no other file touched.
+      - "CLAUDE.md"
       # The repo-root files the docs pages pull in with `--8<--` snippet
       # includes; a build is strict about their links, so an edit to one of
       # them can break the site without touching docs/.

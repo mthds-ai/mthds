@@ -95,7 +95,8 @@ The numbers above were not always one system. Before `2.0.0`, the specification 
 `2.0.0` is the cut that pays that debt and unifies the two numbers into one:
 
 - It is a **major** bump because the changes it accounts for are breaking — see the [changelog](../changelog.md) entries for `v0.8.0`, `v0.9.0`, and `v0.10.0`.
-- It moves **forwards** from `1.0.0`, so no artifact in the wild is invalidated by the unification itself: a manifest constraining `>=1.0.0` remains satisfiable, and a crate stamped `1.0.0` still names a real pinned set older than the current one.
+- It moves **forwards** from `1.0.0`, so no manifest in the wild is invalidated by the unification itself: a constraint of `>=1.0.0` remains satisfiable against `2.0.0`.
+- Crate stamps are the one thing it does not carry over, and they cannot be: `2.0.0` is the first version at which a native set is pinned, so the resolution rule above has nothing to resolve a stamp below it to. A crate stamped `1.0.0` predates the pinning regime — its materialized natives came from whatever its producer happened to hold, which is precisely the debt this cut pays. Re-normalizing such a crate against a conforming implementation materializes the set pinned at `2.0.0` and restamps it.
 - From `2.0.0` onward there is one standard version, and it moves on every release of this specification under the rules above.
 
 The protocol number was reconciled at the same time and kept its value. `0.6.0` is what the normative OpenAPI document and the shipped client libraries had been reporting; the readings that disagreed — a `0.1.0` in a hosted implementation and a "v0.1" in this specification's own conformance sentence — were corrected to follow it.
