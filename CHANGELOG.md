@@ -1,5 +1,27 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v2.0.0 · MTHDS standard 2.0.0 · MTHDS Protocol 0.6.0**
+
+### Added
+
+- **Versioning** (`spec/versioning.md`): New specification page defining how MTHDS is versioned — the two numbers, what bumps each, where they appear, and the contract every changelog heading follows. The standard version and the protocol version move independently: the standard covers the language, the native set, and the manifest, lock, crate and namespace formats; the protocol covers the HTTP runner contract alone.
+- **A version-consistency check** (`make version-check`, run by `make docs-check` and so by CI on every documentation pull request): the standard version stated in the versioning page, the release version, and the version the changelog announces must agree, and the protocol version must read the same in the OpenAPI document, the `/version` example, the conformance statement and the versioning page. The `1.0.0` that sat still for six months did so because nothing compared it to anything.
+
+### Fixed
+
+- **The version-check workflow no longer runs its release-branch steps on other pull requests.** `exit 0` in the branch-detection step ends that step, not the job, so a non-release pull request to `main` went on to compare `pyproject.toml` against an empty release version and failed. The later steps are now guarded on the branch actually being a release branch.
+
+### Changed
+
+- **The standard version is unified with the release version of the specification, and cut at `2.0.0` (breaking).** There is no longer a separate documentation release number running alongside a standard version: the specification's release, its changelog heading, and `MTHDS_STANDARD_VERSION` in every implementation are one number. The cut is major because it accounts for changes already shipped without one — a native concept removed in `v0.8.0`, another added and three reshaped in `v0.9.0`, and the breaking manifest, lock and resolution rules in `v0.10.0` — all of them made while the standard version read `1.0.0`. It moves forwards rather than down to the `0.x` release line, so no artifact in the wild is invalidated by the unification itself: a manifest constraining `>=1.0.0` stays satisfiable, and a crate stamped `1.0.0` still names a real, older pinned set.
+- **The pinned native set is identified by the version in which it last changed**, not by the current standard version. Under one number a patch release moves the standard version while changing nothing normative, so an implementation of standard version `V` materializes the pinned set of the greatest version less than or equal to `V`. Two implementations on different patch or minor versions therefore still byte-agree on materialized natives, and so on crate fingerprints.
+- **The protocol version is reconciled at `0.6.0`.** That is what the normative OpenAPI document and the shipped client libraries already reported; the conformance statement in `spec/protocol.md` said "implements MTHDS Protocol v0.1" beside a `0.6.0` example and now says v0.6. The protocol page states the protocol's own bump rule and its independence from the standard version.
+- **`mthds_version` examples are raised to `>=2.0.0`** in the manifest specification, the manifest guide and the package-creation guide, so a package created by following the documentation declares the standard it was actually written against.
+- **The release gates run the version check.** `changelog-check` and `version-check` both run `scripts/check_versions.py`, which needs nothing installed, so a release cut that leaves a page naming the previous standard version fails before it reaches `main`.
+- **Changelog headings name the versions they carry.** From `v2.0.0` onward, every released heading states the standard and protocol versions of that release. Earlier headings are left as published rather than retrofitted: the standard version those releases nominally carried is the `1.0.0` that never moved, and writing it back into them would inscribe the claim this release exists to correct.
+
 ## [v0.10.0] - 2026-09-02
 
 ### Added

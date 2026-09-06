@@ -59,6 +59,7 @@ make update                           - Upgrade dependencies via uv
 
 make docs                             - Serve documentation locally with mkdocs
 make docs-check                       - Check documentation build with mkdocs
+make version-check                    - Check the standard and protocol versions agree everywhere
 make docs-serve-versioned             - Serve versioned docs locally with mike
 make docs-list                        - List deployed documentation versions
 make docs-deploy VERSION=x.y.z       - Deploy docs as version x.y.z (local, no push)
@@ -88,7 +89,7 @@ export HELP
 .PHONY: \
 	all help env env-verbose lock install update \
 	cleanderived cleanenv cleanall reinstall ri \
-	docs docs-check spec-check docs-serve-versioned docs-list \
+	docs docs-check spec-check version-check docs-serve-versioned docs-list \
 	docs-deploy docs-build-versioned docs-assemble-site docs-build-site docs-prune docs-delete \
 	lighthouse lighthouse-baseline lighthouse-compare \
 	update-schema up \
@@ -182,13 +183,17 @@ docs: env
 	$(call PRINT_TITLE,Serving documentation with mkdocs)
 	$(VENV_MKDOCS) serve -a 127.0.0.1:8000 -f "$(CURDIR)/mkdocs.yml" --watch "$(CURDIR)/docs" -s
 
-docs-check: spec-check
+docs-check: spec-check version-check
 	$(call PRINT_TITLE,Checking documentation build with mkdocs)
 	$(VENV_MKDOCS) build --strict
 
 spec-check: install
 	$(call PRINT_TITLE,Validating the MTHDS Protocol OpenAPI document)
 	$(VIRTUAL_ENV)/bin/openapi-spec-validator "$(CURDIR)/docs/spec/openapi/mthds-protocol.openapi.yaml"
+
+version-check:
+	$(call PRINT_TITLE,Checking the standard and protocol versions agree everywhere)
+	@python3 "$(CURDIR)/scripts/check_versions.py"
 
 docs-serve-versioned: env
 	$(call PRINT_TITLE,Serving versioned documentation with mike)

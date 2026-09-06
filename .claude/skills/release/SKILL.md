@@ -20,11 +20,13 @@ If the working tree is dirty, **warn the user** and ask whether to continue or a
 
 ## Step 2 — Determine Target Version
 
-Calculate the three semver bump options from the current version:
+**First, read the `## [Unreleased]` section of `CHANGELOG.md`.** If it carries a `**Next release: vX.Y.Z · …**` line, that version is already decided — the release version *is* the MTHDS standard version (see `docs/spec/versioning.md`), and the accumulated entries were written against it. Propose it as the default and only offer the calculated alternatives if the user wants to override.
 
-- **Patch**: `X.Y.Z+1`
-- **Minor**: `X.Y+1.0`
-- **Major**: `X+1.0.0`
+Otherwise, calculate the three semver bump options from the current version:
+
+- **Patch**: `X.Y.Z+1` — nothing normative changed (a clarification, a corrected example, a new guide).
+- **Minor**: `X.Y+1.0` — an additive change to the standard (a new native concept, a new pipe type, a new optional key).
+- **Major**: `X+1.0.0` — a breaking change to the standard.
 
 Present these options to the user using `AskUserQuestion`. If the current branch already looks like `release/vA.B.C` and the version in `pyproject.toml` was already bumped, offer a **"Keep current (A.B.C)"** option.
 
@@ -64,20 +66,21 @@ Verify the output confirms the version was updated (e.g. `Updated mthds vX.Y.Z -
 
 The changelog entry **must** match the CI grep pattern: `## [vX.Y.Z] -`
 
-Check if `CHANGELOG.md` already contains a `## [v{TARGET_VERSION}] -` entry.
-
-- **If missing**: run `git log main..HEAD --oneline` (or `git log --oneline -20` if on `main`) to review recent commits. Draft a changelog entry from those commits and propose it to the user for approval. Insert the approved entry at the top of the changelog (after the `# Changelog` heading) formatted as:
+Every released heading carries the two versions it ships, on the line below it — this is the contract in `docs/spec/versioning.md`, and `scripts/check_versions.py` enforces it:
 
 ```markdown
 ## [v{TARGET_VERSION}] - {TODAY'S DATE in YYYY-MM-DD}
 
-- Item one
-- Item two
+**MTHDS standard {TARGET_VERSION} · MTHDS Protocol {PROTOCOL_VERSION}**
 ```
 
-The user may accept, edit, or rewrite the proposed entry.
+The standard version always equals `{TARGET_VERSION}`. Read `{PROTOCOL_VERSION}` from the versioning page's version table — it moves on its own cadence and usually does not change.
 
-- **If exists**: show the existing entry and ask the user whether to keep it or edit it.
+- **If `## [Unreleased]` exists**: this is the normal case. Convert it in place — replace the `## [Unreleased]` heading with `## [v{TARGET_VERSION}] - {TODAY'S DATE}`, and replace its `**Next release: …**` line with the `**MTHDS standard … · MTHDS Protocol …**` line above. Keep the accumulated entries; show them to the user and ask whether to keep, edit, or rewrite.
+- **If `## [v{TARGET_VERSION}] -` already exists**: show the existing entry and ask the user whether to keep it or edit it. Add the version line if it is missing.
+- **If neither exists**: run `git log main..HEAD --oneline` (or `git log --oneline -20` if on `main`) to review recent commits. Draft an entry from those commits, in the format above, and propose it to the user for approval.
+
+Do **not** retrofit version lines onto headings published before `v2.0.0`.
 
 ## Step 7 — Validate Docs Build
 
@@ -86,6 +89,8 @@ Run:
 ```bash
 make docs-check
 ```
+
+This runs `make version-check` first, which fails if the standard version stated across the documentation, the version in `pyproject.toml`, and the version the changelog heading carries do not all agree. A failure here means a page still names the previous standard version — fix the page, do not skip the check.
 
 - **On success**: report and continue.
 - **On failure**: show the errors and ask the user how to proceed (fix issues, skip validation, or abort).

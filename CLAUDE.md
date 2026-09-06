@@ -42,13 +42,22 @@ Pipelex does NOT appear in: the landing page, the Language section, the Package 
 
 ### Technical Constants (verified against codebase)
 
-- `MTHDS_STANDARD_VERSION` = `"1.0.0"` (not `"0.2.0"` from the design doc)
+- `MTHDS_STANDARD_VERSION` = `"2.0.0"` — the standard version and this repo's release version are one number. `docs/spec/versioning.md` is the rule; `make version-check` enforces it. Never restate the number in a new page without adding a reading to `scripts/check_versions.py`, or it will go stale the way the previous `"1.0.0"` did.
+- `PROTOCOL_VERSION` = `"0.6.0"` — the HTTP runner protocol, versioned on its own cadence, independently of the standard version.
 - `RESERVED_DOMAINS` = `{"native", "mthds", "pipelex"}`
 - `NATIVE_PACKAGE_ADDRESS` = `"__native__"`
 - Native concepts: the built-in native concepts (Dynamic, Text, Image, Document, Html, TextAndImages, Number, YesNo, Date, Time, Page, JSON, SearchResult, Anything, Composite)
 - Pipe types: operators (PipeLLM, PipeStructure, PipeFunc, PipeImgGen, PipeExtract, PipeSearch, PipeCompose) + controllers (PipeBatch, PipeCondition, PipeParallel, PipeSequence)
 - Concept field types: text, list, dict, integer, boolean, number, date, datetime, time, concept
 - Template categories: basic, expression, html, markdown, mermaid, llm_prompt, img_gen_prompt
+
+### Versioning
+
+The standard version **is** this repo's release version — one number, cut per `docs/spec/versioning.md`. The HTTP protocol version is separate and moves on its own cadence.
+
+- Every `## [vX.Y.Z]` changelog heading carries `**MTHDS standard X.Y.Z · MTHDS Protocol A.B.C**` on the line below it; work in progress accumulates under `## [Unreleased]` with `**Next release: vX.Y.Z · MTHDS standard X.Y.Z · MTHDS Protocol A.B.C**`.
+- `make version-check` (run by `make docs-check`, and by the `changelog-check` and `version-check` workflows) compares every place either number is written and fails on disagreement. Add a reading to `scripts/check_versions.py` whenever a new page states one of them.
+- Headings published before `v2.0.0` are left as they were; do not retrofit version lines onto them.
 
 ## MkDocs Configuration — Available Features
 
