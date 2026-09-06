@@ -56,7 +56,7 @@ The split is deliberate, and the two governing rules explain it: they bind the *
 
 ## The Intent Vocabulary
 
-The `intent` key takes one word from a closed vocabulary, pinned per standard version like the [native concept definitions](./native-concepts.md). This version defines:
+The `intent` key takes one word from a closed vocabulary, pinned per standard version like the [native concept definitions](./native-concepts.md). The vocabulary below was pinned at MTHDS `2.0.0`, and is normative for every standard version from `2.0.0` until a later version pins a new one: an implementation of standard version `V` reads the vocabulary pinned at the greatest version less than or equal to `V` (see [Versioning](./versioning.md#the-pinned-native-set-under-one-number)). It defines:
 
 | `intent` | Applies to | Declares |
 |----------|------------|----------|
@@ -159,7 +159,7 @@ Hints live inside the crate's hashed members and are therefore part of its [fing
 
 ## Vocabulary Growth and Versioning
 
-- The vocabulary and the set of defined keys are pinned per standard version. Additions are minor versions of the standard.
+- The vocabulary and the set of defined keys are pinned per standard version. Any change to either [bumps the standard version](./versioning.md#what-bumps-the-standard-version) and re-pins the vocabulary at that version. Additions are minor versions of the standard.
 - A word, once defined, is never reused with a different meaning. Removing a word is a major version.
 - The content-leniency rule above is what makes growth non-breaking in practice: an implementation built against this version warns on, preserves, and otherwise ignores words and keys from a later one.
 

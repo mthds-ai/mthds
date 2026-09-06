@@ -7,6 +7,10 @@ on:
       - "docs/**"
       - "mkdocs.yml"
       - "pyproject.toml"
+      # `make docs-check` runs `make version-check`, so the gate's own script
+      # and the target that invokes it must trigger the job that runs them.
+      - "scripts/**"
+      - "Makefile"
       # The repo-root files the docs pages pull in with `--8<--` snippet
       # includes; a build is strict about their links, so an edit to one of
       # them can break the site without touching docs/.

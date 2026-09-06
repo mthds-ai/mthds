@@ -92,6 +92,8 @@ make docs-check
 
 This runs `make version-check` first, which fails if the standard version stated across the documentation, the version in `pyproject.toml`, and the version the changelog heading carries do not all agree. A failure here means a page still names the previous standard version — fix the page, do not skip the check.
 
+**Write down every file you edit to get this passing.** Step 8 stages an explicit list, and a page fixed here but left unstaged means the release commit carries a `pyproject.toml` and a changelog that the same check rejects on the pull request to `main` — green locally, red in CI. The `STANDARD_READINGS` and `PROTOCOL_READINGS` tables in `scripts/check_versions.py` are the authority on which files state a version.
+
 - **On success**: report and continue.
 - **On failure**: show the errors and ask the user how to proceed (fix issues, skip validation, or abort).
 
@@ -101,12 +103,12 @@ Present a full summary:
 
 - Target version: `v{TARGET_VERSION}`
 - Branch: `release/v{TARGET_VERSION}`
-- Files changed: `pyproject.toml`, `uv.lock`, `CHANGELOG.md`
+- Files changed: `pyproject.toml`, `uv.lock`, `CHANGELOG.md`, and every page edited in Step 7 to satisfy `make version-check`
 - Changelog entry preview
 
 Ask the user to confirm. On confirmation:
 
-1. Stage **only** `pyproject.toml`, `uv.lock`, and `CHANGELOG.md` — never use `git add .` or `git add -A`.
+1. Stage **only** `pyproject.toml`, `uv.lock`, `CHANGELOG.md`, and the pages edited in Step 7 — name each path explicitly; never use `git add .` or `git add -A`.
 2. Commit with message: `Bump version to {TARGET_VERSION} and update changelog`
 3. Show the commit result.
 
@@ -119,7 +121,7 @@ Wait for explicit user approval before pushing or creating a PR.
 
 ## Rules
 
-- Never use `git add .` or `git add -A` — only stage `pyproject.toml`, `uv.lock`, and `CHANGELOG.md`.
+- Never use `git add .` or `git add -A` — only stage `pyproject.toml`, `uv.lock`, `CHANGELOG.md`, and the version-carrying pages Step 7 required.
 - Never push or create PRs without explicit user approval.
 - The `v` prefix appears in branch names and changelog headers, but **not** in `pyproject.toml`.
 - Always use today's date for new changelog entries (format: `YYYY-MM-DD`).

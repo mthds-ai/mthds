@@ -31,6 +31,7 @@ PROTOCOL_PAGE = "docs/spec/protocol.md"
 OPENAPI_DOC = "docs/spec/openapi/mthds-protocol.openapi.yaml"
 CHANGELOG = "CHANGELOG.md"
 PYPROJECT = "pyproject.toml"
+CLAUDE_MD = "CLAUDE.md"
 
 SEMVER = r"\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.\-]+)?"
 
@@ -56,12 +57,35 @@ STANDARD_READINGS = [
         "docs/about/roadmap.md",
         rf"The MTHDS standard is at version `({SEMVER})`",
     ),
+    (
+        "the agent guide's MTHDS_STANDARD_VERSION constant",
+        CLAUDE_MD,
+        rf'`MTHDS_STANDARD_VERSION` = `"({SEMVER})"`',
+    ),
+    # The `mthds_version` constraint in each example manifest. A reader who follows the
+    # documentation copies these verbatim, so they must name the standard the guide was
+    # written against — which means they move with every cut, like any other reading.
+    (
+        "the manifest specification's example manifest",
+        "docs/spec/manifest-format.md",
+        rf'^mthds_version = ">=({SEMVER})"',
+    ),
+    (
+        "the manifest guide's example manifest",
+        "docs/packages/manifest.md",
+        rf'^mthds_version = ">=({SEMVER})"',
+    ),
+    (
+        "the package-creation guide's example manifest",
+        "docs/guides/create-package.md",
+        rf'^mthds_version = ">=({SEMVER})"',
+    ),
 ]
 
-# Deliberately NOT a reading: the version `docs/spec/native-concepts.md` pins its set at.
-# That is the standard version in which the native set last changed, so it lags the current
-# standard version by design and comparing the two would be wrong. See
-# docs/spec/versioning.md, "The Pinned Native Set Under One Number".
+# Deliberately NOT readings: the versions `docs/spec/native-concepts.md` and
+# `docs/spec/intent-hints.md` pin their sets at. Each is the standard version in which that
+# set last changed, so it lags the current standard version by design and comparing the two
+# would be wrong. See docs/spec/versioning.md, "The Pinned Native Set Under One Number".
 PROTOCOL_READINGS = [
     (
         "the versioning page's version table",
@@ -78,6 +102,11 @@ PROTOCOL_READINGS = [
         PROTOCOL_PAGE,
         rf'"protocol_version":\s*"({SEMVER})"',
     ),
+    (
+        "the agent guide's PROTOCOL_VERSION constant",
+        CLAUDE_MD,
+        rf'`PROTOCOL_VERSION` = `"({SEMVER})"`',
+    ),
 ]
 
 
@@ -85,6 +114,7 @@ def read(rel: str) -> str:
     path = ROOT / rel
     if not path.is_file():
         fail(f"{rel} does not exist")
+        return ""
     return path.read_text(encoding="utf-8")
 
 
