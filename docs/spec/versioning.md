@@ -57,6 +57,8 @@ The [HTTP runner protocol](./protocol.md) is versioned separately, on its own ca
 - **MINOR** — an addition. A new route, a new optional request field, a new response field. A client written against the previous version keeps working unmodified.
 - **PATCH** — a clarification of the document that changes no shape.
 
+A [recommended extension field](./protocol.md#validating-a-bundle) is none of those additions. What the protocol version numbers is the base surface — the routes and the response fields of the normative OpenAPI document. The artifacts the standard names on the validate report's extension surface are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number: a runner may report or omit any of them at the same protocol version, and a client learns which it got from the report itself rather than from the handshake.
+
 The protocol version is **not** derived from the standard version and never tracks it. A release of the standard that does not touch the protocol leaves the protocol version exactly where it was.
 
 ## The Changelog Contract

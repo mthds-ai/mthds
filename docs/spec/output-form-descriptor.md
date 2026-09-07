@@ -17,7 +17,7 @@ The **output-form descriptor** is a presentation view of what a pipe *resolves t
       "required": true,
       "fields": [
         { "kind": "text", "name": "headline", "description": "One line, no more", "required": true },
-        { "kind": "prose", "name": "body", "description": "The summary itself", "required": true },
+        { "kind": "prose", "name": "body", "concept_ref": "native.Text", "description": "The summary itself", "required": true },
         { "kind": "number", "name": "risk_score", "description": "How risky, 0 to 1", "required": false, "integer": false }
       ]
     }
@@ -70,6 +70,8 @@ An input's name is authored by the method; an output has none to author. The nod
 
 It is an **address, not a label**, and nothing displays it. A result is labelled by its concept and a list entry by its index, exactly as the input side already rules for [list items](./input-form-descriptor.md#common-slots). A consumer MUST NOT report it as an authored name. The `item` of a plural output carries no `name` member at all, by the same structural rule as an input's.
 
+The output node therefore carries **no `title`** — there is nothing authored to make one from — and the [fallback the input page states](./input-form-descriptor.md#common-slots), where a renderer without a title falls back to `name`, is the one inherited rule this position overrides. A consumer needing a label for a result takes it from the concept.
+
 ### `required` is always `true`
 
 The output node states `required: true`.
@@ -85,7 +87,7 @@ Nested fields inside the output's payload are unaffected and keep the ordinary n
 `concept_ref` names the **element** concept, with any multiplicity suffix stripped, on both sides of the contract — a `Concept[]` output names `Concept`. Plurality therefore cannot be read off the concept, and the descriptor states it structurally:
 
 - A **single** output is the element node directly. `Concept[1]` is single, [as the language reads it](./mthds-format.md#concept-references-in-inputs-and-output), so it too is described with no list framing.
-- A **plural** output is a `list` node whose `item` is the element node. On the list node, `concept_ref`, `refines`, `description` and `hints` are the element's, and the `item` carries the same `concept_ref` — the same duplication the [input side states](./input-form-descriptor.md#structured-multiplicity), for the same reason: the list node is where a consumer reads the output's identity, and the item is what it renders once per entry.
+- A **plural** output is a `list` node whose `item` is the element node. On that list node, `concept_ref`, `refines`, `description` and `hints` are the element's, and the `item` carries the same `concept_ref` — the same duplication the [input side states](./input-form-descriptor.md#structured-multiplicity), for the same reason: the list node is where a consumer reads the output's identity, and the item is what it renders once per entry.
 - A **fixed-count** output additionally carries `item_count: N`, always at least 2, and equal to the [contract's `item_count`](./pipe-io-contracts.md#multiplicity-and-item-count) for the same pipe. Off the fixed arm the slot is **absent**, where the contract carries `null` instead; the two artifacts differ deliberately, and each states its own rule so that neither is guessed from the other.
 
 ```json
@@ -104,7 +106,7 @@ Nested fields inside the output's payload are unaffected and keep the ordinary n
         "required": true,
         "fields": [
           { "kind": "text", "name": "heading", "description": "The clause heading", "required": true },
-          { "kind": "prose", "name": "text", "description": "The clause body", "required": true }
+          { "kind": "prose", "name": "text", "concept_ref": "native.Text", "description": "The clause body", "required": true }
         ]
       }
     }
@@ -118,7 +120,9 @@ A producer performs the wrap by reading the pipe's output multiplicity — the s
 
 Every node carries the same optional `hints` object the [input-form descriptor](./input-form-descriptor.md#intent-hints-on-a-descriptor) defines, under the same rules: the effective merge as one flat map of string to string, an applicable `intent` word feeding kind assignment rather than competing with it, the merged map riding both a plural node and its `item`, no `hints` member at all when there are none, and the language's two governing rules unweakened — hints are non-normative, and a consumer that ignores them stays correct.
 
-One layer of that merge is simply absent here. [Slot-level hints exist on inputs only](./intent-hints.md#on-a-pipe-input-slot) — the language serves result presentation through concept-level hints on the output concept — so an output node's effective hints are the concept layer alone: the concept's own hints merged along its refinement chain, nearer declaration winning. There is no site layer to win over it.
+One layer of that merge is absent on the output node itself. [Slot-level hints exist on inputs only](./intent-hints.md#on-a-pipe-input-slot) — the language serves result presentation through concept-level hints on the output concept — so that node's effective hints are the concept layer alone: the concept's own hints merged along its refinement chain, nearer declaration winning, with no site layer to win over it.
+
+Nothing below it changes. A structure field inside the output's payload carries its own `hints` exactly as it does under an input, and the [two-layer merge](./intent-hints.md#precedence-and-inheritance) applies there unchanged — so one concept presents the same way whichever side of the contract it appears on.
 
 ## Reading It With the Contract
 
@@ -146,7 +150,7 @@ Two more are this artifact's own:
 - **No widget vocabulary.** Kinds and hints name intent; `textarea`, `slider`, and `dropdown` never appear on this wire.
 - **No run state.** The descriptor describes what a pipe resolves to, derived from the library — not what a run produced. It is the same before a run, after a successful one, and after a failed one, and it names no run.
 - **No delivery semantics.** How a result reaches a caller — a synchronous response, an asynchronous one, a stored artifact, a URL — belongs to the [protocol](./protocol.md) and to the runtime.
-- **No validation semantics.** A machine consumer never has to read the descriptor to judge a payload; that is what [pipe I/O contracts](./pipe-io-contracts.md) are for. A caller ignoring the descriptor entirely loses no fact it needs.
+- **No validation semantics.** The descriptor is a presentation view, not a payload judge: nothing a machine consumer must read in order to decide whether a value is well-formed. A caller ignoring the descriptor entirely loses no fact it needs.
 - **No layout or styling.** Grouping, sizing, and theming belong to consumers.
 - **No committed artifacts.** The descriptor is derived on demand. Nothing is generated into a consumer's repository, stamped, or locked.
 
