@@ -64,6 +64,8 @@ A field descriptor is a **recursive object, discriminated on `kind`**: one node 
 
 The vocabulary is field *kinds* and semantic slots — bounds, choices, defaults — and never control names. How a renderer maps a kind to a control is the renderer's decision, and this document deliberately names no controls.
 
+The same node is what the [output-form descriptor](./output-form-descriptor.md) carries for a pipe's output: an output is a concept reference exactly like an input is, so it takes the same kinds, the same nesting and the same slots, and everything this page states about a field descriptor is the vocabulary of both artifacts. The differences are stated there, and every one of them is a fact about an input *slot* rather than about the node itself.
+
 ### Common Slots
 
 Every field descriptor carries:
@@ -227,13 +229,14 @@ This strictness is the opposite of the [protocol's extension policy](./protocol.
 - **No validation semantics.** The descriptor never becomes something a machine consumer must read to validate a payload — [`json_schema`](./pipe-io-contracts.md#the-input-schema) keeps that job. A caller ignoring the descriptor entirely loses no fact it needs.
 - **No layout or styling.** Field order is the authored order, not a layout. Grouping, sizing, and theming belong to consumers.
 - **No committed artifacts.** The descriptor is derived on demand. Nothing is generated into a consumer's repository, stamped, or locked.
-- **No result presentation.** The descriptor describes a method's *inputs*. Presenting what a run produced is a separate concern this artifact does not address.
+- **No output description.** The descriptor describes a method's *inputs*. What a pipe resolves to is the [output-form descriptor](./output-form-descriptor.md)'s subject — the twin artifact over the other half of the contract — and presenting what one particular run produced is a separate concern neither addresses.
 
 ## Relationship to Other Specifications
 
 - [.mthds File Format](./mthds-format.md) defines the input slots, concepts, and structure fields the descriptor projects.
 - [Library Crate Format](./library-crate.md) defines the resolved library the descriptor derives from — the authority on refinement, presence, multiplicity, and defaults.
 - [Pipe I/O Contracts](./pipe-io-contracts.md) is the machine contract over the same pipes, keyed by the same `pipe_ref` set, and carries the `json_schema` the `unknown` kind falls back to.
+- [Output-Form Descriptor](./output-form-descriptor.md) is the twin artifact over the same pipes' outputs; it reuses this page's field descriptor unchanged and states only what an output position changes.
 - [Intent Hints](./intent-hints.md) owns the hint vocabulary the `hints` slot carries; this page defines only how the effective merge reaches the wire.
 - [Native Concept Definitions](./native-concepts.md) pins the native concepts the kind-assignment table maps.
 - [HTTP Runner Protocol](./protocol.md#validating-a-bundle) carries the artifact as a recommended extension field of the validate response.
