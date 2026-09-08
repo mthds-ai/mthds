@@ -97,7 +97,7 @@ Implementations may extend the surface — extra routes, extra optional request 
 
 An implementation claiming conformance states it as: *implements MTHDS Protocol v0.6*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, and `/version` is public.
 
-The protocol number moves under its own rule — a new route or a new optional field is a minor bump, a changed shape or meaning is a major one — independently of the standard version. See [Versioning](./versioning.md#the-protocol-version).
+The protocol number moves under its own rule — a new route or a new optional field is a minor bump, a changed shape or meaning is a major one — independently of the standard version. The recommended extension fields above are not such an addition: they are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number. See [Versioning](./versioning.md#the-protocol-version).
 
 ## Route reference
 

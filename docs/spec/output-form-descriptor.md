@@ -51,6 +51,8 @@ Each entry is an object with one member: `field`, the descriptor of what the pip
 
 The derivation is likewise total: an output a producer cannot map honestly reports `kind: "unknown"`, and a consumer reading one treats the payload as opaque rather than trusting a shape no stated fact supports.
 
+That substitutes for an inherited rule rather than adding to one. The input page sends a renderer meeting an [`unknown`](./input-form-descriptor.md#field-kinds) node to raw entry against **the slot's** `json_schema`, and an output is not a slot — the schema that fallback names is [an input's](./pipe-io-contracts.md#the-input-schema), by its own definition. So the fallback does not carry over, and opaque handling is what stands in its place.
+
 What differs is only the **slot facts** — what a node's position states rather than what its concept does.
 
 ### No presence, no gating
@@ -70,7 +72,7 @@ An input's name is authored by the method; an output has none to author. The nod
 
 It is an **address, not a label**, and nothing displays it. A result is labelled by its concept and a list entry by its index, exactly as the input side already rules for [list items](./input-form-descriptor.md#common-slots). A consumer MUST NOT report it as an authored name. The `item` of a plural output carries no `name` member at all, by the same structural rule as an input's.
 
-The output node therefore carries **no `title`** — there is nothing authored to make one from — and the [fallback the input page states](./input-form-descriptor.md#common-slots), where a renderer without a title falls back to `name`, is the one inherited rule this position overrides. A consumer needing a label for a result takes it from the concept.
+The output node therefore carries **no `title`** — there is nothing authored to make one from — and the [fallback the input page states](./input-form-descriptor.md#common-slots), where a renderer without a title falls back to `name`, is another inherited rule this position overrides. A consumer needing a label for a result takes it from the concept.
 
 ### `required` is always `true`
 

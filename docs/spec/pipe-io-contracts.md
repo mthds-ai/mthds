@@ -96,7 +96,7 @@ Because [markers may not be combined with multiplicity](./mthds-format.md#concep
 
 `Concept[1]` is **single** — one item, no list framing — because [the language says so](./mthds-format.md#concept-references-in-inputs-and-output), not because this artifact chose to collapse it: a count of one is a way of writing `Concept`, so a `"fixed"` count on this wire is always greater than one and a `[1]` slot's `json_schema` is the element schema with no array wrapper. The crate's [normalization step 5](./library-crate.md#5-materialize-defaults-and-multiplicity) materializes the same rule; this artifact reports it rather than re-deriving it.
 
-`item_count` is **always on the wire**, `null` off the fixed arm. The [input-form descriptor](./input-form-descriptor.md#structured-multiplicity) makes the opposite choice and omits the slot entirely when it does not apply; the two artifacts differ deliberately, and each states its own rule so that neither is guessed from the other.
+`item_count` is **always on the wire**, `null` off the fixed arm. Both form descriptors — the [input-form](./input-form-descriptor.md#structured-multiplicity) and the [output-form](./output-form-descriptor.md#plurality-is-on-the-descriptor-never-on-the-concept) — make the opposite choice and omit the slot entirely when it does not apply; the two artifacts differ deliberately, and each states its own rule so that neither is guessed from the other.
 
 ### The input schema
 
