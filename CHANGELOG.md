@@ -13,6 +13,7 @@
 
 ### Fixed
 
+- **The runtime page no longer calls the reference runner MIT.** `implementers/runtime.md` described `pipelex-api` as MIT, which stopped being true when it moved to the Elastic License 2.0. It now says the runner is source-available under that license, and that the license is the implementation's alone: the standard and its OpenAPI document stay MIT, and any runtime may implement the protocol under its own terms.
 - **The version-check workflow no longer runs its release-branch steps on other pull requests.** `exit 0` in the branch-detection step ends that step, not the job, so a non-release pull request to `main` went on to compare `pyproject.toml` against an empty release version and failed. The later steps are now guarded on the branch actually being a release branch.
 - **The version check reads the changelog's topmost heading, not merely the first well-formed one.** It searched the whole file for a released heading carrying its version line, so a newer heading that omitted the line was skipped in silence and an older heading was validated in its place — the one drift shape the contract exists to forbid, passing unnoticed. The `[Unreleased]` heading was already enforced strictly; released headings now are too.
 - **An edit to `CLAUDE.md` alone triggers the documentation check.** That file states both version numbers and the check reads them, but it was absent from the workflow's path filter, so a pull request touching nothing else ran no version gate at all.
