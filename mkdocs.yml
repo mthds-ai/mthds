@@ -103,6 +103,7 @@ plugins:
         - packages/registry-indexing.md: "Registry Indexing"
         - packages/future-directions.md: "Future Directions"
         Reference:
+        - spec/versioning.md: "Versioning"
         - spec/mthds-format.md: ".mthds File Format"
         - spec/native-concepts.md: "Native Concept Definitions"
         - spec/intent-hints.md: "Intent Hints"
@@ -111,6 +112,7 @@ plugins:
         - spec/library-crate.md: "Library Crate Format"
         - spec/pipe-io-contracts.md: "Pipe I/O Contracts"
         - spec/input-form-descriptor.md: "Input-Form Descriptor"
+        - spec/output-form-descriptor.md: "Output-Form Descriptor"
         - spec/namespace-resolution.md: "Namespace Resolution Rules"
         - spec/cli-io-contract.md: "CLI I/O Contract"
         - spec/protocol.md: "HTTP Runner Protocol"
@@ -199,6 +201,7 @@ nav:
     - Future Directions: packages/future-directions.md
   - Reference:
     - Specification:
+      - Versioning: spec/versioning.md
       - .mthds File Format: spec/mthds-format.md
       - Native Concept Definitions: spec/native-concepts.md
       - Intent Hints: spec/intent-hints.md
@@ -207,6 +210,7 @@ nav:
       - Library Crate Format: spec/library-crate.md
       - Pipe I/O Contracts: spec/pipe-io-contracts.md
       - Input-Form Descriptor: spec/input-form-descriptor.md
+      - Output-Form Descriptor: spec/output-form-descriptor.md
       - Namespace Resolution Rules: spec/namespace-resolution.md
       - CLI I/O Contract: spec/cli-io-contract.md
       - HTTP Runner Protocol: spec/protocol.md

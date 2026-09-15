@@ -96,7 +96,7 @@ Because [markers may not be combined with multiplicity](./mthds-format.md#concep
 
 `Concept[1]` is **single** — one item, no list framing — because [the language says so](./mthds-format.md#concept-references-in-inputs-and-output), not because this artifact chose to collapse it: a count of one is a way of writing `Concept`, so a `"fixed"` count on this wire is always greater than one and a `[1]` slot's `json_schema` is the element schema with no array wrapper. The crate's [normalization step 5](./library-crate.md#5-materialize-defaults-and-multiplicity) materializes the same rule; this artifact reports it rather than re-deriving it.
 
-`item_count` is **always on the wire**, `null` off the fixed arm. The [input-form descriptor](./input-form-descriptor.md#structured-multiplicity) makes the opposite choice and omits the slot entirely when it does not apply; the two artifacts differ deliberately, and each states its own rule so that neither is guessed from the other.
+`item_count` is **always on the wire**, `null` off the fixed arm. Both form descriptors — the [input-form](./input-form-descriptor.md#structured-multiplicity) and the [output-form](./output-form-descriptor.md#plurality-is-on-the-descriptor-never-on-the-concept) — make the opposite choice and omit the slot entirely when it does not apply; the two artifacts differ deliberately, and each states its own rule so that neither is guessed from the other.
 
 ### The input schema
 
@@ -138,6 +138,8 @@ One object per pipe, describing what the pipe resolves to.
 
 `optional: true` means a **successful** run may leave the output absent — a recorded absence, per [Optionality](../language/optionality.md#runtime-behavior) — not that the run may fail. No output member carries a schema: an output contract states identity and shape-of-plurality, and the payload a run actually produces is the run's own result.
 
+What the output *is* — its kind, its nesting, the fields of its structure in declared order — is stated by the [output-form descriptor](./output-form-descriptor.md), the presentation view over this same output and the twin of the input-form descriptor. It is keyed by the same `pipe_ref` set, so a consumer holding both never has to match them up, and this contract stays byte-stable whatever presenting a result requires.
+
 ## Strictness
 
 Every object this document defines — a contract entry, an input contract, an output contract — is a **closed shape**. A producer MUST NOT emit a member this version of the standard does not define, and a consumer MAY reject one. An unrecognized member is version drift, and catching it where a payload is parsed is more useful than discovering it three layers later.
@@ -155,7 +157,7 @@ Growth happens through the standard: a new member is a minor version, and an imp
 ## Non-Goals
 
 - **Not a payload validator's replacement.** The contract *carries* the schema; it does not restate what the schema says. A machine consumer validates a payload with `json_schema` and an ordinary JSON Schema validator.
-- **No presentation.** Field order, labels, controls, and grouping are not here. That is the [input-form descriptor](./input-form-descriptor.md)'s job, and it exists so that this artifact stays byte-stable whatever a renderer needs.
+- **No presentation.** Field order, labels, controls, and grouping are not here. That is the job of the [input-form descriptor](./input-form-descriptor.md) on the input side and of the [output-form descriptor](./output-form-descriptor.md) on the output side, and they exist so that this artifact stays byte-stable whatever a renderer needs.
 - **No execution semantics.** What a pipe *does* with an absent optional input, how a controller behaves under absence, and what a run costs are outside this artifact.
 - **No run state.** A contract describes a pipe, not an invocation.
 
@@ -164,5 +166,6 @@ Growth happens through the standard: a new member is a minor version, and an imp
 - [.mthds File Format](./mthds-format.md) defines the `inputs` and `output` declarations this artifact projects, including the multiplicity-and-presence suffix grammar.
 - [Library Crate Format](./library-crate.md) defines the resolved library the contracts derive from, and the normalization that makes presence and multiplicity explicit.
 - [Input-Form Descriptor](./input-form-descriptor.md) is the presentation view over the same pipes, keyed by the same `pipe_ref` set, and reads `json_schema` from here for its `unknown` escape hatch.
+- [Output-Form Descriptor](./output-form-descriptor.md) is the presentation view over the same pipes' outputs, keyed by the same `pipe_ref` set, and states what this artifact's `output` resolves to in the node vocabulary the input-form descriptor owns.
 - [HTTP Runner Protocol](./protocol.md#validating-a-bundle) carries the artifact as a recommended extension field of the validate response.
 - [Optionality](../language/optionality.md) and [Multiplicity](../language/multiplicity.md) are the language-level pages behind `presence` and `multiplicity`.

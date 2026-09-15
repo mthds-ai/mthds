@@ -1,121 +1,80 @@
 ---
 name: release
-description: Prepare a new release for the MTHDS project. Bumps version in pyproject.toml, syncs uv.lock, updates CHANGELOG.md, manages the release/vX.Y.Z branch, validates docs build, and commits. Use when the user says "release", "prepare a release", "bump version", "new version", or "cut a release".
+description: >
+  Cut a release of mthds, the MTHDS open standard's specification published at
+  mthds.ai: the release/vX.Y.Z worktree, the pyproject.toml bump and the uv.lock
+  that follows, the standard version rewritten everywhere the documentation
+  states it, the changelog entry carrying its two version numbers, the docs
+  gates, one commit, and a pull request to main. Use when the user says
+  "release", "cut a release", "bump version", "prepare a release", "make a
+  release", "new version", "cut the standard at X.Y.Z", "promote dev to main",
+  or any variation of shipping a new version of the MTHDS standard. Changelog
+  content passed inline ("/release Added a native concept") becomes the entry.
+  The merge is landed by /ledger-land, never by this skill.
 ---
 
-# Release Workflow
+# Releasing mthds
 
-Guides the user through preparing a new MTHDS release in 8 interactive steps. Every step requires explicit user confirmation before proceeding.
+The procedure is the workspace release play, [`docs/releasing.md`](../../../../docs/releasing.md) at the workspace root — `../docs/releasing.md` from this repo's own root, which resolves the same from the main checkout and from any worktree. Read it first, then run it with what follows. The repo key is `mthds`, the base is `dev`, and the pull request targets `main`. The release worktree is `_mthds--release`, made with `wt add mthds release --branch release/vX.Y.Z`. The repo declares neither `.worktree.toml` nor `.worktreeinclude`, so `wt` resolves the base from `origin/dev` and provisions with the Makefile's `install` target, which is what creates the `.venv` the gates run out of.
 
-## Step 1 — Gather State
+The one fact that shapes every heading below: **this repo's release version is the MTHDS standard version.** They are one number, not two — `docs/spec/versioning.md` is the rule and `scripts/check_versions.py` is its enforcement. So a bump here is a cut of the standard, and it moves every place the documentation states that number.
 
-Read the following and present a summary:
+## What ships
 
-1. Current version from `pyproject.toml` (`version = "X.Y.Z"`)
-2. Latest entry in `CHANGELOG.md`
-3. Current git branch (`git branch --show-current`)
-4. Working tree status (`git status --short`)
+`.github/workflows/docs-deploy.yml` fires on the push to `main` (`on: push: branches: [main]`, plus `workflow_dispatch`), path-filtered to `docs/**`, `mkdocs.yml`, `pyproject.toml`, `vercel.json`, `versions-to-delete.txt` and its own file. A release commit always touches `pyproject.toml`, so the merge always fires it. Its `deploy` job runs `make docs-check` again before publishing anything, then:
 
-If the working tree is dirty, **warn the user** and ask whether to continue or abort.
+- **The specification site at <https://mthds.ai/>.** `make docs-prune` deletes the versions listed in `versions-to-delete.txt` from the local `gh-pages`; `make docs-build-versioned` runs `mike deploy --update-aliases --alias-type copy <version> latest` and `mike set-default latest`; `make docs-assemble-site` extracts `gh-pages` into `site-output/` and adds the root `robots.txt`, `404.html`, `mthds_schema.json`, the `llms.txt` and `llms-full.txt` copied up out of `latest/`, and a sitemap rewritten to point at `/latest/`; the Vercel CLI deploys `site-output/` to production. The job then pushes `gh-pages`, which is where mike's `versions.json` — the source the version selector reads — lives.
+- **The GitHub Release `vX.Y.Z` and its tag**, by the same workflow's `github-release` job, which `needs: deploy`. It reads the version from `pyproject.toml`, skips when a Release of that name already exists, slices the notes out of the changelog section under `## [vX.Y.Z] - ` (falling back to `--generate-notes` when it finds none), and creates the Release with `gh release create`. A failed docs deploy therefore means no Release and no tag.
 
-## Step 2 — Determine Target Version
-
-Calculate the three semver bump options from the current version:
-
-- **Patch**: `X.Y.Z+1`
-- **Minor**: `X.Y+1.0`
-- **Major**: `X+1.0.0`
-
-Present these options to the user using `AskUserQuestion`. If the current branch already looks like `release/vA.B.C` and the version in `pyproject.toml` was already bumped, offer a **"Keep current (A.B.C)"** option.
-
-Store the chosen version as `TARGET_VERSION` (no `v` prefix, e.g. `0.0.4`).
-
-## Step 3 — Branch Management
-
-The release branch **must** be named `release/v{TARGET_VERSION}` (CI regex: `^release/v[0-9]+\.[0-9]+\.[0-9]+$`).
-
-- If already on the correct branch: inform the user and continue.
-- If on `main` or another branch: confirm with the user, then create and switch to `release/v{TARGET_VERSION}`.
-- If on a *different* release branch: warn the user and ask how to proceed.
-
-## Step 4 — Update Version in pyproject.toml
-
-Edit the `version = "..."` line in `pyproject.toml` to `version = "{TARGET_VERSION}"`.
-
-- If the version already matches: inform the user and skip.
-- Otherwise: use the Edit tool to make the change, then show the diff.
-
-The version in pyproject.toml must **not** have a `v` prefix (e.g. `0.0.4`, not `v0.0.4`).
-
-## Step 5 — Sync uv.lock
-
-After updating `pyproject.toml`, regenerate the lock file so it reflects `TARGET_VERSION`:
+The landing verifies the publish — the run, the site's versions, the tag:
 
 ```bash
-uv lock
+gh run list --workflow=docs-deploy.yml --branch main --limit 3 --json conclusion,headSha,url  # the run whose headSha is the merge SHA: success
+git fetch origin gh-pages && git show origin/gh-pages:versions.json | head                    # X.Y.Z present, carrying the "latest" alias
+git fetch --tags --prune origin && git tag --list vX.Y.Z                                      # the tag
+gh release view vX.Y.Z                                                                        # the Release and its notes
 ```
 
-Verify the output confirms the version was updated (e.g. `Updated mthds vX.Y.Z -> v{TARGET_VERSION}`).
+This repo lives in the `mthds-ai` GitHub organization rather than `Pipelex` (`https://github.com/mthds-ai/mthds`), so run the `gh` commands from inside the worktree and let the remote resolve them, or pass `--repo mthds-ai/mthds` explicitly.
 
-- **If the lock file was already in sync**: inform the user and continue.
-- **On failure**: show the error and ask the user how to proceed.
+## Version files and the lock
 
-## Step 6 — Update CHANGELOG.md
+- **`pyproject.toml`** — the `[project]` table's `version`, with no `v` prefix. Keep it the file's **first** `version = ` line: `changelog-check.yml` and the `github-release` job both read it with `grep -m 1 'version = '`, and `version-check.yml` with `grep '^version'`.
+- **`uv.lock`** — `make lock` (`uv lock`) after the bump, so the lockfile's own `mthds` entry records the new number. Nothing in CI compares the lock against `pyproject.toml`, so this step is the only thing keeping the two in step. `make docs-check` reaches `make install` through its `spec-check` prerequisite, and the `uv sync` there refreshes a stale lock on its own; run the lock step explicitly all the same, so the lockfile moves in a step you control rather than as a side effect of a gate.
+- **Also stamped: the standard version, wherever the documentation states it.** `scripts/check_versions.py` is the authority on which files those are, and its `STANDARD_READINGS` table currently names the version table in `docs/spec/versioning.md`, the current-version statement in `docs/spec/manifest-format.md`, the field table in `docs/packages/manifest.md`, the statement in `docs/about/roadmap.md`, the `MTHDS_STANDARD_VERSION` constant in the repo-root `CLAUDE.md`, and the `mthds_version = ">=X.Y.Z"` constraint in the example manifests of `docs/spec/manifest-format.md`, `docs/packages/manifest.md` and `docs/guides/create-package.md`. Read the table rather than this list before editing: a page added since is a reading too.
+- **Not stamped: the pinned-set versions.** The versions `docs/spec/native-concepts.md` and `docs/spec/intent-hints.md` pin their sets at are deliberately excluded from the readings — each names the standard version in which that set last changed and lags the current one by design. Move one only when the set itself changed, and then say so in the changelog.
+- **The protocol version moves on its own cadence**, usually not at all. Its readings are the version table in `docs/spec/versioning.md`, `info.version` in `docs/spec/openapi/mthds-protocol.openapi.yaml`, the `"protocol_version"` example in `docs/spec/protocol.md` and the `PROTOCOL_VERSION` constant in `CLAUDE.md`; the `implements MTHDS Protocol vX.Y` conformance statement in `docs/spec/protocol.md` is checked separately, against the protocol version's major and minor. Take the number from what `## [Unreleased]` announces rather than deciding one here.
 
-The changelog entry **must** match the CI grep pattern: `## [vX.Y.Z] -`
+**Write down every file you edit to get the version check green.** The release commit stages an explicit list, and a page fixed here but left unstaged is green locally and red on the pull request.
 
-Check if `CHANGELOG.md` already contains a `## [v{TARGET_VERSION}] -` entry.
+## Gates
 
-- **If missing**: run `git log main..HEAD --oneline` (or `git log --oneline -20` if on `main`) to review recent commits. Draft a changelog entry from those commits and propose it to the user for approval. Insert the approved entry at the top of the changelog (after the `# Changelog` heading) formatted as:
+Run in the worktree, in this order. Both are **after the bump** in the play's sense: they compare what the changelog fold and the version writes produce, so the run that has to be green is the one at the end of the version step. Running them once on entering the worktree is still worth it, to establish that the tree was clean before the release touched it.
 
-```markdown
-## [v{TARGET_VERSION}] - {TODAY'S DATE in YYYY-MM-DD}
+1. **`make version-check`** — `python3 scripts/check_versions.py`, with no Make prerequisites and nothing to install, so it is the fastest way to see the whole version picture. It admits exactly two states. While the release is being prepared, `## [Unreleased]` must be followed by a blank line and `**Next release: vX.Y.Z · MTHDS standard X.Y.Z · MTHDS Protocol A.B.C**`, the announced standard must equal the announced release version and agree with every documentation reading, and `pyproject.toml` is not compared against it. Once the entry is folded, the topmost `## [` heading must be the released one, carry `**MTHDS standard X.Y.Z · MTHDS Protocol A.B.C**` on the line below it, and agree with `pyproject.toml` and with every reading. Red prints each disagreeing site and its value: fix the page, never the check.
+2. **`make docs-check`** — the release gate proper, and the same target CI runs. It runs `make spec-check` first, which installs (`uv sync`) and validates `docs/spec/openapi/mthds-protocol.openapi.yaml` with `openapi-spec-validator`; then `make version-check`; then `mkdocs build --strict`, which fails on a dead link. Its build output is `site/`, which is gitignored, but it does rewrite one tracked file: the `install` it reaches through `spec-check` runs `uv sync`, which refreshes the `uv.lock` the version bump has just made stale. Run `make lock` before this gate and there is nothing left for it to rewrite; run it the other way round and the lock the gate writes is the one the commit carries anyway.
 
-- Item one
-- Item two
-```
+## The release commit
 
-The user may accept, edit, or rewrite the proposed entry.
+`pyproject.toml`, `uv.lock`, `CHANGELOG.md`, and every documentation page edited to satisfy `make version-check` — the repo-root `CLAUDE.md` among them, since it carries both constants. Staged by name. The only tracked file a gate rewrites is `uv.lock`, which is on that list already, so there is nothing else to pick up.
 
-- **If exists**: show the existing entry and ask the user whether to keep it or edit it.
+## CI on the release pull request
 
-## Step 7 — Validate Docs Build
+- **`version-check.yml`** — on every pull request to `main`. Its first step tests the head branch against `^release/v[0-9]+\.[0-9]+\.[0-9]+$`; a head that does not match records `is_release_source=false`, and every later step is guarded on that being `true`, so an ordinary pull request into `main` passes trivially rather than failing on an empty branch version. On a release branch it asserts that `pyproject.toml`'s version equals the version in the branch name, then runs `python3 scripts/check_versions.py`.
+- **`changelog-check.yml`** — on every pull request to `main`, with no branch condition at all. It reads the version with `grep -m 1 'version = ' pyproject.toml` and fails unless `CHANGELOG.md` carries a `## [v<version>] -` heading, then runs `scripts/check_versions.py` as well. It asserts nothing about `[Unreleased]` itself, and that grep is the only thing in CI that catches an unfolded changelog: `scripts/check_versions.py` reads any well-formed `## [Unreleased]` heading as the *preparing* state, the branch in which `pyproject.toml` is never compared against the changelog at all, so a bumped version whose entry was never folded passes the script and fails here. What the script refuses about `[Unreleased]` is a heading stripped of its `**Next release: …**` line, which is not the mistake a release day makes.
+- **`docs-check.yml`** — pull requests to `main` and `dev`, path-filtered to `docs/**`, `mkdocs.yml`, `pyproject.toml`, `scripts/**`, `Makefile`, `CLAUDE.md`, the snippet-included repo-root files (`CHANGELOG.md`, `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `LICENSE`) and its own workflow file. It runs `make install` then `make docs-check`. A release commit touches `pyproject.toml` and `CHANGELOG.md`, so it always fires.
+- **There is no branch guard.** No workflow refuses a head branch into `main`, so `release/vX.Y.Z` is a name the version check keys off rather than a gate that keeps anything else out.
+- **`docs-deploy.yml` is not a pull request check.** It runs on the push to `main`; it is what ships, not what gates.
 
-Run:
+## Particulars
 
-```bash
-make docs-check
-```
-
-- **On success**: report and continue.
-- **On failure**: show the errors and ask the user how to proceed (fix issues, skip validation, or abort).
-
-## Step 8 — Review & Commit
-
-Present a full summary:
-
-- Target version: `v{TARGET_VERSION}`
-- Branch: `release/v{TARGET_VERSION}`
-- Files changed: `pyproject.toml`, `uv.lock`, `CHANGELOG.md`
-- Changelog entry preview
-
-Ask the user to confirm. On confirmation:
-
-1. Stage **only** `pyproject.toml`, `uv.lock`, and `CHANGELOG.md` — never use `git add .` or `git add -A`.
-2. Commit with message: `Bump version to {TARGET_VERSION} and update changelog`
-3. Show the commit result.
-
-Then offer (but do not automatically execute):
-
-- **Push** the branch to origin (`git push -u origin release/v{TARGET_VERSION}`)
-- **Create a PR** to `main` using `gh pr create`
-
-Wait for explicit user approval before pushing or creating a PR.
-
-## Rules
-
-- Never use `git add .` or `git add -A` — only stage `pyproject.toml`, `uv.lock`, and `CHANGELOG.md`.
-- Never push or create PRs without explicit user approval.
-- The `v` prefix appears in branch names and changelog headers, but **not** in `pyproject.toml`.
-- Always use today's date for new changelog entries (format: `YYYY-MM-DD`).
-- If any step fails or the user wants to abort, stop immediately — do not continue the workflow.
+- **The bump rule is the standard's own, not the workspace's pre-1.0 convention.** `docs/spec/versioning.md` governs: MAJOR for a breaking change to the language, the native set, the manifest, lock, crate or namespace formats; MINOR for an additive change that leaves existing documents valid and meaning the same thing; PATCH for a change that is normatively inert. The standard is past `1.0.0`, so a breaking change here is a **major**, not the minor the play recommends by default. A release that changes nothing normative is still a patch bump, because the number moves on every release of the specification.
+- **The version is usually already decided.** `## [Unreleased]` announces it in the `**Next release: vX.Y.Z · MTHDS standard X.Y.Z · MTHDS Protocol A.B.C**` line, written when the work accumulated, and the documentation readings were moved to match it then — the version check compares the two. Propose that version as the default; overriding it means moving every standard reading again in the same commit.
+- **The changelog heading carries the `v` and a version line below it.** `## [vX.Y.Z] - YYYY-MM-DD`, a blank line, then `**MTHDS standard X.Y.Z · MTHDS Protocol A.B.C**`. The standard number always equals the heading's own version; the protocol number is repeated on every heading whether or not it moved, so a reader landing on any release can tell which protocol it shipped. Fold `[Unreleased]` in place: rewrite its heading, and replace its `**Next release: …**` line with the `**MTHDS standard … · MTHDS Protocol …**` line.
+- **Do not retrofit version lines onto headings published before `v2.0.0`.** The contract starts there, and the standard version those earlier releases nominally carried is the `1.0.0` that never moved; writing it back into them would inscribe the claim the `2.0.0` cut exists to correct. The check reads the topmost heading only, so the older ones are left as published.
+- **No pre-release form.** `version-check.yml` matches `release/vX.Y.Z` exactly and a head that does not match **skips** the version comparison rather than failing it, so a `release/v3.0.0-rc.1` branch loses the one check that ties `pyproject.toml` to the branch name. The rest of CI still applies to it — `changelog-check.yml` has no branch condition, so an rc has to carry its own `## [v3.0.0-rc.1] - …` heading and pass `scripts/check_versions.py`, whose semver pattern accepts the suffix — but nothing refuses the pre-release form itself, so it would ship unguarded where a plain release is guarded. Ship a plain `X.Y.Z`.
+- **The tags are lightweight**, created as a side effect of `gh release create` in the `github-release` job rather than by `git tag -a`. Always pass `--tags` when reading them: bare `git describe` finds no annotated tag here and dies.
+- **A new major release line needs two crawl-policy edits, and they belong in the release commit.** Only `/latest/` is indexed; every archived version directory is excluded, and neither exclusion list has a numeric wildcard, so each major line is listed by hand — a `Disallow: /<major>.` line in the `Makefile`'s `ROOT_ROBOTS_TXT` block and a matching `X-Robots-Tag: noindex` header for `/<major>.(.*)` in `vercel.json`. Cutting the first release of a new major line without both publishes that version directory as an indexable duplicate of `/latest/`.
+- **Retiring old documentation versions is a deliberate, separate edit.** `versions-to-delete.txt` is the list the deploy prunes from `gh-pages`, and the deploy warns when `site-output/` passes 80 MB or 12,000 files, against Vercel's Hobby limits of 100 MB compressed and 15,000 files. A warning on a release run is the signal to add versions to that file; the file is in the deploy's path filter, so that change deploys on its own and does not need to ride in the release commit.
+- **Nothing arms the downstream follow-ups.** The versioning page's "Where the Numbers Appear" table says each implementation carries `MTHDS_STANDARD_VERSION` as a copy of the cut made here, and `ledger/ledger.toml` declares no `release_followups` for `mthds`, so a cut that moves the standard version arms nothing on its own. File those items yourself alongside the release item.
+- **The back-merge is a merge commit.** `/ledger-land` merges `origin/main` into `dev` rather than fast-forwarding it, so `dev` ends up carrying a `Merge remote-tracking branch 'origin/main' into dev` commit, and the changelog is the one conflict it expects.

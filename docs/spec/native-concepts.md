@@ -6,7 +6,7 @@ description: "Normative, version-pinned definitions of the MTHDS native concepts
 
 Native concepts are the built-in vocabulary of the MTHDS standard: always available in every bundle, never declared by authors. This page pins their **normative definitions** — the exact blueprint form of each native concept, expressed in the same structure language authors use for their own concepts (see [Concept Structure Fields](./mthds-format.md#concept-structure-fields)).
 
-These definitions are **pinned per MTHDS standard version**. The set below is normative for MTHDS `1.0.0`. Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard and requires a version bump. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by **lookup into this pinned set**, selected by the standard version it implements.
+These definitions are **pinned per MTHDS standard version**. The set below was pinned at MTHDS `2.0.0`, and is normative for every standard version from `2.0.0` until a later version pins a new one: an implementation of standard version `V` materializes the pinned set of the greatest version less than or equal to `V` (see [Versioning](./versioning.md#the-pinned-native-set-under-one-number)). Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard, [bumps the standard version](./versioning.md#what-bumps-the-standard-version), and re-pins the set at that version. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by **lookup into this pinned set**.
 
 Three consequences follow:
 
@@ -22,7 +22,7 @@ Three natives are **structureless by design**: their shape is intentionally open
 
 One reserved marker: `value_type = "Any"` on a `dict` field declares the value type **unspecified** — the values are arbitrary; a consumer surfaces this as declared imprecision (e.g. `dict[str, Any]` with a caveat), never as a guessed value shape.
 
-## The Pinned Set (MTHDS 1.0.0)
+## The Pinned Set — Pinned at MTHDS 2.0.0
 
 ### native.Dynamic
 

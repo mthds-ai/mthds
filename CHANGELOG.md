@@ -1,5 +1,33 @@
 # Changelog
 
+## [v2.0.0] - 2026-09-14
+
+**MTHDS standard 2.0.0 · MTHDS Protocol 0.6.0**
+
+### Highlights
+
+**The standard version and the specification's release version are now one number, cut at `2.0.0`.** The breaking changes shipped in `v0.8.0`, `v0.9.0` and `v0.10.0` were made while the standard still read `1.0.0`; this release accounts for them with a major cut, writes down the rule every later release follows, and adds a check that keeps every stated copy of the two numbers in agreement. **A pipe's output gets a presentation descriptor of its own**, the counterpart of the input-form descriptor, so a result can be shown or typed without schema heuristics.
+
+### Added
+
+- **Versioning** (`spec/versioning.md`): New specification page defining how MTHDS is versioned — the standard version, which covers the language, the native set and the manifest, lock, crate and namespace formats, and the protocol version, which covers the HTTP runner contract alone and moves independently. It states what bumps each and where each is written, that a recommended extension field on the validate response does not move the protocol version, and that every changelog heading from `v2.0.0` onward names the standard and protocol versions of its release.
+- **A version-consistency check** (`make version-check`): every written copy of the standard and protocol versions — the versioning page, the manifest specification and guides with the `mthds_version` constraints in their example manifests, the roadmap, the agent guide, the OpenAPI document, the protocol page and the changelog's topmost heading — must agree, or the check names each disagreeing site and fails. It runs in `make docs-check` on every documentation pull request and in the `changelog-check` and `version-check` release gates; the versions at which the native set and the intent vocabulary are pinned are excluded, since each lags the current version by design.
+- **Output-Form Descriptor** (`spec/output-form-descriptor.md`): New specification for the presentation view of what a pipe resolves to — one field descriptor per pipe, stating its output's kind, nesting and constraints, so that showing a result or generating a type for it needs no schema heuristics. It reuses the input-form descriptor's field descriptor and states only what an output position changes: no `presence` and no `gating`, the fixed node name `output`, `required` always `true` with possible absence left to the contract's `optional`, and the plural wrap that makes a `Concept[]` output a `list` node whose `item` is the element. Pipe I/O Contracts, the Input-Form Descriptor, the Library Crate Format and the `.mthds` File Format now point at it.
+- **`output_form` on the validate response**: a recommended extension field, on the same terms as `pipe_io_contracts` and `input_form` — a runner reporting it uses this shape under this name, and a runner omitting it is still conformant. No base field and no route changes, so the protocol version does not move.
+
+### Changed
+
+- **The standard version is the specification's release version, cut at `2.0.0` (Breaking)**: the specification's release, its changelog heading and `MTHDS_STANDARD_VERSION` in every implementation are one number, so an implementation of this release reports `2.0.0`. The version moves forwards rather than down to the `0.x` line, so a manifest constraint of `>=1.0.0` stays satisfiable; a crate stamped `1.0.0` predates native-set pinning, and re-normalizing it restamps it at the set pinned in `2.0.0`.
+- **Pinned sets are identified by the version in which they last changed**: an implementation of standard version `V` materializes the native set, and resolves the intent vocabulary, of the greatest pinned version less than or equal to `V`, so implementations on different patch or minor versions still byte-agree on materialized natives and on crate fingerprints. The intent vocabulary, which named itself only as "this version", is now pinned at `2.0.0`.
+- **The protocol version is reconciled at `0.6.0`**: the conformance statement in `spec/protocol.md` said v0.1 beside a `0.6.0` example, and now agrees with the OpenAPI document and the shipped client libraries. The protocol page states the protocol's own bump rule.
+- **`mthds_version` examples require `>=2.0.0`** in the manifest specification, the manifest guide and the package-creation guide, so a package created by following the documentation declares the standard it was written against.
+
+### Fixed
+
+- **The reference runner's license on the runtime page**: `implementers/runtime.md` called `pipelex-api` MIT. It now says the runner is source-available under the Elastic License 2.0, and that the license is the implementation's alone: the standard and its OpenAPI document stay MIT, and any runtime may implement the protocol under its own terms.
+- **The version-check workflow passes pull requests into `main` that are not releases**: `exit 0` in its branch-detection step ended that step rather than the job, so a non-release pull request went on to compare `pyproject.toml` against an empty release version and failed.
+- **Archived 2.x documentation versions are kept out of search indexes**: the root `robots.txt` and the `noindex` headers matched `/0.` only, so `/2.0.0/` would have been indexed as a duplicate of `/latest/`. Both lists now cover each major release line.
+
 ## [v0.10.0] - 2026-09-02
 
 ### Added

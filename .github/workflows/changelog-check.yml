@@ -30,3 +30,6 @@ jobs:
           else
             echo "✅ Changelog entry found for version v$VERSION"
           fi
+
+      - name: Check version consistency
+        run: python3 scripts/check_versions.py

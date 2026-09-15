@@ -38,11 +38,13 @@ jobs:
           echo "======================================="
 
       - name: Checkout repo
+        if: steps.branch_info.outputs.is_release_source == 'true'
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Get version from pyproject.toml
+        if: steps.branch_info.outputs.is_release_source == 'true'
         id: current_version
         run: |
           echo "====== DEBUGGING CURRENT VERSION ======"
@@ -53,6 +55,7 @@ jobs:
 
       # Check that version in pyproject.toml matches the source release branch name
       - name: Check version matches release branch
+        if: steps.branch_info.outputs.is_release_source == 'true'
         run: |
           echo "====== CHECKING VERSION MATCH FOR RELEASE BRANCH ======"
           # Extract version from branch name
@@ -72,3 +75,9 @@ jobs:
             echo "✅ Version in pyproject.toml ($PR_VERSION) matches release branch version ($RELEASE_VERSION)"
           fi
           echo "======================================="
+
+      # The standard version is the release version, so a release cut must move every
+      # place that states it. See docs/spec/versioning.md.
+      - name: Check version consistency
+        if: steps.branch_info.outputs.is_release_source == 'true'
+        run: python3 scripts/check_versions.py

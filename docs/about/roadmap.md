@@ -4,7 +4,7 @@ description: "Planned directions for MTHDS: dependency implementation, cross-pac
 
 # Roadmap
 
-The MTHDS standard is at version `1.0.0`. This page outlines planned and potential directions for future development.
+The MTHDS standard is at version `2.0.0`. This page outlines planned and potential directions for future development.
 
 ## Near-Term
 
