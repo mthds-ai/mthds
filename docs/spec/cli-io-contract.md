@@ -6,6 +6,25 @@ description: "Specification of the CLI input/output contract for MTHDS methods �
 
 This page defines the input/output contract for MTHDS methods when invoked as CLI commands. It specifies what a method writes to stdout, what it reads from stdin, and how errors propagate through pipe chains.
 
+## Stuffs on the Wire
+
+A stuff — one named value in a working memory, whether a method input or a pipe's result — crosses every boundary on this page in one shape:
+
+```json
+{
+  "concept": "legal.ContractAnalysis",
+  "content": { "clauses": ["..."], "overall_risk": "high" }
+}
+```
+
+`concept` names the concept by its **crate key**, the string the [library crate](./library-crate.md#1-merge) keys it under: the domain-qualified reference `<domain>.<Code>` for a concept the method's own package declares (`legal.ContractAnalysis`) or a native concept (`native.Text`), and the address-prefixed `<package_address>::<domain>.<Code>` for a concept a dependency contributes (`github.com/mthds/scoring-lib::scoring.ScoreResult`). Two packages may declare the same domain and code, so a dependency's concept is never named by the bare `<domain>.<Code>`, and the prefix is the package address, never the alias one consumer happens to give it. `content` is the value, shaped as the concept's structure dictates. The same string names the concept wherever a stuff travels: an entry of `--inputs`, a stuff read from stdin, every entry of `working_memory.root` in the `--with-memory` envelope, every stuff of a runner's `pipe_output` over the [HTTP protocol](./protocol.md#executing-a-method), and any file a runtime writes from a working memory.
+
+The reference is the whole of what a stuff says about its concept. The concept's definition — its description, its structure, what it refines, and anything an implementation attaches to it, such as the name of a runtime class — belongs to the library the method loads and never travels beside a stuff. A consumer that needs the definition resolves the reference against that library, or reads it from the [pipe I/O contracts](./pipe-io-contracts.md) a validating runtime reports. A runtime MUST emit `concept` as this string and MUST NOT emit an object in its place.
+
+On input, a runtime MUST accept the crate key. As a convenience for a caller typing inputs by hand, it MAY also accept a package-qualified reference (`alias->domain.Code`) or a bare concept code and resolve either against the method's library — how it resolves an ambiguous bare code is implementation-defined — and it MAY accept a bare value in place of the stuff (a string, a number, an object or a list) and shape it against the input's declared concept. What it emits is always a stuff, its `concept` the crate key.
+
+An implementation MAY carry fields of its own beside `concept` and `content` — an identifier for the stuff, for instance. A consumer ignores fields it does not know and never needs them to read the value.
+
 ## Output Modes
 
 A method's CLI produces structured JSON on stdout. Two output modes are defined: **compact** (default) and **full** (opt-in via `--with-memory`).
@@ -49,21 +68,15 @@ When `--with-memory` is passed, the output includes the main stuff renderings an
   "working_memory": {
     "root": {
       "contract_text": {
-        "stuff_code": "...",
-        "stuff_name": "contract_text",
-        "concept": { "code": "Text" },
+        "concept": "native.Text",
         "content": { "text": "The parties agree..." }
       },
       "extracted_terms": {
-        "stuff_code": "...",
-        "stuff_name": "extracted_terms",
-        "concept": { "code": "ContractAnalysis" },
+        "concept": "legal.ContractAnalysis",
         "content": { "clauses": ["..."], "overall_risk": "high" }
       },
       "main_stuff": {
-        "stuff_code": "...",
-        "stuff_name": null,
-        "concept": { "code": "ContractAnalysis" },
+        "concept": "legal.ContractAnalysis",
         "content": { "clauses": ["..."], "overall_risk": "high" }
       }
     },
@@ -74,7 +87,7 @@ When `--with-memory` is passed, the output includes the main stuff renderings an
 }
 ```
 
-The full output preserves all intermediate results and aliases from the pipeline's working memory. This is required when piping output to another method, because the downstream method may need intermediate stuffs for multi-input binding.
+Every entry of `root` is a stuff in the [wire form](#stuffs-on-the-wire): its `concept` is the concept's crate key, never the concept's definition. The full output preserves all intermediate results and aliases from the pipeline's working memory. This is required when piping output to another method, because the downstream method may need intermediate stuffs for multi-input binding.
 
 ### Side Effects
 
@@ -130,7 +143,7 @@ When JSON arrives via stdin, the runtime distinguishes between two formats based
 
 ### Flat Inputs
 
-No `working_memory` key present. The JSON is treated as direct input bindings — the same format as `--inputs`:
+No `working_memory` key present. The JSON is treated as direct input bindings — the same format as `--inputs`, each binding a stuff in the [wire form](#stuffs-on-the-wire):
 
 ```json
 {
@@ -206,7 +219,8 @@ extract-terms --inputs data.json \
 
 ```bash
 # The --inputs flag overrides whatever comes from stdin
-echo '{"old": "data"}' | mthds-agent pipelex run method my_method --inputs '{"new": "data"}'
+echo '{"text": {"concept": "native.Text", "content": {"text": "from stdin"}}}' \
+  | mthds-agent pipelex run method my_method --inputs '{"text": {"concept": "native.Text", "content": {"text": "from the flag"}}}'
 ```
 
 The `--inputs` flag always wins — the stdin data is ignored.

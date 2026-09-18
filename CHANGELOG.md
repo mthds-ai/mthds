@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v2.1.0 · MTHDS standard 2.1.0 · MTHDS Protocol 0.6.0**
+
+### Changed
+
+- **A stuff's `concept` on the wire is its crate key (Breaking)** (`spec/cli-io-contract.md`): the CLI I/O Contract now states the shape a stuff takes wherever it travels — `--inputs`, stdin, the `--with-memory` envelope, a runner's `pipe_output` and any file written from a working memory — as `{"concept": "<key>", "content": …}`, `concept` being the string the library crate keys the concept under: `<domain>.<Code>` for the method's own and native concepts, `<package_address>::<domain>.<Code>` for a dependency's. The concept's definition belongs to the library and never travels beside a stuff. A runtime must emit that string and must not emit an object in its place; on input it may also accept a package-qualified reference, a bare code or a bare value as a convenience. The `--with-memory` example, which showed `concept` as an object, now agrees with the rule, and the protocol page says the same of `pipe_output`.
+- **Versioning** (`spec/versioning.md`): the CLI I/O contract joins what the standard version governs, with the reading that a wire rule leaving every authored document valid is a MINOR change marked breaking for implementations; and the shape of a stuff inside the protocol's inputs and `pipe_output` is the standard's, so a change to it moves no protocol number.
+
+### Fixed
+
+- **The `RunRequest` example on the protocol page** (`spec/protocol.md`): its `Document` input named the concept by its bare code and gave the content a `file_path` field the native concept does not have. It now reads `native.Document` with a `url`, the concept's one required field.
+
 ## [v2.0.0] - 2026-09-14
 
 **MTHDS standard 2.0.0 · MTHDS Protocol 0.6.0**
