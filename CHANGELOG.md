@@ -1,5 +1,13 @@
 # Changelog
 
+## [v2.1.1] - 2026-09-19
+
+**MTHDS standard 2.1.1 · MTHDS Protocol 0.6.0**
+
+### Changed
+
+- **Documentation versions served on mthds.ai**: the site now serves the current standard, the release before it and each version pinned under `[tool.mthds.docs] retain` in `pyproject.toml` — today `0.10.0`, the last 0.x standard — and every deploy retires the rest, while `make docs-retention` prints what the next deploy would keep and retire. This release stops serving `2.0.0`, `0.9.0`, `0.8.0`, `0.7.0`, `0.6.0`, `0.5.0`, `0.4.1`, `0.4.0` and the unlisted `0.1.2` directory, so links into those versions no longer resolve and should point at `/latest/`.
+
 ## [v2.1.0] - 2026-09-19
 
 **MTHDS standard 2.1.0 · MTHDS Protocol 0.6.0**
