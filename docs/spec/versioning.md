@@ -8,7 +8,7 @@ MTHDS carries **two version numbers**, and they move independently:
 
 | Number | Governs | Current |
 |---|---|---|
-| **Standard version** | The language, the native concept set, the manifest and lock formats, the library crate format, the namespace rules | `2.0.0` |
+| **Standard version** | The language, the native concept set, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff | `2.1.0` |
 | **Protocol version** | The HTTP runner contract — its routes and their request and response shapes | `0.6.0` |
 
 Both are [Semantic Versioning 2.0.0](https://semver.org/) numbers. Everything else that carries a version — a package's own `version`, a runner's `runner_version`, an implementation's release number — belongs to that package, runner, or implementation and is governed by whoever publishes it.
@@ -23,12 +23,15 @@ It governs everything this specification defines other than the HTTP protocol:
 - The [native concept definitions](./native-concepts.md) — the pinned set every implementation materializes.
 - The [`METHODS.toml` format](./manifest-format.md) and the [`methods.lock` format](./lock-format.md).
 - The [library crate format](./library-crate.md) and the [namespace resolution rules](./namespace-resolution.md).
+- The [CLI I/O contract](./cli-io-contract.md) — the wire form of a stuff, and the envelopes a method reads and writes when it is invoked from a command line.
 
 ### What Bumps the Standard Version
 
 - **MAJOR** — a breaking change to any of the above. A key removed or renamed, a native concept's shape changed, a rule that makes a previously valid bundle, manifest, or lock file invalid, or a previously invalid one valid in a way that changes what an existing document means.
 - **MINOR** — an additive change. A new native concept, a new pipe type, a new optional key, a new field type: documents valid under the previous version stay valid and keep their meaning.
 - **PATCH** — a change that is normatively inert. A clarification, a corrected example, a reworded rule that states what was already true, a new guide, a typo fix.
+
+These classes are read over what authors write — bundles, manifests, lock files, crates. A rule that changes what a runtime must emit or accept on the wire while every authored document stays valid and keeps its meaning is a **MINOR** change: the changelog marks it breaking, because a runtime conforming to the previous version may have to change, and the number says that no document does.
 
 A release that changes nothing normative is a **patch** of the standard. That is the deliberate cost of one number: the standard version moves on every release of the specification, and a bump on its own is not evidence that anything changed. What changed is in the [changelog](../changelog.md).
 
@@ -58,6 +61,8 @@ The [HTTP runner protocol](./protocol.md) is versioned separately, on its own ca
 - **PATCH** — a clarification of the document that changes no shape.
 
 A [recommended extension field](./protocol.md#validating-a-bundle) is none of those additions. What the protocol version numbers is the base surface — the routes and the response fields of the normative OpenAPI document. The artifacts the standard names on the validate report's extension surface are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number: a runner may report or omit any of them at the same protocol version, and a client learns which it got from the report itself rather than from the handshake.
+
+The shape of a stuff — the `{concept, content}` entries of a request's inputs and of `pipe_output` — is the standard's for the same reason: the protocol names the fields and the [CLI I/O contract](./cli-io-contract.md#stuffs-on-the-wire) fixes their entries, so a change to that shape moves the standard version and leaves the protocol number where it was.
 
 The protocol version is **not** derived from the standard version and never tracks it. A release of the standard that does not touch the protocol leaves the protocol version exactly where it was.
 
