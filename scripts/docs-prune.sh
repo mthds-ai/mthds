@@ -20,12 +20,21 @@ if ! [[ "$KEEP" =~ ^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$ ]]; then
     exit 1
 fi
 
-# Only stdout is captured: mike writes its warnings to stderr, and folding those into
-# the capture would hand the JSON reader something that is not JSON.
-if ! LISTING=$("$MIKE" list --json --branch "$BRANCH"); then
-    echo "mike list failed — nothing to prune."
-    exit 0
-fi
+# A missing branch is not an error to mike — it reports no versions and exits 0 — so a
+# failure here is mike itself failing: the binary absent, the mkdocs config unreadable,
+# versions.json corrupt. Pruning is what holds the site under its deploy limit, so that
+# must stop the deploy rather than pass for a quiet no-op, which is the very shape of
+# the bug this script replaced. Only stdout is captured, because mike writes its
+# warnings to stderr and folding those in would hand the JSON reader something that is
+# not JSON.
+list_versions() {
+    if ! "$MIKE" list --json --branch "$BRANCH"; then
+        echo "ERROR: mike list failed on $BRANCH — refusing to deploy unpruned." >&2
+        exit 1
+    fi
+}
+
+LISTING=$(list_versions)
 
 # mike resolves the local branch from its remote-tracking ref on any command, so from
 # here on the local branch exists whenever the site has ever been published — but on a
@@ -57,7 +66,7 @@ fi
 # mike only ever deletes what versions.json names, so a directory left behind by an
 # earlier deploy style outlives every prune. Sweep those separately, against the index
 # as the delete left it, so that what survives here is exactly what the site publishes.
-LISTING=$("$MIKE" list --json --branch "$BRANCH")
+LISTING=$(list_versions)
 PUBLISHED=$(read_listing '
 import json, sys
 for v in json.load(sys.stdin):
@@ -68,7 +77,11 @@ for v in json.load(sys.stdin):
 # KEEP joins them because on a release it is not deployed yet — mike adds it next.
 PUBLISHED=$(printf '%s\n%s\n' "$PUBLISHED" "$KEEP" | sed '/^$/d' | sort -u)
 
-TRACKED=$(git ls-tree -d --name-only "$BRANCH" | sort)
+# Only version-shaped directories are candidates. Every directory on this branch is
+# mike's, so in principle anything unnamed is stale — but this deletes from the
+# published site unattended, and a directory arriving here by some route nobody has
+# thought of yet should survive to be looked at rather than vanish on the next deploy.
+TRACKED=$(git ls-tree -d --name-only "$BRANCH" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$' | sort || true)
 ORPHANS=$(comm -23 <(printf '%s\n' "$TRACKED") <(printf '%s\n' "$PUBLISHED"))
 
 if [ -n "$ORPHANS" ]; then

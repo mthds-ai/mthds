@@ -34,10 +34,11 @@ define PRINT_TITLE
     @echo '$(PADDED_TITLE)'
 endef
 
-# Only /latest/ is indexed. Every archived version directory is disallowed, and since
-# robots.txt has no numeric wildcard the exclusions are listed one per major release
-# line -- a new line (3.) needs a new Disallow here and a matching noindex header in
-# vercel.json.
+# Only /latest/ is indexed. One version is published, and its own numbered directory is
+# a duplicate of /latest/, so it is disallowed; since robots.txt has no numeric wildcard
+# the exclusion is written per major release line -- a new line (3.) needs a new Disallow
+# here and a matching noindex header in vercel.json, and the retired line's entries go in
+# the same commit.
 define ROOT_ROBOTS_TXT
 User-agent: *
 Allow: /latest/
