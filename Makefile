@@ -34,10 +34,13 @@ define PRINT_TITLE
     @echo '$(PADDED_TITLE)'
 endef
 
-# Only /latest/ is indexed. Every archived version directory is disallowed, and since
-# robots.txt has no numeric wildcard the exclusions are listed one per major release
-# line -- a new line (3.) needs a new Disallow here and a matching noindex header in
-# vercel.json.
+# Only /latest/ is indexed. The current version's own numbered directory is a duplicate
+# of /latest/, and every other retained version is a superseded standard nobody should
+# reach from a search result, so all of them are disallowed. Since robots.txt has no
+# numeric wildcard the exclusion is written per major release line, and every line the
+# retention keeps needs one -- `make docs-retention` prints the set. A new line (3.)
+# needs a Disallow here and a matching noindex header in vercel.json; a line the
+# retention no longer keeps has its two entries removed in the same commit.
 define ROOT_ROBOTS_TXT
 User-agent: *
 Allow: /latest/
@@ -71,7 +74,8 @@ make docs-deploy VERSION=x.y.z       - Deploy docs as version x.y.z (local, no p
 make docs-build-versioned             - Build versioned docs with mike (local gh-pages only, no push)
 make docs-assemble-site               - Extract gh-pages content + root assets into site-output/
 make docs-build-site                  - Full pipeline: build versioned + assemble (for local dev)
-make docs-prune                       - Delete versions listed in versions-to-delete.txt (local gh-pages)
+make docs-retention                   - Show what the next deploy would keep and retire
+make docs-prune                       - Retire the versions the site no longer serves (local gh-pages)
 make docs-delete VERSION=x.y.z       - Delete a documentation version from local gh-pages
 
 make lighthouse                       - Run a Lighthouse audit against the live site
@@ -95,7 +99,7 @@ export HELP
 	all help env env-verbose lock install update \
 	cleanderived cleanenv cleanall reinstall ri \
 	docs docs-check spec-check version-check docs-serve-versioned docs-list \
-	docs-deploy docs-build-versioned docs-assemble-site docs-build-site docs-prune docs-delete \
+	docs-deploy docs-build-versioned docs-assemble-site docs-build-site docs-retention docs-prune docs-delete \
 	lighthouse lighthouse-baseline lighthouse-compare \
 	update-schema up \
 	li check-uv check-uv-verbose
@@ -248,9 +252,13 @@ docs-assemble-site:
 docs-build-site: docs-build-versioned docs-assemble-site
 	@echo "Complete site ready in site-output/. Run 'vercel dev' to preview locally."
 
+docs-retention:
+	$(call PRINT_TITLE,Documentation retention for $(DOCS_VERSION))
+	@bash scripts/docs-retention-plan.sh $(DOCS_VERSION)
+
 docs-prune: env
-	$(call PRINT_TITLE,Pruning versions listed in versions-to-delete.txt)
-	@bash scripts/docs-prune.sh versions-to-delete.txt $(VENV_MIKE)
+	$(call PRINT_TITLE,Retiring the documentation versions $(DOCS_VERSION) no longer serves)
+	@bash scripts/docs-prune.sh $(VENV_MIKE) $(DOCS_VERSION)
 
 docs-delete: env
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Usage: make docs-delete VERSION='x.y.z x.y.z ...'"; exit 1; fi
