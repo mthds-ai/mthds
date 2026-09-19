@@ -1,8 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [v2.1.0] - 2026-09-19
 
-**Next release: v2.1.0 · MTHDS standard 2.1.0 · MTHDS Protocol 0.6.0**
+**MTHDS standard 2.1.0 · MTHDS Protocol 0.6.0**
+
+### Highlights
+
+**A stuff has one shape wherever it travels, and the standard now says so.** Every surface that carries a value — the CLI's `--inputs` and stdin, the `--with-memory` envelope, a runner's `pipe_output`, a file written from a working memory — spells it `{"concept": "<key>", "content": …}`, where the key is the string the library crate files the concept under. The concept's definition stays in the library and never travels beside the value it describes.
 
 ### Changed
 
