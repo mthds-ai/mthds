@@ -8,7 +8,8 @@ on:
       - "mkdocs.yml"
       - "pyproject.toml"
       - "vercel.json"
-      - "versions-to-delete.txt"
+      - "Makefile"
+      - "scripts/docs-prune.sh"
       - ".github/workflows/docs-deploy.yml"
   workflow_dispatch:
 
@@ -46,7 +47,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Prune old documentation versions
+      - name: Prune every documentation version but the one being deployed
         run: make docs-prune
 
       - name: Build versioned docs with mike
@@ -61,10 +62,10 @@ jobs:
           FILES=$(find site-output/ -type f | wc -l | tr -d ' ')
           echo "Site output: ${SIZE} MB, ${FILES} files"
           if [ "$SIZE" -gt 80 ]; then
-            echo "::warning::Site output is ${SIZE} MB (Vercel Hobby limit: 100 MB compressed). Consider pruning old versions."
+            echo "::warning::Site output is ${SIZE} MB (Vercel Hobby limit: 100 MB compressed). Only one version is published, so a single version's assets are what grew."
           fi
           if [ "$FILES" -gt 12000 ]; then
-            echo "::warning::Site output has ${FILES} files (Vercel limit: 15,000). Consider pruning old versions."
+            echo "::warning::Site output has ${FILES} files (Vercel limit: 15,000). Only one version is published, so a single version's pages are what grew."
           fi
 
       - name: Install Vercel CLI

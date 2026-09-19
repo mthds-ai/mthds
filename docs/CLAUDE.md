@@ -48,12 +48,15 @@ Canonical URLs are hardcoded to include `/latest/` via the `site_meta` block ove
 
 Deployed to Vercel as pre-built static files. The build pipeline:
 
-1. `make docs-build-versioned` — mike builds versioned docs into local `gh-pages` branch (no push)
-2. `make docs-assemble-site` — extracts `gh-pages` content via temp worktree into `site-output/`, adds root assets (`404.html`, `robots.txt`, `index.html`, `sitemap.xml`, `mthds_schema.json`, `llms.txt`, `llms-full.txt`)
-3. `vercel deploy --prod` — deploys `site-output/` to Vercel
-4. `git push origin gh-pages` — pushes accumulated versions for next CI run
+1. `make docs-prune` — deletes every version on the local `gh-pages` branch but the one being deployed, and any directory `versions.json` no longer names (no push)
+2. `make docs-build-versioned` — mike builds versioned docs into local `gh-pages` branch (no push)
+3. `make docs-assemble-site` — extracts `gh-pages` content via temp worktree into `site-output/`, adds root assets (`404.html`, `robots.txt`, `index.html`, `sitemap.xml`, `mthds_schema.json`, `llms.txt`, `llms-full.txt`)
+4. `vercel deploy --prod` — deploys `site-output/` to Vercel
+5. `git push origin gh-pages` — pushes the pruned branch for the next CI run
 
-The `gh-pages` branch is mike's version accumulator (not a deployment target). Each CI run fetches it, adds the new version locally, deploys to Vercel, then pushes back.
+The `gh-pages` branch is mike's version store (not a deployment target). Each CI run fetches it, prunes it down to the version being deployed, adds that version locally, deploys to Vercel, then pushes back.
+
+**The site serves one version of the standard**, the current one, under its own number and under the `latest` alias mike copies from it. A release retires its predecessor: the previous version's pages stop resolving as soon as the deploy pushes `gh-pages`, and the version selector offers nothing to switch to. Republishing a retired version means checking out its tag and running `mike deploy` for it by hand. The retention is not a list anyone maintains — `scripts/docs-prune.sh` derives it from the version in `pyproject.toml`, and refuses to prune at all if it cannot read one.
 
 Redirects (`/` and `/index.html` to `/latest/`) and `X-Robots-Tag` headers are configured in `vercel.json`.
 

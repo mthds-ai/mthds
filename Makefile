@@ -44,7 +44,6 @@ Allow: /latest/
 Allow: /sitemap.xml
 Allow: /llms.txt
 Allow: /llms-full.txt
-Disallow: /0.
 Disallow: /2.
 Disallow: /pre-release/
 Disallow: /404.html
@@ -71,7 +70,7 @@ make docs-deploy VERSION=x.y.z       - Deploy docs as version x.y.z (local, no p
 make docs-build-versioned             - Build versioned docs with mike (local gh-pages only, no push)
 make docs-assemble-site               - Extract gh-pages content + root assets into site-output/
 make docs-build-site                  - Full pipeline: build versioned + assemble (for local dev)
-make docs-prune                       - Delete versions listed in versions-to-delete.txt (local gh-pages)
+make docs-prune                       - Delete every version but the current one (local gh-pages)
 make docs-delete VERSION=x.y.z       - Delete a documentation version from local gh-pages
 
 make lighthouse                       - Run a Lighthouse audit against the live site
@@ -249,8 +248,8 @@ docs-build-site: docs-build-versioned docs-assemble-site
 	@echo "Complete site ready in site-output/. Run 'vercel dev' to preview locally."
 
 docs-prune: env
-	$(call PRINT_TITLE,Pruning versions listed in versions-to-delete.txt)
-	@bash scripts/docs-prune.sh versions-to-delete.txt $(VENV_MIKE)
+	$(call PRINT_TITLE,Pruning every documentation version but $(DOCS_VERSION))
+	@bash scripts/docs-prune.sh $(VENV_MIKE) $(DOCS_VERSION)
 
 docs-delete: env
 	@if [ -z "$(VERSION)" ]; then echo "ERROR: VERSION is required. Usage: make docs-delete VERSION='x.y.z x.y.z ...'"; exit 1; fi
