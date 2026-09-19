@@ -13,9 +13,18 @@ mthds.ai still answers for an older standard — taken at release time, written 
 reviewed like any other change. An empty pin list is a correct state, and a pin naming a
 version that is no longer published is reported rather than quietly ignored.
 
-Reads mike's `list --json` — or the `versions.json` it writes, which has the same shape —
-on stdin, and prints the versions to retire, one per line. `--explain` prints the whole
-plan for a person instead. Neither mode changes anything.
+A pin is satisfied by anything the site can still serve — a version the index names, or a
+directory that outlived the index, which is the only way left to hold on to one. A pin that
+answers to nothing stops the deploy rather than warning, because it is a typo about to
+retire what it was written to protect; so does an index that names nothing beside a branch
+that still carries versions, and so does a deploy of a version older than one already
+published, which would retire the current standard and repoint `/latest/` at the older one.
+
+Reads mike's `list --json` — or the `versions.json` it writes, which has the same shape — on
+stdin, and takes the branch's top-level directories with `--directories`, so that it decides
+the sweep as well as the retirement and the two cannot disagree. Prints the versions to
+retire, one per line, or with `--orphans` the directories to remove. `--explain` prints the
+whole plan for a person instead. No mode changes anything.
 """
 
 from __future__ import annotations
@@ -29,8 +38,9 @@ from typing import NoReturn, cast
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# The one definition of a version number in the deployment path: the prune script defers
-# to it rather than carrying a second copy that could drift from this one.
+# The one definition of a version number in the deployment path. The prune script reads no
+# version number itself — it hands this script the directories it found and is told which
+# to remove — so there is no second copy here to drift from this one.
 VERSION_RE = re.compile(r"^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$")
 
 
@@ -129,35 +139,82 @@ def read_published() -> list[str]:
     return published
 
 
-def plan(deploying: str, published: list[str], pins: list[str]) -> tuple[dict[str, str], list[str], list[str]]:
-    """Return what is kept and why, what is retired, and the notes worth printing."""
+def plan(
+    deploying: str,
+    published: list[str],
+    pins: list[str],
+    directories: list[str],
+) -> tuple[dict[str, str], list[str], list[str], list[str]]:
+    """Return what is kept and why, what is retired, what is swept, and the notes."""
     notes: list[str] = []
+
+    # Only version-shaped directories are ever candidates for the sweep. Every directory on
+    # the branch is mike's, so in principle anything the index does not name is stale — but
+    # this deletes from the published site unattended, and a directory arriving by some
+    # route nobody has thought of yet should survive to be looked at rather than vanish.
+    version_dirs = [name for name in directories if order(name)]
+
+    # An index that names nothing, beside a branch that still carries versions, is a store
+    # this script cannot read. Sweeping on it would delete every version the site serves and
+    # report success — the silent shape this whole path exists to refuse — so stop instead.
+    if not published and version_dirs:
+        die(
+            "the version index names nothing, yet the branch carries "
+            f"{', '.join(sorted(version_dirs, key=rank, reverse=True))} — refusing to prune "
+            "a store that cannot be read"
+        )
+
+    # Deploying something older than what is already published would retire the current
+    # standard, and the step after this one repoints /latest/ at the older version. Neither
+    # is recoverable from the site, so hand it back rather than guess which was meant.
+    newer = sorted((v for v in published if order(v) and rank(v) > rank(deploying)), key=rank, reverse=True)
+    if newer:
+        die(
+            f"{', '.join(newer)} is published and newer than {deploying} — refusing to prune, "
+            "because this deploy would retire the current standard and repoint /latest/ at an "
+            "older one"
+        )
+
     keep: dict[str, str] = {deploying: "the version being deployed"}
 
     # Newest first by semver, so 0.10.0 outranks 0.9.0 the way a string sort would not.
-    ranked = sorted(
-        (version for version in published if version != deploying and order(version)),
-        key=rank,
-        reverse=True,
-    )
-    if ranked:
-        keep.setdefault(ranked[0], "the release published before it")
+    older = sorted((v for v in published if v != deploying and order(v)), key=rank, reverse=True)
+    if older:
+        keep.setdefault(older[0], "the release published before it")
 
+    # A pin is satisfied by anything the site can still serve: a version the index names, or
+    # a directory that outlived the index, which is the only way left to hold on to one.
     for pin in pins:
         if pin == deploying:
             notes.append(f"{pin} is pinned and is also the version being deployed — the pin adds nothing.")
-        elif pin not in published:
-            notes.append(f"{pin} is pinned but is not published — nothing to retain under that number.")
-        keep.setdefault(pin, "pinned in pyproject.toml")
+            keep.setdefault(pin, "pinned in pyproject.toml")
+        elif pin in published:
+            keep.setdefault(pin, "pinned in pyproject.toml")
+        elif pin in version_dirs:
+            notes.append(
+                f"{pin} is pinned and is served, but versions.json does not name it, so the "
+                "version selector does not offer it."
+            )
+            keep.setdefault(pin, "pinned in pyproject.toml")
+        elif published or version_dirs:
+            # A pin is the one safeguard against an irreversible retirement, so a pin that
+            # answers to nothing is a typo about to retire what it was written to protect.
+            die(
+                f"{pin} is pinned in pyproject.toml, but nothing published and nothing on the "
+                "branch answers to it — refusing to prune on a pin that protects nothing"
+            )
+        else:
+            notes.append(f"{pin} is pinned, but nothing is published yet — the pin applies once something is.")
 
-    # A directory whose name cannot be read is not ours to delete unattended.
+    # A published name that cannot be read is not ours to delete unattended.
     for version in published:
         if order(version) is None:
             keep.setdefault(version, "kept because its name is not a version number")
             notes.append(f"{version} is published under a name that is not a version number, and is kept.")
 
-    retired = sorted((version for version in published if version not in keep), key=rank, reverse=True)
-    return keep, retired, notes
+    retired = sorted((v for v in published if v not in keep), key=rank, reverse=True)
+    orphans = sorted((d for d in version_dirs if d not in keep and d not in published), key=rank, reverse=True)
+    return keep, retired, orphans, notes
 
 
 def crawl_lines(kept: list[str]) -> list[str]:
@@ -169,19 +226,26 @@ def crawl_lines(kept: list[str]) -> list[str]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("deploying", help="the version being deployed")
-    parser.add_argument("--explain", action="store_true", help="print the plan for a person, not the retire list")
+    parser.add_argument("--explain", action="store_true", help="print the plan for a person, not a list")
+    parser.add_argument("--directories", default="", help="the branch's top-level directories, whitespace separated")
+    parser.add_argument("--orphans", action="store_true", help="print the directories to sweep, not the versions to retire")
     parser.add_argument("--pyproject", type=Path, default=ROOT / "pyproject.toml")
     args = parser.parse_args()
 
     if order(args.deploying) is None:
         die(f"refusing to prune — '{args.deploying}' is not a version number")
 
-    keep, retired, notes = plan(args.deploying, read_published(), read_pins(args.pyproject))
+    keep, retired, orphans, notes = plan(
+        args.deploying,
+        read_published(),
+        read_pins(args.pyproject),
+        args.directories.split(),
+    )
 
     if not args.explain:
         for note in notes:
             print(f"note: {note}", file=sys.stderr)
-        print("\n".join(retired))
+        print("\n".join(orphans if args.orphans else retired))
         return
 
     print(f"Documentation retention for {args.deploying}\n")
@@ -192,10 +256,16 @@ def main() -> None:
     if retired:
         print("Retired by the next deploy:")
         print(f"  {' '.join(retired)}\n")
-        print("Retiring is not reversible from the site: republishing one of those means")
-        print("checking its tag out, assembling the site and deploying it by hand.\n")
     else:
         print("Retired by the next deploy:\n  nothing — every published version is retained.\n")
+    if orphans:
+        print("Also removed, because versions.json does not name them — the site serves these")
+        print("today, and the version selector does not offer them:")
+        print(f"  {' '.join(orphans)}\n")
+    if retired or orphans:
+        print("Retiring is not reversible from the site: republishing one of those means")
+        print("checking its tag out, assembling the site and deploying it by hand. A version")
+        print("to keep goes in `[tool.mthds.docs] retain` in pyproject.toml.\n")
     for note in notes:
         print(f"note: {note}")
     if notes:

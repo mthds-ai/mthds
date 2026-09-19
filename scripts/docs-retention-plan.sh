@@ -21,5 +21,8 @@ fi
 
 # A branch with no versions.json is a store that exists but holds nothing.
 LISTING=$(git show "origin/$BRANCH:versions.json" 2>/dev/null || echo '[]')
+# The directories too, because the deploy removes the ones the index does not name, and a
+# checkpoint that omits them cannot be answered for what it does not print.
+DIRECTORIES=$(git ls-tree -d --name-only "origin/$BRANCH" 2>/dev/null || true)
 
-python3 "$HERE/docs_retention.py" "$KEEP" --explain <<<"$LISTING"
+python3 "$HERE/docs_retention.py" "$KEEP" --directories "$DIRECTORIES" --explain <<<"$LISTING"
