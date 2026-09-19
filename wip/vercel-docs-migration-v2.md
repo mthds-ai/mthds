@@ -345,7 +345,7 @@ The following old targets were removed during the migration:
 
 A declarative system for removing old documentation versions from the gh-pages branch.
 
-> **Superseded in this repo.** The hand-maintained list this section describes was a list nobody maintained: it still named versions retired long before, so every deploy pruned nothing and the site reached 138 MB against a 100 MB limit. `mthds` now retains one version — the one being deployed — and `scripts/docs-prune.sh` derives that from `pyproject.toml` rather than from a file. Read this section as the migration's original design; read `scripts/docs-prune.sh` and `docs/CLAUDE.md` for what the repo does. A site replicating this migration should decide its retention the same way: as a rule the deploy applies, not a list a human is trusted to update.
+> **Superseded in this repo.** The hand-maintained list this section describes was a list nobody maintained: it still named versions retired long before, so every deploy pruned nothing and the site reached 138 MB against a 100 MB limit. `mthds` now retains the version being deployed, the release before it, and any version explicitly pinned in `pyproject.toml`; `scripts/docs_retention.py` derives the first two rather than reading them from a list, and the pins are the one place a human decides anything. Read this section as the migration's original design; read `scripts/docs_retention.py`, `scripts/docs-prune.sh` and `docs/CLAUDE.md` for what the repo does. A site replicating this migration should decide its retention the same way: as a rule the deploy applies, not a list a human is trusted to update.
 
 ### versions-to-delete.txt
 

@@ -9,7 +9,7 @@ on:
       - "pyproject.toml"
       - "vercel.json"
       - "Makefile"
-      - "scripts/docs-prune.sh"
+      - "scripts/**"
       - ".github/workflows/docs-deploy.yml"
   workflow_dispatch:
 
@@ -47,7 +47,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Prune every documentation version but the one being deployed
+      - name: Retire the documentation versions the site no longer serves
         run: make docs-prune
 
       - name: Build versioned docs with mike
@@ -62,10 +62,10 @@ jobs:
           FILES=$(find site-output/ -type f | wc -l | tr -d ' ')
           echo "Site output: ${SIZE} MB, ${FILES} files"
           if [ "$SIZE" -gt 80 ]; then
-            echo "::warning::Site output is ${SIZE} MB (Vercel Hobby limit: 100 MB compressed). Only one version is published, so a single version's assets are what grew."
+            echo "::warning::Site output is ${SIZE} MB (Vercel Hobby limit: 100 MB compressed). Either a version's own assets grew or too much is retained — 'make docs-retention' says which versions are kept and why."
           fi
           if [ "$FILES" -gt 12000 ]; then
-            echo "::warning::Site output has ${FILES} files (Vercel limit: 15,000). Only one version is published, so a single version's pages are what grew."
+            echo "::warning::Site output has ${FILES} files (Vercel limit: 15,000). Either a version's own pages grew or too much is retained — 'make docs-retention' says which versions are kept and why."
           fi
 
       - name: Install Vercel CLI

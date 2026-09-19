@@ -38,6 +38,12 @@
       ]
     },
     {
+      "source": "/0.(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex, follow" }
+      ]
+    },
+    {
       "source": "/2.(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, follow" }
