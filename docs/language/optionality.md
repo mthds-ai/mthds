@@ -44,6 +44,8 @@ Templates that reference optional inputs must guard those references. Valid guar
 
 Unguarded optional references are validation errors.
 
+Being optional does not exempt an input from being read: `PipeLLM`, `PipeImgGen`, `PipeSearch` and `PipeCompose` reject a declared input they never read, whether it is optional or not. A guarded reference such as `@?note` counts as a read.
+
 ## Controllers Under Absence
 
 - `PipeSequence` propagates skipped outputs through later steps. If the final output can be absent, the sequence output must be declared `?`.

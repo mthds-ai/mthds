@@ -365,6 +365,8 @@ PipeImgGen does not consume a dedicated "prompt" concept. The prompt is a string
 - **`Text` inputs** are interpolated into the prompt text via `$variable` shorthand or Jinja2.
 - **`Image` inputs** (a single image or a list) are referenced in the prompt and injected as **reference images**: each referenced image is replaced by an `[Image N]` token in the rendered text and passed to the generator alongside it. This is the same vision pattern used for image inputs to `PipeLLM`, and it enables image-to-image, reference-image, and image-editing generation, bounded by the model's image limit.
 
+Every variable referenced in the `prompt` or `negative_prompt` must correspond to a declared input, and every declared input must be referenced in one of them. Unused inputs are rejected: an `Image` input that the prompt never references would never reach the generator.
+
 **Key fields:**
 
 | Field | Required | Description |
@@ -469,6 +471,8 @@ prompt      = "What's the latest news on $topic?"
 | `include_domains` | No | Restrict search to these domains only (e.g., `["reuters.com", "bbc.com"]`). |
 | `exclude_domains` | No | Exclude results from these domains. |
 
+Every variable referenced in the prompt must correspond to a declared input, and every declared input must be referenced in the prompt. Unused inputs are rejected.
+
 **Constraints:** The output must be `SearchResult` or a concept that refines `SearchResult`.
 
 ## PipeCompose
@@ -498,7 +502,11 @@ The `template` field can be a plain string (as above) or a table with additional
 
 ```toml
 [pipe.format_report.template]
-template = "# Report for $candidate_name"
+template = """
+# Report for $candidate_name
+
+@analysis.summary
+"""
 category = "markdown"
 
 [pipe.format_report.template.templating_style]
@@ -575,14 +583,18 @@ All declared inputs are available as variables in the template. The optional `ex
 
 ```toml
 [pipe.format_report.template]
-template = "Version: $version — Report for $candidate_name"
+template = """
+Version: $version — Report for $candidate_name
+
+@analysis.summary
+"""
 category = "basic"
 
 [pipe.format_report.template.extra_context]
 version = "2.0"
 ```
 
-Every variable referenced in the template must correspond to a declared input or an `extra_context` key.
+Every variable referenced in the template must correspond to a declared input or an `extra_context` key, and every declared input must be referenced in the template. Unused inputs are rejected.
 
 **`category` values:** `basic`, `expression`, `html`, `markdown`, `mermaid`, `llm_prompt`, `img_gen_prompt`.
 
@@ -615,6 +627,8 @@ Each field in the `construct` table defines how a field of the output concept is
 | `{ from = "path", list_to_dict_keyed_by = "attr" }` | Variable reference with transform | Converts a list to a dict keyed by the named attribute. |
 | `{ template = "..." }` | Template | The field value is rendered from a Jinja2 template string. |
 | Nested table (no `from` or `template` key) | Nested construct | The field is recursively composed. |
+
+The root of every `from` path and of every variable in a field template must be a declared input, and every declared input must be read by at least one of them, nested constructs included. Unused inputs are rejected.
 
 **Constraint:** PipeCompose output must be a single concept — multiplicity (`[]` or `[N]`) is not allowed.
 

@@ -340,13 +340,14 @@ This section consolidates the validation rules scattered throughout this specifi
 1. **PipeLLM**: All prompt variables MUST have matching inputs. All inputs MUST be used.
 2. **PipeStructure**: Exactly one input MUST be declared. The input concept MUST be `Text` or refine `Text`. `output` MUST NOT be `Text` or refine `Text`.
 3. **PipeFunc**: `function_name` MUST be present.
-4. **PipeImgGen**: `prompt` MUST be present. All prompt variables MUST have matching inputs.
+4. **PipeImgGen**: `prompt` MUST be present. All prompt and negative_prompt variables MUST have matching inputs. All inputs MUST be used.
 5. **PipeExtract**: Exactly one input MUST be declared. `output` MUST be `"Page[]"`.
-6. **PipeCompose**: Exactly one of `template` or `construct` MUST be present. Output MUST NOT use multiplicity.
-7. **PipeSequence**: `steps` MUST have at least one entry.
-8. **PipeParallel**: `output` MUST be `Composite` or a structured concept, MUST NOT use multiplicity, and structured output fields MUST match branch `result` names.
-9. **PipeCondition**: Exactly one of `expression_template` or `expression` MUST be present. `outcomes` MUST have at least one entry.
-10. **PipeBatch**: `input_list_name` MUST be in `inputs`. `input_item_name` MUST NOT equal `input_list_name` or any `inputs` key.
+6. **PipeSearch**: `prompt` MUST be present. All prompt variables MUST have matching inputs. All inputs MUST be used. `output` MUST be `SearchResult` or refine `SearchResult`.
+7. **PipeCompose**: Exactly one of `template` or `construct` MUST be present. Output MUST NOT use multiplicity. All template and construct variables MUST have matching inputs. All inputs MUST be used.
+8. **PipeSequence**: `steps` MUST have at least one entry.
+9. **PipeParallel**: `output` MUST be `Composite` or a structured concept, MUST NOT use multiplicity, and structured output fields MUST match branch `result` names.
+10. **PipeCondition**: Exactly one of `expression_template` or `expression` MUST be present. `outcomes` MUST have at least one entry.
+11. **PipeBatch**: `input_list_name` MUST be in `inputs`. `input_item_name` MUST NOT equal `input_list_name` or any `inputs` key.
 
 ### Manifest Validation
 
