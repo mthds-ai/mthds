@@ -376,12 +376,12 @@ signature_for = "PipeLLM"
 
 ### Inputs Read Through Templates
 
-PipeLLM, PipeImgGen, PipeSearch and PipeCompose read their inputs through templates, and the validation rules of each operator name the fields that do the reading. For these four operators the input rule runs in both directions: every variable those fields reference MUST correspond to a declared input, and every declared input MUST be read by at least one of them. A declared input that no such field reads is rejected.
+PipeLLM, PipeImgGen, PipeSearch and PipeCompose read their inputs through templates, and the validation rules of each operator name the fields that do the reading. For these four operators the input rule runs in both directions: every variable those fields reference MUST correspond to a declared input, apart from the names the operator's own rules exclude, and every declared input MUST be read by at least one of them. A declared input that no such field reads is rejected.
 
 A template variable reads an input when the variable's dotted path is the input's name, or begins with the input's name followed by a dot:
 
 - `$deal.customer_name` reads the input `deal`.
-- A [dotted input name](#input-names) such as `"page.page_view"` is read by `@page.page_view` or `{{ page.page_view.text }}`, but not by `@page` alone.
+- A [dotted input name](#input-names) such as `"page.page_view"` is read by `@page.page_view` or `{{ page.page_view.text }}`, but not by `@page` alone. PipeImgGen, PipeSearch and PipeCompose match every variable they read against a declared input by its root, so on these operators the root `page` MUST be declared as well.
 - An optional (`?`) input is not exempt. A conditional reference such as `@?note` or `{% if note %}…{% endif %}` reads it.
 
 ## Operator: PipeLLM
