@@ -65,7 +65,8 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 **PipeImgGen:**
 
 - `prompt` MUST be present.
-- All prompt variables MUST have matching inputs.
+- All prompt and negative_prompt variables MUST have matching inputs.
+- All inputs MUST be referenced in prompt or negative_prompt.
 
 **PipeExtract:**
 
@@ -76,6 +77,7 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 
 - `prompt` MUST be present.
 - All prompt variables MUST have matching inputs.
+- All inputs MUST be referenced in prompt.
 - `output` MUST be `SearchResult` or a concept that refines `SearchResult`.
 
 **PipeCompose:**
@@ -83,6 +85,7 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 - Exactly one of `template` or `construct` MUST be present.
 - `output` MUST NOT use multiplicity brackets (`[]` or `[N]`).
 - All template/construct variables MUST have matching inputs.
+- All inputs MUST be referenced in the template, or in construct mode by a `from` path or a field template, nested constructs included.
 
 **PipeSequence:**
 

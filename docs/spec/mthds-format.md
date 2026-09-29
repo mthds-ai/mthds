@@ -374,6 +374,16 @@ output        = "Text"
 signature_for = "PipeLLM"
 ```
 
+### Inputs Read Through Templates
+
+PipeLLM, PipeImgGen, PipeSearch and PipeCompose read their inputs through templates, and the validation rules of each operator name the fields that do the reading. For these four operators the input rule runs in both directions: every variable those fields reference MUST correspond to a declared input, apart from the names the operator's own rules exclude, and every declared input MUST be read by at least one of them. A declared input that no such field reads is rejected.
+
+A template variable reads an input when the variable's dotted path is the input's name, or begins with the input's name followed by a dot:
+
+- `$deal.customer_name` reads the input `deal`.
+- A [dotted input name](#input-names) such as `"page.page_view"` is read by `@page.page_view` or `{{ page.page_view.text }}`, but not by `@page` alone. PipeImgGen, PipeSearch and PipeCompose match every variable they read against a declared input by its root, so on these operators the root `page` MUST be declared as well.
+- An optional (`?`) input is not exempt. A conditional reference such as `@?note` or `{% if note %}…{% endif %}` reads it.
+
 ## Operator: PipeLLM
 
 Generates output by invoking a large language model with a prompt.
@@ -401,7 +411,7 @@ Generates output by invoking a large language model with a prompt.
 **Validation rules:**
 
 - Every variable referenced in `prompt` and `system_prompt` MUST correspond to a declared input (by root name). Internal variables starting with `_` and the special names `preliminary_text` and `place_holder` are excluded from this check.
-- Every declared input MUST be referenced by at least one variable in `prompt` or `system_prompt`. Unused inputs are rejected.
+- Every declared input MUST be referenced by at least one variable in `prompt` or `system_prompt`. Unused inputs are rejected (see [Inputs Read Through Templates](#inputs-read-through-templates)).
 
 **Example:**
 
@@ -541,6 +551,7 @@ Generates images using an image generation model. The pipe carries a required `p
 **Validation rules:**
 
 - Every variable referenced in `prompt` or `negative_prompt` MUST correspond to a declared input.
+- Every declared input MUST be referenced by at least one variable in `prompt` or `negative_prompt`. Unused inputs are rejected (see [Inputs Read Through Templates](#inputs-read-through-templates)).
 - `output` MUST resolve to an `Image`-compatible concept.
 - Any input referenced as a reference image in the `prompt` or `negative_prompt` MUST resolve to an `Image`-compatible concept (single or list).
 
@@ -675,6 +686,7 @@ Searches the web using a search provider and returns structured results.
 **Validation rules:**
 
 - Every variable referenced in `prompt` MUST correspond to a declared input.
+- Every declared input MUST be referenced by at least one variable in `prompt`. Unused inputs are rejected (see [Inputs Read Through Templates](#inputs-read-through-templates)).
 - `output` MUST be `SearchResult` or a concept that refines `SearchResult`.
 
 **Example:**
@@ -783,6 +795,7 @@ The `templating_style` field controls how template output is formatted, particul
 **Validation rules (template mode):**
 
 - Every variable referenced in the template MUST correspond to a declared input.
+- Every declared input MUST be referenced by at least one variable in the template. Unused inputs are rejected (see [Inputs Read Through Templates](#inputs-read-through-templates)).
 - `output` MUST NOT use multiplicity brackets (`[]` or `[N]`).
 
 ### Construct Mode
@@ -808,6 +821,7 @@ The `construct` table defines how each field of the output concept is composed. 
 **Validation rules (construct mode):**
 
 - The root variable of every `from` path and every template variable MUST correspond to a declared input.
+- Every declared input MUST be referenced by at least one `from` path or by at least one variable in a field template, nested constructs included. Unused inputs are rejected (see [Inputs Read Through Templates](#inputs-read-through-templates)).
 - `from` and `template` are mutually exclusive within a single field definition.
 
 **Example — construct mode:**

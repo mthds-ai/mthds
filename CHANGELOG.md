@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v3.0.0 · MTHDS standard 3.0.0 · MTHDS Protocol 0.6.0**
+
+### Changed
+
+- **PipeImgGen, PipeSearch and PipeCompose reject a declared input they never read (Breaking)** (`spec/mthds-format.md`): as for PipeLLM, every declared input must be referenced by the fields that read the pipe's inputs — `prompt` or `negative_prompt` for PipeImgGen, `prompt` for PipeSearch, the template for PipeCompose, and in construct mode every `from` path and field template, nested constructs included — and an optional input is not exempt. A new section, Inputs Read Through Templates, states when a template variable reads an input, including a dotted input name. A bundle declaring an input one of these pipes never reads must reference it or remove it from `inputs`.
+
 ## [v2.1.1] - 2026-09-19
 
 **MTHDS standard 2.1.1 · MTHDS Protocol 0.6.0**
