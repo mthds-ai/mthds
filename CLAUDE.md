@@ -46,8 +46,8 @@ Pipelex does NOT appear in: the landing page, the Language section, the Package 
 - `PROTOCOL_VERSION` = `"0.6.0"` — the HTTP runner protocol, versioned on its own cadence, independently of the standard version.
 - `RESERVED_DOMAINS` = `{"native", "mthds", "pipelex"}`
 - `NATIVE_PACKAGE_ADDRESS` = `"__native__"`
-- Native concepts: the built-in native concepts (Dynamic, Text, Image, Document, Html, TextAndImages, Number, YesNo, Date, Time, Page, JSON, SearchResult, Anything, Composite)
-- Pipe types: operators (PipeLLM, PipeStructure, PipeFunc, PipeImgGen, PipeExtract, PipeSearch, PipeCompose) + controllers (PipeBatch, PipeCondition, PipeParallel, PipeSequence)
+- Native concepts: the built-in native concepts (Dynamic, Text, Image, Document, Html, TextAndImages, Number, YesNo, Choice, Rating, Date, Time, Page, JSON, SearchResult, Anything, Composite)
+- Pipe types: operators (PipeLLM, PipeStructure, PipeFunc, PipeImgGen, PipeExtract, PipeSearch, PipeJudge, PipeCompose) + controllers (PipeBatch, PipeCondition, PipeParallel, PipeSequence)
 - Concept field types: text, list, dict, integer, boolean, number, date, datetime, time, concept
 - Template categories: basic, expression, html, markdown, mermaid, llm_prompt, img_gen_prompt
 

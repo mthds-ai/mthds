@@ -23,7 +23,7 @@ After parsing TOML into a dictionary, validate the bundle structure:
 2. `domain` MUST be a valid domain code: one or more `snake_case` segments (`[a-z][a-z0-9_]*`) separated by `.`.
 3. `main_pipe`, if present, MUST be `snake_case` and MUST reference a pipe defined in the same bundle.
 4. Concept codes MUST be `PascalCase` (`[A-Z][a-zA-Z0-9]*`).
-5. Concept codes MUST NOT match any native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`).
+5. Concept codes MUST NOT match any native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Choice`, `Rating`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`).
 6. Pipe codes MUST be `snake_case` (`[a-z][a-z0-9_]*`).
 7. `refines` and `structure` MUST NOT both be set on the same concept.
 
@@ -79,6 +79,14 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 - All prompt variables MUST have matching inputs.
 - All inputs MUST be referenced in prompt.
 - `output` MUST be `SearchResult` or a concept that refines `SearchResult`.
+
+**PipeJudge:**
+
+- Exactly one of `question` or `prompt` MUST be present; both present is rejected, naming `question`.
+- All question variables MUST have matching inputs. An input need not be referenced, since every input is sent to the model as the material to judge.
+- `options` and `levels` MUST NOT both be present. `options` MUST hold at least two entries with non-empty keys; `levels` at least two non-empty strings.
+- `criteria` and `threshold` MUST NOT be present beside `options` or `levels`. `criteria` accepts only the keys `yes` and `no`; `threshold` MUST be strictly between 0 and 1.
+- `output` MUST be `YesNo` (no `options` or `levels`), `Choice` (`options`) or `Rating` (`levels`), or a concept that refines it, and MUST NOT use multiplicity brackets.
 
 **PipeCompose:**
 

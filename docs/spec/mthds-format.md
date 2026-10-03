@@ -227,6 +227,8 @@ Native concepts are built-in types that are always available in every bundle wit
 | `TextAndImages` | `native.TextAndImages` | Combined text and image content. |
 | `Number` | `native.Number` | A numeric value. |
 | `YesNo` | `native.YesNo` | The answer to a yes/no question. |
+| `Choice` | `native.Choice` | One option picked out of a declared set. |
+| `Rating` | `native.Rating` | A position on an ordered scale of described levels. |
 | `Date` | `native.Date` | A calendar date, optionally with a time of day. |
 | `Time` | `native.Time` | A time of day, optionally with a UTC offset. |
 | `Page` | `native.Page` | A single page extracted from a document. |
@@ -340,6 +342,7 @@ MTHDS defines pipe types in two categories:
 | PipeImgGen | `"PipeImgGen"` | Generates images using an image generation model. |
 | PipeExtract | `"PipeExtract"` | Extracts structured content from documents. |
 | PipeSearch | `"PipeSearch"` | Searches the web and returns structured results. |
+| PipeJudge | `"PipeJudge"` | Asks a judging model a closed question about its inputs and returns a verdict. |
 | PipeCompose | `"PipeCompose"` | Composes output from templates or constructs. |
 
 **Controllers** — pipes that orchestrate other pipes:
@@ -383,6 +386,8 @@ A template variable reads an input when the variable's dotted path is the input'
 - `$deal.customer_name` reads the input `deal`.
 - A [dotted input name](#input-names) such as `"page.page_view"` is read by `@page.page_view` or `{{ page.page_view.text }}`, but not by `@page` alone. PipeImgGen, PipeSearch and PipeCompose match every variable they read against a declared input by its root, so on these operators the root `page` MUST be declared as well.
 - An optional (`?`) input is not exempt. A conditional reference such as `@?note` or `{% if note %}…{% endif %}` reads it.
+
+PipeJudge is not among these operators. Its inputs reach the model as the named material the question is asked about, not through its `question` template, so a declared input it never references is still read (see [Operator: PipeJudge](#operator-pipejudge)).
 
 ## Operator: PipeLLM
 
@@ -739,6 +744,130 @@ prompt      = "What are the main details about $topic?"
 model       = { model = "linkup-deep", include_images = false }
 ```
 
+## Operator: PipeJudge
+
+Asks a judging model one closed question about its inputs and returns the verdict with whatever uncertainty the model reports: a yes or a no, one option out of a declared set, or one level on a declared scale.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | `"PipeJudge"` | Yes | — |
+| `description` | string | Yes | — |
+| `inputs` | table | No | The material the question is asked about. |
+| `output` | string | Yes | MUST agree with the question's kind: `YesNo`, `Choice` or `Rating`, or a concept that refines it. |
+| `question` | string | Yes (if no `prompt`) | The question template. Supports Jinja2 syntax and the `@variable` / `$variable` shorthand. |
+| `prompt` | string | Yes (if no `question`) | A synonym of `question`, read exactly as it. |
+| `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [judgment settings](#inline-judgment-settings) table. |
+| `options` | table | No | The options of a choice question: each key is an option, each value describes it. |
+| `levels` | array of strings | No | The levels of a rating question, from lowest to highest, each describing a situation. |
+| `criteria` | table | No | What a yes and a no mean, for a yes/no question: optional `yes` and `no` descriptions. |
+| `threshold` | number | No | For a yes/no question, the probability of yes at or above which the verdict is yes. |
+
+**The question's kind** is decided by which of `options` and `levels` the pipe declares, never by a separate field:
+
+| The pipe declares | Kind | `output` MUST be |
+|-------------------|------|------------------|
+| neither `options` nor `levels` | yes/no | `YesNo` or a concept that refines it |
+| `options` | choice | `Choice` or a concept that refines it |
+| `levels` | rating | `Rating` or a concept that refines it |
+
+**`prompt` is a synonym of `question`.** Every other inference operator calls its template `prompt`, so a PipeJudge MAY spell the field `prompt` instead, and an implementation MUST read it exactly as `question`. Exactly one of the two MUST be set: a pipe setting both is rejected, and the rejection names `question`. A tool that writes a PipeJudge MUST write `question`.
+
+**The inputs are the material, not the question.** Every declared input is presented to the judging model by name, beside the question and separate from it, so the model judges the material rather than a paraphrase of it. An implementation SHOULD present the material as one object with one member per declared input, keyed by the input's name. An optional input that resolves as a recorded absence is left out of the material. The question MAY also reference an input, which suits a short parameter (`"Is the message about $topic?"`), and such an input is still part of the material.
+
+**Validation rules:**
+
+- Exactly one of `question` and `prompt` MUST be set.
+- Every variable referenced in `question` MUST correspond to a declared input. A declared input need not be referenced.
+- `options` and `levels` MUST NOT both be set.
+- `options`, when set, MUST hold at least two options. Each key MUST be a non-empty string, and each value a string; an empty string is an option with no description.
+- `levels`, when set, MUST hold at least two levels, each a non-empty string. A level's position in the array is its index, counted from `0`.
+- `criteria` and `threshold` MUST NOT be set beside `options` or `levels`.
+- `criteria`, when set, MUST be a table whose keys are among `yes` and `no`, each a string. Any other key MUST be rejected.
+- `threshold`, when set, MUST be a number strictly between `0` and `1`.
+- `output` MUST agree with the question's kind, per the table above, and MUST NOT carry a multiplicity suffix: a PipeJudge produces one verdict. To judge each item of a list, map the PipeJudge over it with a [PipeBatch](#controller-pipebatch).
+
+**The verdict.** The output is a [verdict native](./native-concepts.md#verdict-natives) whose required member is always set, and whose uncertainty members are set only when the judging model reports them:
+
+- A yes/no question produces a `YesNo`. When the model reports a probability of yes, `probability` carries it.
+- A choice question produces a `Choice` whose `choice` is one of the keys of `options`, and whose `probabilities`, when present, are keyed by those same keys.
+- A rating question produces a `Rating` whose `level` is an index into `levels`, and whose `probabilities`, when present, are keyed by those indices written as text.
+
+An implementation MUST NOT synthesize an uncertainty member the model did not report — no `probability` of `1` read off a bare yes, no `confidence` invented for a model that has none.
+
+**The threshold.** When a yes/no question's model reports a probability, `yes_no` is `true` exactly when that probability is at or above `threshold`, and the default threshold is `0.5`. When the model reports no probability, the threshold has nothing to apply to and the model's own verdict stands; when the pipe declares a `threshold`, an implementation SHOULD warn that it was not applied.
+
+Because a `Choice`'s `choice` is a plain string, a [PipeCondition](#controller-pipecondition) routes on it directly, with one outcome per option key.
+
+**Example — a yes/no question:**
+
+```toml
+[pipe.judge_is_urgent]
+type        = "PipeJudge"
+description = "Decide whether a message is urgent"
+inputs      = { message = "Text" }
+output      = "YesNo"
+question    = "Is the message urgent?"
+threshold   = 0.8
+
+[pipe.judge_is_urgent.criteria]
+yes = "The sender needs an answer today, or something stops working without one"
+no  = "The message can wait for the next working day"
+```
+
+**Example — a choice question:**
+
+```toml
+[pipe.route_ticket]
+type        = "PipeJudge"
+description = "Pick the team that should handle a ticket"
+inputs      = { ticket = "Ticket" }
+output      = "Choice"
+question    = "Which team should handle the ticket?"
+
+[pipe.route_ticket.options]
+returns  = "Exchanges, refunds, wrong or damaged items"
+shipping = "Delivery status, delays, lost packages"
+billing  = "Charges, invoices, payment problems"
+other    = "None of the above"
+```
+
+**Example — a rating question:**
+
+```toml
+[pipe.rate_severity]
+type        = "PipeJudge"
+description = "Rate how severe a reported issue is"
+inputs      = { report = "BugReport" }
+output      = "Rating"
+question    = "How severe is the reported issue?"
+levels      = [
+  "Cosmetic; no impact on functionality",
+  "Broken or degraded feature, but a workaround exists",
+  "Blocking issue; no workaround exists",
+]
+```
+
+### Inline Judgment Settings
+
+When the `model` field is a table instead of a string, it defines inline model settings using the `JudgmentSetting` structure:
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | The model handle. |
+| `description` | string | No | Human-readable description of this model configuration. |
+
+**Example — inline judgment settings:**
+
+```toml
+[pipe.judge_is_spam]
+type        = "PipeJudge"
+description = "Decide whether an email is spam"
+inputs      = { email = "Text" }
+output      = "YesNo"
+question    = "Is the email unsolicited bulk advertising?"
+model       = { model = "verdict-small", description = "A fast model for screening" }
+```
+
 ## Operator: PipeCompose
 
 Composes output by assembling data from working memory using either a template or a construct. Exactly one of `template` or `construct` MUST be provided.
@@ -772,7 +901,7 @@ MTHDS defines three shorthand patterns that a compliant preprocessor MUST expand
 - When a matched name ends with a `.` (dot), the preprocessor MUST strip the trailing dot from the variable name and place it after the expanded expression (treating it as sentence punctuation).
 - Raw Jinja2 syntax (`{{ }}`, `{% %}`) MUST always be accepted alongside the shorthands.
 
-These shorthands apply to the `template` field of PipeCompose, the `prompt` and `system_prompt` fields of PipeLLM, the `prompt` and `negative_prompt` fields of PipeImgGen, and the `prompt` field of PipeSearch. See [Pipes — Operators: Template Mode](../language/pipes-operators.md#template-mode) for the full reference on categories and filters.
+These shorthands apply to the `template` field of PipeCompose, the `prompt` and `system_prompt` fields of PipeLLM, the `prompt` and `negative_prompt` fields of PipeImgGen, the `prompt` field of PipeSearch, and the `question` field of PipeJudge (or `prompt`, its synonym). See [Pipes — Operators: Template Mode](../language/pipes-operators.md#template-mode) for the full reference on categories and filters.
 
 **Template blueprint fields (table form):**
 
