@@ -15,7 +15,7 @@ The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](
 | `POST` | `/execute` | Execute a method synchronously; the full output comes back in the response. |
 | `POST` | `/start` | Start a method asynchronously; returns its `pipeline_run_id` immediately (202). Completion delivery is implementation-defined. |
 | `POST` | `/validate` | Parse, validate, and dry-run an MTHDS bundle. |
-| `GET` | `/models` | The models this runner can route to. Optional `?type=` filter (`llm` · `extract` · `img_gen` · `search`). |
+| `GET` | `/models` | The models this runner can route to. Optional `?type=` filter on the [model category](#model-categories) (`llm` · `extract` · `img_gen` · `search` · `judgment`). |
 | `GET` | `/version` | Always public. Protocol and runner versions — the handshake clients use for feature detection. |
 
 All errors are [RFC 7807](https://www.rfc-editor.org/rfc/rfc7807) `application/problem+json` documents. Auth is implementation-defined: a bearer-token slot is reserved, and anonymous access is allowed for self-hosted runners.
@@ -84,12 +84,35 @@ A client pattern-matches `is_valid` to learn the verdict — it never inspects a
 
 ```json
 {
-  "protocol_version": "0.6.0",
+  "protocol_version": "0.7.0",
   "runner_version": "2.3.0"
 }
 ```
 
 Clients use `/version` as the handshake: it reports the protocol and runner versions, and any additional properties let clients detect vendor extensions before relying on them.
+
+### Model categories
+
+A deck entry's `type` is its model category. A category is a settings family of the language: it names the inline settings structure a model serves, and so the pipes whose `model` field can name that model.
+
+| Category | Settings family | Pipes that name a model of it |
+|---|---|---|
+| `llm` | [`LLMSetting`](./mthds-format.md#inline-llm-settings) | `PipeLLM`, `PipeStructure` |
+| `extract` | [`ExtractSetting`](./mthds-format.md#inline-extract-settings) | `PipeExtract` |
+| `img_gen` | [`ImgGenSetting`](./mthds-format.md#inline-image-generation-settings) | `PipeImgGen` |
+| `search` | [`SearchSetting`](./mthds-format.md#inline-search-settings) | `PipeSearch` |
+| `judgment` | [`JudgmentSetting`](./mthds-format.md#inline-judgment-settings) | `PipeJudge` |
+
+The category follows the settings family, not the operator: `PipeStructure` takes `LLMSetting`, so its models are listed under `llm`. When the standard adds a settings family, the protocol adds its category in its next minor version.
+
+The two sides of the wire carry different obligations:
+
+- **A runner emits only the protocol's categories.** A runner MUST NOT put a value the protocol does not define in a deck entry's `type`, and MUST NOT accept one on the `?type=` filter, which answers it with a `422`. A model of a family the protocol does not define — a vendor's own operator — is reported, if at all, under an extension property of the runner's choosing, never under an invented category and never as an entry of `models` without one.
+- **A client accepts any category.** A client reading a model list MUST NOT fail it because an entry carries a category it does not recognize; it keeps that entry with its raw value or leaves it out.
+
+The `enum` on a deck entry's `type` in the OpenAPI document is the emitter's contract, the set a runner may report. A client that derives its types or its validation from that document widens the field to any string, as the reader rule requires.
+
+The reader rule is what makes a new category a minor change: a client written against one protocol version keeps working when a runner of a later minor version reports a category the client has never heard of. It governs a client *reading* a list on purpose. A tool that checks a runner, such as a conformance harness, is checking the emitter rule and stays free to reject an unknown value. In the other direction, a client that filters on a category its runner's protocol version does not define gets a `422`, and learns from `GET /version` which protocol version the runner implements.
 
 ## Extension policy
 
@@ -97,9 +120,9 @@ Implementations may extend the surface — extra routes, extra optional request 
 
 ## Conformance
 
-An implementation claiming conformance states it as: *implements MTHDS Protocol v0.6*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, and `/version` is public.
+An implementation claiming conformance states it as: *implements MTHDS Protocol v0.7*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, and `/version` is public.
 
-The protocol number moves under its own rule — a new route or a new optional field is a minor bump, a changed shape or meaning is a major one — independently of the standard version. The recommended extension fields above are not such an addition: they are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number. See [Versioning](./versioning.md#the-protocol-version).
+The protocol number moves under its own rule — a new route, a new optional field or a new [model category](#model-categories) is a minor bump, a changed shape or meaning is a major one — independently of the standard version. The recommended extension fields above are not such an addition: they are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number. See [Versioning](./versioning.md#the-protocol-version).
 
 ## Route reference
 

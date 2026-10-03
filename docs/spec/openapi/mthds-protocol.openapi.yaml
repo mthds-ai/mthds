@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: MTHDS Protocol
-  version: 0.6.0
+  version: 0.7.0
   summary: The minimal HTTP contract every MTHDS runner implements.
   description: >
     Five routes. Any server implementing them is an MTHDS-compliant runner. A runner
@@ -130,14 +130,20 @@ paths:
           required: false
           schema:
             type: string
-            enum: [llm, extract, img_gen, search]
-          description: Filter the deck by model category.
+            enum: [llm, extract, img_gen, search, judgment]
+          description: >
+            Filter the deck by model category. A value outside the enum is a 422: a
+            runner MUST NOT accept a category the protocol does not define, so a
+            category that a later protocol version adds is a 422 from a runner of an
+            earlier one.
       responses:
         '200':
           description: The model deck.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ModelDeck' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
         default:
           $ref: '#/components/responses/Problem'
   /version:
@@ -344,7 +350,11 @@ components:
       description: >
         The models this runner can route to. Implementations MAY add their own
         routing metadata (aliases, fallback chains, anything else) as
-        additional properties — on the deck and on each model entry.
+        additional properties — on the deck and on each model entry. A model of a
+        family the protocol does not define, such as a vendor's own operator, is
+        reported, if at all, under an extension property of the runner's choosing,
+        never under an invented category and never as an entry of models without
+        one.
       additionalProperties: true
       properties:
         models:
@@ -354,7 +364,19 @@ components:
             additionalProperties: true
             properties:
               name: { type: string }
-              type: { type: string, enum: [llm, extract, img_gen, search] }
+              type:
+                type: string
+                enum: [llm, extract, img_gen, search, judgment]
+                description: >
+                  The model's category: the inline settings family of the language
+                  that the model serves, and so the pipes that can name it, as the
+                  table under "Model categories" on the protocol page states. A
+                  runner MUST NOT emit a value outside this enum. A client reading a
+                  model list MUST NOT fail it because an entry carries a category it
+                  does not recognize; it keeps that entry with its raw value or
+                  leaves it out. The enum is the emitter's contract: a client that
+                  derives its types or its validation from this document widens
+                  this field to any string.
     VersionInfo:
       type: object
       description: >

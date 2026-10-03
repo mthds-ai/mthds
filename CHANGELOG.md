@@ -2,14 +2,17 @@
 
 ## [Unreleased]
 
-**Next release: v3.0.0 · MTHDS standard 3.0.0 · MTHDS Protocol 0.6.0**
+**Next release: v3.0.0 · MTHDS standard 3.0.0 · MTHDS Protocol 0.7.0**
 
 ### Added
 
 - **PipeJudge** (`spec/mthds-format.md`): a new operator asks a judging model one closed question about its inputs — yes or no, one key out of its `options`, or one index into its `levels` — and returns the verdict as a `YesNo`, `Choice` or `Rating` carrying whatever uncertainty the model reports, with an optional `threshold` deciding a yes. Its template field is `question`, with `prompt` read as a synonym, and its inputs reach the model by name as the material to judge, so unlike the other inference operators it does not reject an input its question never references.
 - **The verdict natives `Choice` and `Rating`, and `YesNo`'s `probability` (Breaking)** (`spec/native-concepts.md`): the native set is re-pinned at 3.0.0, adding `Choice` (a required `choice`, optional `confidence` and `probabilities`) and `Rating` (a required `level`, optional `confidence`, `probabilities` and `position`), and an optional `probability` on `YesNo`. A bundle declaring its own `Choice` or `Rating` concept must rename it, since native codes are reserved, and a crate normalized at 3.0.0 materializes the new `YesNo` and so gets a new fingerprint. The input-form descriptor keeps `YesNo` a `boolean`, the output-form descriptor now states a `YesNo` as an `object` carrying `yes_no` and `probability`, and both state `Choice` and `Rating` as `object`s.
+- **The `judgment` model category (Breaking)** (`spec/protocol.md`): `GET /models` lists a model that serves `PipeJudge` under the category `judgment`, and its `?type=` filter accepts the value; a client that checks a deck entry's `type` against the previous closed set fails on such an entry until it follows the reader rule below. The protocol page now defines a model category as a settings family of the language, with a table giving each category's settings family and the pipes that name its models, and the protocol adds a category in its next minor version whenever the standard adds a settings family.
 
 ### Changed
+
+- **A client accepts a model category it does not recognize (Breaking)** (`spec/protocol.md`): a client reading a model list must not fail it because an entry carries a category it does not recognize, and keeps that entry with its raw value or leaves it out, while a runner still emits only the protocol's categories, reports a vendor's own model family under an extension property and answers an undefined `?type=` value with a `422`. `spec/versioning.md` now counts a new value of an enumerated response field as a minor protocol change, which moves the protocol to `0.7.0`; a client that checks a deck entry's `type` against a closed set must accept an unknown value instead.
 
 - **PipeImgGen, PipeSearch and PipeCompose reject a declared input they never read (Breaking)** (`spec/mthds-format.md`): as for PipeLLM, every declared input must be referenced by the fields that read the pipe's inputs — `prompt` or `negative_prompt` for PipeImgGen, `prompt` for PipeSearch, the template for PipeCompose, and in construct mode every `from` path and field template, nested constructs included — and an optional input is not exempt. A new section, Inputs Read Through Templates, states when a template variable reads an input, including a dotted input name. A bundle declaring an input one of these pipes never reads must reference it or remove it from `inputs`.
 
