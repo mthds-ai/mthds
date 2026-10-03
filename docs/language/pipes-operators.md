@@ -538,7 +538,7 @@ levels      = [
 
 **Writing a good judgment.** Ask one narrow question per pipe. Describe each option and each level as a concrete situation rather than a degree ("a workaround exists", not "medium"), and give a choice a catch-all option when nothing may fit. Leave counting, arithmetic and date comparisons to code: a judging model reads the material, it does not compute over it.
 
-**Routing on a verdict.** A `Choice` drives a [PipeCondition](pipes-controllers.md#pipecondition) directly, one outcome per option key, and the uncertainty is reached by name:
+**Routing on a verdict.** A `Choice` drives a [PipeCondition](pipes-controllers.md#pipecondition) directly, one outcome per option key, and the uncertainty is reached by name once the expression has checked it is there, since a model that measures none leaves it out:
 
 ```toml
 [pipe.dispatch_ticket]
@@ -546,7 +546,7 @@ type                = "PipeCondition"
 description         = "Send the ticket to its team, or to a person when the model is unsure"
 inputs              = { team = "Choice" }
 output              = "Text"
-expression_template = "{{ team.choice if team.confidence is not none and team.confidence >= 0.8 else 'review' }}"
+expression_template = "{{ team.choice if team.confidence is defined and team.confidence is not none and team.confidence >= 0.8 else 'review' }}"
 default_outcome     = "fail"
 
 [pipe.dispatch_ticket.outcomes]

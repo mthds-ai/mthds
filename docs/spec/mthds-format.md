@@ -241,7 +241,7 @@ Native concepts MAY be referenced by bare code (`Text`, `Image`) or by qualified
 
 A bundle MUST NOT declare a concept with the same code as a native concept. A compliant implementation MUST reject such declarations.
 
-Each native concept's exact blueprint form — its fields, their types, and their descriptions — is pinned per standard version in [Native Concept Definitions](./native-concepts.md). Implementations MUST use the pinned definitions verbatim (no reflection over internal runtime types) wherever a native's structural definition is needed, such as [library crate materialization](./library-crate.md#4-expand-native-concepts).
+Each native concept's exact blueprint form — its fields, their types, and their descriptions — is pinned per standard version in [Native Concept Definitions](./native-concepts.md). Implementations MUST use the pinned definitions verbatim (no reflection over internal runtime types) wherever a native's structural definition is needed, such as [library crate materialization](./library-crate.md#4-expand-native-concepts). The one exception is the structure a language model is asked to fill, which leaves a verdict native's uncertainty members out, per [Verdict Natives](./native-concepts.md#verdict-natives).
 
 ## Pipe Definitions
 
@@ -794,7 +794,7 @@ Asks a judging model one closed question about its inputs and returns the verdic
 
 An implementation MUST NOT synthesize an uncertainty member the model did not report — no `probability` of `1` read off a bare yes, no `confidence` invented for a model that has none.
 
-**The threshold.** When a yes/no question's model reports a probability, `yes_no` is `true` exactly when that probability is at or above `threshold`, and the default threshold is `0.5`. When the model reports no probability, the threshold has nothing to apply to and the model's own verdict stands; an implementation SHOULD warn that the threshold was not applied.
+**The threshold.** When a yes/no question's model reports a probability, `yes_no` is `true` exactly when that probability is at or above `threshold`, and the default threshold is `0.5`. When the model reports no probability, the threshold has nothing to apply to and the model's own verdict stands; when the pipe declares a `threshold`, an implementation SHOULD warn that it was not applied.
 
 Because a `Choice`'s `choice` is a plain string, a [PipeCondition](#controller-pipecondition) routes on it directly, with one outcome per option key.
 
