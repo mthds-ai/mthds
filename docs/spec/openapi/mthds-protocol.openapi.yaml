@@ -353,7 +353,8 @@ components:
         additional properties — on the deck and on each model entry. A model of a
         family the protocol does not define, such as a vendor's own operator, is
         reported, if at all, under an extension property of the runner's choosing,
-        never under an invented category.
+        never under an invented category and never as an entry of models without
+        one.
       additionalProperties: true
       properties:
         models:
@@ -373,7 +374,9 @@ components:
                   runner MUST NOT emit a value outside this enum. A client reading a
                   model list MUST NOT fail it because an entry carries a category it
                   does not recognize; it keeps that entry with its raw value or
-                  leaves it out.
+                  leaves it out. The enum is the emitter's contract: a client that
+                  derives its types or its validation from this document widens
+                  this field to any string.
     VersionInfo:
       type: object
       description: >

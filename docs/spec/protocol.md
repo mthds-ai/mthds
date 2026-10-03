@@ -107,8 +107,10 @@ The category follows the settings family, not the operator: `PipeStructure` take
 
 The two sides of the wire carry different obligations:
 
-- **A runner emits only the protocol's categories.** A runner MUST NOT put a value the protocol does not define in a deck entry's `type`, and MUST NOT accept one on the `?type=` filter, which answers it with a `422`. A model of a family the protocol does not define — a vendor's own operator — is reported, if at all, under an extension property of the runner's choosing, never under an invented category.
+- **A runner emits only the protocol's categories.** A runner MUST NOT put a value the protocol does not define in a deck entry's `type`, and MUST NOT accept one on the `?type=` filter, which answers it with a `422`. A model of a family the protocol does not define — a vendor's own operator — is reported, if at all, under an extension property of the runner's choosing, never under an invented category and never as an entry of `models` without one.
 - **A client accepts any category.** A client reading a model list MUST NOT fail it because an entry carries a category it does not recognize; it keeps that entry with its raw value or leaves it out.
+
+The `enum` on a deck entry's `type` in the OpenAPI document is the emitter's contract, the set a runner may report. A client that derives its types or its validation from that document widens the field to any string, as the reader rule requires.
 
 The reader rule is what makes a new category a minor change: a client written against one protocol version keeps working when a runner of a later minor version reports a category the client has never heard of. It governs a client *reading* a list on purpose. A tool that checks a runner, such as a conformance harness, is checking the emitter rule and stays free to reject an unknown value. In the other direction, a client that filters on a category its runner's protocol version does not define gets a `422`, and learns from `GET /version` which protocol version the runner implements.
 
