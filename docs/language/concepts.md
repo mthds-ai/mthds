@@ -237,6 +237,8 @@ MTHDS provides a set of built-in concepts that are always available in every bun
 | `TextAndImages` | Combined text and image content. |
 | `Number` | A numeric value. |
 | `YesNo` | The answer to a yes/no question. |
+| `Choice` | One option picked out of a declared set. |
+| `Rating` | A position on an ordered scale of described levels. |
 | `Date` | A calendar date, optionally with a time of day. |
 | `Time` | A time of day, optionally with a UTC offset. |
 | `Page` | A single page extracted from a document. |
@@ -261,7 +263,13 @@ The most commonly used native concepts have the following fields. These are the 
 
 **Number** — a single `number` field (integer or floating-point).
 
-**YesNo** — a single `yes_no` field (boolean). Renders as `yes` when true and `no` when false.
+**YesNo** — `yes_no` (boolean), and `probability` (optional, the probability that the answer is yes, from 0 to 1) when the producer reports one. Renders as `yes` when true and `no` when false.
+
+**Choice** — `choice` (the key of the selected option), plus `confidence` (from 0 to 1) and `probabilities` (one per option key) when the producer reports them. Renders as its key, so `$team` in a later prompt reads `billing`, and `$team.confidence` reaches the confidence.
+
+**Rating** — `level` (the index of the selected level, counted from 0), plus `confidence`, `probabilities` (one per level index) and `position` (a continuous position on the scale) when the producer reports them. Renders as its level.
+
+`YesNo`, `Choice` and `Rating` are the verdicts a [PipeJudge](pipes-operators.md#pipejudge) produces. Each requires its verdict and nothing else: a producer that measures no uncertainty leaves those fields out, which is why a `YesNo` written by a PipeLLM carries `yes_no` alone.
 
 **Date** — `date` (ISO 8601 calendar date), `time` (optional ISO 8601 time, with UTC offset when the source states one). A Date never uses numeric epoch input and never invents a midnight time.
 

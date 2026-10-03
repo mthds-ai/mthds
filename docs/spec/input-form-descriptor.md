@@ -156,8 +156,10 @@ A concept that resolves to no structure is text-valued, per the language's own r
 | `Time` | `text` | `format: "time"` |
 | `Document` | `document` | — |
 | `Image` | `image` | — |
-| `Date`, `Html`, `Page`, `TextAndImages`, `SearchResult` | `object` | `fields` from the pinned definition |
+| `Date`, `Html`, `Page`, `TextAndImages`, `SearchResult`, `Choice`, `Rating` | `object` | `fields` from the pinned definition |
 | `Dynamic`, `JSON`, `Anything`, `Composite` | `unknown` | — |
+
+`YesNo` stays `boolean` although its definition carries an optional `probability` beside `yes_no`, and `Date`, whose optional `time` makes it an `object`, is not its precedent. A `Date`'s time is part of the value a caller supplies; a `YesNo`'s probability is a measurement a judging model reports about its own verdict, which a caller supplying a yes or a no has no reason to state. So a `YesNo` input is a boolean, and a runtime given one builds a `YesNo` with `yes_no` alone. `Choice` and `Rating` are `object`s like the other structured natives: a bare option key at a `Choice` position would read exactly as a `Text` does, and a bare level as a `Number`, so their fields are stated in full.
 
 **A structure field** maps from its declared [field type](./mthds-format.md#field-types) — except that a field carrying `choices` is an `enum`, which the language already guarantees by requiring `type` to be omitted there:
 

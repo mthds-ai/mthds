@@ -38,7 +38,7 @@ A completed pipe always resolves its declared output: either a value or a record
 
 Templates that reference optional inputs must guard those references. Valid guard forms include:
 
-- `@?note` shorthand in fields that run shorthand preprocessing: `PipeLLM.prompt`, `PipeLLM.system_prompt`, `PipeImgGen.prompt`, `PipeImgGen.negative_prompt`, `PipeSearch.prompt`, and `PipeCompose.template`. It renders content only when present.
+- `@?note` shorthand in fields that run shorthand preprocessing: `PipeLLM.prompt`, `PipeLLM.system_prompt`, `PipeImgGen.prompt`, `PipeImgGen.negative_prompt`, `PipeSearch.prompt`, `PipeJudge.question`, and `PipeCompose.template`. It renders content only when present.
 - Raw Jinja2 `{% if note %}...{% endif %}` blocks for Jinja2-rendered fields, including fields where shorthand preprocessing does not run.
 - Inline conditionals such as `{{ note.text if note else "" }}`.
 

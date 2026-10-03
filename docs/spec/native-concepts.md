@@ -6,7 +6,7 @@ description: "Normative, version-pinned definitions of the MTHDS native concepts
 
 Native concepts are the built-in vocabulary of the MTHDS standard: always available in every bundle, never declared by authors. This page pins their **normative definitions** — the exact blueprint form of each native concept, expressed in the same structure language authors use for their own concepts (see [Concept Structure Fields](./mthds-format.md#concept-structure-fields)).
 
-These definitions are **pinned per MTHDS standard version**. The set below was pinned at MTHDS `2.0.0`, and is normative for every standard version from `2.0.0` until a later version pins a new one: an implementation of standard version `V` materializes the pinned set of the greatest version less than or equal to `V` (see [Versioning](./versioning.md#the-pinned-native-set-under-one-number)). Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard, [bumps the standard version](./versioning.md#what-bumps-the-standard-version), and re-pins the set at that version. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by **lookup into this pinned set**.
+These definitions are **pinned per MTHDS standard version**. The set below was pinned at MTHDS `3.0.0`, and is normative for every standard version from `3.0.0` until a later version pins a new one: an implementation of standard version `V` materializes the pinned set of the greatest version less than or equal to `V` (see [Versioning](./versioning.md#the-pinned-native-set-under-one-number)). Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard, [bumps the standard version](./versioning.md#what-bumps-the-standard-version), and re-pins the set at that version. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by **lookup into this pinned set**.
 
 Three consequences follow:
 
@@ -22,7 +22,7 @@ Three natives are **structureless by design**: their shape is intentionally open
 
 One reserved marker: `value_type = "Any"` on a `dict` field declares the value type **unspecified** — the values are arbitrary; a consumer surfaces this as declared imprecision (e.g. `dict[str, Any]` with a caveat), never as a guessed value shape.
 
-## The Pinned Set — Pinned at MTHDS 2.0.0
+## The Pinned Set — Pinned at MTHDS 3.0.0
 
 ### native.Dynamic
 
@@ -121,7 +121,40 @@ description = "The answer to a yes/no question"
 
 [concept.YesNo.structure]
 yes_no = { type = "boolean", required = true, description = "Whether the answer is yes (true) or no (false)." }
+probability = { type = "number", description = "The probability that the answer is yes, from 0 to 1, when the producer reports one." }
 ```
+
+`probability` is optional, and a producer that does not measure one leaves it absent: a `YesNo` written by a language model, entered in a form or returned by a function carries `yes_no` alone. A producer never synthesizes it from the verdict — a bare yes is not a probability of 1.
+
+### native.Choice
+
+```toml
+[concept.Choice]
+description = "One option picked out of a declared set"
+
+[concept.Choice.structure]
+choice = { type = "text", required = true, description = "The key of the selected option." }
+confidence = { type = "number", description = "The producer's confidence in the choice, from 0 to 1, when it reports one." }
+probabilities = { type = "dict", key_type = "text", value_type = "number", description = "The probability of each option, keyed by option key, when the producer measures a distribution." }
+```
+
+### native.Rating
+
+```toml
+[concept.Rating]
+description = "A position on an ordered scale of described levels"
+
+[concept.Rating.structure]
+level = { type = "integer", required = true, description = "The index of the selected level, 0 being the first level declared." }
+confidence = { type = "number", description = "The producer's confidence in the level, from 0 to 1, when it reports one." }
+probabilities = { type = "dict", key_type = "text", value_type = "number", description = "The probability of each level, keyed by level index written as text, when the producer measures a distribution." }
+position = { type = "number", description = "A continuous position on the scale, from 0 to the index of the last level, when the producer measures one." }
+```
+
+`YesNo`, `Choice` and `Rating` are the three verdicts a [`PipeJudge`](./mthds-format.md#operator-pipejudge) produces, and they follow one rule: **a verdict native requires its verdict and nothing else.** The required member — the boolean, the option key, the level — is what every producer can state. Every measure of uncertainty is optional and defined by what it means, not by how a producer computes it, so a producer that measures less fills in less, and a producer that measures nothing still emits a valid content. In particular, `confidence` names no formula: one producer derives it from how concentrated its distribution is, another may report a different measure, and a method that gates on a threshold is evaluated against the model it runs on.
+{ #verdict-natives }
+
+`level` is required rather than `position` because every producer can name a level, while only one that measures a distribution can place a continuous position, and because the field a method branches on should be the discrete one. How a producer selects the level is its own business. A `Rating`'s `probabilities` are keyed by the level index written as text — `"0"`, `"1"` — since a key is a string on every wire this content travels.
 
 ### native.Date
 
@@ -195,6 +228,13 @@ Structureless by design — a named composition of contents whose field names ar
 [concept.Composite]
 description = "A named composition of contents"
 ```
+
+## Changes From the Set Pinned at 2.0.0
+
+- `native.YesNo` gains the optional `probability`.
+- `native.Choice` and `native.Rating` are added.
+
+A crate stamped with a `2.x` version materialized the set pinned at `2.0.0`, so its `native.YesNo` carries `yes_no` alone. Re-normalizing the same library against a `3.0.0` implementation materializes the definition above instead, and the crate's [fingerprint](./library-crate.md#fingerprint) changes with it, as it does for any change to a hashed definition. The set pinned at `2.0.0` is this page as published with the `2.x` versions of the standard.
 
 ## See Also
 
