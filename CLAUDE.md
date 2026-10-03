@@ -43,7 +43,7 @@ Pipelex does NOT appear in: the landing page, the Language section, the Package 
 ### Technical Constants (verified against codebase)
 
 - `MTHDS_STANDARD_VERSION` = `"3.0.0"` — the standard version and this repo's release version are one number. `docs/spec/versioning.md` is the rule; `make version-check` enforces it. Never restate the number in a new page without adding a reading to `scripts/check_versions.py`, or it will go stale the way the previous `"1.0.0"` did.
-- `PROTOCOL_VERSION` = `"0.6.0"` — the HTTP runner protocol, versioned on its own cadence, independently of the standard version.
+- `PROTOCOL_VERSION` = `"0.7.0"` — the HTTP runner protocol, versioned on its own cadence, independently of the standard version.
 - `RESERVED_DOMAINS` = `{"native", "mthds", "pipelex"}`
 - `NATIVE_PACKAGE_ADDRESS` = `"__native__"`
 - Native concepts: the built-in native concepts (Dynamic, Text, Image, Document, Html, TextAndImages, Number, YesNo, Choice, Rating, Date, Time, Page, JSON, SearchResult, Anything, Composite)
