@@ -67,7 +67,7 @@ Each segment of a domain path MUST be `snake_case`:
 
 When resolving a bare concept code (no domain qualifier, no package prefix):
 
-1. **Native concepts** — check if the code matches a native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`). Native concepts always take priority.
+1. **Native concepts** — check if the code matches a native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Choice`, `Rating`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`). Native concepts always take priority.
 2. **Current bundle** — check concepts declared in the same `.mthds` file.
 3. **Same domain, other bundles** — if the bundle is part of a package, check concepts in other bundles that declare the same domain.
 4. **Error** — if not found in any of the above, the reference is invalid.
@@ -340,13 +340,15 @@ This section consolidates the validation rules scattered throughout this specifi
 1. **PipeLLM**: All prompt variables MUST have matching inputs. All inputs MUST be used.
 2. **PipeStructure**: Exactly one input MUST be declared. The input concept MUST be `Text` or refine `Text`. `output` MUST NOT be `Text` or refine `Text`.
 3. **PipeFunc**: `function_name` MUST be present.
-4. **PipeImgGen**: `prompt` MUST be present. All prompt variables MUST have matching inputs.
+4. **PipeImgGen**: `prompt` MUST be present. All prompt and negative_prompt variables MUST have matching inputs. All inputs MUST be used.
 5. **PipeExtract**: Exactly one input MUST be declared. `output` MUST be `"Page[]"`.
-6. **PipeCompose**: Exactly one of `template` or `construct` MUST be present. Output MUST NOT use multiplicity.
-7. **PipeSequence**: `steps` MUST have at least one entry.
-8. **PipeParallel**: `output` MUST be `Composite` or a structured concept, MUST NOT use multiplicity, and structured output fields MUST match branch `result` names.
-9. **PipeCondition**: Exactly one of `expression_template` or `expression` MUST be present. `outcomes` MUST have at least one entry.
-10. **PipeBatch**: `input_list_name` MUST be in `inputs`. `input_item_name` MUST NOT equal `input_list_name` or any `inputs` key.
+6. **PipeSearch**: `prompt` MUST be present. All prompt variables MUST have matching inputs. All inputs MUST be used. `output` MUST be `SearchResult` or refine `SearchResult`.
+7. **PipeJudge**: Exactly one of `question` or `prompt` MUST be present. All question variables MUST have matching inputs; an input need not be referenced. `options` and `levels` MUST NOT both be present, and `criteria` and `threshold` MUST NOT be present beside either. `output` MUST be `YesNo`, `Choice` or `Rating` according to the question's kind, or refine it, and MUST NOT use multiplicity.
+8. **PipeCompose**: Exactly one of `template` or `construct` MUST be present. Output MUST NOT use multiplicity. All template and construct variables MUST have matching inputs. All inputs MUST be used.
+9. **PipeSequence**: `steps` MUST have at least one entry.
+10. **PipeParallel**: `output` MUST be `Composite` or a structured concept, MUST NOT use multiplicity, and structured output fields MUST match branch `result` names.
+11. **PipeCondition**: Exactly one of `expression_template` or `expression` MUST be present. `outcomes` MUST have at least one entry.
+12. **PipeBatch**: `input_list_name` MUST be in `inputs`. `input_item_name` MUST NOT equal `input_list_name` or any `inputs` key.
 
 ### Manifest Validation
 

@@ -1,5 +1,5 @@
 ---
-description: "Discover MTHDS operator pipes: PipeLLM, PipeStructure, PipeFunc, PipeImgGen, PipeExtract, PipeSearch, and PipeCompose for single-step AI transformations."
+description: "Discover MTHDS operator pipes: PipeLLM, PipeStructure, PipeFunc, PipeImgGen, PipeExtract, PipeSearch, PipeJudge, and PipeCompose for single-step AI transformations."
 ---
 
 # Pipes — Operators
@@ -365,6 +365,8 @@ PipeImgGen does not consume a dedicated "prompt" concept. The prompt is a string
 - **`Text` inputs** are interpolated into the prompt text via `$variable` shorthand or Jinja2.
 - **`Image` inputs** (a single image or a list) are referenced in the prompt and injected as **reference images**: each referenced image is replaced by an `[Image N]` token in the rendered text and passed to the generator alongside it. This is the same vision pattern used for image inputs to `PipeLLM`, and it enables image-to-image, reference-image, and image-editing generation, bounded by the model's image limit.
 
+Every variable referenced in the `prompt` or `negative_prompt` must correspond to a declared input, and every declared input must be referenced in one of them. Unused inputs are rejected: an `Image` input that the prompt never references would never reach the generator.
+
 **Key fields:**
 
 | Field | Required | Description |
@@ -469,7 +471,98 @@ prompt      = "What's the latest news on $topic?"
 | `include_domains` | No | Restrict search to these domains only (e.g., `["reuters.com", "bbc.com"]`). |
 | `exclude_domains` | No | Exclude results from these domains. |
 
+Every variable referenced in the prompt must correspond to a declared input, and every declared input must be referenced in the prompt. Unused inputs are rejected.
+
 **Constraints:** The output must be `SearchResult` or a concept that refines `SearchResult`.
+
+## PipeJudge
+
+Asks a judging model one closed question about its inputs, and returns the verdict together with how sure the model is.
+
+```toml
+[pipe.judge_is_urgent]
+type        = "PipeJudge"
+description = "Decide whether a message is urgent"
+inputs      = { message = "Text" }
+output      = "YesNo"
+question    = "Is the message urgent?"
+```
+
+**What this does:** Sends the message to a judging model as the material to judge, asks the question about it, and produces a `YesNo` whose `yes_no` is the verdict and whose `probability` is the model's probability that the answer is yes, when the model reports one.
+
+The question takes one of three kinds, and which fields the pipe declares decides it:
+
+- **Yes/no** — no `options` and no `levels`. The output is a `YesNo`.
+- **Choice** — `options` declares the set to pick from. The output is a `Choice`, whose `choice` is one of the option keys.
+- **Rating** — `levels` declares a scale, from lowest to highest. The output is a `Rating`, whose `level` is the index of the selected level, counted from 0.
+
+```toml
+[pipe.route_ticket]
+type        = "PipeJudge"
+description = "Pick the team that should handle a ticket"
+inputs      = { ticket = "Ticket" }
+output      = "Choice"
+question    = "Which team should handle the ticket?"
+
+[pipe.route_ticket.options]
+returns  = "Exchanges, refunds, wrong or damaged items"
+shipping = "Delivery status, delays, lost packages"
+billing  = "Charges, invoices, payment problems"
+other    = "None of the above"
+
+[pipe.rate_severity]
+type        = "PipeJudge"
+description = "Rate how severe a reported issue is"
+inputs      = { report = "BugReport" }
+output      = "Rating"
+question    = "How severe is the reported issue?"
+levels      = [
+  "Cosmetic; no impact on functionality",
+  "Broken or degraded feature, but a workaround exists",
+  "Blocking issue; no workaround exists",
+]
+```
+
+**Key fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `question` | Yes | The question template. Supports Jinja2 syntax and `$variable` shorthand. `prompt` is accepted in its place. |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
+| `options` | No | A choice question's options: each key is an option, each value describes it (an empty string for none). At least two. |
+| `levels` | No | A rating question's levels, from lowest to highest. At least two. |
+| `criteria` | No | A yes/no question's meaning of a yes and of a no, as optional `yes` and `no` descriptions. |
+| `threshold` | No | A yes/no question's probability of yes at or above which the verdict is yes. Strictly between 0 and 1; `0.5` when absent. |
+
+**The inputs are the material, not the question.** Every declared input is sent to the model by name, beside the question, so a declared input need not appear in the question, and unlike the other inference operators a PipeJudge does not reject one it never references. Every variable the question does reference must still be a declared input. Reference an input in the question only for a short parameter, such as `"Is the message about $topic?"`.
+
+**Writing a good judgment.** Ask one narrow question per pipe. Describe each option and each level as a concrete situation rather than a degree ("a workaround exists", not "medium"), and give a choice a catch-all option when nothing may fit. Leave counting, arithmetic and date comparisons to code: a judging model reads the material, it does not compute over it.
+
+**Routing on a verdict.** A `Choice` drives a [PipeCondition](pipes-controllers.md#pipecondition) directly, one outcome per option key, and the uncertainty is reached by name once the expression has checked it is there, since a model that measures none leaves it out:
+
+```toml
+[pipe.dispatch_ticket]
+type                = "PipeCondition"
+description         = "Send the ticket to its team, or to a person when the model is unsure"
+inputs              = { team = "Choice" }
+output              = "Text"
+expression_template = "{{ team.choice if team.confidence is defined and team.confidence is not none and team.confidence >= 0.8 else 'review' }}"
+default_outcome     = "fail"
+
+[pipe.dispatch_ticket.outcomes]
+returns  = "handle_returns"
+shipping = "handle_shipping"
+billing  = "handle_billing"
+other    = "handle_other"
+review   = "queue_for_review"
+```
+
+**Constraints:**
+
+- `options` and `levels` cannot both be set, and `criteria` and `threshold` apply to a yes/no question only.
+- The output must be `YesNo`, `Choice` or `Rating` according to the kind, or a concept that refines it, such as a `Department` concept refining `Choice`.
+- The output is one verdict, never a list. To judge each item of a list, map the PipeJudge over it with a [PipeBatch](pipes-controllers.md#pipebatch).
+- A model that reports no uncertainty leaves the uncertainty fields out, and a threshold then has nothing to apply to: the model's own yes or no stands.
 
 ## PipeCompose
 
@@ -498,7 +591,11 @@ The `template` field can be a plain string (as above) or a table with additional
 
 ```toml
 [pipe.format_report.template]
-template = "# Report for $candidate_name"
+template = """
+# Report for $candidate_name
+
+@analysis.summary
+"""
 category = "markdown"
 
 [pipe.format_report.template.templating_style]
@@ -575,14 +672,18 @@ All declared inputs are available as variables in the template. The optional `ex
 
 ```toml
 [pipe.format_report.template]
-template = "Version: $version — Report for $candidate_name"
+template = """
+Version: $version — Report for $candidate_name
+
+@analysis.summary
+"""
 category = "basic"
 
 [pipe.format_report.template.extra_context]
 version = "2.0"
 ```
 
-Every variable referenced in the template must correspond to a declared input or an `extra_context` key.
+Every variable referenced in the template must correspond to a declared input or an `extra_context` key, and every declared input must be referenced in the template. Unused inputs are rejected.
 
 **`category` values:** `basic`, `expression`, `html`, `markdown`, `mermaid`, `llm_prompt`, `img_gen_prompt`.
 
@@ -615,6 +716,8 @@ Each field in the `construct` table defines how a field of the output concept is
 | `{ from = "path", list_to_dict_keyed_by = "attr" }` | Variable reference with transform | Converts a list to a dict keyed by the named attribute. |
 | `{ template = "..." }` | Template | The field value is rendered from a Jinja2 template string. |
 | Nested table (no `from` or `template` key) | Nested construct | The field is recursively composed. |
+
+The root of every `from` path and of every variable in a field template must be a declared input, and every declared input must be read by at least one of them, nested constructs included. Unused inputs are rejected.
 
 **Constraint:** PipeCompose output must be a single concept — multiplicity (`[]` or `[N]`) is not allowed.
 

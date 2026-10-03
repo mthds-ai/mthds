@@ -4,7 +4,7 @@ description: "Specify which AI model a pipe uses with MTHDS model references —
 
 # Model References
 
-Model references tell pipes which AI model to use. Every `PipeLLM`, `PipeStructure`, `PipeImgGen`, `PipeExtract`, and `PipeSearch` accepts an optional `model` field — a string that identifies the model and, depending on its prefix, how that model is configured.
+Model references tell pipes which AI model to use. Every `PipeLLM`, `PipeStructure`, `PipeImgGen`, `PipeExtract`, `PipeSearch`, and `PipeJudge` accepts an optional `model` field — a string that identifies the model and, depending on its prefix, how that model is configured.
 
 ## At a Glance
 
@@ -97,6 +97,7 @@ The following operator pipe types accept the `model` field:
 | `PipeImgGen` | Image generation. |
 | `PipeExtract` | Document extraction (e.g., PDF to pages). |
 | `PipeSearch` | Web search with structured results. |
+| `PipeJudge` | A verdict on a closed question, with its uncertainty. |
 
 All four reference forms (`$`, `@`, `~`, bare) work identically across these pipe types.
 
@@ -121,6 +122,7 @@ Each pipe type that accepts `model` has a corresponding inline settings structur
 - **PipeImgGen** uses `ImgGenSetting` — includes `model`, `quality`, `nb_steps`, `guidance_scale`, `is_moderated`, `safety_tolerance`.
 - **PipeExtract** uses `ExtractSetting` — includes `model`, `max_nb_images`, `image_min_size`.
 - **PipeSearch** uses `SearchSetting` — includes `model`, `include_images`, `include_inline_citations`, `max_results`.
+- **PipeJudge** uses `JudgmentSetting` — `model` and `description` only.
 
 All require a `model` field (the model handle) and accept an optional `description`.
 
