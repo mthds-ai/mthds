@@ -35,7 +35,7 @@ The descriptor is a **recommended extension field** of the [HTTP Runner Protocol
 
 This document specifies an artifact implementations already produce, and makes it standard-owned so that independent implementations agree on it by conformance rather than by imitation. Where a rule below names behavior an implementation has not yet realized, it is the forward contract that implementation is brought into conformance with — the same convention [Library Crate Format](./library-crate.md#specification-status) uses.
 
-The node vocabulary is not restated here. Every rule the [Input-Form Descriptor](./input-form-descriptor.md) states about a field descriptor — its slots, its closed kind union, its kind assignment, its recursion, its hints, its strictness, its derivation — binds this artifact unchanged, including the slots that page shapes now and the language fills later. What this page states is the handful of facts that differ, and every one of them is a fact about the *position* a node sits in rather than about the concept it describes.
+The node vocabulary is not restated here. Every rule the [Input-Form Descriptor](./input-form-descriptor.md) states about a field descriptor — its slots, its closed kind union, its kind assignment, its recursion, its hints, its strictness, its derivation — binds this artifact unchanged, including the slots that page shapes now and the language fills later. What this page states is the handful of facts that differ, and every one of them is a fact about the *position* a node sits in rather than about the concept it describes — including the one row of the native table it restates, [`YesNo`](#a-yesno-is-an-object), whose input kind leaves out what an output carries.
 
 ## The Per-Pipe Descriptor
 
@@ -83,6 +83,12 @@ On a top-level input field, `required` is derived as `presence != "optional"`; a
 One consequence follows from the input page's rule that a descriptor never carries `required: true` beside a `default_value`: the output node carries no `default_value`. Nothing defaults a result.
 
 Nested fields inside the output's payload are unaffected and keep the ordinary nested meaning — the field must be present within its concept's payload, and an optional one reports `required: false`, exactly as it does under an input.
+
+### A `YesNo` is an `object`
+
+On the output side, `native.YesNo` — and a concept whose refinement chain reaches it — is `kind: "object"`, whose `fields` are its [pinned definition](./native-concepts.md#nativeyesno) in declared order: `yes_no` as a required `boolean`, and `probability` as an optional `number` with `integer: false`. This replaces the `boolean` row of the [native kind table](./input-form-descriptor.md#kind-assignment) at every depth of an output node — the top, a nested field, a list's `item` — and changes nothing else in it.
+
+The input side keeps `boolean`, and both readings are facts of position. A caller supplying a yes or a no states the verdict alone, so the input form asks for exactly that. A result carries what its producer reported, and a [judging model](./mthds-format.md#operator-pipejudge) reports its probability of yes beside the verdict: a `boolean` output node would hide the one value a consumer rendering that result, or generating a return type for it, came to read. A `YesNo` whose producer measured nothing still fits the node, with `probability` absent.
 
 ## Plurality Is on the Descriptor, Never on the Concept
 
@@ -144,7 +150,7 @@ The [input-form descriptor's derivation requirements](./input-form-descriptor.md
 
 Two more are this artifact's own:
 
-- **The output node is derived as a concept, not as a slot.** An output belongs to no slot, so a producer derives it exactly as it derives a nested concept-typed node — the code path the input side already runs for every nested field — and then performs the [plural wrap](#plurality-is-on-the-descriptor-never-on-the-concept). Nothing about an output justifies a second derivation, and an implementation that writes one has given kinds a second place to drift.
+- **The output node is derived as a concept, not as a slot.** An output belongs to no slot, so a producer derives it exactly as it derives a nested concept-typed node — the code path the input side already runs for every nested field — and then performs the [plural wrap](#plurality-is-on-the-descriptor-never-on-the-concept). Nothing about an output justifies a second derivation, and an implementation that writes one has given kinds a second place to drift: the [`YesNo` row](#a-yesno-is-an-object) is a different entry in the one native table this derivation reads, not a different derivation.
 - **One key set with the sibling artifacts.** An implementation reporting this descriptor beside pipe I/O contracts or the input-form descriptor derives all of them over the same pipes, so their key sets are equal by construction rather than by coincidence.
 
 ## Non-Goals
