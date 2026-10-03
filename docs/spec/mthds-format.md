@@ -241,7 +241,7 @@ Native concepts MAY be referenced by bare code (`Text`, `Image`) or by qualified
 
 A bundle MUST NOT declare a concept with the same code as a native concept. A compliant implementation MUST reject such declarations.
 
-Each native concept's exact blueprint form — its fields, their types, and their descriptions — is pinned per standard version in [Native Concept Definitions](./native-concepts.md). Implementations MUST use the pinned definitions verbatim (no reflection over internal runtime types) wherever a native's structural definition is needed, such as [library crate materialization](./library-crate.md#4-expand-native-concepts). The one exception is the structure a language model is asked to fill, which leaves a verdict native's uncertainty members out, per [Verdict Natives](./native-concepts.md#verdict-natives).
+Each native concept's exact blueprint form — its fields, their types, and their descriptions — is pinned per standard version in [Native Concept Definitions](./native-concepts.md). Implementations MUST use the pinned definitions verbatim (no reflection over internal runtime types) wherever a native's structural definition is needed, such as [library crate materialization](./library-crate.md#4-expand-native-concepts).
 
 ## Pipe Definitions
 

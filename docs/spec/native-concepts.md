@@ -124,7 +124,7 @@ yes_no = { type = "boolean", required = true, description = "Whether the answer 
 probability = { type = "number", description = "The probability that the answer is yes, from 0 to 1, when the producer reports one." }
 ```
 
-`probability` is optional, and a producer that does not measure one leaves it absent: a `YesNo` written by a language model, entered in a form or returned by a function carries `yes_no` alone. A producer never synthesizes it from the verdict — a bare yes is not a probability of 1.
+`probability` is optional, and a producer that does not report one leaves it absent. A producer never synthesizes it from the verdict — a bare yes is not a probability of 1.
 
 ### native.Choice
 
@@ -151,7 +151,7 @@ probabilities = { type = "dict", key_type = "text", value_type = "number", descr
 position = { type = "number", description = "A continuous position on the scale, from 0 to the index of the last level, when the producer measures one." }
 ```
 
-`YesNo`, `Choice` and `Rating` are the three verdicts a [`PipeJudge`](./mthds-format.md#operator-pipejudge) produces, and they follow one rule: **a verdict native requires its verdict and nothing else.** The required member — the boolean, the option key, the level — is what every producer can state. Every measure of uncertainty is optional and defined by what it means, not by how a producer computes it, so a producer that measures less fills in less, and a producer that measures nothing still emits a valid content. An uncertainty member is a measurement, never a model's estimate of itself: an implementation that asks a language model to write a verdict native, or a concept refining one, wherever it appears in the structure the model fills — a `PipeLLM` whose output is `YesNo`, for instance — MUST leave every uncertainty member out of that structure, so the content it builds carries the verdict alone. In particular, `confidence` names no formula: one producer derives it from how concentrated its distribution is, another may report a different measure, and a method that gates on a threshold is evaluated against the model it runs on.
+`YesNo`, `Choice` and `Rating` are the three verdicts a [`PipeJudge`](./mthds-format.md#operator-pipejudge) produces, and they follow one rule: **a verdict native requires its verdict and nothing else.** The required member — the boolean, the option key, the level — is what every producer can state. Every measure of uncertainty is optional and defined by what it means, not by how a producer computes it, so a producer that measures less fills in less, and a producer that measures nothing still emits a valid content. A language model asked to write a verdict native — a `PipeLLM` whose output is `YesNo`, for instance — fills it as pinned, and may report its own estimate in the uncertainty members. In particular, `confidence` names no formula: one producer derives it from how concentrated its distribution is, another may report a different measure, and a method that gates on a threshold is evaluated against the model it runs on.
 { #verdict-natives }
 
 `level` is required rather than `position` because every producer can name a level, while only one that measures a distribution can place a continuous position, and because the field a method branches on should be the discrete one. How a producer selects the level is its own business. A `Rating`'s `probabilities` are keyed by the level index written as text — `"0"`, `"1"` — since a key is a string on every wire this content travels.

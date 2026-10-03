@@ -269,7 +269,7 @@ The most commonly used native concepts have the following fields. These are the 
 
 **Rating** — `level` (the index of the selected level, counted from 0), plus `confidence`, `probabilities` (one per level index) and `position` (a continuous position on the scale) when the producer reports them. Renders as its level.
 
-`YesNo`, `Choice` and `Rating` are the verdicts a [PipeJudge](pipes-operators.md#pipejudge) produces. Each requires its verdict and nothing else: a producer that measures no uncertainty leaves those fields out, and a language model is never asked to fill them, so a `YesNo` written by a PipeLLM carries `yes_no` alone.
+`YesNo`, `Choice` and `Rating` are the verdicts a [PipeJudge](pipes-operators.md#pipejudge) produces. Each requires its verdict and nothing else: a producer that reports no uncertainty leaves those fields out, and a language model writing one, as a PipeLLM does, may fill them with its own estimate.
 
 **Date** — `date` (ISO 8601 calendar date), `time` (optional ISO 8601 time, with UTC offset when the source states one). A Date never uses numeric epoch input and never invents a midnight time.
 
