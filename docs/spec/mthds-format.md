@@ -754,7 +754,8 @@ Asks a judging model one closed question about its inputs and returns the verdic
 | `description` | string | Yes | — |
 | `inputs` | table | No | The material the question is asked about. |
 | `output` | string | Yes | MUST agree with the question's kind: `YesNo`, `Choice` or `Rating`, or a concept that refines it. |
-| `question` | string | Yes | The question template. Supports Jinja2 syntax and the `@variable` / `$variable` shorthand. |
+| `question` | string | Yes (if no `prompt`) | The question template. Supports Jinja2 syntax and the `@variable` / `$variable` shorthand. |
+| `prompt` | string | Yes (if no `question`) | A synonym of `question`, read exactly as it. |
 | `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [judgment settings](#inline-judgment-settings) table. |
 | `options` | table | No | The options of a choice question: each key is an option, each value describes it. |
 | `levels` | array of strings | No | The levels of a rating question, from lowest to highest, each describing a situation. |
@@ -900,7 +901,7 @@ MTHDS defines three shorthand patterns that a compliant preprocessor MUST expand
 - When a matched name ends with a `.` (dot), the preprocessor MUST strip the trailing dot from the variable name and place it after the expanded expression (treating it as sentence punctuation).
 - Raw Jinja2 syntax (`{{ }}`, `{% %}`) MUST always be accepted alongside the shorthands.
 
-These shorthands apply to the `template` field of PipeCompose, the `prompt` and `system_prompt` fields of PipeLLM, the `prompt` and `negative_prompt` fields of PipeImgGen, and the `prompt` field of PipeSearch. See [Pipes — Operators: Template Mode](../language/pipes-operators.md#template-mode) for the full reference on categories and filters.
+These shorthands apply to the `template` field of PipeCompose, the `prompt` and `system_prompt` fields of PipeLLM, the `prompt` and `negative_prompt` fields of PipeImgGen, the `prompt` field of PipeSearch, and the `question` field of PipeJudge (or `prompt`, its synonym). See [Pipes — Operators: Template Mode](../language/pipes-operators.md#template-mode) for the full reference on categories and filters.
 
 **Template blueprint fields (table form):**
 
