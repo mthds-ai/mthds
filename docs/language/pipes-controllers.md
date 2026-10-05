@@ -8,7 +8,7 @@ Controllers are pipes that orchestrate other pipes. They do not perform transfor
 
 ## PipeSequence
 
-Executes a series of pipes in order. Each step's output is added to [working memory](working-memory.md), where subsequent steps can consume it.
+Executes a series of steps in order. A pipe step runs a pipe and adds its output to [working memory](working-memory.md), and a [binding step](#binding-steps) stores a deep copy of the value at a path in working memory under its `result` name. Subsequent steps can consume every value stored this way.
 
 ```toml
 [pipe.process_document]
