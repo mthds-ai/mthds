@@ -388,6 +388,8 @@ A template variable is a dotted path whose first segment, its root, names an inp
 - `@page.page_view` and `{{ page.page_view.url }}` read the input `page`, declared with its whole concept (`page = "Page"`). The field is reached through the root in the template and is never declared as an input of its own, since an [input name](#input-names) is a plain name.
 - An optional (`?`) input is not exempt. A conditional reference such as `@?note` or `{% if note %}…{% endif %}` reads it.
 
+A variable's value and its concept are what its path reaches through the root's declared concept. Each segment after the root names a field of the concept reached so far, found in that concept's `structure`, or, for a native concept, in its [pinned definition](./native-concepts.md). An operator that handles a value according to its concept MUST handle a variable according to the concept its path reaches, never the root's concept: PipeLLM's attachment of images and documents to the model call, and PipeImgGen's injection of reference images, apply to the reached concept, whether the path reaches a single value or a list. With `page = "Page"`, `@page.page_view` reaches the `page_view` field of the pinned `Page` definition, an `Image`, so PipeLLM attaches it as an image and PipeImgGen injects it as a reference image.
+
 PipeJudge is not among these operators. Its inputs reach the model as the named material the question is asked about, not through its `question` template, so a declared input it never references is still read (see [Operator: PipeJudge](#operator-pipejudge)).
 
 ## Operator: PipeLLM
@@ -537,7 +539,7 @@ function_name = "my_package.text_utils.capitalize"
 
 ## Operator: PipeImgGen
 
-Generates images using an image generation model. The pipe carries a required `prompt` string template (and an optional `negative_prompt` template); it does not take a dedicated prompt concept as input. Declared `inputs` are injected into the `prompt` at runtime: `Text` inputs are interpolated into the prompt text, while `Image` inputs (a single image or a list) are referenced in the prompt and injected as reference images — each becomes an `[Image N]` token in the rendered text and is passed to the generator alongside it, enabling image-to-image, reference-image, and image-editing generation.
+Generates images using an image generation model. The pipe carries a required `prompt` string template (and an optional `negative_prompt` template); it does not take a dedicated prompt concept as input. Declared `inputs` are injected into the `prompt` at runtime, each variable according to the concept its path reaches (see [Inputs Read Through Templates](#inputs-read-through-templates)): a variable that reaches text is interpolated into the prompt text, while a variable that reaches an `Image` (a single image or a list), such as `$source` on a `source = "Image"` input or `$page.page_view` on a `page = "Page"` input, is injected as a reference image — each image becomes an `[Image N]` token in the rendered text and is passed to the generator alongside it, enabling image-to-image, reference-image, and image-editing generation.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -559,7 +561,7 @@ Generates images using an image generation model. The pipe carries a required `p
 - Every variable referenced in `prompt` or `negative_prompt` MUST correspond to a declared input.
 - Every declared input MUST be referenced by at least one variable in `prompt` or `negative_prompt`. Unused inputs are rejected (see [Inputs Read Through Templates](#inputs-read-through-templates)).
 - `output` MUST resolve to an `Image`-compatible concept.
-- Any input referenced as a reference image in the `prompt` or `negative_prompt` MUST resolve to an `Image`-compatible concept (single or list).
+- Any variable referenced as a reference image in the `prompt` or `negative_prompt` MUST reach, through its path, an `Image`-compatible concept (single or list).
 
 **Example:**
 
