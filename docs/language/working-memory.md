@@ -35,7 +35,7 @@ Working memory follows a simple lifecycle within a pipeline run:
 
 1. **Creation** — Working memory is initialized when the pipeline run starts.
 2. **Population** — The caller's inputs are placed into working memory before the first pipe executes.
-3. **Updates** — After each pipe completes, its output is stored under the name given by the `result` field.
+3. **Updates** — After each pipe completes, its output is stored under the name given by the `result` field. A [binding step](pipes-controllers.md#binding-steps) in a sequence also stores its result under its `result` name, as a copy of the value at its path.
 4. **Access** — Any subsequent pipe can consume data from working memory by declaring a matching name in its `inputs`.
 5. **Disposal** — Working memory is cleared when the pipeline run completes.
 
