@@ -317,7 +317,7 @@ This section consolidates the validation rules scattered throughout this specifi
 4. Concept codes MUST be `PascalCase`.
 5. Concept codes MUST NOT match any native concept code.
 6. Pipe codes MUST be `snake_case`.
-7. Input names MUST be plain `snake_case` identifiers (`[a-z][a-z0-9_]*`), never dotted. Any other input name is rejected as `invalid_input_name`.
+7. Input names MUST be plain `snake_case` identifiers (`[a-z][a-z0-9_]*`), never dotted. Any other input name MUST be rejected, and the refusal SHOULD be reported as `invalid_input_name`.
 8. `refines` and `structure` MUST NOT both be set on the same concept.
 9. Local concept references (bare or same-domain) MUST resolve to a declared concept in the bundle or a native concept.
 10. Same-domain pipe references MUST resolve to a declared pipe in the bundle.

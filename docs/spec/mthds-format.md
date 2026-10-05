@@ -267,8 +267,8 @@ Concrete pipe types share these base fields:
 { #input-names }
 
 - An input name MUST be a plain `snake_case` identifier, matching the pattern `[a-z][a-z0-9_]*`, on every pipe, operator or controller alike. It names one whole value, of the concept its slot declares.
-- An input name MUST NOT contain a dot. A key such as `"invoice.total" = "Number"` does not declare a field of `invoice`: a compliant implementation MUST reject it, as it rejects any other name that is not a plain `snake_case` identifier (`InvoiceTotal`, `2nd_total`), and reports the refusal as `invalid_input_name`.
-- A pipe that needs one field of a value receives it in one of two ways. Either it declares the root with its whole concept and reads the field through the root in its template (`invoice = "Invoice"`, read as `$invoice.total`, see [Inputs Read Through Templates](#inputs-read-through-templates)), or the calling sequence hands it the field under a plain name with a binding step (`{ from = "invoice.total", result = "total_amount" }`, see [Controller: PipeSequence](#controller-pipesequence)) and the pipe declares `total_amount = "Number"`. The message of an `invalid_input_name` refusal for a dotted name SHOULD name both remedies.
+- An input name MUST NOT contain a dot. A key such as `"invoice.total" = "Number"` does not declare a field of `invoice`: a compliant implementation MUST reject it, as it rejects any other name that is not a plain `snake_case` identifier (`InvoiceTotal`, `2nd_total`), and SHOULD report the refusal as `invalid_input_name`.
+- A pipe that needs one field of a value receives it in one of two ways. Either it declares the root with its whole concept and reads the field through the root in its template (`invoice = "Invoice"`, read as `$invoice.total`, see [Inputs Read Through Templates](#inputs-read-through-templates)), or the calling sequence hands it the field under a plain name with a binding step (`{ from = "invoice.total", result = "total_amount" }`, see [Controller: PipeSequence](#controller-pipesequence)) and the pipe declares `total_amount = "Number"`. The message refusing a dotted name SHOULD name both remedies.
 
 **Concept references in inputs and output:**
 { #concept-references-in-inputs-and-output }
@@ -1112,7 +1112,7 @@ Maps a single pipe over each item in a list input, producing a list output.
 
 **Validation rules:**
 
-- `input_list_name` MUST be a plain [input name](#input-names). A dotted name such as `catalog.pages` is rejected as `invalid_input_name`. To map a pipe over a list held in a field, the PipeBatch declares the list itself as its input (`pages = "Page[]"`, with `input_list_name = "pages"`), and the calling sequence hands the field to it under that name with a binding step (`{ from = "catalog.pages", result = "pages" }`, see [Controller: PipeSequence](#controller-pipesequence)).
+- `input_list_name` MUST be a plain [input name](#input-names). A compliant implementation MUST reject a dotted name such as `catalog.pages`, as it rejects a dotted input name, and SHOULD report the refusal as `invalid_input_name`. To map a pipe over a list held in a field, the PipeBatch declares the list itself as its input (`pages = "Page[]"`, with `input_list_name = "pages"`), and the calling sequence hands the field to it under that name with a binding step (`{ from = "catalog.pages", result = "pages" }`, see [Controller: PipeSequence](#controller-pipesequence)).
 - `input_list_name` MUST exist as a key in `inputs`.
 - `input_item_name` MUST NOT be empty.
 - `input_item_name` MUST NOT equal `input_list_name`.
