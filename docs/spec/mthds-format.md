@@ -1068,7 +1068,12 @@ A path with no dot is a bare name, which binds a renamed copy of the whole value
 
 #### The Concept of the Result
 
-The result's concept is derived statically, before any run, by walking the path through declared structures. The walk starts from the root's concept and multiplicity as the sequence knows them: from the sequence's own `inputs` when the root is one of them, or from the earlier step that stored it, whether that is a pipe step's output (a list when the step batches or asks for several outputs), the result of a branch of a PipeParallel step with `add_each_output`, or the result of an earlier binding step. The walk then reads one segment at a time, finding the field the segment names in the structure of the concept it stands on:
+The result's concept is derived statically, before any run, by walking the path through declared structures. The walk starts from the root's concept and multiplicity as the sequence knows them at the binding step, which are those of the latest value stored under the root's name before that step, in step order:
+
+- When one or more earlier steps stored a value under the root's name, the root takes the concept and multiplicity of the most recent of them, whether that is a pipe step's output (a list when the step batches or asks for several outputs), the result of a branch of a PipeParallel step with `add_each_output`, or the result of an earlier binding step.
+- Only when no earlier step stored a value under that name does the root take the concept and multiplicity that the sequence's own `inputs` declare for it.
+
+A step that stores its result under the name of a sequence input therefore replaces that input for every later binding step, which walks from the concept of the replacement, not from the one the input declares. The walk then reads one segment at a time, finding the field the segment names in the structure of the concept it stands on:
 
 | The segment names a field declared as | The walk continues into, or the result is |
 |---|---|
@@ -1112,7 +1117,7 @@ A binding step introduces no new kind of absence: like a pipe's output under the
 
 - **The root is absent.** The root is read like a plain input, so the binding step lifts the way a pipe with an absent plain input does: a single result is recorded as a skipped absence, with provenance pointing to the root's absence. A list result is an empty list instead, since a plural slot is never absent.
 - **The path reaches nothing.** When the result is a single value and a segment holds nothing, at the leaf or at any segment before it (`invoice.scan.url` on an invoice with no `scan`), the result is a recorded absence whose provenance names the segment that held nothing. This is not an error. When the result is a list, the [list rule](#lists-map-and-flatten) applies instead.
-- **Statically,** a single result may be absent when its root may be absent, or when its path walks a field that may hold nothing, meaning one that is not `required` and has no `default_value`. Structure fields default to `required = false`, so most single-value bindings may be absent unless the concept marks the field required, which is correct, since the data may lack the field. A list result is never considered maybe-absent.
+- **Statically,** a single result may be absent when its root may be absent, judged from the same latest value stored under the root's name that gives the root its concept (see [The Concept of the Result](#the-concept-of-the-result)), or when its path walks a field that may hold nothing, meaning one that is not `required` and has no `default_value`. Structure fields default to `required = false`, so most single-value bindings may be absent unless the concept marks the field required, which is correct, since the data may lack the field. A list result is never considered maybe-absent.
 
 What follows is the existing machinery: a step reading the result through a plain input lifts when it is absent, a step reading it through an optional (`?`) input runs and guards the read, and a sequence whose output can be absent MUST declare its output `?`.
 
@@ -1137,7 +1142,7 @@ Working memory matches a pipe's inputs by name, so this is how a sequence hands 
 
 #### Dotted `batch_over`
 
-A pipe step whose `batch_over` is a dotted path is a binding followed by a batch. `{ pipe = "describe_view", batch_over = "pages.page_view", batch_as = "page_view" }` behaves exactly as a binding step of `pages.page_view` under a private name that no other step can read, followed by the same pipe step with `batch_over` naming that private name. The path follows every rule of a binding step: its concept is derived by the same walk, it maps and flattens across lists, so a dotted path over a list of catalogs iterates over the pages of all of them, and it lifts and records absences the same way.
+A pipe step whose `batch_over` is a dotted path is a binding followed by a batch. `{ pipe = "describe_view", batch_over = "pages.page_view", batch_as = "page_view" }` behaves exactly as a binding step of `pages.page_view` under a private name that no other step can read, followed by the same pipe step with `batch_over` naming that private name. The path follows every rule of a binding step. Its root takes the concept and multiplicity of the latest value stored under its name before the step, in step order, and those the sequence's `inputs` declare only when no earlier step stored that name (see [The Concept of the Result](#the-concept-of-the-result)). Its concept is derived by the same walk, it maps and flattens across lists, so a dotted path over a list of catalogs iterates over the pages of all of them, and it lifts and records absences the same way.
 
 A dotted `batch_over` MUST bind a list: its walk MUST cross at least one list, whether the root is a list, a field along the path is one, or the path ends on a list field. A dotted `batch_over` whose walk derives a single value, such as `batch_over = "invoice.supplier_name"` over the invoice above, is rejected before any run, and an implementation reports it the way it reports a `batch_over` naming a value that is not a list. A dotted `batch_over` that breaks the [path grammar](#path-grammar), such as `a..b` or `pages[0].x`, is rejected as `binding_step_invalid`, as a binding step's `from` would be.
 
