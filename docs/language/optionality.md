@@ -56,7 +56,7 @@ Being optional does not exempt an input from being read: `PipeLLM`, `PipeImgGen`
 
 ## Absence Through a Binding Step
 
-A binding step reads a field of a value, and the data may not hold that field. The step introduces no new kind of absence; it uses the ones above.
+A binding step reads a field of a value, and the data may not hold that field. The step introduces no new kind of absence: like a pipe's output, a single result is either a value or a recorded absence, and a list result is never absent.
 
 ```toml
 [concept.Delivery]
@@ -85,12 +85,12 @@ output      = "Text"
 prompt      = "Write a one-paragraph briefing for a courier delivering to $address. @?courier_note"
 ```
 
-`note` is not required, so `courier_note` may be absent: for a delivery with no note, the binding records a declared absence whose reason names `note` as the segment that held nothing. `write_briefing` declares the input optional and guards the read with `@?`, so it runs either way. Had it declared `courier_note = "Text"`, it would be skipped when the note is missing, and the sequence, whose output it produces, would have to declare its output `Text?`. `address` is required, so its binding is never absent.
+`note` is not required, so `courier_note` may be absent: for a delivery with no note, the binding records an absence whose provenance names `note` as the segment that held nothing. `write_briefing` declares the input optional and guards the read with `@?`, so it runs either way. Had it declared `courier_note = "Text"`, it would be skipped when the note is missing, and the sequence, whose output it produces, would have to declare its output `Text?`. `address` is required, so its binding is never absent.
 
 The rules:
 
-- **An absent root lifts the step.** The root is read like a plain input. When it is absent, the binding step is skipped and a single result is recorded as a skipped absence (`SKIPPED`), with provenance pointing to the root's absence. A list result is an empty list instead, since a plural slot is never absent.
-- **A path reaching nothing records a declared absence.** When the result is a single value and a segment holds nothing, at the leaf or at any segment before it, the result is recorded as a declared absence (`DECLARED_ABSENT`) whose reason names that segment. This is not an error.
+- **An absent root lifts the step.** The root is read like a plain input. When it is absent, the binding step is skipped and a single result is recorded as a skipped absence, with provenance pointing to the root's absence. A list result is an empty list instead, since a plural slot is never absent.
+- **A path reaching nothing records an absence.** When the result is a single value and a segment holds nothing, at the leaf or at any segment before it, the result is a recorded absence whose provenance names that segment. This is not an error.
 - **A list result is never absent.** When the path crosses a list, an item that holds nothing contributes nothing, and the result is a shorter list, or an empty one.
 - **Statically,** a single result may be absent when its root may be, or when its path walks a field that is not `required` and has no `default_value`. Structure fields default to `required = false`, so most single-value bindings may be absent unless the concept marks the field required.
 

@@ -1105,10 +1105,10 @@ When the walk crosses a list, whether the root is a list or a field along the pa
 
 #### Absence
 
-A binding step introduces no new kind of absence: it follows the [optionality model](../language/optionality.md).
+A binding step introduces no new kind of absence: like a pipe's output under the [optionality model](../language/optionality.md#runtime-behavior), a single result is either a value or a recorded absence, and a list result is never absent.
 
-- **The root is absent.** The root is read like a plain input, so the binding step lifts the way a pipe with an absent plain input does. A single result is recorded as a skipped absence (`SKIPPED`), with provenance pointing to the root's absence. A list result is an empty list instead, since a plural slot is never absent.
-- **The path reaches nothing.** When the result is a single value and a segment holds nothing, at the leaf or at any segment before it (`invoice.scan.url` on an invoice with no `scan`), the result is recorded as a declared absence (`DECLARED_ABSENT`) whose reason names the segment that held nothing. This is not an error. When the result is a list, the [list rule](#lists-map-and-flatten) applies instead.
+- **The root is absent.** The root is read like a plain input, so the binding step lifts the way a pipe with an absent plain input does: a single result is recorded as a skipped absence, with provenance pointing to the root's absence. A list result is an empty list instead, since a plural slot is never absent.
+- **The path reaches nothing.** When the result is a single value and a segment holds nothing, at the leaf or at any segment before it (`invoice.scan.url` on an invoice with no `scan`), the result is a recorded absence whose provenance names the segment that held nothing. This is not an error. When the result is a list, the [list rule](#lists-map-and-flatten) applies instead.
 - **Statically,** a single result may be absent when its root may be absent, or when its path walks a field that may hold nothing, meaning one that is not `required` and has no `default_value`. Structure fields default to `required = false`, so most single-value bindings may be absent unless the concept marks the field required, which is correct, since the data may lack the field. A list result is never considered maybe-absent.
 
 What follows is the existing machinery: a step reading the result through a plain input lifts when it is absent, a step reading it through an optional (`?`) input runs and guards the read, and a sequence whose output can be absent MUST declare its output `?`.
