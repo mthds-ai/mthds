@@ -109,6 +109,7 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 
 - `branches` MUST have at least one entry.
 - Every branch MUST be a pipe step. A binding step in `branches` is rejected as `binding_step_invalid`.
+- A branch MUST NOT carry a dotted `batch_over`, which is a binding followed by a batch, and one that does is rejected as `binding_step_invalid`. A plain `batch_over` on a branch is allowed (see [Dotted `batch_over`](../spec/mthds-format.md#dotted-batch_over)).
 - `output` MUST be `Composite` or a structured concept.
 - `output` MUST NOT use multiplicity brackets (`[]` or `[N]`).
 - For structured output, required fields MUST be produced by matching branch `result` names and branch output concepts MUST be compatible with the corresponding fields.

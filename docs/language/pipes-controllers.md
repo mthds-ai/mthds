@@ -107,7 +107,7 @@ branches = [
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `branches` | Yes | List of pipe steps to execute concurrently. A branch cannot be a [binding step](#binding-steps). |
+| `branches` | Yes | List of pipe steps to execute concurrently. A branch cannot be a [binding step](#binding-steps), nor carry a dotted `batch_over`, which binds before it batches. |
 | `output` | Yes | Combined output concept. Must be `Composite` or a structured concept whose fields match branch `result` names. Multiplicity is not allowed. |
 | `add_each_output` | No | If `true`, each branch's output is also stored individually. Default: `false`. |
 

@@ -1146,13 +1146,15 @@ A pipe step whose `batch_over` is a dotted path is a binding followed by a batch
 
 A dotted `batch_over` MUST bind a list: its walk MUST cross at least one list, whether the root is a list, a field along the path is one, or the path ends on a list field. A dotted `batch_over` whose walk derives a single value, such as `batch_over = "invoice.supplier_name"` over the invoice above, is rejected before any run, and an implementation reports it the way it reports a `batch_over` naming a value that is not a list. A dotted `batch_over` that breaks the [path grammar](#path-grammar), such as `a..b` or `pages[0].x`, is rejected as `binding_step_invalid`, as a binding step's `from` would be.
 
+A dotted `batch_over` binds, and only a sequence's steps can bind, so a [PipeParallel](#controller-pipeparallel) branch MUST NOT carry one: a branch whose `batch_over` is a dotted path is rejected as `binding_step_invalid`, which the schema catches, exactly as a binding step placed in a branch is. A plain `batch_over` on a branch is unaffected. A branch that needs to iterate over a list held in a field gets it from the calling sequence, which binds the field in a step before the PipeParallel step, so that the branch's plain `batch_over` names the bound list.
+
 #### Validation Surface
 
 A compliant implementation SHOULD report a binding step's own faults under these names:
 
 | Error | Fault | Caught by |
 |-------|-------|-----------|
-| `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a `from` that breaks the [path grammar](#path-grammar); a dotted `batch_over` that breaks the path grammar; a binding step in a PipeParallel's `branches`. | The schema. |
+| `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a `from` that breaks the [path grammar](#path-grammar); a dotted `batch_over` that breaks the path grammar; a binding step in a PipeParallel's `branches`; a dotted `batch_over` in a PipeParallel's `branches`. | The schema. |
 | `binding_path_unresolved` | A path the declared structures cannot walk, under the refusals listed in [The Concept of the Result](#the-concept-of-the-result). | Validation of the bundle, which reads the concepts' structures, before any run. |
 
 A binding step can also cause faults that are not its own, and an implementation reports each of them the way it reports the same fault caused by a pipe step: a root that is neither an input of the sequence nor stored by an earlier step, whose diagnostic asks for the concept whose structure holds the path; a step that reads the result through an input declaring a concept or multiplicity incompatible with the ones the binding derives; a binding step ending the sequence whose derived concept or multiplicity does not match the sequence's declared `output`; and a dotted `batch_over` whose walk derives a single value, which is reported as a `batch_over` naming a value that is not a list. A maybe-absent result escaping a sequence whose output is not `?` is `optional_not_handled`, as [Optionality](../language/optionality.md#validation-surface) defines it.
@@ -1178,6 +1180,7 @@ Executes multiple sub-pipes concurrently. Each branch operates independently, th
 - For structured output, required fields MUST be produced by matching branch `result` names and branch output concepts MUST be compatible with the corresponding fields.
 - `add_each_output` controls only whether branch results are also exposed individually in working memory. It does not control the main output.
 - Each branch is a pipe step, in the format of a [PipeSequence](#controller-pipesequence) pipe step. A branch MUST NOT be a binding step: a branch carrying `from` is rejected as `binding_step_invalid`, and a value the branches need is bound by a sequence step before the parallel.
+- A branch MUST NOT carry a dotted `batch_over`, which is a binding followed by a batch (see [Dotted `batch_over`](#dotted-batch_over)): such a branch is rejected as `binding_step_invalid`, while a plain `batch_over` on a branch is unaffected.
 
 **Example:**
 
