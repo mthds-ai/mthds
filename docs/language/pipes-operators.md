@@ -19,7 +19,7 @@ All concrete pipe types share these base fields. Contract-only signatures omit `
 |-------|----------|-------------|
 | `type` | Yes for concrete pipes | The pipe type (e.g., `"PipeLLM"`, `"PipeSequence"`). |
 | `description` | Yes | Human-readable description of what this pipe does. |
-| `inputs` | No | Input declarations. Keys are input names (`snake_case`), values are input slot declarations — a concept reference, or the expanded form `{ concept = "...", hints = { ... } }` (see [Input slot declarations](../spec/mthds-format.md#input-slot-declarations) and [Intent Hints](../spec/intent-hints.md)). |
+| `inputs` | No | Input declarations. Keys are input names (plain `snake_case`, never dotted), values are input slot declarations — a concept reference, or the expanded form `{ concept = "...", hints = { ... } }` (see [Input slot declarations](../spec/mthds-format.md#input-slot-declarations) and [Intent Hints](../spec/intent-hints.md)). |
 | `output` | Yes | The output concept reference. |
 
 **Pipe codes** are the keys in `[pipe.<pipe_code>]` tables. They must be `snake_case`, matching `[a-z][a-z0-9_]*`.
@@ -118,19 +118,22 @@ prompt      = "Describe the provided image in great detail: $image"
 
 Image variables must be tagged with `@` or `$` in the prompt, just like text variables.
 
-**Sub-attribute access with dot notation:** When an input is a structured concept that contains an image field, use dotted paths to reach the image:
+**Reading an image field of a structured input:** When the image is a field of a structured concept, declare the input with its whole concept and reach the image through it with a dotted path in the prompt:
 
 ```toml
 [pipe.analyze_page_view]
 type        = "PipeLLM"
 description = "Analyze the visual layout of a page"
-inputs      = { "page_content.page_view" = "Image" }
+inputs      = { page_content = "Page" }
 output      = "LayoutAnalysis"
 prompt      = """
-Analyze the visual layout and design elements of this page: $page_content.page_view
-Focus on typography, spacing, and overall composition.
+Analyze the visual layout and design elements of this page, focusing on typography, spacing, and overall composition.
+
+@page_content.page_view
 """
 ```
+
+The input is named `page_content` and typed `Page`; the dotted path `page_content.page_view` appears only in the prompt, where it reads the `page_view` field of that page. An input name is always a plain name, never a dotted one (see [Input names](../spec/mthds-format.md#input-names)). When a pipe should receive only the field, the calling [PipeSequence](pipes-controllers.md#pipesequence) hands it over under a plain name with a binding step, and the pipe declares that name with the field's concept, here `page_view = "Image"`.
 
 **Multiple images:** List each image as a separate input:
 

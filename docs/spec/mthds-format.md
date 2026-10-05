@@ -255,7 +255,7 @@ Concrete pipe types share these base fields:
 |-------|------|----------|-------------|
 | `type` | string | Yes for concrete pipes | The pipe type. Determines which category and additional fields are available. Omitted only for contract-only `PipeSignature` declarations. |
 | `description` | string | Yes | Human-readable description of what this pipe does. |
-| `inputs` | table | No | Input declarations. Keys are input names (`snake_case`), values are input slot declarations (see [Input slot declarations](#input-slot-declarations)). |
+| `inputs` | table | No | Input declarations. Keys are [input names](#input-names) (plain `snake_case`), values are input slot declarations (see [Input slot declarations](#input-slot-declarations)). |
 | `output` | string | Yes | The output concept reference with optional multiplicity. |
 
 **Pipe codes:**
@@ -266,8 +266,9 @@ Concrete pipe types share these base fields:
 **Input names:**
 { #input-names }
 
-- Input names MUST be `snake_case`.
-- Dotted input names are allowed for nested field access (e.g., `my_input.field_name`), where each segment MUST be `snake_case`. A dotted input name MUST be written as a single quoted TOML key (`"my_input.field_name" = "Text"`), never as an unquoted dotted path: TOML parses the latter as nested tables, which the [expanded slot form](#input-slot-declarations) would misread as a slot table.
+- An input name MUST be a plain `snake_case` identifier, matching the pattern `[a-z][a-z0-9_]*`, on every pipe, operator or controller alike. It names one whole value, of the concept its slot declares.
+- An input name MUST NOT contain a dot. A key such as `"invoice.total" = "Number"` does not declare a field of `invoice`: a compliant implementation MUST reject it, as it rejects any other name that is not a plain `snake_case` identifier (`InvoiceTotal`, `2nd_total`), and reports the refusal as `invalid_input_name`.
+- A pipe that needs one field of a value receives it in one of two ways. Either it declares the root with its whole concept and reads the field through the root in its template (`invoice = "Invoice"`, read as `$invoice.total`, see [Inputs Read Through Templates](#inputs-read-through-templates)), or the calling sequence hands it the field under a plain name with a binding step (`{ from = "invoice.total", result = "total_amount" }`, see [Controller: PipeSequence](#controller-pipesequence)) and the pipe declares `total_amount = "Number"`. The message of an `invalid_input_name` refusal for a dotted name SHOULD name both remedies.
 
 **Concept references in inputs and output:**
 { #concept-references-in-inputs-and-output }
@@ -381,10 +382,10 @@ signature_for = "PipeLLM"
 
 PipeLLM, PipeImgGen, PipeSearch and PipeCompose read their inputs through templates, and the validation rules of each operator name the fields that do the reading. For these four operators the input rule runs in both directions: every variable those fields reference MUST correspond to a declared input, apart from the names the operator's own rules exclude, and every declared input MUST be read by at least one of them. A declared input that no such field reads is rejected.
 
-A template variable reads an input when the variable's dotted path is the input's name, or begins with the input's name followed by a dot:
+A template variable is a dotted path whose first segment, its root, names an input, and whose following segments, if any, name fields reached through that input's concept. A variable corresponds to the declared input its root names, and reads that input. The match is made by the root alone and is the same on every operator, a PipeJudge's `question` and a PipeCompose construct's `from` paths included, with no per-operator exception:
 
 - `$deal.customer_name` reads the input `deal`.
-- A [dotted input name](#input-names) such as `"page.page_view"` is read by `@page.page_view` or `{{ page.page_view.text }}`, but not by `@page` alone. PipeImgGen, PipeSearch and PipeCompose match every variable they read against a declared input by its root, so on these operators the root `page` MUST be declared as well.
+- `@page.page_view` and `{{ page.page_view.url }}` read the input `page`, declared with its whole concept (`page = "Page"`). The field is reached through the root in the template and is never declared as an input of its own, since an [input name](#input-names) is a plain name.
 - An optional (`?`) input is not exempt. A conditional reference such as `@?note` or `{% if note %}…{% endif %}` reads it.
 
 PipeJudge is not among these operators. Its inputs reach the model as the named material the question is asked about, not through its `question` template, so a declared input it never references is still read (see [Operator: PipeJudge](#operator-pipejudge)).
@@ -1104,11 +1105,12 @@ Maps a single pipe over each item in a list input, producing a list output.
 | `inputs` | table | Yes | MUST include an entry whose name matches `input_list_name`. |
 | `output` | string | Yes | — |
 | `branch_pipe_code` | string | Yes | The pipe reference to invoke for each item. |
-| `input_list_name` | string | Yes | The name of the input that contains the list to iterate over. |
+| `input_list_name` | string | Yes | The name of the input that contains the list to iterate over: a plain [input name](#input-names). |
 | `input_item_name` | string | Yes | The name under which each individual item is passed to the branch pipe. |
 
 **Validation rules:**
 
+- `input_list_name` MUST be a plain [input name](#input-names). A dotted name such as `catalog.pages` is rejected as `invalid_input_name`. To map a pipe over a list held in a field, the PipeBatch declares the list itself as its input (`pages = "Page[]"`, with `input_list_name = "pages"`), and the calling sequence hands the field to it under that name with a binding step (`{ from = "catalog.pages", result = "pages" }`, see [Controller: PipeSequence](#controller-pipesequence)).
 - `input_list_name` MUST exist as a key in `inputs`.
 - `input_item_name` MUST NOT be empty.
 - `input_item_name` MUST NOT equal `input_list_name`.

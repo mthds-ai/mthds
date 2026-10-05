@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v4.0.0 · MTHDS standard 4.0.0 · MTHDS Protocol 0.7.0**
+
+### Removed
+
+- **Dotted input names (Breaking)** (`spec/mthds-format.md`): an input name is a plain `snake_case` name on every pipe, so a dotted key such as `"page.page_view" = "Image"` is rejected as `invalid_input_name`, and so is a dotted `input_list_name` on a PipeBatch; every operator now matches a template variable to a declared input by its root alone. A bundle that declared a dotted input declares the root with its whole concept instead and reads the field through it in the template (`page = "Page"`, read as `@page.page_view`), or has the calling sequence hand the field over under a plain name with a binding step.
+
 ## [v3.0.0] - 2026-10-04
 
 **MTHDS standard 3.0.0 · MTHDS Protocol 0.7.0**
