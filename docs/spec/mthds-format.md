@@ -999,7 +999,7 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `from` | string | Yes | The path to bind: a name in working memory, followed by zero or more field names, separated by dots (see [Path Grammar](#path-grammar)). |
-| `result` | string | Yes | Name under which the bound value is stored in working memory. It MUST be a plain [input name](#input-names), a `snake_case` identifier matching `[a-z][a-z0-9_]*` and so never dotted. A binding step stores its value only for a later step to read, through an input or as the root of a later binding, and both look a stored value up by a plain name, so a `result` that no step could ever read is refused. A pipe step's `result` is not restricted by this version of the standard: whether the same rule extends to it is a separate question left open here, and a pipe step whose `result` is not a plain name stores a value that no input and no binding can read. |
+| `result` | string | Yes | Name under which the bound value is stored in working memory. It MUST be a plain [input name](#input-names), a `snake_case` identifier matching `[a-z][a-z0-9_]*` and so never dotted. A binding step stores its value only for a later step to read, and an input reads a stored value only under a plain name, so a binding's `result` takes the form of an input name and the value it stores can always be read by an input. A pipe step's `result` is not restricted by this version of the standard: whether the same rule extends to it is a separate question left open here, and a value a pipe step stores under a name that is not a plain name cannot be read by any input. |
 
 **Validation rules:**
 
