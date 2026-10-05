@@ -1081,16 +1081,18 @@ The result's concept is derived statically, before any run, by walking the path 
 | `type = "list"` with any other `item_type` | the native concept that `item_type` gives by the rows above, a leaf, crossing a list |
 | `type = "dict"` | `native.JSON`, a leaf |
 
-The walk reads only the concept references the structures declare. A native concept is walked through its [pinned definition](./native-concepts.md), so `page.page_view` is a `native.Image`. A concept that [refines](#concept-refinement) another is walked through the structure it inherits. The walk never infers a concept from the shape of a value: several concepts can share one structure, and only the declaration says which of them a field holds.
+The walk reads only the concept references the structures declare. A native concept is walked through its [pinned definition](./native-concepts.md), so `page.page_view` is a `native.Image`. The exceptions are `Text` and `JSON`, which the walk treats as leaves. A concept that [refines](#concept-refinement) another is walked through the structure it inherits. The walk never infers a concept from the shape of a value: several concepts can share one structure, and only the declaration says which of them a field holds.
+
+**`Text` and `JSON` are leaves for the walk.** Each pins a single field, `text` for `Text` and `json_obj` for `JSON`, and that field is the value itself rather than a part of it, so a path never enters either concept, nor a concept that refines one of them. A path may end on such a concept, whether a `text` or `dict` field or a concept reference leads to it, but no segment may follow it: `from = "note.text"`, over a `note` holding a `Text`, is rejected as `binding_path_unresolved`.
 
 When the walk crosses no list, the result is a single value of the concept the walk ends on. When it crosses at least one list, the result is a variable-length list of that concept, `X[]`. A bare name has no segment to walk, and its result takes the root's concept and multiplicity unchanged. A step that reads the result is checked against the derived concept and multiplicity exactly as it would be against a pipe's output, and a binding step that ends the sequence is checked against the sequence's `output` the same way.
 
 The walk refuses the path, and the step is rejected as `binding_path_unresolved`, when:
 
 - a segment names no field of the structure it walks;
-- a segment follows a leaf;
+- a segment follows a leaf, which includes `Text`, `JSON` and any concept that refines one of them;
 - a segment follows a `dict` field, or a `list` field with no `item_type`;
-- a segment walks a concept with no walkable structure, which is any concept declared without a structure, any of the natives `Dynamic`, `Anything`, `Composite`, `Text` and `JSON`, and any concept that refines one of them;
+- a segment walks a concept that has no structure, which is any concept declared with neither a `structure` nor `refines`, any of the [structureless natives](./native-concepts.md#reading-the-definitions) `Dynamic`, `Anything` and `Composite`, and any concept that refines one of them;
 - the path ends on a `list` field with no `item_type`, whose items have no concept to derive.
 
 The diagnostic names the segment that failed and lists the fields that were available at that point, so that a typo can be repaired from the message alone.
