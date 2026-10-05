@@ -127,11 +127,12 @@ input_item_name  = "topic"
 | Field | Required | Description |
 |-------|----------|-------------|
 | `branch_pipe_code` | Yes | The pipe reference to invoke for each item. |
-| `input_list_name` | Yes | The name of the input that contains the list to iterate over. Must exist as a key in `inputs`. |
+| `input_list_name` | Yes | The name of the input that contains the list to iterate over. Must be a plain input name and must exist as a key in `inputs`. |
 | `input_item_name` | Yes | The name under which each individual item is passed to the branch pipe. |
 
 **Constraints:**
 
+- `input_list_name` must be a plain input name, never a dotted path such as `catalog.pages` (see [Input names](../spec/mthds-format.md#input-names)). To map a pipe over a list held in a field, declare the list itself as the PipeBatch's input (`pages = "Page[]"`, with `input_list_name = "pages"`), and let the calling [PipeSequence](#pipesequence) hand the field over under that name.
 - `input_item_name` must not equal `input_list_name`.
 - `input_item_name` must not equal any key in `inputs`.
 
