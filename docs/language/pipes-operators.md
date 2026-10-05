@@ -105,7 +105,7 @@ Every variable referenced in the prompt must correspond to a declared input, and
 
 ### Image Inputs
 
-PipeLLM supports vision language models that process both text and images. Declare image inputs in the `inputs` field — they are passed to the model alongside the text prompt.
+PipeLLM supports vision language models that process both text and images. Declare image inputs in the `inputs` field — they are passed to the model alongside the text prompt. An image reached through a field of a structured input is passed the same way, as the example on reading an image field below shows.
 
 ```toml
 [pipe.describe_image]
@@ -363,10 +363,10 @@ model       = "$gen-image-testing"
 
 **What this does:** Renders the `prompt` template — interpolating the `Text` input `description` — sends the result to an image generation model, and produces an `Image` output.
 
-PipeImgGen does not consume a dedicated "prompt" concept. The prompt is a string template declared directly on the pipe, and the pipe's declared `inputs` are injected into that template at runtime:
+PipeImgGen does not consume a dedicated "prompt" concept. The prompt is a string template declared directly on the pipe, and the pipe's declared `inputs` are injected into that template at runtime, each variable according to the concept its path reaches:
 
-- **`Text` inputs** are interpolated into the prompt text via `$variable` shorthand or Jinja2.
-- **`Image` inputs** (a single image or a list) are referenced in the prompt and injected as **reference images**: each referenced image is replaced by an `[Image N]` token in the rendered text and passed to the generator alongside it. This is the same vision pattern used for image inputs to `PipeLLM`, and it enables image-to-image, reference-image, and image-editing generation, bounded by the model's image limit.
+- **A variable that reaches text** is interpolated into the prompt text via `$variable` shorthand or Jinja2, whether it reads a `Text` input such as `$description` or a text field reached through a structured input.
+- **A variable that reaches an `Image`** (a single image or a list) is injected as a **reference image**, whether it reads an `Image` input such as `$source` on `source = "Image"` or an image field reached through a structured input such as `$page.page_view` on `page = "Page"`. Each referenced image is replaced by an `[Image N]` token in the rendered text and passed to the generator alongside it. This is the same vision pattern `PipeLLM` uses for the images it reads (see [Image Inputs](#image-inputs)), and it enables image-to-image, reference-image, and image-editing generation, bounded by the model's image limit.
 
 Every variable referenced in the `prompt` or `negative_prompt` must correspond to a declared input, and every declared input must be referenced in one of them. Unused inputs are rejected: an `Image` input that the prompt never references would never reach the generator.
 
