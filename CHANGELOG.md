@@ -10,7 +10,7 @@
 
 ### Changed
 
-- **Dotted `batch_over`** (`spec/mthds-format.md`): a dotted `batch_over` such as `catalog.pages` is now defined as a binding of that path followed by a batch over the bound list, so it derives its concept, crosses lists and records absences exactly as a binding step does.
+- **Dotted `batch_over`** (`spec/mthds-format.md`): a dotted `batch_over` such as `catalog.pages` is now defined as a binding of that path followed by a batch over the bound list, so it derives its concept, crosses lists and records absences exactly as a binding step does. Its path must derive a list, and one deriving a single value is rejected before any run, while one breaking the binding step's path grammar is `binding_step_invalid`.
 
 ## [v3.0.0] - 2026-10-04
 

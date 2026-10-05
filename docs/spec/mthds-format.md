@@ -1007,6 +1007,7 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 - `nb_output` and `multiple_output` MUST NOT both be set on the same step.
 - `batch_over` and `batch_as` MUST either both be present or both be absent.
 - `batch_over` and `batch_as` MUST NOT be the same value.
+- A dotted `batch_over` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its walk MUST derive a list (see [Dotted `batch_over`](#dotted-batch_over)).
 - A step MUST NOT carry both `pipe` and `from`. A binding step MUST carry `result`, and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. A step breaking either rule is rejected as `binding_step_invalid`.
 - A binding step's `from` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its path MUST be walkable through the declared structures, or the step is rejected as `binding_path_unresolved` (see [The Concept of the Result](#the-concept-of-the-result)).
 
@@ -1138,16 +1139,18 @@ Working memory matches a pipe's inputs by name, so this is how a sequence hands 
 
 A pipe step whose `batch_over` is a dotted path is a binding followed by a batch. `{ pipe = "describe_view", batch_over = "pages.page_view", batch_as = "page_view" }` behaves exactly as a binding step of `pages.page_view` under a private name that no other step can read, followed by the same pipe step with `batch_over` naming that private name. The path follows every rule of a binding step: its concept is derived by the same walk, it maps and flattens across lists, so a dotted path over a list of catalogs iterates over the pages of all of them, and it lifts and records absences the same way.
 
+A dotted `batch_over` MUST bind a list: its walk MUST cross at least one list, whether the root is a list, a field along the path is one, or the path ends on a list field. A dotted `batch_over` whose walk derives a single value, such as `batch_over = "invoice.supplier_name"` over the invoice above, is rejected before any run, and an implementation reports it the way it reports a `batch_over` naming a value that is not a list. A dotted `batch_over` that breaks the [path grammar](#path-grammar), such as `a..b` or `pages[0].x`, is rejected as `binding_step_invalid`, as a binding step's `from` would be.
+
 #### Validation Surface
 
 A compliant implementation SHOULD report a binding step's own faults under these names:
 
 | Error | Fault | Caught by |
 |-------|-------|-----------|
-| `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a `from` that breaks the [path grammar](#path-grammar); a binding step in a PipeParallel's `branches`. | The schema. |
+| `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a `from` that breaks the [path grammar](#path-grammar); a dotted `batch_over` that breaks the path grammar; a binding step in a PipeParallel's `branches`. | The schema. |
 | `binding_path_unresolved` | A path the declared structures cannot walk, under the refusals listed in [The Concept of the Result](#the-concept-of-the-result). | Validation of the bundle, which reads the concepts' structures, before any run. |
 
-A binding step can also cause faults that are not its own, and an implementation reports each of them the way it reports the same fault caused by a pipe step: a root that is neither an input of the sequence nor stored by an earlier step, whose diagnostic asks for the concept whose structure holds the path; a step that reads the result through an input declaring a concept or multiplicity incompatible with the ones the binding derives; and a binding step ending the sequence whose derived concept or multiplicity does not match the sequence's declared `output`. A maybe-absent result escaping a sequence whose output is not `?` is `optional_not_handled`, as [Optionality](../language/optionality.md#validation-surface) defines it.
+A binding step can also cause faults that are not its own, and an implementation reports each of them the way it reports the same fault caused by a pipe step: a root that is neither an input of the sequence nor stored by an earlier step, whose diagnostic asks for the concept whose structure holds the path; a step that reads the result through an input declaring a concept or multiplicity incompatible with the ones the binding derives; a binding step ending the sequence whose derived concept or multiplicity does not match the sequence's declared `output`; and a dotted `batch_over` whose walk derives a single value, which is reported as a `batch_over` naming a value that is not a list. A maybe-absent result escaping a sequence whose output is not `?` is `optional_not_handled`, as [Optionality](../language/optionality.md#validation-surface) defines it.
 
 ## Controller: PipeParallel
 
