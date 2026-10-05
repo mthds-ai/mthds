@@ -317,10 +317,11 @@ This section consolidates the validation rules scattered throughout this specifi
 4. Concept codes MUST be `PascalCase`.
 5. Concept codes MUST NOT match any native concept code.
 6. Pipe codes MUST be `snake_case`.
-7. `refines` and `structure` MUST NOT both be set on the same concept.
-8. Local concept references (bare or same-domain) MUST resolve to a declared concept in the bundle or a native concept.
-9. Same-domain pipe references MUST resolve to a declared pipe in the bundle.
-10. Cross-package references (`->` syntax) are deferred to package-level validation.
+7. Input names MUST be plain `snake_case` identifiers (`[a-z][a-z0-9_]*`), never dotted. Any other input name is rejected as `invalid_input_name`.
+8. `refines` and `structure` MUST NOT both be set on the same concept.
+9. Local concept references (bare or same-domain) MUST resolve to a declared concept in the bundle or a native concept.
+10. Same-domain pipe references MUST resolve to a declared pipe in the bundle.
+11. Cross-package references (`->` syntax) are deferred to package-level validation.
 
 ### Concept Structure Field Validation
 
@@ -348,7 +349,7 @@ This section consolidates the validation rules scattered throughout this specifi
 9. **PipeSequence**: `steps` MUST have at least one entry.
 10. **PipeParallel**: `output` MUST be `Composite` or a structured concept, MUST NOT use multiplicity, and structured output fields MUST match branch `result` names.
 11. **PipeCondition**: Exactly one of `expression_template` or `expression` MUST be present. `outcomes` MUST have at least one entry.
-12. **PipeBatch**: `input_list_name` MUST be in `inputs`. `input_item_name` MUST NOT equal `input_list_name` or any `inputs` key.
+12. **PipeBatch**: `input_list_name` MUST be a plain input name and MUST be in `inputs`. `input_item_name` MUST NOT equal `input_list_name` or any `inputs` key.
 
 ### Manifest Validation
 
