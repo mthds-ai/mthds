@@ -101,10 +101,13 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 - `nb_output` and `multiple_output` MUST NOT both be set on the same step.
 - `batch_over` and `batch_as` MUST either both be present or both be absent.
 - `batch_over` and `batch_as` MUST NOT be the same value.
+- A step MUST NOT carry both `pipe` and `from`. A binding step (one carrying `from`) MUST carry `result` and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. Its `from` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar). Each of these faults is `binding_step_invalid`.
+- A binding step's path MUST be walkable through the declared structures, starting from the root's concept as the sequence knows it, or the step is rejected as `binding_path_unresolved` (see [The Concept of the Result](../spec/mthds-format.md#the-concept-of-the-result)).
 
 **PipeParallel:**
 
 - `branches` MUST have at least one entry.
+- Every branch MUST be a pipe step. A binding step in `branches` is rejected as `binding_step_invalid`.
 - `output` MUST be `Composite` or a structured concept.
 - `output` MUST NOT use multiplicity brackets (`[]` or `[N]`).
 - For structured output, required fields MUST be produced by matching branch `result` names and branch output concepts MUST be compatible with the corresponding fields.

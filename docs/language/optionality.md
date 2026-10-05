@@ -52,6 +52,49 @@ Being optional does not exempt an input from being read: `PipeLLM`, `PipeImgGen`
 - `PipeCondition` with a `continue` outcome resolves its output as absent; such outputs must be declared `?`.
 - `PipeParallel` omits absent components from `Composite` outputs, absorbs absent branches into non-required structured fields, and rejects maybe-absent branches feeding required fields.
 - `PipeBatch` compacts absent branch results out of the output list.
+- A [binding step](pipes-controllers.md#binding-steps) in a `PipeSequence` lifts when its root is absent, and records an absence when its path reaches nothing, as described below.
+
+## Absence Through a Binding Step
+
+A binding step reads a field of a value, and the data may not hold that field. The step introduces no new kind of absence; it uses the ones above.
+
+```toml
+[concept.Delivery]
+description = "A parcel delivery"
+
+[concept.Delivery.structure]
+address = { type = "text", description = "The delivery address", required = true }
+note    = { type = "text", description = "A note the sender left for the courier" }
+
+[pipe.brief_courier]
+type        = "PipeSequence"
+description = "Write the courier's briefing for a delivery"
+inputs      = { delivery = "Delivery" }
+output      = "Text"
+steps = [
+    { from = "delivery.address", result = "address" },
+    { from = "delivery.note", result = "courier_note" },
+    { pipe = "write_briefing", result = "briefing" },
+]
+
+[pipe.write_briefing]
+type        = "PipeLLM"
+description = "Write a short briefing for the courier"
+inputs      = { address = "Text", courier_note = "Text?" }
+output      = "Text"
+prompt      = "Write a one-paragraph briefing for a courier delivering to $address. @?courier_note"
+```
+
+`note` is not required, so `courier_note` may be absent: for a delivery with no note, the binding records a declared absence whose reason names `note` as the segment that held nothing. `write_briefing` declares the input optional and guards the read with `@?`, so it runs either way. Had it declared `courier_note = "Text"`, it would be skipped when the note is missing, and the sequence, whose output it produces, would have to declare its output `Text?`. `address` is required, so its binding is never absent.
+
+The rules:
+
+- **An absent root lifts the step.** The root is read like a plain input. When it is absent, the binding step is skipped and a single result is recorded as a skipped absence (`SKIPPED`), with provenance pointing to the root's absence. A list result is an empty list instead, since a plural slot is never absent.
+- **A path reaching nothing records a declared absence.** When the result is a single value and a segment holds nothing, at the leaf or at any segment before it, the result is recorded as a declared absence (`DECLARED_ABSENT`) whose reason names that segment. This is not an error.
+- **A list result is never absent.** When the path crosses a list, an item that holds nothing contributes nothing, and the result is a shorter list, or an empty one.
+- **Statically,** a single result may be absent when its root may be, or when its path walks a field that is not `required` and has no `default_value`. Structure fields default to `required = false`, so most single-value bindings may be absent unless the concept marks the field required.
+
+From there the usual rules apply: a plain consumer lifts, an optional consumer runs and guards the read, and a maybe-absent result reaching the sequence's output requires the output to be declared `?`.
 
 ## Validation Surface
 
@@ -66,3 +109,5 @@ Compliant runtimes should surface optionality problems with structured diagnosti
 | `optional_branch_required_field` | A maybe-absent `PipeParallel` branch feeds a required structured field. |
 
 Valid reports may also include `liftable_pipes`, listing pipes that may be skipped at run time, and advisory `warnings` such as redundant force markers.
+
+A binding step's absences are reported with the diagnostics above. Its own faults are `binding_step_invalid`, for a malformed binding step or one placed in a `PipeParallel` branch, and `binding_path_unresolved`, for a path the declared structures cannot walk; both are specified in [Binding Steps](../spec/mthds-format.md#validation-surface).

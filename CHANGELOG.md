@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v4.0.0 · MTHDS standard 4.0.0 · MTHDS Protocol 0.7.0**
+
+### Added
+
+- **The binding step** (`spec/mthds-format.md`): a PipeSequence step is now either a pipe step or a binding step, `{ from = "invoice.total", result = "total_amount" }`, which stores a deep copy of the value at a path in working memory under a new name, its concept derived before any run from the declared structure the path walks. A path crossing a list maps over every item and flattens into one list, a path reaching nothing records a skipped or declared absence under the optionality model, and a bare name such as `from = "departure_board"` binds a renamed copy. A PipeParallel branch stays a pipe step, and a compliant implementation reports a malformed binding step, or one placed in a branch, as `binding_step_invalid`, and a path the declared structures cannot walk as `binding_path_unresolved`.
+
+### Changed
+
+- **Dotted `batch_over`** (`spec/mthds-format.md`): a dotted `batch_over` such as `catalog.pages` is now defined as a binding of that path followed by a batch over the bound list, so it derives its concept, crosses lists and records absences exactly as a binding step does.
+
 ## [v3.0.0] - 2026-10-04
 
 **MTHDS standard 3.0.0 · MTHDS Protocol 0.7.0**
