@@ -1008,7 +1008,8 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 - `batch_over` and `batch_as` MUST either both be present or both be absent.
 - `batch_over` and `batch_as` MUST NOT be the same value.
 - A dotted `batch_over` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its walk MUST derive a list (see [Dotted `batch_over`](#dotted-batch_over)).
-- A step MUST NOT carry both `pipe` and `from`. A binding step MUST carry `result`, and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. A step breaking either rule is rejected as `binding_step_invalid`.
+- A step MUST carry exactly one of `pipe` and `from`. A step carrying both is rejected as `binding_step_invalid`. A step carrying neither, such as `{ result = "x" }`, is neither a pipe step nor a binding step, and the schema rejects it with no error name of its own.
+- A binding step MUST carry `result`, and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`, or the step is rejected as `binding_step_invalid`.
 - A binding step's `from` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its path MUST be walkable through the declared structures, or the step is rejected as `binding_path_unresolved` (see [The Concept of the Result](#the-concept-of-the-result)).
 
 **Example:**
