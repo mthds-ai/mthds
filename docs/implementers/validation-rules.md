@@ -103,7 +103,7 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 - `batch_over` and `batch_as` MUST NOT be the same value.
 - A dotted `batch_over` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar), or the step is rejected as `binding_step_invalid`. Its walk MUST derive a list, and one deriving a single value is reported as a `batch_over` naming a value that is not a list (see [Dotted `batch_over`](../spec/mthds-format.md#dotted-batch_over)).
 - A step MUST carry exactly one of `pipe` and `from`. A step carrying both is rejected as `binding_step_invalid`, and a step carrying neither, such as `{ result = "x" }`, is rejected by the schema with no error name of its own.
-- A binding step (one carrying `from`) MUST carry `result` and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. Its `from` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar). Each of these faults is `binding_step_invalid`.
+- A binding step (one carrying `from`) MUST carry `result` and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. Its `result` MUST be a plain input name, matching `[a-z][a-z0-9_]*`, and its `from` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar). Each of these faults is `binding_step_invalid`.
 - A binding step's path MUST be walkable through the declared structures, or the step is rejected as `binding_path_unresolved`. The walk starts from the concept and multiplicity of the latest value stored under the root's name before the step, in step order, and from those the sequence's `inputs` declare only when no earlier step stored that name (see [The Concept of the Result](../spec/mthds-format.md#the-concept-of-the-result)).
 
 **PipeParallel:**

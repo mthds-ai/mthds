@@ -999,7 +999,7 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `from` | string | Yes | The path to bind: a name in working memory, followed by zero or more field names, separated by dots (see [Path Grammar](#path-grammar)). |
-| `result` | string | Yes | Name under which the bound value is stored in working memory, under the same rules as a pipe step's `result`. |
+| `result` | string | Yes | Name under which the bound value is stored in working memory, to be read by a later step's input or as the root of a later binding. It MUST be a plain [input name](#input-names), a `snake_case` identifier matching `[a-z][a-z0-9_]*` and so never dotted. |
 
 **Validation rules:**
 
@@ -1010,6 +1010,7 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 - A dotted `batch_over` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its walk MUST derive a list (see [Dotted `batch_over`](#dotted-batch_over)).
 - A step MUST carry exactly one of `pipe` and `from`. A step carrying both is rejected as `binding_step_invalid`. A step carrying neither, such as `{ result = "x" }`, is neither a pipe step nor a binding step, and the schema rejects it with no error name of its own.
 - A binding step MUST carry `result`, and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`, or the step is rejected as `binding_step_invalid`.
+- A binding step's `result` MUST be a plain input name, matching `[a-z][a-z0-9_]*`, or the step is rejected as `binding_step_invalid`.
 - A binding step's `from` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its path MUST be walkable through the declared structures, or the step is rejected as `binding_path_unresolved` (see [The Concept of the Result](#the-concept-of-the-result)).
 
 **Example:**
@@ -1155,7 +1156,7 @@ A compliant implementation SHOULD report a binding step's own faults under these
 
 | Error | Fault | Caught by |
 |-------|-------|-----------|
-| `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a `from` that breaks the [path grammar](#path-grammar); a dotted `batch_over` that breaks the path grammar; a binding step in a PipeParallel's `branches`; a dotted `batch_over` in a PipeParallel's `branches`. | The schema. |
+| `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a binding step whose `result` is not a plain input name matching `[a-z][a-z0-9_]*`; a `from` that breaks the [path grammar](#path-grammar); a dotted `batch_over` that breaks the path grammar; a binding step in a PipeParallel's `branches`; a dotted `batch_over` in a PipeParallel's `branches`. | The schema. |
 | `binding_path_unresolved` | A path the declared structures cannot walk, under the refusals listed in [The Concept of the Result](#the-concept-of-the-result). | Validation of the bundle, which reads the concepts' structures, before any run. |
 
 A binding step can also cause faults that are not its own, and an implementation reports each of them the way it reports the same fault caused by a pipe step: a root that is neither an input of the sequence nor stored by an earlier step, whose diagnostic asks for the concept whose structure holds the path; a step that reads the result through an input declaring a concept or multiplicity incompatible with the ones the binding derives; a binding step ending the sequence whose derived concept or multiplicity does not match the sequence's declared `output`; and a dotted `batch_over` whose walk derives a single value, which is reported as a `batch_over` naming a value that is not a list. A maybe-absent result escaping a sequence whose output is not `?` is `optional_not_handled`, as [Optionality](../language/optionality.md#validation-surface) defines it.
