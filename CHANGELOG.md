@@ -4,6 +4,14 @@
 
 **Next release: v4.0.0 · MTHDS standard 4.0.0 · MTHDS Protocol 0.7.0**
 
+### Added
+
+- **The binding step** (`spec/mthds-format.md`): a PipeSequence step is now either a pipe step or a binding step, `{ from = "invoice.total", result = "total_amount" }`, which stores a deep copy of the value at a path in working memory under a new name, its concept derived before any run from the declared structure the path walks. A path crossing a list maps over every item and flattens into one list, a path reaching nothing records an absence under the optionality model rather than failing, and a bare name such as `from = "departure_board"` binds a renamed copy. A PipeParallel branch stays a pipe step, and a compliant implementation reports a malformed binding step, or one placed in a branch, as `binding_step_invalid`, and a path the declared structures cannot walk as `binding_path_unresolved`.
+
+### Changed
+
+- **Dotted `batch_over`** (`spec/mthds-format.md`): a dotted `batch_over` such as `catalog.pages` is now defined as a binding of that path followed by a batch over the bound list, so it derives its concept, crosses lists and records absences exactly as a binding step does. Its path must derive a list, and one deriving a single value is rejected before any run, while one breaking the binding step's path grammar is `binding_step_invalid`, and so is one on a PipeParallel branch, which cannot bind.
+
 ### Removed
 
 - **Dotted input names (Breaking)** (`spec/mthds-format.md`): an input name is a plain `snake_case` name on every pipe, so a dotted key such as `"page.page_view" = "Image"` is rejected as `invalid_input_name`, and so is a dotted `input_list_name` on a PipeBatch; every operator now matches a template variable to a declared input by its root alone. Every operator that handles a value according to its concept now handles a template variable according to the concept its path reaches through the root's declared concept, so PipeLLM attaches `@page.page_view` on `page = "Page"` as an image and PipeImgGen injects it as a reference image. A bundle that declared a dotted input declares the root with its whole concept instead and reads the field through it in the template (`page = "Page"`, read as `@page.page_view`), or has the calling sequence hand the field over under a plain name with a binding step.
