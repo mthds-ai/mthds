@@ -25,7 +25,8 @@ After parsing TOML into a dictionary, validate the bundle structure:
 4. Concept codes MUST be `PascalCase` (`[A-Z][a-zA-Z0-9]*`).
 5. Concept codes MUST NOT match any native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Choice`, `Rating`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`).
 6. Pipe codes MUST be `snake_case` (`[a-z][a-z0-9_]*`).
-7. `refines` and `structure` MUST NOT both be set on the same concept.
+7. Input names MUST be plain `snake_case` identifiers (`[a-z][a-z0-9_]*`), never dotted. Any other input name MUST be rejected, and the refusal SHOULD be reported as `invalid_input_name`.
+8. `refines` and `structure` MUST NOT both be set on the same concept.
 
 ## Stage 3: Concept Field Validation
 
@@ -131,6 +132,7 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 
 **PipeBatch:**
 
+- `input_list_name` MUST be a plain input name.
 - `input_list_name` MUST be in `inputs`.
 - `input_item_name` MUST NOT be empty.
 - `input_item_name` MUST NOT equal `input_list_name`.

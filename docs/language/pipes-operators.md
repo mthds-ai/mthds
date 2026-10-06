@@ -19,7 +19,7 @@ All concrete pipe types share these base fields. Contract-only signatures omit `
 |-------|----------|-------------|
 | `type` | Yes for concrete pipes | The pipe type (e.g., `"PipeLLM"`, `"PipeSequence"`). |
 | `description` | Yes | Human-readable description of what this pipe does. |
-| `inputs` | No | Input declarations. Keys are input names (`snake_case`), values are input slot declarations — a concept reference, or the expanded form `{ concept = "...", hints = { ... } }` (see [Input slot declarations](../spec/mthds-format.md#input-slot-declarations) and [Intent Hints](../spec/intent-hints.md)). |
+| `inputs` | No | Input declarations. Keys are input names (plain `snake_case`, never dotted), values are input slot declarations — a concept reference, or the expanded form `{ concept = "...", hints = { ... } }` (see [Input slot declarations](../spec/mthds-format.md#input-slot-declarations) and [Intent Hints](../spec/intent-hints.md)). |
 | `output` | Yes | The output concept reference. |
 
 **Pipe codes** are the keys in `[pipe.<pipe_code>]` tables. They must be `snake_case`, matching `[a-z][a-z0-9_]*`.
@@ -105,7 +105,7 @@ Every variable referenced in the prompt must correspond to a declared input, and
 
 ### Image Inputs
 
-PipeLLM supports vision language models that process both text and images. Declare image inputs in the `inputs` field — they are passed to the model alongside the text prompt.
+PipeLLM supports vision language models that process both text and images. Declare image inputs in the `inputs` field — they are passed to the model alongside the text prompt. An image reached through a field of a structured input is passed the same way, as the example on reading an image field below shows.
 
 ```toml
 [pipe.describe_image]
@@ -118,19 +118,22 @@ prompt      = "Describe the provided image in great detail: $image"
 
 Image variables must be tagged with `@` or `$` in the prompt, just like text variables.
 
-**Sub-attribute access with dot notation:** When an input is a structured concept that contains an image field, use dotted paths to reach the image:
+**Reading an image field of a structured input:** When the image is a field of a structured concept, declare the input with its whole concept and reach the image through it with a dotted path in the prompt:
 
 ```toml
 [pipe.analyze_page_view]
 type        = "PipeLLM"
 description = "Analyze the visual layout of a page"
-inputs      = { "page_content.page_view" = "Image" }
+inputs      = { page_content = "Page" }
 output      = "LayoutAnalysis"
 prompt      = """
-Analyze the visual layout and design elements of this page: $page_content.page_view
-Focus on typography, spacing, and overall composition.
+Analyze the visual layout and design elements of this page, focusing on typography, spacing, and overall composition.
+
+@page_content.page_view
 """
 ```
+
+The input is named `page_content` and typed `Page`; the dotted path `page_content.page_view` appears only in the prompt, where it reads the `page_view` field of that page. An input name is always a plain name, never a dotted one (see [Input names](../spec/mthds-format.md#input-names)). When a pipe should receive only the field, the calling [PipeSequence](pipes-controllers.md#pipesequence) hands it over under a plain name with a binding step, and the pipe declares that name with the field's concept, here `page_view = "Image"`.
 
 **Multiple images:** List each image as a separate input:
 
@@ -360,10 +363,10 @@ model       = "$gen-image-testing"
 
 **What this does:** Renders the `prompt` template — interpolating the `Text` input `description` — sends the result to an image generation model, and produces an `Image` output.
 
-PipeImgGen does not consume a dedicated "prompt" concept. The prompt is a string template declared directly on the pipe, and the pipe's declared `inputs` are injected into that template at runtime:
+PipeImgGen does not consume a dedicated "prompt" concept. The prompt is a string template declared directly on the pipe, and the pipe's declared `inputs` are injected into that template at runtime, each variable according to the concept its path reaches:
 
-- **`Text` inputs** are interpolated into the prompt text via `$variable` shorthand or Jinja2.
-- **`Image` inputs** (a single image or a list) are referenced in the prompt and injected as **reference images**: each referenced image is replaced by an `[Image N]` token in the rendered text and passed to the generator alongside it. This is the same vision pattern used for image inputs to `PipeLLM`, and it enables image-to-image, reference-image, and image-editing generation, bounded by the model's image limit.
+- **A variable that reaches text** is interpolated into the prompt text via `$variable` shorthand or Jinja2, whether it reads a `Text` input such as `$description` or a text field reached through a structured input.
+- **A variable that reaches an `Image`** (a single image or a list) is injected as a **reference image**, whether it reads an `Image` input such as `$source` on `source = "Image"` or an image field reached through a structured input such as `$page.page_view` on `page = "Page"`. Each referenced image is replaced by an `[Image N]` token in the rendered text and passed to the generator alongside it. This is the same vision pattern `PipeLLM` uses for the images it reads (see [Image Inputs](#image-inputs)), and it enables image-to-image, reference-image, and image-editing generation, bounded by the model's image limit.
 
 Every variable referenced in the `prompt` or `negative_prompt` must correspond to a declared input, and every declared input must be referenced in one of them. Unused inputs are rejected: an `Image` input that the prompt never references would never reach the generator.
 
