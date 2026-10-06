@@ -85,7 +85,7 @@ version       = "0.1.0"
 description   = "Text summarization and document classification methods"
 authors       = ["Your Name <you@example.com>"]
 license       = "MIT"
-mthds_version = ">=3.0.0"
+mthds_version = ">=4.0.0"
 ```
 
 ## Step 5: Validate

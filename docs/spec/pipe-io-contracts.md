@@ -57,7 +57,7 @@ The `inputs` member is a **map, and deliberately contracts no order**. Where an 
 
 ## The Input Contract
 
-One entry per declared input slot, keyed by the authored input name (including a [dotted name](./mthds-format.md#input-names)).
+One entry per declared input slot, keyed by the authored [input name](./mthds-format.md#input-names), which is always a plain name.
 
 | Member | Type | Required | Meaning |
 |--------|------|----------|---------|

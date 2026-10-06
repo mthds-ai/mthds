@@ -8,7 +8,7 @@ Controllers are pipes that orchestrate other pipes. They do not perform transfor
 
 ## PipeSequence
 
-Executes a series of pipes in order. Each step's output is added to [working memory](working-memory.md), where subsequent steps can consume it.
+Executes a series of steps in order. A pipe step runs a pipe and adds its output to [working memory](working-memory.md), and a [binding step](#binding-steps) stores a deep copy of the value at a path in working memory under its `result` name. Subsequent steps can consume every value stored this way.
 
 ```toml
 [pipe.process_document]
@@ -25,20 +25,64 @@ steps = [
 
 **What this does:** Runs `extract_pages` first, stores its output as `pages` in working memory. Then runs `analyze_content` (which can use `pages`), stores the result as `analysis`. Finally runs `generate_summary`, producing the final `AnalysisResult`.
 
-**Step fields:**
+A step is either a **pipe step**, which runs a pipe, or a [binding step](#binding-steps), which binds a value already in working memory to a new name.
+
+**Pipe step fields:**
 
 | Field | Required | Description |
 |-------|----------|-------------|
 | `pipe` | Yes | Pipe reference (bare, domain-qualified, or package-qualified). |
-| `result` | No | Name under which the step's output is stored in working memory. |
+| `result` | No | Name under which the step's output is stored in working memory. Must not start with the [reserved prefix](../spec/mthds-format.md#reserved-names) `_bound_`. |
 | `nb_output` | No | Expected number of output items. Mutually exclusive with `multiple_output`. |
 | `multiple_output` | No | Whether to expect multiple output items. Mutually exclusive with `nb_output`. |
-| `batch_over` | No | Working memory variable to iterate over (inline batch). Requires `batch_as`. |
-| `batch_as` | No | Name for each item during inline batch iteration. Requires `batch_over`. |
+| `batch_over` | No | Working memory variable to iterate over (inline batch). Requires `batch_as`. A dotted path such as `catalog.pages` binds that field first, then iterates over it. A plain `batch_over` must not start with the [reserved prefix](../spec/mthds-format.md#reserved-names) `_bound_`. |
+| `batch_as` | No | Name for each item during inline batch iteration. Requires `batch_over`. Must not start with the [reserved prefix](../spec/mthds-format.md#reserved-names) `_bound_`. |
 
 A sequence must contain at least one step.
 
-Inline batching (`batch_over` / `batch_as`) allows iterating over a list within a sequence step, without needing a dedicated `PipeBatch`. Both must be provided together, and they must not have the same value.
+Inline batching (`batch_over` / `batch_as`) allows iterating over a list within a sequence step, without needing a dedicated `PipeBatch`. Both must be provided together, and they must not have the same value. `batch_over` may be a dotted path, such as `catalog.pages`: that is a binding of the path followed by a batch over the bound list, so it follows every rule of the binding step described below.
+
+### Binding Steps
+
+A binding step takes the value at a path in working memory and stores it under a new name, so that the next steps can read one field of a larger value without a pipe written to extract it:
+
+```toml
+[pipe.review_invoice]
+type        = "PipeSequence"
+description = "Decide whether an invoice needs a manager's approval"
+inputs      = { invoice = "Invoice" }
+output      = "YesNo"
+steps = [
+    { from = "invoice.total", result = "total_amount" },
+    { pipe = "judge_large_amount", result = "needs_approval" },
+]
+```
+
+**What this does:** The first step takes the `total` field of `invoice` and stores it in working memory as `total_amount`. `judge_large_amount` declares `total_amount = "Number"` among its inputs, so it receives the amount alone, not the whole invoice. The judge's signature names a whole concept, and the sequence, which knows what `invoice` holds, picks the field at the call site.
+
+A binding step has exactly two fields, both required: `from`, the path to bind, and `result`, the name to store it under. The path starts with a name in working memory and continues with zero or more field names, separated by dots. It carries no subscripts or expressions: anything computed is a pipe's job. The `result` must be a plain [input name](../spec/mthds-format.md#input-names), such as `total_amount`, and never a dotted path, because a binding step stores its value only for a later step to read, and an input reads a stored value only under a plain name. Every step carries exactly one of `pipe` and `from`: `pipe` makes it a pipe step and `from` a binding step, and a step with both or with neither is rejected. A binding step carries none of a pipe step's other fields.
+
+**The result's concept is derived from the structure the path walks**, before anything runs. `invoice.total` is a `Number` because `Invoice` declares `total` as a number, and `page.page_view` is an `Image` because the native `Page` declares `page_view` as one. A text field gives a `Text`, a boolean a `YesNo`, a date a `Date`, and a field holding a concept gives that concept. A path naming a field that does not exist is rejected, and the error lists the fields that do.
+
+**Lists map and flatten.** When the path crosses a list, the rest of the path is applied to every item, items that hold nothing are dropped, and lists inside lists are flattened into one. Over a list of pages, `pages.page_view` gives a list of images, which a later step can batch over:
+
+```toml
+steps = [
+    { pipe = "extract_pages", result = "pages" },
+    { from = "pages.page_view", result = "page_views" },
+    { pipe = "describe_view", batch_over = "page_views", batch_as = "page_view", result = "descriptions" },
+]
+```
+
+**The value is a copy**, taken when the step runs. The whole value at the path is copied, so a bound image keeps every field it has, and a later step that changes or replaces `invoice` does not change `total_amount`.
+
+**A bare name renames.** `{ from = "departure_board", result = "board" }` binds a copy of the whole value under a new name, with the same concept and multiplicity. This is how a sequence hands a value to a pipe whose input has another name.
+
+**Absence.** A binding step whose root is absent is skipped, and one whose path reaches nothing records an absence rather than failing. See [Optionality](optionality.md#absence-through-a-binding-step).
+
+Binding steps belong to `PipeSequence` only, because only a sequence has an order. A `PipeParallel` branch always runs a pipe: bind the value in a sequence step before the parallel.
+
+The full rules, including how each field type maps to a concept and every reason a path is refused, are in the [specification](../spec/mthds-format.md#binding-steps).
 
 ## PipeParallel
 
@@ -63,7 +107,7 @@ branches = [
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `branches` | Yes | List of sub-pipe invocations to execute concurrently. |
+| `branches` | Yes | List of pipe steps to execute concurrently. A branch cannot be a [binding step](#binding-steps), nor carry a dotted `batch_over`, which binds before it batches. |
 | `output` | Yes | Combined output concept. Must be `Composite` or a structured concept whose fields match branch `result` names. Multiplicity is not allowed. |
 | `add_each_output` | No | If `true`, each branch's output is also stored individually. Default: `false`. |
 
@@ -127,13 +171,15 @@ input_item_name  = "topic"
 | Field | Required | Description |
 |-------|----------|-------------|
 | `branch_pipe_code` | Yes | The pipe reference to invoke for each item. |
-| `input_list_name` | Yes | The name of the input that contains the list to iterate over. Must exist as a key in `inputs`. |
-| `input_item_name` | Yes | The name under which each individual item is passed to the branch pipe. |
+| `input_list_name` | Yes | The name of the input that contains the list to iterate over. Must be a plain input name and must exist as a key in `inputs`. |
+| `input_item_name` | Yes | The name under which each individual item is passed to the branch pipe. Must not start with the [reserved prefix](../spec/mthds-format.md#reserved-names) `_bound_`. |
 
 **Constraints:**
 
+- `input_list_name` must be a plain input name, never a dotted path such as `catalog.pages` (see [Input names](../spec/mthds-format.md#input-names)). To map a pipe over a list held in a field, declare the list itself as the PipeBatch's input (`pages = "Page[]"`, with `input_list_name = "pages"`), and let the calling [PipeSequence](#pipesequence) hand the field over under that name with a [binding step](#binding-steps).
 - `input_item_name` must not equal `input_list_name`.
 - `input_item_name` must not equal any key in `inputs`.
+- `input_item_name` must not start with `_bound_`, a prefix reserved for the private names under which a dotted `batch_over` is bound (see [Reserved Names](../spec/mthds-format.md#reserved-names)).
 
 A naming tip: use the plural for the list and its singular form for the item (e.g., list `"topics"` → item `"topic"`).
 

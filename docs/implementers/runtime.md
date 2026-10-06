@@ -86,7 +86,7 @@ Loading a package involves these steps in order:
 
 Controllers orchestrate pipes through **working memory** — a key-value store that accumulates results as a pipeline executes.
 
-When a `PipeSequence` runs, each step's output is stored under its `result` name. Subsequent steps can consume any previously stored value. The final step's output (or the value matching the sequence's `output` concept) becomes the sequence's output.
+When a `PipeSequence` runs, each of its steps is a pipe step or a [binding step](../spec/mthds-format.md#binding-steps). A pipe step's output is stored under its `result` name, and a binding step stores a deep copy of the value at its path under its `result` name. Subsequent steps can consume any previously stored value. The final step's output (or the value matching the sequence's `output` concept) becomes the sequence's output.
 
 Working memory is scoped to a pipeline execution. Each top-level `mthds run` invocation starts with a fresh working memory containing only the declared inputs.
 
