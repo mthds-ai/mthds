@@ -10,7 +10,7 @@
 
 ### Changed
 
-- **Dotted `batch_over`** (`spec/mthds-format.md`): a dotted `batch_over` such as `catalog.pages` is now defined as a binding of that path followed by a batch over the bound list, so it derives its concept, crosses lists and records absences exactly as a binding step does. Its path must derive a list, and one deriving a single value is rejected before any run, while one breaking the binding step's path grammar is `binding_step_invalid`, and so is one on a PipeParallel branch, which cannot bind.
+- **Dotted `batch_over` (Breaking)** (`spec/mthds-format.md`): a dotted `batch_over` such as `catalog.pages` is now defined as a binding of that path followed by a batch over the bound list, so it derives its concept, crosses lists and records absences exactly as a binding step does. A dotted `batch_over` that breaks the binding step's path grammar, or that sits on a PipeParallel branch, since a branch cannot bind, is now rejected as `binding_step_invalid`, and one whose path derives a single value is rejected before any run. An author writes the path as field names separated by single dots, points the batch at a path that crosses a list, and binds the field a branch needs in the calling sequence, in a step before the PipeParallel step, so that the branch's plain `batch_over` names the bound list.
 
 ### Removed
 

@@ -133,7 +133,7 @@ Analyze the visual layout and design elements of this page, focusing on typograp
 """
 ```
 
-The input is named `page_content` and typed `Page`; the dotted path `page_content.page_view` appears only in the prompt, where it reads the `page_view` field of that page. An input name is always a plain name, never a dotted one (see [Input names](../spec/mthds-format.md#input-names)). When a pipe should receive only the field, the calling [PipeSequence](pipes-controllers.md#pipesequence) hands it over under a plain name with a binding step, and the pipe declares that name with the field's concept, here `page_view = "Image"`.
+The input is named `page_content` and typed `Page`; the dotted path `page_content.page_view` appears only in the prompt, where it reads the `page_view` field of that page. An input name is always a plain name, never a dotted one (see [Input names](../spec/mthds-format.md#input-names)). When a pipe should receive only the field, the calling PipeSequence hands it over under a plain name with a [binding step](pipes-controllers.md#binding-steps), and the pipe declares that name with the field's concept, here `page_view = "Image"`.
 
 **Multiple images:** List each image as a separate input:
 

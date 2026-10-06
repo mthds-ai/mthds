@@ -60,7 +60,7 @@ steps = [
 
 **What this does:** The first step takes the `total` field of `invoice` and stores it in working memory as `total_amount`. `judge_large_amount` declares `total_amount = "Number"` among its inputs, so it receives the amount alone, not the whole invoice. The judge's signature names a whole concept, and the sequence, which knows what `invoice` holds, picks the field at the call site.
 
-A binding step has exactly two fields, both required: `from`, the path to bind, and `result`, the name to store it under. The path starts with a name in working memory and continues with zero or more field names, separated by dots. It carries no subscripts or expressions: anything computed is a pipe's job. A binding step carries none of a pipe step's other fields, and a pipe step carries no `from`.
+A binding step has exactly two fields, both required: `from`, the path to bind, and `result`, the name to store it under. The path starts with a name in working memory and continues with zero or more field names, separated by dots. It carries no subscripts or expressions: anything computed is a pipe's job. The `result` must be a plain [input name](../spec/mthds-format.md#input-names), such as `total_amount`, and never a dotted path, because a binding step stores its value only for a later step to read, and an input reads a stored value only under a plain name. Every step carries exactly one of `pipe` and `from`: `pipe` makes it a pipe step and `from` a binding step, and a step with both or with neither is rejected. A binding step carries none of a pipe step's other fields.
 
 **The result's concept is derived from the structure the path walks**, before anything runs. `invoice.total` is a `Number` because `Invoice` declares `total` as a number, and `page.page_view` is an `Image` because the native `Page` declares `page_view` as one. A text field gives a `Text`, a boolean a `YesNo`, a date a `Date`, and a field holding a concept gives that concept. A path naming a field that does not exist is rejected, and the error lists the fields that do.
 
@@ -176,7 +176,7 @@ input_item_name  = "topic"
 
 **Constraints:**
 
-- `input_list_name` must be a plain input name, never a dotted path such as `catalog.pages` (see [Input names](../spec/mthds-format.md#input-names)). To map a pipe over a list held in a field, declare the list itself as the PipeBatch's input (`pages = "Page[]"`, with `input_list_name = "pages"`), and let the calling [PipeSequence](#pipesequence) hand the field over under that name.
+- `input_list_name` must be a plain input name, never a dotted path such as `catalog.pages` (see [Input names](../spec/mthds-format.md#input-names)). To map a pipe over a list held in a field, declare the list itself as the PipeBatch's input (`pages = "Page[]"`, with `input_list_name = "pages"`), and let the calling [PipeSequence](#pipesequence) hand the field over under that name with a [binding step](#binding-steps).
 - `input_item_name` must not equal `input_list_name`.
 - `input_item_name` must not equal any key in `inputs`.
 
