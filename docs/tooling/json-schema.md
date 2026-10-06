@@ -12,9 +12,9 @@ The schema defines the complete structure of an `.mthds` bundle:
 
 - **Header fields**: `domain`, `description`, `system_prompt`, `main_pipe`.
 - **Concept definitions**: both simple (string) and structured forms, including `structure` fields, `refines`, and all field types (`text`, `integer`, `number`, `boolean`, `date`, `datetime`, `time`, `list`, `dict`, `concept`) and the `choices` enum mechanism.
-- **Pipe definitions**: all concrete pipe types with their specific fields — `PipeLLM`, `PipeStructure`, `PipeFunc`, `PipeImgGen`, `PipeExtract`, `PipeSearch`, `PipeCompose`, `PipeSequence`, `PipeParallel`, `PipeCondition`, `PipeBatch` — plus contract-only `PipeSignature` sections where `type` is omitted.
-- **Sub-pipe blueprints**: the `steps`, `branches`, `outcomes`, and `construct` structures used by controllers and PipeCompose.
-- **Inline model settings**: the `LLMSetting`, `ImgGenSetting`, `ExtractSetting`, and `SearchSetting` objects that can be used in place of string model references.
+- **Pipe definitions**: all concrete pipe types with their specific fields — `PipeLLM`, `PipeStructure`, `PipeFunc`, `PipeImgGen`, `PipeExtract`, `PipeSearch`, `PipeJudge`, `PipeDocGen`, `PipeCompose`, `PipeSequence`, `PipeParallel`, `PipeCondition`, `PipeBatch` — plus contract-only `PipeSignature` sections where `type` is omitted. Every `inputs` table accepts only plain input names, matching `[a-z][a-z0-9_]*`.
+- **Sub-pipe blueprints**: the `steps`, `branches`, `outcomes`, and `construct` structures used by controllers and PipeCompose. A sequence step is either a pipe step or a binding step (`from` and `result`), while a parallel branch is always a pipe step whose `batch_over` is a plain name.
+- **Inline model settings**: the `LLMSetting`, `ImgGenSetting`, `ExtractSetting`, `SearchSetting`, `JudgmentSetting`, and `DocGenSetting` objects that can be used in place of string model references.
 
 ## Schema Version
 

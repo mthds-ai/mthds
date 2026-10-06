@@ -106,12 +106,14 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 - A step MUST carry exactly one of `pipe` and `from`. A step carrying both is rejected as `binding_step_invalid`, and a step carrying neither, such as `{ result = "x" }`, is rejected by the schema with no error name of its own.
 - A binding step (one carrying `from`) MUST carry `result` and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. Its `result` MUST take the form of a plain input name ([Stage 2](#stage-2-bundle-structural-validation), rule 7), and its `from` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar). Each of these faults is `binding_step_invalid`.
 - A binding step's path MUST be walkable through the declared structures, or the step is rejected as `binding_path_unresolved`. The walk starts from the concept and multiplicity of the latest value stored under the root's name before the step, in step order, and from those the sequence's `inputs` declare only when no earlier step stored that name (see [The Concept of the Result](../spec/mthds-format.md#the-concept-of-the-result)).
+- A pipe step's `result`, `batch_as` and plain `batch_over` MUST NOT start with `_bound_`, a prefix reserved for the private names under which an implementation binds a dotted `batch_over`. The schema rejects such a name, and the refusal SHOULD be reported as `invalid_input_name` (see [Reserved Names](../spec/mthds-format.md#reserved-names)).
 
 **PipeParallel:**
 
 - `branches` MUST have at least one entry.
 - Every branch MUST be a pipe step. A binding step in `branches` is rejected as `binding_step_invalid`.
 - A branch MUST NOT carry a dotted `batch_over`, which is a binding followed by a batch, and one that does is rejected as `binding_step_invalid`. A plain `batch_over` on a branch is allowed (see [Dotted `batch_over`](../spec/mthds-format.md#dotted-batch_over)).
+- A branch's `result`, `batch_as` and plain `batch_over` MUST NOT start with the reserved prefix `_bound_`, and one that does is rejected as `invalid_input_name`, as on a sequence step.
 - `output` MUST be `Composite` or a structured concept.
 - `output` MUST NOT use multiplicity brackets (`[]` or `[N]`).
 - For structured output, required fields MUST be produced by matching branch `result` names and branch output concepts MUST be compatible with the corresponding fields.
@@ -137,6 +139,7 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 - `input_item_name` MUST NOT be empty.
 - `input_item_name` MUST NOT equal `input_list_name`.
 - `input_item_name` MUST NOT equal any key in `inputs`.
+- `input_item_name` MUST NOT start with the reserved prefix `_bound_`, and one that does is rejected as `invalid_input_name`, which the schema catches (see [Reserved Names](../spec/mthds-format.md#reserved-names)).
 
 ## Stage 5: Reference Validation (Bundle-Level)
 

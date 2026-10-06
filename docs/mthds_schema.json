@@ -86,7 +86,13 @@
                 "$ref": "#/definitions/PipeSearchBlueprint"
               },
               {
+                "$ref": "#/definitions/PipeJudgeBlueprint"
+              },
+              {
                 "$ref": "#/definitions/PipeStructureBlueprint"
+              },
+              {
+                "$ref": "#/definitions/PipeDocGenBlueprint"
               },
               {
                 "$ref": "#/definitions/PipeBatchBlueprint"
@@ -147,6 +153,30 @@
       ],
       "title": "Background",
       "type": "string"
+    },
+    "BindingStepBlueprint": {
+      "additionalProperties": false,
+      "description": "A PipeSequence step that binds the value at a path in working memory to a new name.\n\n`{ from = \"invoice.total\", result = \"total_amount\" }` stores a deep copy of the value at `invoice.total`\nunder `total_amount`, as the concept the path derives through the declared structures. A binding step\nlives in a PipeSequence's `steps` only, and carries exactly these two fields.",
+      "properties": {
+        "from": {
+          "description": "The path to bind: a name in working memory followed by zero or more field names, separated by dots.",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]*(?:\\.[A-Za-z][A-Za-z0-9_]*)*$",
+          "title": "From",
+          "type": "string"
+        },
+        "result": {
+          "description": "The name under which the bound value is stored in working memory: a plain input name.",
+          "pattern": "^[a-z][a-z0-9_]*$",
+          "title": "Result",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from",
+        "result"
+      ],
+      "title": "BindingStepBlueprint",
+      "type": "object"
     },
     "ConceptBlueprint": {
       "additionalProperties": false,
@@ -499,6 +529,44 @@
       "title": "ConstructFieldMethod",
       "type": "string"
     },
+    "DocGenFormat": {
+      "description": "The file formats a `PipeDocGen` step can ask for.\n\nThe tokens are MTHDS: a method names one, and it loads wherever the standard is read. Which of them a\nruntime prints depends on the document engines installed in it, each a model of the `doc_gen` family:\nopen Pipelex prints a `pdf` laid out without a template, on `reportlab-pdf`, and the Pipelex document\ngeneration plugin prints the rest. HTML is not a format: `PipeCompose` already produces the native\n`Html`.",
+      "enum": [
+        "pdf",
+        "xlsx",
+        "docx",
+        "pptx"
+      ],
+      "title": "DocGenFormat",
+      "type": "string"
+    },
+    "DocGenSetting": {
+      "additionalProperties": false,
+      "description": "The document engine a `PipeDocGen` step prints with: a model of the `doc_gen` family, such as `reportlab-pdf`.",
+      "properties": {
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        }
+      },
+      "required": [
+        "model"
+      ],
+      "title": "DocGenSetting",
+      "type": "object"
+    },
     "ExtractSetting": {
       "additionalProperties": false,
       "properties": {
@@ -703,6 +771,64 @@
       "title": "InputSlotBlueprint",
       "type": "object"
     },
+    "JudgeYesNoCriteria": {
+      "additionalProperties": false,
+      "description": "What a yes and a no mean, for a yes/no question. Closed: a key other than `yes` or `no` is refused.\n\nThe judging vendor silently ignores a criterion key it does not know, so this model is the only\nplace a typo in one is caught.",
+      "properties": {
+        "yes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Yes"
+        },
+        "no": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "No"
+        }
+      },
+      "title": "JudgeYesNoCriteria",
+      "type": "object"
+    },
+    "JudgmentSetting": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        }
+      },
+      "required": [
+        "model"
+      ],
+      "title": "JudgmentSetting",
+      "type": "object"
+    },
     "LLMSetting": {
       "additionalProperties": false,
       "properties": {
@@ -841,17 +967,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -870,11 +999,15 @@
         },
         "input_list_name": {
           "title": "Input List Name",
-          "type": "string"
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
         },
         "input_item_name": {
           "title": "Input Item Name",
-          "type": "string"
+          "type": "string",
+          "not": {
+            "pattern": "^_bound_"
+          }
         }
       },
       "required": [
@@ -906,17 +1039,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -982,17 +1118,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1070,6 +1209,118 @@
       "title": "PipeConditionBlueprint",
       "type": "object"
     },
+    "PipeDocGenBlueprint": {
+      "additionalProperties": false,
+      "description": "Generate a document file from a method's structured result: a PDF, an Excel workbook, a Word document or a PowerPoint deck.\n\nIt calls no AI model: it lays out or fills what its inputs already hold. With no template, the pipe lays its inputs\nout by itself (the auto-layout), for every format but `pptx`. `template` is an inline HTML and Jinja2 template, for\n`pdf` only; `template_file` is a path relative to the bundle's file: an `.html` for `pdf`, an `.xlsx` for `xlsx`, a\n`.docx` for `docx` and a `.pptx` for `pptx`, which `pptx` requires. `filename` is a Jinja expression over the\ninputs; the suffix is added. The output must be a single `Document`, or a concept refining it. `model` names the\ndocument engine that prints it, a model of the `doc_gen` family such as `reportlab-pdf` or, with the Pipelex\ndocument generation plugin, `pipelex-pdf`; without it, the model deck's default for the format and source prints\nit. Which engines a runtime has depends on its plugins: open Pipelex prints a `pdf` without a template on\n`reportlab-pdf`, and a runtime without the engine a step needs refuses the method when it loads.",
+      "properties": {
+        "type": {
+          "default": "PipeDocGen",
+          "title": "Type",
+          "type": "string",
+          "enum": [
+            "PipeDocGen"
+          ]
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "inputs": {
+          "anyOf": [
+            {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inputs"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "format": {
+          "$ref": "#/definitions/DocGenFormat"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/DocGenSetting"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ModelReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Template"
+        },
+        "template_file": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Template File"
+        },
+        "filename": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Filename"
+        }
+      },
+      "required": [
+        "description",
+        "output",
+        "format",
+        "type"
+      ],
+      "title": "PipeDocGenBlueprint",
+      "type": "object"
+    },
     "PipeExtractBlueprint": {
       "additionalProperties": false,
       "properties": {
@@ -1088,17 +1339,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1228,17 +1482,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1284,17 +1541,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1433,6 +1693,152 @@
       "title": "PipeImgGenBlueprint",
       "type": "object"
     },
+    "PipeJudgeBlueprint": {
+      "additionalProperties": false,
+      "description": "Asks a judging model one closed question about its inputs: yes/no, a choice, or a rating.\n\nThe kind is decided by which of `options` and `levels` the pipe declares, never by a field of its\nown. `prompt` is accepted in place of `question` and read exactly as it, so nothing after parsing\nsees the synonym. Every declared input is material to judge, so an input the question never names\nis still read; only a variable the question names must be declared.",
+      "oneOf": [
+        {
+          "required": [
+            "question"
+          ]
+        },
+        {
+          "required": [
+            "prompt"
+          ]
+        }
+      ],
+      "properties": {
+        "type": {
+          "default": "PipeJudge",
+          "title": "Type",
+          "type": "string",
+          "enum": [
+            "PipeJudge"
+          ]
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "inputs": {
+          "anyOf": [
+            {
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inputs"
+        },
+        "output": {
+          "title": "Output",
+          "type": "string"
+        },
+        "question": {
+          "title": "Question",
+          "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/JudgmentSetting"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "$ref": "#/definitions/ModelReference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "options": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Options"
+        },
+        "levels": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Levels"
+        },
+        "criteria": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/JudgeYesNoCriteria"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        },
+        "prompt": {
+          "description": "A synonym of `question`, read exactly as it.",
+          "title": "Prompt",
+          "type": "string"
+        }
+      },
+      "required": [
+        "description",
+        "output",
+        "type"
+      ],
+      "title": "PipeJudgeBlueprint",
+      "type": "object"
+    },
     "PipeLLMBlueprint": {
       "additionalProperties": false,
       "properties": {
@@ -1451,17 +1857,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1587,17 +1996,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1612,7 +2024,7 @@
         },
         "branches": {
           "items": {
-            "$ref": "#/definitions/SubPipeBlueprint"
+            "$ref": "#/definitions/ParallelBranchBlueprint"
           },
           "title": "Branches",
           "type": "array"
@@ -1650,17 +2062,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1801,17 +2216,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1826,7 +2244,14 @@
         },
         "steps": {
           "items": {
-            "$ref": "#/definitions/SubPipeBlueprint"
+            "oneOf": [
+              {
+                "$ref": "#/definitions/SubPipeBlueprint"
+              },
+              {
+                "$ref": "#/definitions/BindingStepBlueprint"
+              }
+            ]
           },
           "title": "Steps",
           "type": "array"
@@ -1852,17 +2277,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1913,17 +2341,20 @@
         "inputs": {
           "anyOf": [
             {
-              "additionalProperties": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "$ref": "#/definitions/InputSlotBlueprint"
-                  }
-                ]
+              "type": "object",
+              "patternProperties": {
+                "^[a-z][a-z0-9_]*$": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "$ref": "#/definitions/InputSlotBlueprint"
+                    }
+                  ]
+                }
               },
-              "type": "object"
+              "additionalProperties": false
             },
             {
               "type": "null"
@@ -1972,6 +2403,8 @@
         "PipeExtract",
         "PipeSearch",
         "PipeStructure",
+        "PipeDocGen",
+        "PipeJudge",
         "PipeBatch",
         "PipeCondition",
         "PipeParallel",
@@ -2097,7 +2530,10 @@
         "result": {
           "anyOf": [
             {
-              "type": "string"
+              "type": "string",
+              "not": {
+                "pattern": "^_bound_"
+              }
             },
             {
               "type": "null"
@@ -2133,19 +2569,27 @@
         "batch_over": {
           "anyOf": [
             {
-              "type": "string"
+              "type": "string",
+              "not": {
+                "pattern": "^_bound_"
+              },
+              "pattern": "^(?:[^.]*|[A-Za-z][A-Za-z0-9_]*(?:\\.[A-Za-z][A-Za-z0-9_]*)+)$"
             },
             {
               "type": "null"
             }
           ],
           "default": null,
-          "title": "Batch Over"
+          "title": "Batch Over",
+          "description": "The list in working memory to batch this step over, running the pipe once per item. A dotted path such as `catalog.pages` is a binding followed by a batch: the path is bound under a private name, by the rules of a binding step's `from`, and the step batches over the bound list, which must be a list."
         },
         "batch_as": {
           "anyOf": [
             {
-              "type": "string"
+              "type": "string",
+              "not": {
+                "pattern": "^_bound_"
+              }
             },
             {
               "type": "null"
@@ -2258,10 +2702,95 @@
       ],
       "title": "TextFormat",
       "type": "string"
+    },
+    "ParallelBranchBlueprint": {
+      "additionalProperties": false,
+      "properties": {
+        "pipe": {
+          "title": "Pipe",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "type": "string",
+              "not": {
+                "pattern": "^_bound_"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result"
+        },
+        "nb_output": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nb Output"
+        },
+        "multiple_output": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Multiple Output"
+        },
+        "batch_over": {
+          "anyOf": [
+            {
+              "type": "string",
+              "not": {
+                "pattern": "^_bound_"
+              },
+              "pattern": "^[^.]*$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Batch Over",
+          "description": "The list in working memory to batch this branch over, running the pipe once per item. A name with no dot: a branch never binds, so a list held in a field is bound by the calling sequence before the PipeParallel step."
+        },
+        "batch_as": {
+          "anyOf": [
+            {
+              "type": "string",
+              "not": {
+                "pattern": "^_bound_"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Batch As"
+        }
+      },
+      "required": [
+        "pipe"
+      ],
+      "title": "ParallelBranchBlueprint",
+      "type": "object"
     }
   },
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$comment": "Generated from PipelexBundleBlueprint v0.55.0. Do not edit manually.",
+  "$comment": "Generated from PipelexBundleBlueprint v0.75.0. Do not edit manually.",
   "x-taplo": {
     "initKeys": [
       "domain"
