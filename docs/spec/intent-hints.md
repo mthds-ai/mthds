@@ -127,7 +127,7 @@ The effective hints of a site are assembled **key by key** from at most two laye
 1. the hints of the concept that types the site — an input slot's concept, a `concept`-typed field's `concept_ref`, or a list field's `item_concept_ref` — where a refining concept inherits its base's hints along the refinement chain, a nearer declaration winning key by key; a site typed by a field type rather than a concept (`text`, `integer`, `number`, …) has no concept layer;
 2. the site's own hints — a structure field's `hints`, or an input slot's `hints` in the expanded form.
 
-The site layer wins, key by key. A key absent at every layer is absent, and the consumer's defaults apply. A dotted input slot (`"profile.bio" = "Text"`) is a site like any other: its layers are its declared concept and its own `hints`; the hints of the structure field it reaches into do not participate.
+The site layer wins, key by key. A key absent at every layer is absent, and the consumer's defaults apply.
 
 A key declared at a farther layer can be **overridden** at a nearer one, but not **cleared**: there is no syntax to unset an inherited key. An empty `hints` table is equivalent to no hints and so inherits everything; an empty string is an unknown word, not a clearing mark. An unknown word at a nearer layer still replaces the inherited one — the nearer layer wins — and a consumer then ignores it and falls back to its own defaults; that is a warning-bearing accident, not a clearing mechanism. A refinement or site that wants a different presentation names the intent it wants. Should a later version of the standard define a clearing mark, it is a vocabulary addition under [Vocabulary Growth and Versioning](#vocabulary-growth-and-versioning).
 

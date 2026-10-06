@@ -25,7 +25,8 @@ After parsing TOML into a dictionary, validate the bundle structure:
 4. Concept codes MUST be `PascalCase` (`[A-Z][a-zA-Z0-9]*`).
 5. Concept codes MUST NOT match any native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Choice`, `Rating`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`).
 6. Pipe codes MUST be `snake_case` (`[a-z][a-z0-9_]*`).
-7. `refines` and `structure` MUST NOT both be set on the same concept.
+7. Input names MUST be plain `snake_case` identifiers (`[a-z][a-z0-9_]*`), never dotted. Any other input name MUST be rejected, and the refusal SHOULD be reported as `invalid_input_name`.
+8. `refines` and `structure` MUST NOT both be set on the same concept.
 
 ## Stage 3: Concept Field Validation
 
@@ -103,7 +104,7 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 - `batch_over` and `batch_as` MUST NOT be the same value.
 - A dotted `batch_over` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar), or the step is rejected as `binding_step_invalid`. Its walk MUST derive a list, and one deriving a single value is reported as a `batch_over` naming a value that is not a list (see [Dotted `batch_over`](../spec/mthds-format.md#dotted-batch_over)).
 - A step MUST carry exactly one of `pipe` and `from`. A step carrying both is rejected as `binding_step_invalid`, and a step carrying neither, such as `{ result = "x" }`, is rejected by the schema with no error name of its own.
-- A binding step (one carrying `from`) MUST carry `result` and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. Its `result` MUST be a plain input name, matching `[a-z][a-z0-9_]*`, and its `from` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar). Each of these faults is `binding_step_invalid`.
+- A binding step (one carrying `from`) MUST carry `result` and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. Its `result` MUST take the form of a plain input name ([Stage 2](#stage-2-bundle-structural-validation), rule 7), and its `from` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar). Each of these faults is `binding_step_invalid`.
 - A binding step's path MUST be walkable through the declared structures, or the step is rejected as `binding_path_unresolved`. The walk starts from the concept and multiplicity of the latest value stored under the root's name before the step, in step order, and from those the sequence's `inputs` declare only when no earlier step stored that name (see [The Concept of the Result](../spec/mthds-format.md#the-concept-of-the-result)).
 - A pipe step's `result`, `batch_as` and plain `batch_over` MUST NOT start with `_bound_`, a prefix reserved for the private names under which an implementation binds a dotted `batch_over`. The schema rejects such a name, and the refusal SHOULD be reported as `invalid_input_name` (see [Reserved Names](../spec/mthds-format.md#reserved-names)).
 
@@ -133,6 +134,7 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 
 **PipeBatch:**
 
+- `input_list_name` MUST be a plain input name.
 - `input_list_name` MUST be in `inputs`.
 - `input_item_name` MUST NOT be empty.
 - `input_item_name` MUST NOT equal `input_list_name`.

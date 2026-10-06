@@ -255,7 +255,7 @@ Concrete pipe types share these base fields:
 |-------|------|----------|-------------|
 | `type` | string | Yes for concrete pipes | The pipe type. Determines which category and additional fields are available. Omitted only for contract-only `PipeSignature` declarations. |
 | `description` | string | Yes | Human-readable description of what this pipe does. |
-| `inputs` | table | No | Input declarations. Keys are input names (`snake_case`), values are input slot declarations (see [Input slot declarations](#input-slot-declarations)). |
+| `inputs` | table | No | Input declarations. Keys are [input names](#input-names) (plain `snake_case`), values are input slot declarations (see [Input slot declarations](#input-slot-declarations)). |
 | `output` | string | Yes | The output concept reference with optional multiplicity. |
 
 **Pipe codes:**
@@ -266,8 +266,9 @@ Concrete pipe types share these base fields:
 **Input names:**
 { #input-names }
 
-- Input names MUST be `snake_case`.
-- Dotted input names are allowed for nested field access (e.g., `my_input.field_name`), where each segment MUST be `snake_case`. A dotted input name MUST be written as a single quoted TOML key (`"my_input.field_name" = "Text"`), never as an unquoted dotted path: TOML parses the latter as nested tables, which the [expanded slot form](#input-slot-declarations) would misread as a slot table.
+- An input name MUST be a plain `snake_case` identifier, matching the pattern `[a-z][a-z0-9_]*`, on every pipe, operator or controller alike. It names one whole value, of the concept its slot declares.
+- An input name MUST NOT contain a dot. A key such as `"invoice.total" = "Number"` does not declare a field of `invoice`: a compliant implementation MUST reject it, as it rejects any other name that is not a plain `snake_case` identifier (`InvoiceTotal`, `2nd_total`), and SHOULD report the refusal as `invalid_input_name`.
+- A pipe that needs one field of a value receives it in one of two ways. Either it declares the root with its whole concept and reads the field through the root in its template (`invoice = "Invoice"`, read as `$invoice.total`, see [Inputs Read Through Templates](#inputs-read-through-templates)), or the calling sequence hands it the field under a plain name with a binding step (`{ from = "invoice.total", result = "total_amount" }`, see [Binding Steps](#binding-steps)) and the pipe declares `total_amount = "Number"`. The message refusing a dotted name SHOULD name both remedies.
 
 **Concept references in inputs and output:**
 { #concept-references-in-inputs-and-output }
@@ -381,11 +382,13 @@ signature_for = "PipeLLM"
 
 PipeLLM, PipeImgGen, PipeSearch and PipeCompose read their inputs through templates, and the validation rules of each operator name the fields that do the reading. For these four operators the input rule runs in both directions: every variable those fields reference MUST correspond to a declared input, apart from the names the operator's own rules exclude, and every declared input MUST be read by at least one of them. A declared input that no such field reads is rejected.
 
-A template variable reads an input when the variable's dotted path is the input's name, or begins with the input's name followed by a dot:
+A template variable is a dotted path whose first segment, its root, names an input, and whose following segments, if any, name fields reached through that input's concept. A variable corresponds to the declared input its root names, and reads that input. The match is made by the root alone and is the same on every operator, a PipeJudge's `question` and a PipeCompose construct's `from` paths included, with no per-operator exception:
 
 - `$deal.customer_name` reads the input `deal`.
-- A [dotted input name](#input-names) such as `"page.page_view"` is read by `@page.page_view` or `{{ page.page_view.text }}`, but not by `@page` alone. PipeImgGen, PipeSearch and PipeCompose match every variable they read against a declared input by its root, so on these operators the root `page` MUST be declared as well.
+- `@page.page_view` and `{{ page.page_view.url }}` read the input `page`, declared with its whole concept (`page = "Page"`). The field is reached through the root in the template and is never declared as an input of its own, since an [input name](#input-names) is a plain name.
 - An optional (`?`) input is not exempt. A conditional reference such as `@?note` or `{% if note %}…{% endif %}` reads it.
+
+A variable's value and its concept are what its path reaches through the root's declared concept. Each segment after the root names a field of the concept reached so far, found in that concept's `structure`, or, for a native concept, in its [pinned definition](./native-concepts.md). An operator that handles a value according to its concept MUST handle a variable according to the concept its path reaches, never the root's concept: PipeLLM's attachment of images and documents to the model call, and PipeImgGen's injection of reference images, apply to the reached concept, whether the path reaches a single value or a list. With `page = "Page"`, `@page.page_view` reaches the `page_view` field of the pinned `Page` definition, an `Image`, so PipeLLM attaches it as an image and PipeImgGen injects it as a reference image.
 
 PipeJudge is not among these operators. Its inputs reach the model as the named material the question is asked about, not through its `question` template, so a declared input it never references is still read (see [Operator: PipeJudge](#operator-pipejudge)).
 
@@ -536,7 +539,7 @@ function_name = "my_package.text_utils.capitalize"
 
 ## Operator: PipeImgGen
 
-Generates images using an image generation model. The pipe carries a required `prompt` string template (and an optional `negative_prompt` template); it does not take a dedicated prompt concept as input. Declared `inputs` are injected into the `prompt` at runtime: `Text` inputs are interpolated into the prompt text, while `Image` inputs (a single image or a list) are referenced in the prompt and injected as reference images — each becomes an `[Image N]` token in the rendered text and is passed to the generator alongside it, enabling image-to-image, reference-image, and image-editing generation.
+Generates images using an image generation model. The pipe carries a required `prompt` string template (and an optional `negative_prompt` template); it does not take a dedicated prompt concept as input. Declared `inputs` are injected into the `prompt` at runtime, each variable according to the concept its path reaches (see [Inputs Read Through Templates](#inputs-read-through-templates)): a variable that reaches text is interpolated into the prompt text, while a variable that reaches an `Image` (a single image or a list), such as `$source` on a `source = "Image"` input or `$page.page_view` on a `page = "Page"` input, is injected as a reference image — each image becomes an `[Image N]` token in the rendered text and is passed to the generator alongside it, enabling image-to-image, reference-image, and image-editing generation.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -558,7 +561,7 @@ Generates images using an image generation model. The pipe carries a required `p
 - Every variable referenced in `prompt` or `negative_prompt` MUST correspond to a declared input.
 - Every declared input MUST be referenced by at least one variable in `prompt` or `negative_prompt`. Unused inputs are rejected (see [Inputs Read Through Templates](#inputs-read-through-templates)).
 - `output` MUST resolve to an `Image`-compatible concept.
-- Any input referenced as a reference image in the `prompt` or `negative_prompt` MUST resolve to an `Image`-compatible concept (single or list).
+- Any variable referenced as a reference image in the `prompt` or `negative_prompt` MUST reach, through its path, an `Image`-compatible concept (single or list).
 
 **Example:**
 
@@ -999,7 +1002,7 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `from` | string | Yes | The path to bind: a name in working memory, followed by zero or more field names, separated by dots (see [Path Grammar](#path-grammar)). |
-| `result` | string | Yes | Name under which the bound value is stored in working memory. It MUST be a plain [input name](#input-names), a `snake_case` identifier matching `[a-z][a-z0-9_]*` and so never dotted. A binding step stores its value only for a later step to read, and an input reads a stored value only under a plain name, so a binding's `result` takes the form of an input name and the value it stores can always be read by an input. This version of the standard does not hold a pipe step's `result` to the same form, and restricts it only by the [reserved prefix](#reserved-names) `_bound_`: whether the plain-name rule extends to it is a separate question left open here, and a value a pipe step stores under a name that is not a plain name cannot be read by any input. |
+| `result` | string | Yes | Name under which the bound value is stored in working memory. It MUST take the form of a plain [input name](#input-names), so it is never dotted. A binding step stores its value only for a later step to read, and an input reads a stored value only under a plain name, so a binding's `result` takes the form of an input name and the value it stores can always be read by an input. This version of the standard does not hold a pipe step's `result` to the same form, and restricts it only by the [reserved prefix](#reserved-names) `_bound_`: whether the plain-name rule extends to it is a separate question left open here, and a value a pipe step stores under a name that is not a plain name cannot be read by any input. |
 
 **Validation rules:**
 
@@ -1010,7 +1013,7 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 - A dotted `batch_over` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its walk MUST derive a list (see [Dotted `batch_over`](#dotted-batch_over)).
 - A step MUST carry exactly one of `pipe` and `from`. A step carrying both is rejected as `binding_step_invalid`. A step carrying neither, such as `{ result = "x" }`, is neither a pipe step nor a binding step, and the schema rejects it with no error name of its own.
 - A binding step MUST carry `result`, and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`, or the step is rejected as `binding_step_invalid`.
-- A binding step's `result` MUST be a plain input name, matching `[a-z][a-z0-9_]*`, or the step is rejected as `binding_step_invalid`.
+- A binding step's `result` MUST take the form of a plain [input name](#input-names), or the step is rejected as `binding_step_invalid`.
 - A binding step's `from` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its path MUST be walkable through the declared structures, or the step is rejected as `binding_path_unresolved` (see [The Concept of the Result](#the-concept-of-the-result)).
 - A pipe step's `result`, `batch_as` and plain `batch_over` MUST NOT start with `_bound_`, or the step is rejected as `invalid_input_name` (see [Reserved Names](#reserved-names)).
 
@@ -1163,7 +1166,7 @@ A compliant implementation SHOULD report a binding step's own faults, and a name
 
 | Error | Fault | Caught by |
 |-------|-------|-----------|
-| `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a binding step whose `result` is not a plain input name matching `[a-z][a-z0-9_]*`; a `from` that breaks the [path grammar](#path-grammar); a dotted `batch_over` that breaks the path grammar; a binding step in a PipeParallel's `branches`; a dotted `batch_over` in a PipeParallel's `branches`. | The schema. |
+| `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a binding step whose `result` is not a plain [input name](#input-names); a `from` that breaks the [path grammar](#path-grammar); a dotted `batch_over` that breaks the path grammar; a binding step in a PipeParallel's `branches`; a dotted `batch_over` in a PipeParallel's `branches`. | The schema. |
 | `binding_path_unresolved` | A path the declared structures cannot walk, under the refusals listed in [The Concept of the Result](#the-concept-of-the-result). | Validation of the bundle, which reads the concepts' structures, before any run. |
 | `invalid_input_name` | A pipe step's or a PipeParallel branch's `result`, `batch_as` or plain `batch_over`, or a PipeBatch's `input_item_name`, starting with the reserved prefix `_bound_` (see [Reserved Names](#reserved-names)). | The schema. |
 
@@ -1260,11 +1263,12 @@ Maps a single pipe over each item in a list input, producing a list output.
 | `inputs` | table | Yes | MUST include an entry whose name matches `input_list_name`. |
 | `output` | string | Yes | — |
 | `branch_pipe_code` | string | Yes | The pipe reference to invoke for each item. |
-| `input_list_name` | string | Yes | The name of the input that contains the list to iterate over. |
+| `input_list_name` | string | Yes | The name of the input that contains the list to iterate over: a plain [input name](#input-names). |
 | `input_item_name` | string | Yes | The name under which each individual item is passed to the branch pipe. It MUST NOT start with the [reserved prefix](#reserved-names) `_bound_`. |
 
 **Validation rules:**
 
+- `input_list_name` MUST be a plain [input name](#input-names). A compliant implementation MUST reject a dotted name such as `catalog.pages`, as it rejects a dotted input name, and SHOULD report the refusal as `invalid_input_name`. To map a pipe over a list held in a field, the PipeBatch declares the list itself as its input (`pages = "Page[]"`, with `input_list_name = "pages"`), and the calling sequence hands the field to it under that name with a binding step (`{ from = "catalog.pages", result = "pages" }`, see [Binding Steps](#binding-steps)).
 - `input_list_name` MUST exist as a key in `inputs`.
 - `input_item_name` MUST NOT be empty.
 - `input_item_name` MUST NOT equal `input_list_name`.
