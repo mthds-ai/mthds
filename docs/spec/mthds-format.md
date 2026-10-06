@@ -268,7 +268,7 @@ Concrete pipe types share these base fields:
 
 - An input name MUST be a plain `snake_case` identifier, matching the pattern `[a-z][a-z0-9_]*`, on every pipe, operator or controller alike. It names one whole value, of the concept its slot declares.
 - An input name MUST NOT contain a dot. A key such as `"invoice.total" = "Number"` does not declare a field of `invoice`: a compliant implementation MUST reject it, as it rejects any other name that is not a plain `snake_case` identifier (`InvoiceTotal`, `2nd_total`), and SHOULD report the refusal as `invalid_input_name`.
-- A pipe that needs one field of a value receives it in one of two ways. Either it declares the root with its whole concept and reads the field through the root in its template (`invoice = "Invoice"`, read as `$invoice.total`, see [Inputs Read Through Templates](#inputs-read-through-templates)), or the calling sequence hands it the field under a plain name with a binding step (`{ from = "invoice.total", result = "total_amount" }`, see [Controller: PipeSequence](#controller-pipesequence)) and the pipe declares `total_amount = "Number"`. The message refusing a dotted name SHOULD name both remedies.
+- A pipe that needs one field of a value receives it in one of two ways. Either it declares the root with its whole concept and reads the field through the root in its template (`invoice = "Invoice"`, read as `$invoice.total`, see [Inputs Read Through Templates](#inputs-read-through-templates)), or the calling sequence hands it the field under a plain name with a binding step (`{ from = "invoice.total", result = "total_amount" }`, see [Binding Steps](#binding-steps)) and the pipe declares `total_amount = "Number"`. The message refusing a dotted name SHOULD name both remedies.
 
 **Concept references in inputs and output:**
 { #concept-references-in-inputs-and-output }
@@ -1002,7 +1002,7 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `from` | string | Yes | The path to bind: a name in working memory, followed by zero or more field names, separated by dots (see [Path Grammar](#path-grammar)). |
-| `result` | string | Yes | Name under which the bound value is stored in working memory. It MUST be a plain [input name](#input-names), a `snake_case` identifier matching `[a-z][a-z0-9_]*` and so never dotted. A binding step stores its value only for a later step to read, and an input reads a stored value only under a plain name, so a binding's `result` takes the form of an input name and the value it stores can always be read by an input. A pipe step's `result` is not restricted by this version of the standard: whether the same rule extends to it is a separate question left open here, and a value a pipe step stores under a name that is not a plain name cannot be read by any input. |
+| `result` | string | Yes | Name under which the bound value is stored in working memory. It MUST take the form of a plain [input name](#input-names), so it is never dotted. A binding step stores its value only for a later step to read, and an input reads a stored value only under a plain name, so a binding's `result` takes the form of an input name and the value it stores can always be read by an input. A pipe step's `result` is not restricted by this version of the standard: whether the same rule extends to it is a separate question left open here, and a value a pipe step stores under a name that is not a plain name cannot be read by any input. |
 
 **Validation rules:**
 
@@ -1013,7 +1013,7 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 - A dotted `batch_over` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its walk MUST derive a list (see [Dotted `batch_over`](#dotted-batch_over)).
 - A step MUST carry exactly one of `pipe` and `from`. A step carrying both is rejected as `binding_step_invalid`. A step carrying neither, such as `{ result = "x" }`, is neither a pipe step nor a binding step, and the schema rejects it with no error name of its own.
 - A binding step MUST carry `result`, and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`, or the step is rejected as `binding_step_invalid`.
-- A binding step's `result` MUST be a plain input name, matching `[a-z][a-z0-9_]*`, or the step is rejected as `binding_step_invalid`.
+- A binding step's `result` MUST take the form of a plain [input name](#input-names), or the step is rejected as `binding_step_invalid`.
 - A binding step's `from` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its path MUST be walkable through the declared structures, or the step is rejected as `binding_path_unresolved` (see [The Concept of the Result](#the-concept-of-the-result)).
 
 **Example:**
@@ -1161,7 +1161,7 @@ A compliant implementation SHOULD report a binding step's own faults under these
 
 | Error | Fault | Caught by |
 |-------|-------|-----------|
-| `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a binding step whose `result` is not a plain input name matching `[a-z][a-z0-9_]*`; a `from` that breaks the [path grammar](#path-grammar); a dotted `batch_over` that breaks the path grammar; a binding step in a PipeParallel's `branches`; a dotted `batch_over` in a PipeParallel's `branches`. | The schema. |
+| `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a binding step whose `result` is not a plain [input name](#input-names); a `from` that breaks the [path grammar](#path-grammar); a dotted `batch_over` that breaks the path grammar; a binding step in a PipeParallel's `branches`; a dotted `batch_over` in a PipeParallel's `branches`. | The schema. |
 | `binding_path_unresolved` | A path the declared structures cannot walk, under the refusals listed in [The Concept of the Result](#the-concept-of-the-result). | Validation of the bundle, which reads the concepts' structures, before any run. |
 
 A binding step can also cause faults that are not its own, and an implementation reports each of them the way it reports the same fault caused by a pipe step: a root that is neither an input of the sequence nor stored by an earlier step, whose diagnostic asks for the concept whose structure holds the path; a step that reads the result through an input declaring a concept or multiplicity incompatible with the ones the binding derives; a binding step ending the sequence whose derived concept or multiplicity does not match the sequence's declared `output`; and a dotted `batch_over` whose walk derives a single value, which is reported as a `batch_over` naming a value that is not a list. A maybe-absent result escaping a sequence whose output is not `?` is `optional_not_handled`, as [Optionality](../language/optionality.md#validation-surface) defines it.
@@ -1262,7 +1262,7 @@ Maps a single pipe over each item in a list input, producing a list output.
 
 **Validation rules:**
 
-- `input_list_name` MUST be a plain [input name](#input-names). A compliant implementation MUST reject a dotted name such as `catalog.pages`, as it rejects a dotted input name, and SHOULD report the refusal as `invalid_input_name`. To map a pipe over a list held in a field, the PipeBatch declares the list itself as its input (`pages = "Page[]"`, with `input_list_name = "pages"`), and the calling sequence hands the field to it under that name with a binding step (`{ from = "catalog.pages", result = "pages" }`, see [Controller: PipeSequence](#controller-pipesequence)).
+- `input_list_name` MUST be a plain [input name](#input-names). A compliant implementation MUST reject a dotted name such as `catalog.pages`, as it rejects a dotted input name, and SHOULD report the refusal as `invalid_input_name`. To map a pipe over a list held in a field, the PipeBatch declares the list itself as its input (`pages = "Page[]"`, with `input_list_name = "pages"`), and the calling sequence hands the field to it under that name with a binding step (`{ from = "catalog.pages", result = "pages" }`, see [Binding Steps](#binding-steps)).
 - `input_list_name` MUST exist as a key in `inputs`.
 - `input_item_name` MUST NOT be empty.
 - `input_item_name` MUST NOT equal `input_list_name`.
