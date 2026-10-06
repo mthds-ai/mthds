@@ -11,7 +11,6 @@ PYTHON_VERSION ?= 3.13
 VENV_PYTHON := $(VIRTUAL_ENV)/bin/python
 VENV_MKDOCS := $(VIRTUAL_ENV)/bin/mkdocs
 VENV_MIKE := $(VIRTUAL_ENV)/bin/mike
-SCHEMA_URL := https://pipelex-config.s3.amazonaws.com/mthds_schema_latest.json
 
 UV_MIN_VERSION = $(shell grep -m1 'required-version' pyproject.toml | sed -E 's/.*= *"([^<>=, ]+).*/\1/')
 
@@ -88,9 +87,6 @@ make cleanderived                     - Remove mkdocs build output
 make cleanall                         - Remove all -> cleanenv + cleanderived
 make reinstall                        - Reinstall dependencies
 
-make update-schema                    - Download latest JSON Schema from S3
-make up                               - Shorthand -> update-schema
-
 make li                               - Shorthand -> lock install
 
 endef
@@ -102,7 +98,6 @@ export HELP
 	docs docs-check spec-check version-check docs-serve-versioned docs-list \
 	docs-deploy docs-build-versioned docs-assemble-site docs-build-site docs-retention docs-prune docs-delete \
 	lighthouse lighthouse-baseline lighthouse-compare \
-	update-schema up \
 	li check-uv check-uv-verbose
 
 all help:
@@ -287,13 +282,6 @@ lighthouse-compare:
 ##########################################################################################
 ### SHORTHANDS
 ##########################################################################################
-
-update-schema:
-	$(call PRINT_TITLE,Downloading latest JSON Schema)
-	curl -fSL "$(SCHEMA_URL)" -o "$(CURDIR)/docs/mthds_schema.json"
-
-up: update-schema
-	@echo "> done: update-schema"
 
 li: lock install
 	@echo "> done: lock install"
