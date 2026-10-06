@@ -2790,7 +2790,7 @@
     }
   },
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$comment": "Generated from PipelexBundleBlueprint v0.74.0. Do not edit manually.",
+  "$comment": "Generated from PipelexBundleBlueprint v0.75.0. Do not edit manually.",
   "x-taplo": {
     "initKeys": [
       "domain"

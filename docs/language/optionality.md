@@ -82,7 +82,11 @@ type        = "PipeLLM"
 description = "Write a short briefing for the courier"
 inputs      = { address = "Text", courier_note = "Text?" }
 output      = "Text"
-prompt      = "Write a one-paragraph briefing for a courier delivering to $address. @?courier_note"
+prompt      = """
+Write a one-paragraph briefing for a courier delivering to $address.
+
+@?courier_note
+"""
 ```
 
 `note` is not required, so `courier_note` may be absent: for a delivery with no note, the binding records an absence whose provenance names `note` as the segment that held nothing. `write_briefing` declares the input optional and guards the read with `@?`, so it runs either way. Had it declared `courier_note = "Text"`, it would be skipped when the note is missing, and the sequence, whose output it produces, would have to declare its output `Text?`. `address` is required, so its binding is never absent.

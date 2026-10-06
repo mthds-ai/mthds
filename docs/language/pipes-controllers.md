@@ -32,11 +32,11 @@ A step is either a **pipe step**, which runs a pipe, or a [binding step](#bindin
 | Field | Required | Description |
 |-------|----------|-------------|
 | `pipe` | Yes | Pipe reference (bare, domain-qualified, or package-qualified). |
-| `result` | No | Name under which the step's output is stored in working memory. |
+| `result` | No | Name under which the step's output is stored in working memory. Must not start with the [reserved prefix](../spec/mthds-format.md#reserved-names) `_bound_`. |
 | `nb_output` | No | Expected number of output items. Mutually exclusive with `multiple_output`. |
 | `multiple_output` | No | Whether to expect multiple output items. Mutually exclusive with `nb_output`. |
-| `batch_over` | No | Working memory variable to iterate over (inline batch). Requires `batch_as`. A dotted path such as `catalog.pages` binds that field first, then iterates over it. |
-| `batch_as` | No | Name for each item during inline batch iteration. Requires `batch_over`. |
+| `batch_over` | No | Working memory variable to iterate over (inline batch). Requires `batch_as`. A dotted path such as `catalog.pages` binds that field first, then iterates over it. A plain `batch_over` must not start with the [reserved prefix](../spec/mthds-format.md#reserved-names) `_bound_`. |
+| `batch_as` | No | Name for each item during inline batch iteration. Requires `batch_over`. Must not start with the [reserved prefix](../spec/mthds-format.md#reserved-names) `_bound_`. |
 
 A sequence must contain at least one step.
 
@@ -172,13 +172,14 @@ input_item_name  = "topic"
 |-------|----------|-------------|
 | `branch_pipe_code` | Yes | The pipe reference to invoke for each item. |
 | `input_list_name` | Yes | The name of the input that contains the list to iterate over. Must be a plain input name and must exist as a key in `inputs`. |
-| `input_item_name` | Yes | The name under which each individual item is passed to the branch pipe. |
+| `input_item_name` | Yes | The name under which each individual item is passed to the branch pipe. Must not start with the [reserved prefix](../spec/mthds-format.md#reserved-names) `_bound_`. |
 
 **Constraints:**
 
 - `input_list_name` must be a plain input name, never a dotted path such as `catalog.pages` (see [Input names](../spec/mthds-format.md#input-names)). To map a pipe over a list held in a field, declare the list itself as the PipeBatch's input (`pages = "Page[]"`, with `input_list_name = "pages"`), and let the calling [PipeSequence](#pipesequence) hand the field over under that name with a [binding step](#binding-steps).
 - `input_item_name` must not equal `input_list_name`.
 - `input_item_name` must not equal any key in `inputs`.
+- `input_item_name` must not start with `_bound_`, a prefix reserved for the private names under which a dotted `batch_over` is bound (see [Reserved Names](../spec/mthds-format.md#reserved-names)).
 
 A naming tip: use the plural for the list and its singular form for the item (e.g., list `"topics"` → item `"topic"`).
 
