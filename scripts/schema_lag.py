@@ -42,7 +42,6 @@ from __future__ import annotations
 import json
 import re
 import sys
-import tomllib
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, NamedTuple, cast
@@ -50,6 +49,11 @@ from typing import Any, NamedTuple, cast
 from jsonschema.exceptions import SchemaError, ValidationError, best_match
 from jsonschema.protocols import Validator
 from jsonschema.validators import validator_for
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
