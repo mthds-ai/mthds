@@ -83,11 +83,16 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 
 **PipeJudge:**
 
-- Exactly one of `question` or `prompt` MUST be present; both present is rejected, naming `question`.
-- All question variables MUST have matching inputs. An input need not be referenced, since every input is sent to the model as the material to judge.
-- `options` and `levels` MUST NOT both be present. `options` MUST hold at least two entries with non-empty keys; `levels` at least two non-empty strings.
-- `criteria` and `threshold` MUST NOT be present beside `options` or `levels`. `criteria` accepts only the keys `yes` and `no`; `threshold` MUST be strictly between 0 and 1.
-- `output` MUST be `YesNo` (no `options` or `levels`), `Choice` (`options`) or `Rating` (`levels`), or a concept that refines it, and MUST NOT use multiplicity brackets.
+- `prompt` MUST be present and non-empty.
+- Exactly one of `question` or `questions` MUST be present. A pipe carrying neither is rejected, and the message SHOULD say that `prompt` holds the evidence and the question is written in `question`.
+- `question`, and the `question` of every entry of `questions`, MUST be non-empty.
+- All prompt and question variables MUST have matching inputs.
+- All inputs MUST be referenced in `prompt` or in a question.
+- A question variable MUST NOT reach an `Image` or a `Document`, single or a list; only `prompt` presents files.
+- `options` and `levels` MUST NOT both be present on one question. `options` MUST hold at least two entries with non-empty keys. `levels` MUST hold at least two levels, each a non-empty string or a table carrying a non-empty `label`, a non-empty `description` or both and no other key; either every level carries a `label` or none does, and no two labels of one scale are equal.
+- `criteria` and `threshold` MUST NOT be present beside `options` or `levels`. `criteria` MUST carry both `yes` and `no`, each non-empty, and no other key; a table declaring one side is rejected, and the message SHOULD suggest writing the missing side as the complement of the other. `threshold` MUST be strictly between 0 and 1.
+- With `question`, `output` MUST be `YesNo` (no `options` or `levels`), `Choice` (`options`) or `Rating` (`levels`), or a concept that refines it, and MUST NOT use multiplicity brackets.
+- With `questions`, there MUST be at least one question, each key a valid structure field name, and each question table MUST carry `question` and only `options`, `levels`, `criteria` and `threshold` beside it; those four MUST NOT be present on the pipe itself. `output` MUST be a structured concept without multiplicity brackets whose fields are exactly the question names, each declared `type = "concept"` with a `concept_ref` naming the verdict native of its question's kind or a concept that refines it.
 
 **PipeCompose:**
 

@@ -38,13 +38,13 @@ A completed pipe always resolves its declared output: either a value or a record
 
 Templates that reference optional inputs must guard those references. Valid guard forms include:
 
-- `@?note` shorthand in fields that run shorthand preprocessing: `PipeLLM.prompt`, `PipeLLM.system_prompt`, `PipeImgGen.prompt`, `PipeImgGen.negative_prompt`, `PipeSearch.prompt`, `PipeJudge.question`, and `PipeCompose.template`. It renders content only when present.
+- `@?note` shorthand in fields that run shorthand preprocessing: `PipeLLM.prompt`, `PipeLLM.system_prompt`, `PipeImgGen.prompt`, `PipeImgGen.negative_prompt`, `PipeSearch.prompt`, `PipeJudge.prompt`, every PipeJudge question, and `PipeCompose.template`. It renders content only when present.
 - Raw Jinja2 `{% if note %}...{% endif %}` blocks for Jinja2-rendered fields, including fields where shorthand preprocessing does not run.
 - Inline conditionals such as `{{ note.text if note else "" }}`.
 
 Unguarded optional references are validation errors.
 
-Being optional does not exempt an input from being read: `PipeLLM`, `PipeImgGen`, `PipeSearch` and `PipeCompose` reject a declared input they never read, whether it is optional or not. A guarded reference such as `@?note` counts as a read.
+Being optional does not exempt an input from being read: `PipeLLM`, `PipeImgGen`, `PipeSearch`, `PipeJudge` and `PipeCompose` reject a declared input they never read, whether it is optional or not. A guarded reference such as `@?note` counts as a read.
 
 ## Controllers Under Absence
 
