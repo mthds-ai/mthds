@@ -18,7 +18,7 @@ The schema defines the complete structure of an `.mthds` bundle:
 
 ## Schema Version
 
-The schema is auto-generated from the MTHDS bundle data model. The current version is noted in the schema's `$comment` field. The hosted schema always corresponds to the latest released version of the MTHDS standard.
+The schema is generated from the bundle data model of the reference implementation, and its `$comment` field names the implementation version it was generated from. The hosted schema is refreshed from a release of the reference implementation, and a release of the standard that changes the language usually comes before the implementation release that carries the change. Until that implementation release is published and the refreshed schema reaches this site, the hosted schema still describes the previous standard and may reject what the new one allows. The [changelog](../changelog.md) entry of such a release says which of its changes the hosted schema does not describe yet, and a later release of this site publishes the schema that does.
 
 ## Where to Find It
 
