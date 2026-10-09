@@ -232,11 +232,22 @@ Structureless by design — a named composition of contents whose field names ar
 description = "A named composition of contents"
 ```
 
-## Changes From the Set Pinned at 3.0.0
+## Changes Between Pinned Sets
+
+Each earlier pinned set stays normative for the crates stamped with the versions it governs, so this page records how each set differs from the one before it, newest first.
+
+### From the Set Pinned at 3.0.0
 
 - `native.Rating` gains the optional `label`.
 
 A crate stamped with a `3.x` or `4.x` version materialized the set pinned at `3.0.0`, so its `native.Rating` carries no `label`. Re-normalizing the same library against a `5.0.0` implementation materializes the definition above instead, and the crate's [fingerprint](./library-crate.md#fingerprint) changes with it, as it does for any change to a hashed definition. The set pinned at `3.0.0` is this page as published with the `3.x` and `4.x` versions of the standard.
+
+### From the Set Pinned at 2.0.0
+
+- `native.YesNo` gains the optional `probability`.
+- `native.Choice` and `native.Rating` are added.
+
+A crate stamped with a `2.x` version materialized the set pinned at `2.0.0`, so its `native.YesNo` carries `yes_no` alone and it holds no `native.Choice` or `native.Rating`. Re-normalizing the same library against a `3.0.0` or later implementation materializes the definitions of the set that implementation resolves to instead, and the crate's fingerprint changes with it. The set pinned at `2.0.0` is this page as published with the `2.x` versions of the standard.
 
 ## See Also
 
