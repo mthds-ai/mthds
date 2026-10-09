@@ -1005,9 +1005,7 @@
         "input_item_name": {
           "title": "Input Item Name",
           "type": "string",
-          "not": {
-            "pattern": "^_bound_"
-          }
+          "pattern": "^[a-z][a-z0-9_]*$"
         }
       },
       "required": [
@@ -2531,9 +2529,7 @@
           "anyOf": [
             {
               "type": "string",
-              "not": {
-                "pattern": "^_bound_"
-              }
+              "pattern": "^[a-z][a-z0-9_]*$"
             },
             {
               "type": "null"
@@ -2587,9 +2583,7 @@
           "anyOf": [
             {
               "type": "string",
-              "not": {
-                "pattern": "^_bound_"
-              }
+              "pattern": "^[a-z][a-z0-9_]*$"
             },
             {
               "type": "null"
@@ -2714,9 +2708,7 @@
           "anyOf": [
             {
               "type": "string",
-              "not": {
-                "pattern": "^_bound_"
-              }
+              "pattern": "^[a-z][a-z0-9_]*$"
             },
             {
               "type": "null"
@@ -2770,9 +2762,7 @@
           "anyOf": [
             {
               "type": "string",
-              "not": {
-                "pattern": "^_bound_"
-              }
+              "pattern": "^[a-z][a-z0-9_]*$"
             },
             {
               "type": "null"
@@ -2790,7 +2780,7 @@
     }
   },
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$comment": "Generated from PipelexBundleBlueprint v0.75.0. Do not edit manually.",
+  "$comment": "Generated from PipelexBundleBlueprint v0.80.0. Do not edit manually.",
   "x-taplo": {
     "initKeys": [
       "domain"
