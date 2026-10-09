@@ -13,6 +13,12 @@ each pipe and concept it declares against the schema copy, and prints, in Markdo
 the copy rejects and why. A rejected example means that the copy predates the change the
 example shows, or that the example is wrong; a person reads which.
 
+It sees one direction only. A copy stricter than the standard shows here, as an example it
+rejects; a standard stricter than the copy does not, since every example obeys both the old
+rule and the new one while the copy goes on accepting what the standard now rejects. So an
+empty report does not mean the copy describes the standard, and the release play reads the
+release's own changes beside it.
+
 It is a report, not a gate, and it exits 0 whatever it finds: the copy follows a pipelex
 release that may only come after the standard is cut, so the release reports the window
 rather than waiting for it to close (`.claude/skills/release/SKILL.md`, Particulars). It exits
@@ -458,6 +464,15 @@ def render_report(
         summary += f" The copy's `$comment` reads: {comment}"
     lines.append(summary)
     if not rejections:
+        lines.extend(
+            [
+                "",
+                "That does not mean the copy describes the standard. This check sees only what "
+                "the copy rejects, so a rule the standard tightened, which every example obeys "
+                "and the copy goes on accepting, never shows here. Compare the copy with the "
+                "release's changes to what a bundle may declare as well.",
+            ]
+        )
         return "\n".join(lines) + "\n"
     lines.extend(
         [
@@ -481,6 +496,10 @@ def render_report(
             "`mthds-schema-sync` skill brings it in once a release implements the change, or "
             "the example is wrong. A release goes ahead all the same, and says so in its "
             "changelog entry and its pull request.",
+            "",
+            "The table cannot list a rule the standard tightened, which every example obeys and "
+            "the copy goes on accepting. Compare the copy with the release's changes to what a "
+            "bundle may declare for those.",
         ]
     )
     return "\n".join(lines) + "\n"
