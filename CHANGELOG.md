@@ -1,5 +1,20 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v5.0.0 · MTHDS standard 5.0.0 · MTHDS Protocol 0.7.0**
+
+### Added
+
+- **Several questions in one PipeJudge** (`spec/mthds-format.md`): a PipeJudge may set `questions`, a table keyed by question name, instead of `question`, and each question carries its own `options`, `levels`, `criteria` and `threshold`. Every question is answered independently over the same evidence, and the output is a structured concept whose fields are exactly the question names, each declared as the verdict native of its question's kind or a concept that refines it.
+- **Refusals** (`spec/mthds-format.md`): a judging model may refuse a question, and a refusal never becomes a verdict. With `question`, a refused question fails the run; with `questions`, it leaves its field absent when the field is optional and fails the run when the field is required.
+- **Labelled rating levels and `Rating.label` (Breaking)** (`spec/native-concepts.md`, `spec/mthds-format.md`): a rating level may be a table carrying a `label`, a `description` or both, the labels of a scale being all present or all absent and distinct, and the `Rating` native gains an optional `label` holding the label of the selected level, copied from the declaration. The native set is re-pinned at 5.0.0, so a crate normalized at 5.0.0 materializes the new `Rating` and gets a new fingerprint.
+
+### Changed
+
+- **PipeJudge judges an evidence prompt (Breaking)** (`spec/mthds-format.md`): `prompt` is now a required template presenting the evidence, and the question is always written in `question`, which `prompt` no longer stands for. The judging model sees only what the templates read, so every declared input must be read by `prompt` or by a question and an unread input is rejected, as on the other inference operators; an image or a document the prompt reads is presented with it, and a question may read neither. A PipeJudge written for 4.0.0 adds a `prompt` that presents its inputs, such as `prompt = "@message"`, and one that spelled its question `prompt` renames that field `question`.
+- **Yes/no criteria declare both answers (Breaking)** (`spec/mthds-format.md`): a `criteria` table now carries both `yes` and `no`, each non-empty, and a table declaring one side is rejected. An author who knows only when the answer is no writes the yes side as its complement.
+
 ## [v4.0.0] - 2026-10-06
 
 **MTHDS standard 4.0.0 · MTHDS Protocol 0.7.0**

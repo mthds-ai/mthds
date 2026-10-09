@@ -267,7 +267,7 @@ The most commonly used native concepts have the following fields. These are the 
 
 **Choice** — `choice` (the key of the selected option), plus `confidence` (from 0 to 1) and `probabilities` (one per option key) when the producer reports them. Renders as its key, so `$team` in a later prompt reads `billing`, and `$team.confidence` reaches the confidence.
 
-**Rating** — `level` (the index of the selected level, counted from 0), plus `confidence`, `probabilities` (one per level index) and `position` (a continuous position on the scale) when the producer reports them. Renders as its level.
+**Rating** — `level` (the index of the selected level, counted from 0), `label` (the label of the selected level, when the scale declares labels), plus `confidence`, `probabilities` (one per level index) and `position` (a continuous position on the scale) when the producer reports them. Renders as its label when it has one, and as its level otherwise.
 
 `YesNo`, `Choice` and `Rating` are the verdicts a [PipeJudge](pipes-operators.md#pipejudge) produces. Each requires its verdict and nothing else: a producer that reports no uncertainty leaves those fields out, and a language model writing one, as a PipeLLM does, may fill them with its own estimate.
 

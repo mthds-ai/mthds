@@ -480,18 +480,24 @@ Every variable referenced in the prompt must correspond to a declared input, and
 
 ## PipeJudge
 
-Asks a judging model one closed question about its inputs, and returns the verdict together with how sure the model is.
+Asks a judging model a closed question about the evidence its prompt presents, and returns the verdict together with how sure the model is.
 
 ```toml
 [pipe.judge_is_urgent]
 type        = "PipeJudge"
-description = "Decide whether a message is urgent"
+description = "Decide whether a customer message is urgent"
 inputs      = { message = "Text" }
 output      = "YesNo"
+prompt      = """
+A message from a customer:
+@message
+"""
 question    = "Is the message urgent?"
 ```
 
-**What this does:** Sends the message to a judging model as the material to judge, asks the question about it, and produces a `YesNo` whose `yes_no` is the verdict and whose `probability` is the model's probability that the answer is yes, when the model reports one.
+**What this does:** Renders the prompt with the message as the evidence, asks the judging model the question about it, and produces a `YesNo` whose `yes_no` is the verdict and whose `probability` is the model's probability that the answer is yes, when the model reports one.
+
+**The prompt is the evidence, the question is what is asked.** The judging model judges the rendered prompt and nothing else, so an input reaches it only when `prompt` or the question reads it, and every declared input must be read by one of them, as on PipeLLM. Write the evidence in `prompt` with the usual shorthand: `@message` inserts a tagged block, `$photo` places an image, and `@?note` inserts an optional input only when it is present. An image or document the prompt reads is presented to the model with the text, at the place the prompt reads it. Keep the question itself short and plain: it presents no file, and an input it reads is better kept to a short parameter, such as `"Is the message about $topic?"`.
 
 The question takes one of three kinds, and which fields the pipe declares decides it:
 
@@ -505,6 +511,7 @@ type        = "PipeJudge"
 description = "Pick the team that should handle a ticket"
 inputs      = { ticket = "Ticket" }
 output      = "Choice"
+prompt      = "@ticket"
 question    = "Which team should handle the ticket?"
 
 [pipe.route_ticket.options]
@@ -518,28 +525,41 @@ type        = "PipeJudge"
 description = "Rate how severe a reported issue is"
 inputs      = { report = "BugReport" }
 output      = "Rating"
+prompt      = "@report"
 question    = "How severe is the reported issue?"
 levels      = [
-  "Cosmetic; no impact on functionality",
-  "Broken or degraded feature, but a workaround exists",
-  "Blocking issue; no workaround exists",
+  { label = "Cosmetic", description = "Appearance only; no lost functionality" },
+  { label = "Workaround available", description = "A task fails, but another way works" },
+  { label = "Fully blocked", description = "A task fails with no workaround" },
 ]
 ```
+
+**Labelled levels.** A level is either a plain description, such as `"Worn"`, or a table with a short `label` and a `description` of the situation it stands for. When the levels carry labels, the `Rating` carries the label of the selected level beside its index, and it renders as that label: `$severity` in a later prompt reads `Workaround available` rather than `1`. Label every level of a scale or none of them, and give each a different label.
 
 **Key fields:**
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `question` | Yes | The question template. Supports Jinja2 syntax and `$variable` shorthand. `prompt` is accepted in its place. |
+| `prompt` | Yes | The evidence template: what the model judges. Supports Jinja2 syntax and `@variable` / `$variable` shorthand, images and documents included. |
+| `question` | Yes, unless `questions` is set | The question template. Supports Jinja2 syntax and `$variable` shorthand. |
+| `questions` | Yes, unless `question` is set | Several questions over the same evidence (see [Several questions](#several-questions)). |
 | `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
 | `options` | No | A choice question's options: each key is an option, each value describes it (an empty string for none). At least two. |
-| `levels` | No | A rating question's levels, from lowest to highest. At least two. |
-| `criteria` | No | A yes/no question's meaning of a yes and of a no, as optional `yes` and `no` descriptions. |
+| `levels` | No | A rating question's levels, from lowest to highest, each a description or a `{ label, description }` table. At least two. |
+| `criteria` | No | A yes/no question's meaning of a yes and of a no, as a `yes` and a `no` description, always both. |
 | `threshold` | No | A yes/no question's probability of yes at or above which the verdict is yes. Strictly between 0 and 1; `0.5` when absent. |
 
-**The inputs are the material, not the question.** Every declared input is sent to the model by name, beside the question, so a declared input need not appear in the question, and unlike the other inference operators a PipeJudge does not reject one it never references. Every variable the question does reference must still be a declared input. Reference an input in the question only for a short parameter, such as `"Is the message about $topic?"`.
+**Criteria describe both answers.** When the meaning of a yes needs pinning down, say what a yes means and what a no means, together. If you only know when the answer is no, write the yes side as its complement:
 
-**Writing a good judgment.** Ask one narrow question per pipe. Describe each option and each level as a concrete situation rather than a degree ("a workaround exists", not "medium"), and give a choice a catch-all option when nothing may fit. Leave counting, arithmetic and date comparisons to code: a judging model reads the material, it does not compute over it.
+```toml
+[pipe.judge_is_urgent.criteria]
+yes = "The customer needs an answer today, or something stops working without one"
+no  = "The message can wait for the normal queue"
+```
+
+**Writing a good judgment.** Ask narrow questions. Describe each option and each level as a concrete situation rather than a degree ("a workaround exists", not "medium"), and give a choice a catch-all option when nothing may fit. Keep the evidence to what the question needs: a large evidence that is mostly irrelevant makes the answers worse. Leave counting, arithmetic and date comparisons to code: a judging model reads the evidence, it does not compute over it.
+
+**When the model refuses.** A judging model may refuse to answer a question, and a refusal is never turned into a verdict: with `question`, a refusal fails the run. With `questions`, the output field decides, as described under [Several questions](#several-questions).
 
 **Routing on a verdict.** A `Choice` drives a [PipeCondition](pipes-controllers.md#pipecondition) directly, one outcome per option key, and the uncertainty is reached by name once the expression has checked it is there, since a model that measures none leaves it out:
 
@@ -563,9 +583,47 @@ review   = "queue_for_review"
 **Constraints:**
 
 - `options` and `levels` cannot both be set, and `criteria` and `threshold` apply to a yes/no question only.
-- The output must be `YesNo`, `Choice` or `Rating` according to the kind, or a concept that refines it, such as a `Department` concept refining `Choice`.
-- The output is one verdict, never a list. To judge each item of a list, map the PipeJudge over it with a [PipeBatch](pipes-controllers.md#pipebatch).
+- The output of a single question must be `YesNo`, `Choice` or `Rating` according to the kind, or a concept that refines it, such as a `Department` concept refining `Choice`.
+- The output is never a list. To judge each item of a list, map the PipeJudge over it with a [PipeBatch](pipes-controllers.md#pipebatch).
+- A question cannot read an image or a document: only `prompt` presents files.
 - A model that reports no uncertainty leaves the uncertainty fields out, and a threshold then has nothing to apply to: the model's own yes or no stands.
+
+### Several questions
+
+One PipeJudge can ask several questions about the same evidence. Set `questions` instead of `question`: each key names a question and the output field that holds its verdict, and each question carries its own `options`, `levels`, `criteria` or `threshold`. The output is a concept with one field per question, each holding the verdict native of its question's kind:
+
+```toml
+[concept.ProductInspection]
+description = "What an inspection of a product photo found"
+
+[concept.ProductInspection.structure]
+damaged   = { type = "concept", concept_ref = "YesNo", description = "Whether the product is visibly damaged", required = true }
+category  = { type = "concept", concept_ref = "Choice", description = "The product's category", required = true }
+condition = { type = "concept", concept_ref = "Rating", description = "The product's overall condition" }
+
+[pipe.inspect_product]
+type        = "PipeJudge"
+description = "Inspect a product photo"
+inputs      = { photo = "Image" }
+output      = "ProductInspection"
+prompt      = "A product photo: $photo"
+
+[pipe.inspect_product.questions.damaged]
+question  = "Does the product have visible damage, such as a crack, tear, or dent?"
+threshold = 0.7
+
+[pipe.inspect_product.questions.category]
+question = "Which category does the product belong to?"
+options  = { footwear = "Shoes, boots and sandals", bags = "Handbags, backpacks and luggage", other = "Anything else" }
+
+[pipe.inspect_product.questions.condition]
+question = "What condition is the product in?"
+levels   = ["Damaged beyond use", "Worn", "Like new"]
+```
+
+Each question is answered on its own over the same evidence, and none sees another's answer. When a question depends on another's answer, ask it in a later pipe of a [PipeSequence](pipes-controllers.md#pipesequence), which reads the first verdict as an input.
+
+**When the model refuses one of the questions,** its field is left absent when the field is optional, as `condition` is above, and the run fails when the field is `required`.
 
 ## PipeCompose
 

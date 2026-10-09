@@ -97,7 +97,7 @@ The following operator pipe types accept the `model` field:
 | `PipeImgGen` | Image generation. |
 | `PipeExtract` | Document extraction (e.g., PDF to pages). |
 | `PipeSearch` | Web search with structured results. |
-| `PipeJudge` | A verdict on a closed question, with its uncertainty. |
+| `PipeJudge` | Verdicts on closed questions about an evidence, with their uncertainty. |
 
 All four reference forms (`$`, `@`, `~`, bare) work identically across these pipe types.
 
