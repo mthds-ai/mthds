@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v6.0.0 · MTHDS standard 6.0.0 · MTHDS Protocol 0.7.0**
+
+### Changed
+
+- **Stored names are plain input names (Breaking)** (`spec/mthds-format.md`): every name under which a step stores a value in working memory, namely a pipe step's or a PipeParallel branch's `result`, the `batch_as` of a step or a branch, and a PipeBatch's `input_item_name`, must now take the form of a plain input name matching `[a-z][a-z0-9_]*`, as a binding step's `result` already did, and a name in any other form, such as `Pages` or `a.b`, is rejected as `invalid_input_name`. An author renames such a name to a plain one, such as `pages`, along with every input, binding path, `batch_over` and PipeParallel output field that reads it.
+
 ## [v5.0.0] - 2026-10-09
 
 **MTHDS standard 5.0.0 · MTHDS Protocol 0.7.0**
