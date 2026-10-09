@@ -68,6 +68,7 @@ make update                           - Upgrade dependencies via uv
 make docs                             - Serve documentation locally with mkdocs
 make docs-check                       - Check documentation build with mkdocs
 make version-check                    - Check the standard and protocol versions agree everywhere
+make schema-lag                       - Report the documentation's examples the schema copy rejects
 make docs-serve-versioned             - Serve versioned docs locally with mike
 make docs-list                        - List deployed documentation versions
 make docs-deploy VERSION=x.y.z       - Deploy docs as version x.y.z (local, no push)
@@ -95,7 +96,7 @@ export HELP
 .PHONY: \
 	all help env env-verbose lock install update \
 	cleanderived cleanenv cleanall reinstall ri \
-	docs docs-check spec-check version-check docs-serve-versioned docs-list \
+	docs docs-check spec-check version-check schema-lag docs-serve-versioned docs-list \
 	docs-deploy docs-build-versioned docs-assemble-site docs-build-site docs-retention docs-prune docs-delete \
 	lighthouse lighthouse-baseline lighthouse-compare \
 	li check-uv check-uv-verbose
@@ -199,6 +200,13 @@ spec-check: install
 version-check:
 	$(call PRINT_TITLE,Checking the standard and protocol versions agree everywhere)
 	@python3 "$(CURDIR)/scripts/check_versions.py"
+
+# A report, not a gate: it exits 0 whatever it finds, because the schema copy follows a pipelex
+# release that may come after the standard is cut. The release play carries what it lists into
+# the release's changelog entry and pull request.
+schema-lag: install
+	$(call PRINT_TITLE,Checking the documentation examples against the schema copy)
+	@$(VENV_PYTHON) "$(CURDIR)/scripts/schema_lag.py"
 
 docs-serve-versioned: env
 	$(call PRINT_TITLE,Serving versioned documentation with mike)
