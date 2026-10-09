@@ -499,11 +499,13 @@ question    = "Is the message urgent?"
 
 **The prompt is the evidence, the question is what is asked.** The judging model judges the rendered prompt and nothing else, so an input reaches it only when `prompt` or the question reads it, and every declared input must be read by one of them, as on PipeLLM. Write the evidence in `prompt` with the usual shorthand: `@message` inserts a tagged block, `$photo` places an image, and `@?note` inserts an optional input only when it is present. An image or document the prompt reads is presented to the model with the text, at the place the prompt reads it. Keep the question itself short and plain: it presents no file, and an input it reads is better kept to a short parameter, such as `"Is the message about $topic?"`.
 
-The question takes one of three kinds, and which fields the pipe declares decides it:
+A question takes one of three kinds, decided by which fields the question declares, and the kind decides its verdict:
 
-- **Yes/no** — no `options` and no `levels`. The output is a `YesNo`.
-- **Choice** — `options` declares the set to pick from. The output is a `Choice`, whose `choice` is one of the option keys.
-- **Rating** — `levels` declares a scale, from lowest to highest. The output is a `Rating`, whose `level` is the index of the selected level, counted from 0.
+- **Yes/no** — no `options` and no `levels`. The verdict is a `YesNo`.
+- **Choice** — `options` declares the set to pick from. The verdict is a `Choice`, whose `choice` is one of the option keys.
+- **Rating** — `levels` declares a scale, from lowest to highest. The verdict is a `Rating`, whose `level` is the index of the selected level, counted from 0.
+
+With `question`, the fields sit on the pipe and the verdict is the pipe's output.
 
 ```toml
 [pipe.route_ticket]
