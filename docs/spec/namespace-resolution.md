@@ -346,10 +346,10 @@ This section consolidates the validation rules scattered throughout this specifi
 6. **PipeSearch**: `prompt` MUST be present. All prompt variables MUST have matching inputs. All inputs MUST be used. `output` MUST be `SearchResult` or refine `SearchResult`.
 7. **PipeJudge**: `prompt` MUST be present, and exactly one of `question` or `questions`. All prompt and question variables MUST have matching inputs. All inputs MUST be used. `options` and `levels` MUST NOT both be present on one question, and `criteria`, which carries both `yes` and `no`, and `threshold` MUST NOT be present beside either. With `question`, `output` MUST be `YesNo`, `Choice` or `Rating` according to the question's kind, or refine it; with `questions`, it MUST be a structured concept whose fields are exactly the question names, each holding its question's verdict native or a refinement of it. `output` MUST NOT use multiplicity.
 8. **PipeCompose**: Exactly one of `template` or `construct` MUST be present. Output MUST NOT use multiplicity. All template and construct variables MUST have matching inputs. All inputs MUST be used.
-9. **PipeSequence**: `steps` MUST have at least one entry.
-10. **PipeParallel**: `output` MUST be `Composite` or a structured concept, MUST NOT use multiplicity, and structured output fields MUST match branch `result` names.
+9. **PipeSequence**: `steps` MUST have at least one entry. A step's `result` and `batch_as` MUST be plain input names.
+10. **PipeParallel**: `output` MUST be `Composite` or a structured concept, MUST NOT use multiplicity, and structured output fields MUST match branch `result` names. A branch's `result` and `batch_as` MUST be plain input names.
 11. **PipeCondition**: Exactly one of `expression_template` or `expression` MUST be present. `outcomes` MUST have at least one entry.
-12. **PipeBatch**: `input_list_name` MUST be a plain input name and MUST be in `inputs`. `input_item_name` MUST NOT equal `input_list_name` or any `inputs` key.
+12. **PipeBatch**: `input_list_name` MUST be a plain input name and MUST be in `inputs`. `input_item_name` MUST be a plain input name and MUST NOT equal `input_list_name` or any `inputs` key.
 
 ### Manifest Validation
 

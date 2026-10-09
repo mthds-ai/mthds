@@ -29,6 +29,8 @@ How does `extract_keywords` access the output of `generate_tagline`? Through wor
 
 This name-matching mechanism chains pipes together into a flow of typed data.
 
+Because a later pipe reads a stored value through an input, every name a value is stored under is a plain input name, like `tagline`. A `result`, a `batch_as` or a PipeBatch's `input_item_name` written in any other form, such as `Tagline` or `marketing.tagline`, is rejected (see [Stored Names](../spec/mthds-format.md#stored-names)).
+
 ## Lifecycle
 
 Working memory follows a simple lifecycle within a pipeline run:
