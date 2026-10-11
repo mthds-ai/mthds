@@ -38,7 +38,7 @@
       ]
     },
     {
-      "source": "/5.(.*)",
+      "source": "/6.(.*)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, follow" }
       ]

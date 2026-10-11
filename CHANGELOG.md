@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [v6.0.0] - 2026-10-11
 
-**Next release: v6.0.0 · MTHDS standard 6.0.0 · MTHDS Protocol 0.7.0**
+**MTHDS standard 6.0.0 · MTHDS Protocol 0.7.0**
 
 ### Changed
 
