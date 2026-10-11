@@ -37,7 +37,7 @@ endef
 # of /latest/, and every other retained version is a superseded standard nobody should
 # reach from a search result, so all of them are disallowed. Since robots.txt has no
 # numeric wildcard the exclusion is written per major release line, and every line the
-# retention keeps needs one -- `make docs-retention` prints the set. A new line (3.)
+# retention keeps needs one -- `make docs-retention` prints the set. A new line (6.)
 # needs a Disallow here and a matching noindex header in vercel.json; a line the
 # retention no longer keeps has its two entries removed in the same commit.
 define ROOT_ROBOTS_TXT
@@ -46,8 +46,6 @@ Allow: /latest/
 Allow: /sitemap.xml
 Allow: /llms.txt
 Allow: /llms-full.txt
-Disallow: /0.
-Disallow: /4.
 Disallow: /5.
 Disallow: /pre-release/
 Disallow: /404.html

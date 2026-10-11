@@ -31,9 +31,29 @@ theme:
       icon: material/weather-sunny
       name: Switch to light mode
 
-copyright: "Reference runtime: <a href='https://github.com/Pipelex/pipelex' target='_blank'>Pipelex</a> (MIT)<br>© 2025-2026 Evotis S.A.S."
+copyright: "Reference runtime: <a href='https://github.com/Pipelex/pipelex' target='_blank'>Pipelex</a> (MIT)<br>© 2025-2026 Evotis S.A.S. · <a href='https://www.pipelex.com/privacy-policy'>Privacy policy</a> · <a href='#__consent'>Cookie settings</a>"
 
 extra:
+  # Material keeps the consent choice, the palette and the selected content tabs in
+  # localStorage under keys prefixed with this path. Its default is each version's base
+  # URL, which would ask a visitor for consent again on every version of the site.
+  scope: /
+  # PostHog is a custom provider, docs/overrides/partials/integrations/analytics/posthog.html,
+  # which Material starts only when the visitor has accepted the analytics purpose below.
+  analytics:
+    provider: posthog
+  # The banner also gates the GitHub purpose: Material fetches the repository's star and
+  # fork counts only when it is accepted.
+  consent:
+    title: Cookie consent
+    description: >-
+      With your consent, mthds.ai uses PostHog, hosted in the European Union,
+      to count visits and see which pages are read, and loads the repository's
+      star and fork counts from GitHub. Nothing is stored until you accept.
+      See the <a href="https://www.pipelex.com/privacy-policy">privacy policy</a>.
+    actions: [accept, reject, manage]
+    cookies:
+      analytics: PostHog
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/mthds-ai/mthds

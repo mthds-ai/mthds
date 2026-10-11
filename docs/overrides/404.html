@@ -13,9 +13,17 @@
   <link rel="canonical" href="https://mthds.ai/latest/">
 {% endblock %}
 
-{# Empty extrahead to suppress OG tags, Twitter cards, JSON-LD, and PostHog from main.html.
-   404 pages should not carry social metadata or analytics. #}
+{# Empty extrahead to suppress OG tags, Twitter cards, JSON-LD, and Vercel Web Analytics
+   from main.html. 404 pages should not carry social metadata or analytics. #}
 {% block extrahead %}
+{% endblock %}
+
+{# The analytics block is where Material includes PostHog (extra.analytics in mkdocs.yml)
+   and starts it when the visitor has consented. Including the partial without Material's
+   caller keeps the consent banner's behaviour and the cleanup of PostHog's leftovers, since
+   the banner renders here too, but never starts PostHog, whatever the visitor chose. #}
+{% block analytics %}
+  {% include "partials/integrations/analytics/posthog.html" %}
 {% endblock %}
 
 {% block content %}
