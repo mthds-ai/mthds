@@ -269,6 +269,7 @@ Concrete pipe types share these base fields:
 - An input name MUST be a plain `snake_case` identifier, matching the pattern `[a-z][a-z0-9_]*`, on every pipe, operator or controller alike. It names one whole value, of the concept its slot declares.
 - An input name MUST NOT contain a dot. A key such as `"invoice.total" = "Number"` does not declare a field of `invoice`: a compliant implementation MUST reject it, as it rejects any other name that is not a plain `snake_case` identifier (`InvoiceTotal`, `2nd_total`), and SHOULD report the refusal as `invalid_input_name`.
 - A pipe that needs one field of a value receives it in one of two ways. Either it declares the root with its whole concept and reads the field through the root in its template (`invoice = "Invoice"`, read as `$invoice.total`, see [Inputs Read Through Templates](#inputs-read-through-templates)), or the calling sequence hands it the field under a plain name with a binding step (`{ from = "invoice.total", result = "total_amount" }`, see [Binding Steps](#binding-steps)) and the pipe declares `total_amount = "Number"`. The message refusing a dotted name SHOULD name both remedies.
+- The names under which a step stores a value in working memory, such as a pipe step's `result`, take the same form, so that an input can read whatever a step stores (see [Stored Names](#stored-names)).
 
 **Concept references in inputs and output:**
 { #concept-references-in-inputs-and-output }
@@ -1078,18 +1079,18 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `pipe` | string | Yes | Pipe reference (bare, domain-qualified, or package-qualified). |
-| `result` | string | No | Name under which the step's output is stored in working memory. It MUST NOT start with the [reserved prefix](#reserved-names) `_bound_`. |
+| `result` | string | No | Name under which the step's output is stored in working memory. It MUST take the form of a plain [input name](#input-names), as every [stored name](#stored-names) does. |
 | `nb_output` | integer | No | Expected number of output items. Mutually exclusive with `multiple_output`. |
 | `multiple_output` | boolean | No | Whether to expect multiple output items. Mutually exclusive with `nb_output`. |
-| `batch_over` | string | No | Working memory variable to iterate over (inline batch). Requires `batch_as`. A dotted path such as `catalog.pages` is a binding followed by a batch: the path is bound by the rules of a binding step, and the step iterates over the bound list (see [Dotted `batch_over`](#dotted-batch_over)). A plain `batch_over` MUST NOT start with the [reserved prefix](#reserved-names) `_bound_`. |
-| `batch_as` | string | No | Name for each item during inline batch iteration. Requires `batch_over`. It MUST NOT start with the [reserved prefix](#reserved-names) `_bound_`. |
+| `batch_over` | string | No | Working memory variable to iterate over (inline batch). Requires `batch_as`. A dotted path such as `catalog.pages` is a binding followed by a batch: the path is bound by the rules of a binding step, and the step iterates over the bound list (see [Dotted `batch_over`](#dotted-batch_over)). A plain `batch_over` MUST NOT start with the [reserved prefix](#stored-names) `_bound_`. |
+| `batch_as` | string | No | Name under which each item is stored for the step's pipe during inline batch iteration. Requires `batch_over`. It MUST take the form of a plain [input name](#input-names), as every [stored name](#stored-names) does. |
 
 **Binding step:**
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `from` | string | Yes | The path to bind: a name in working memory, followed by zero or more field names, separated by dots (see [Path Grammar](#path-grammar)). |
-| `result` | string | Yes | Name under which the bound value is stored in working memory. It MUST take the form of a plain [input name](#input-names), so it is never dotted. A binding step stores its value only for a later step to read, and an input reads a stored value only under a plain name, so a binding's `result` takes the form of an input name and the value it stores can always be read by an input. This version of the standard does not hold a pipe step's `result` to the same form, and restricts it only by the [reserved prefix](#reserved-names) `_bound_`: whether the plain-name rule extends to it is a separate question left open here, and a value a pipe step stores under a name that is not a plain name cannot be read by any input. |
+| `result` | string | Yes | Name under which the bound value is stored in working memory. It MUST take the form of a plain [input name](#input-names), as every [stored name](#stored-names) does, so it is never dotted. A binding step whose `result` breaks the form is rejected as `binding_step_invalid`. |
 
 **Validation rules:**
 
@@ -1102,7 +1103,8 @@ Each step is either a **pipe step**, which runs a pipe, or a **binding step**, w
 - A binding step MUST carry `result`, and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`, or the step is rejected as `binding_step_invalid`.
 - A binding step's `result` MUST take the form of a plain [input name](#input-names), or the step is rejected as `binding_step_invalid`.
 - A binding step's `from` MUST follow the [path grammar](#path-grammar), or the step is rejected as `binding_step_invalid`, and its path MUST be walkable through the declared structures, or the step is rejected as `binding_path_unresolved` (see [The Concept of the Result](#the-concept-of-the-result)).
-- A pipe step's `result`, `batch_as` and plain `batch_over` MUST NOT start with `_bound_`, or the step is rejected as `invalid_input_name` (see [Reserved Names](#reserved-names)).
+- A pipe step's `result` and `batch_as` MUST take the form of a plain [input name](#input-names), or the step is rejected as `invalid_input_name` (see [Stored Names](#stored-names)).
+- A pipe step's plain `batch_over` MUST NOT start with the reserved prefix `_bound_`, or the step is rejected as `invalid_input_name` (see [Stored Names](#stored-names)).
 
 **Example:**
 
@@ -1238,25 +1240,29 @@ Working memory matches a pipe's inputs by name, so this is how a sequence hands 
 
 #### Dotted `batch_over`
 
-A pipe step whose `batch_over` is a dotted path is a binding followed by a batch. `{ pipe = "describe_view", batch_over = "pages.page_view", batch_as = "page_view" }` behaves exactly as a binding step of `pages.page_view` under a private name starting with the [reserved prefix](#reserved-names) `_bound_`, which no other step can read, followed by the same pipe step with `batch_over` naming that private name. The path follows every rule of a binding step. Its root takes the concept and multiplicity of the latest value stored under its name before the step, in step order, and those the sequence's `inputs` declare only when no earlier step stored that name (see [The Concept of the Result](#the-concept-of-the-result)). Its concept is derived by the same walk, it maps and flattens across lists, so a dotted path over a list of catalogs iterates over the pages of all of them, and it lifts and records absences the same way.
+A pipe step whose `batch_over` is a dotted path is a binding followed by a batch. `{ pipe = "describe_view", batch_over = "pages.page_view", batch_as = "page_view" }` behaves exactly as a binding step of `pages.page_view` under a private name starting with the [reserved prefix](#stored-names) `_bound_`, which no other step can read, followed by the same pipe step with `batch_over` naming that private name. The path follows every rule of a binding step. Its root takes the concept and multiplicity of the latest value stored under its name before the step, in step order, and those the sequence's `inputs` declare only when no earlier step stored that name (see [The Concept of the Result](#the-concept-of-the-result)). Its concept is derived by the same walk, it maps and flattens across lists, so a dotted path over a list of catalogs iterates over the pages of all of them, and it lifts and records absences the same way.
 
 A dotted `batch_over` MUST bind a list: its walk MUST cross at least one list, whether the root is a list, a field along the path is one, or the path ends on a list field. A dotted `batch_over` whose walk derives a single value, such as `batch_over = "invoice.supplier_name"` over the invoice above, is rejected before any run, and an implementation reports it the way it reports a `batch_over` naming a value that is not a list. A dotted `batch_over` that breaks the [path grammar](#path-grammar), such as `a..b` or `pages[0].x`, is rejected as `binding_step_invalid`, as a binding step's `from` would be.
 
 A dotted `batch_over` binds, and only a sequence's steps can bind, so a [PipeParallel](#controller-pipeparallel) branch MUST NOT carry one: a branch whose `batch_over` is a dotted path is rejected as `binding_step_invalid`, which the schema catches, exactly as a binding step placed in a branch is. A plain `batch_over` on a branch is unaffected. A branch that needs to iterate over a list held in a field gets it from the calling sequence, which binds the field in a step before the PipeParallel step, so that the branch's plain `batch_over` names the bound list.
 
-#### Reserved Names
+#### Stored Names
 
-Names starting with `_bound_` are reserved for the private names under which an implementation binds a dotted `batch_over`. A pipe step's `result`, `batch_as` and plain `batch_over`, the same fields on a [PipeParallel](#controller-pipeparallel) branch, and a [PipeBatch](#controller-pipebatch)'s `input_item_name` MUST NOT start with `_bound_`. A step such as `{ pipe = "extract_pages", result = "_bound_pages" }` is rejected, which the schema catches, and a compliant implementation SHOULD report the refusal as `invalid_input_name`. The reservation keeps every name an author writes apart from the names an implementation binds, wherever in a run's working memory the two might meet. Input names and a binding step's `result` start with a letter, so they never take the prefix.
+A **stored name** is a name under which a step stores a value in working memory: a pipe step's `result`, the `result` of a [PipeParallel](#controller-pipeparallel) branch, the `batch_as` of a pipe step or a branch, under which each item of the batch is stored for the pipe that the step or branch runs, a [PipeBatch](#controller-pipebatch)'s `input_item_name`, under which each item is stored for its branch pipe, and a binding step's `result`.
+
+**Every stored name MUST take the form of a plain [input name](#input-names)**, matching `[a-z][a-z0-9_]*`. A step stores a value for a later step to read, and an input reads a stored value only under a plain name, so a stored name takes the form of an input name and every value a step stores can be read by an input. A name in any other form, such as `Pages` or `a.b`, would store a value that no input can read. A step such as `{ pipe = "extract_pages", result = "Pages" }` is rejected, which the schema catches, and a compliant implementation SHOULD report the refusal as `invalid_input_name`, the error it reports for an input name that breaks the same form. A binding step's `result` is a stored name held to this rule like the others, and a binding step that breaks it is rejected as `binding_step_invalid` instead, since that error reports every fault of a binding step's own shape.
+
+**Names starting with `_bound_` are reserved** for the private names under which an implementation binds a dotted `batch_over`. A plain input name starts with a letter, so no stored name can take the prefix: a step such as `{ pipe = "extract_pages", result = "_bound_pages" }` breaks the form above and is refused for it. A plain `batch_over` reads a name in working memory rather than storing one, and it MUST NOT start with `_bound_` either, so that no step reads a value an implementation bound under a private name: a step such as `{ pipe = "describe_page", batch_over = "_bound_pages", batch_as = "page" }` is rejected, which the schema catches, and a compliant implementation SHOULD report the refusal as `invalid_input_name`. The reservation keeps every name an author writes apart from the names an implementation binds, wherever in a run's working memory the two might meet.
 
 #### Validation Surface
 
-A compliant implementation SHOULD report a binding step's own faults, and a name taking the reserved prefix, under these names:
+A compliant implementation SHOULD report a binding step's own faults, and a stored name or a plain `batch_over` that breaks the rules of [Stored Names](#stored-names), under these names:
 
 | Error | Fault | Caught by |
 |-------|-------|-----------|
 | `binding_step_invalid` | A step carrying both `pipe` and `from`; a binding step lacking `result` or carrying `nb_output`, `multiple_output`, `batch_over` or `batch_as`; a binding step whose `result` is not a plain [input name](#input-names); a `from` that breaks the [path grammar](#path-grammar); a dotted `batch_over` that breaks the path grammar; a binding step in a PipeParallel's `branches`; a dotted `batch_over` in a PipeParallel's `branches`. | The schema. |
 | `binding_path_unresolved` | A path the declared structures cannot walk, under the refusals listed in [The Concept of the Result](#the-concept-of-the-result). | Validation of the bundle, which reads the concepts' structures, before any run. |
-| `invalid_input_name` | A pipe step's or a PipeParallel branch's `result`, `batch_as` or plain `batch_over`, or a PipeBatch's `input_item_name`, starting with the reserved prefix `_bound_` (see [Reserved Names](#reserved-names)). | The schema. |
+| `invalid_input_name` | A pipe step's or a PipeParallel branch's `result` or `batch_as`, or a PipeBatch's `input_item_name`, that does not take the form of a plain [input name](#input-names), such as `Pages`, `a.b` or `_bound_pages`; a pipe step's or a branch's plain `batch_over` starting with the reserved prefix `_bound_` (see [Stored Names](#stored-names)). | The schema. |
 
 A binding step can also cause faults that are not its own, and an implementation reports each of them the way it reports the same fault caused by a pipe step: a root that is neither an input of the sequence nor stored by an earlier step, whose diagnostic asks for the concept whose structure holds the path; a step that reads the result through an input declaring a concept or multiplicity incompatible with the ones the binding derives; a binding step ending the sequence whose derived concept or multiplicity does not match the sequence's declared `output`; and a dotted `batch_over` whose walk derives a single value, which is reported as a `batch_over` naming a value that is not a list. A maybe-absent result escaping a sequence whose output is not `?` is `optional_not_handled`, as [Optionality](../language/optionality.md#validation-surface) defines it.
 
@@ -1282,6 +1288,7 @@ Executes multiple sub-pipes concurrently. Each branch operates independently, th
 - `add_each_output` controls only whether branch results are also exposed individually in working memory. It does not control the main output.
 - Each branch is a pipe step, in the format of a [PipeSequence](#controller-pipesequence) pipe step. A branch MUST NOT be a binding step: a branch carrying `from` is rejected as `binding_step_invalid`, and a value the branches need is bound by a sequence step before the parallel.
 - A branch MUST NOT carry a dotted `batch_over`, which is a binding followed by a batch (see [Dotted `batch_over`](#dotted-batch_over)): such a branch is rejected as `binding_step_invalid`, while a plain `batch_over` on a branch is unaffected.
+- A branch's `result` and `batch_as` MUST take the form of a plain [input name](#input-names), and its plain `batch_over` MUST NOT start with the reserved prefix `_bound_`, or the branch is rejected as `invalid_input_name`, as a sequence's pipe step is (see [Stored Names](#stored-names)).
 
 **Example:**
 
@@ -1352,7 +1359,7 @@ Maps a single pipe over each item in a list input, producing a list output.
 | `output` | string | Yes | — |
 | `branch_pipe_code` | string | Yes | The pipe reference to invoke for each item. |
 | `input_list_name` | string | Yes | The name of the input that contains the list to iterate over: a plain [input name](#input-names). |
-| `input_item_name` | string | Yes | The name under which each individual item is passed to the branch pipe. It MUST NOT start with the [reserved prefix](#reserved-names) `_bound_`. |
+| `input_item_name` | string | Yes | The name under which each individual item is passed to the branch pipe. It MUST take the form of a plain [input name](#input-names), as every [stored name](#stored-names) does. |
 
 **Validation rules:**
 
@@ -1361,7 +1368,7 @@ Maps a single pipe over each item in a list input, producing a list output.
 - `input_item_name` MUST NOT be empty.
 - `input_item_name` MUST NOT equal `input_list_name`.
 - `input_item_name` MUST NOT equal any key in `inputs`.
-- `input_item_name` MUST NOT start with `_bound_`, or the pipe is rejected as `invalid_input_name` (see [Reserved Names](#reserved-names)).
+- `input_item_name` MUST take the form of a plain [input name](#input-names), or the pipe is rejected as `invalid_input_name` (see [Stored Names](#stored-names)).
 
 **Example:**
 

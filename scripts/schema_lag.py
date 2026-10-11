@@ -38,7 +38,10 @@ What is checked:
 
 The verdict on each pipe and concept is always the whole schema's. The reason printed beside
 a rejection comes from the blueprint its kind names, when the schema has one, because that
-reason is more precise than the one the whole schema gives.
+reason is more precise than the one the whole schema gives. Where a field accepts one of
+several shapes (`anyOf` or `oneOf`), the reasons come from the shape meant for a value of its
+kind, one for each place the value fails that shape, so that a list rejected item by item is
+reported item by item.
 
 Run with `make schema-lag`.
 """
@@ -52,7 +55,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, NamedTuple, cast
 
-from jsonschema.exceptions import SchemaError, ValidationError, best_match
+from jsonschema.exceptions import SchemaError, ValidationError, relevance
 from jsonschema.protocols import Validator
 from jsonschema.validators import validator_for
 
@@ -241,20 +244,31 @@ def describe_entity(*, section: str, code: str, body: Any) -> str:
 
 def explain_all(errors: Sequence[ValidationError], *, skip: int) -> list[str]:
     reasons: list[str] = []
-    for error in sorted(errors, key=lambda each: [str(part) for part in each.absolute_path]):
-        reason = explain(error, skip=skip)
-        if reason not in reasons:
-            reasons.append(reason)
+    for error in sorted(errors, key=path_order):
+        for reason in explain(error, skip=skip):
+            if reason not in reasons:
+                reasons.append(reason)
     return reasons
 
 
-def explain(error: ValidationError, *, skip: int) -> str:
-    """One readable sentence for a validation error, prefixed with where it sits."""
+def path_order(error: ValidationError) -> list[tuple[int, str]]:
+    """A sort key placing errors in the order of the values they sit at, `[2]` before `[10]`."""
+    return [
+        (part, "") if isinstance(part, int) else (-1, str(part)) for part in error.absolute_path
+    ]
+
+
+def explain(error: ValidationError, *, skip: int) -> list[str]:
+    """Readable sentences for a validation error, each prefixed with where it sits.
+
+    An `anyOf` or `oneOf` is explained by every failure of the branch meant for the value, so
+    a branch failing in several places gives one sentence per place.
+    """
     if error.validator in ("anyOf", "oneOf") and not is_choice_of_required(error) and error.context:
-        return explain(branch_error(error), skip=skip)
+        return explain_all(branch_errors(error), skip=skip)
     where = render_path(list(error.absolute_path)[skip:])
     what = describe_error(error)
-    return f"`{where}` {what}" if where else what
+    return [f"`{where}` {what}" if where else what]
 
 
 # jsonschema types an error's instance, rule and schema loosely; these read them as plain values.
@@ -274,23 +288,34 @@ def as_list(value: object) -> list[Any] | None:
     return cast(list[Any], value) if isinstance(value, list) else None
 
 
-def branch_error(error: ValidationError) -> ValidationError:
-    """The error to explain an `anyOf` or `oneOf` by, from a branch meant for a value of its kind.
+def branch_errors(error: ValidationError) -> list[ValidationError]:
+    """The errors to explain an `anyOf` or `oneOf` by: every one of the branch meant for the value.
 
-    A pydantic field is typically `anyOf` its real shape and `null`, and `best_match` alone prefers
-    the shallower error, which is the `null` branch's complaint that the value is not empty. The
-    branches whose declared type the value does not even have are set aside first.
+    A pydantic field is typically `anyOf` its real shape and `null`, and jsonschema's ranking alone
+    prefers the shallower error, which is the `null` branch's complaint that the value is not empty.
+    The branches whose declared type the value does not even have are set aside first, and the
+    ranking picks the branch among the rest. That branch's errors are all kept, since a value can
+    fail it in several independent places, such as each item of an array.
     """
     branches = as_list(rule_of(error)) or []
     plausible: list[ValidationError] = []
     for child in error.context:
-        index = child.relative_schema_path[0] if child.relative_schema_path else None
-        branch: object = (
-            branches[index] if isinstance(index, int) and index < len(branches) else None
-        )
+        branch: object = branch_rule(child=child, branches=branches)
         if has_declared_type(instance_of(error), branch):
             plausible.append(child)
-    return cast(ValidationError, best_match(plausible or error.context))
+    chosen = branch_index(max(plausible or error.context, key=relevance))
+    return [child for child in error.context if branch_index(child) == chosen]
+
+
+def branch_index(child: ValidationError) -> object:
+    """Which branch of its `anyOf` or `oneOf` an error comes from, the first step of its schema path."""
+    return child.relative_schema_path[0] if child.relative_schema_path else None
+
+
+def branch_rule(*, child: ValidationError, branches: list[Any]) -> object:
+    """The schema of the branch an error comes from, or None when its path names no branch."""
+    index = branch_index(child)
+    return branches[index] if isinstance(index, int) and index < len(branches) else None
 
 
 def has_declared_type(instance: object, branch: object) -> bool:
