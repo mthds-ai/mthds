@@ -13,6 +13,14 @@ mthds.ai still answers for an older standard — taken at release time, written 
 reviewed like any other change. An empty pin list is a correct state, and a pin naming a
 version that is no longer published is reported rather than quietly ignored.
 
+`[tool.mthds.docs] floor` takes away from all of that: it names the oldest version the
+site serves, and every published version below it is retired, the release before the one
+being deployed included. It exists for a version that must not be served at all, such as
+one built before the site asked for consent to analytics. A pin below the floor contradicts
+it and stops the deploy. The version being deployed is the one exception, kept with a note,
+because the floor reaches the development branch before the release that lifts the version
+past it, and the retention has to keep answering there in the meantime.
+
 A pin is satisfied by anything the site can still serve — a version the index names, or a
 directory that outlived the index, which is the only way left to hold on to one. A pin that
 answers to nothing stops the deploy rather than warning, because it is a typo about to
@@ -72,8 +80,8 @@ def dig(value: object, *keys: str) -> object:
     return value
 
 
-def read_pins(pyproject: Path) -> list[str]:
-    """Read `[tool.mthds.docs] retain` from pyproject.toml."""
+def read_policy(pyproject: Path) -> tuple[list[str], str | None]:
+    """Read `[tool.mthds.docs] retain` and `floor` from pyproject.toml."""
     try:
         text = pyproject.read_text(encoding="utf-8")
     except OSError as exc:
@@ -82,7 +90,7 @@ def read_pins(pyproject: Path) -> list[str]:
     try:
         import tomllib
     except ModuleNotFoundError:
-        return _pins_without_tomllib(text, pyproject)
+        return _policy_without_tomllib(text, pyproject)
 
     try:
         data = tomllib.loads(text)
@@ -90,34 +98,49 @@ def read_pins(pyproject: Path) -> list[str]:
         die(f"cannot parse {pyproject}: {exc}")
     pins = dig(data, "tool", "mthds", "docs", "retain")
     if pins is None:
-        return []
+        pins = []
     if not isinstance(pins, list) or not all(isinstance(pin, str) for pin in cast("list[object]", pins)):
         die(f"`[tool.mthds.docs] retain` in {pyproject} must be a list of version strings")
-    return cast("list[str]", pins)
+    floor = dig(data, "tool", "mthds", "docs", "floor")
+    if floor is not None and not isinstance(floor, str):
+        die(f"`[tool.mthds.docs] floor` in {pyproject} must be a version string")
+    return cast("list[str]", pins), floor
 
 
-def _pins_without_tomllib(text: str, source: Path) -> list[str]:
-    """Read the pin list on a Python too old for tomllib, which arrived in 3.11.
+def _policy_without_tomllib(text: str, source: Path) -> tuple[list[str], str | None]:
+    """Read the pin list and the floor on a Python too old for tomllib, which arrived in 3.11.
 
-    Deliberately narrow: it understands the one table and the one array this project
-    writes and refuses anything else rather than guess. Refusing is safe, because the
-    caller treats a failure here as a reason not to prune at all, while guessing wrong
-    would silently delete a version somebody decided to keep.
+    Deliberately narrow: it understands the one table, the one array and the one string
+    this project writes and refuses anything else rather than guess. Refusing is safe,
+    because the caller treats a failure here as a reason not to prune at all, while
+    guessing wrong would silently delete a version somebody decided to keep.
     """
     table = re.search(r"^\[tool\.mthds\.docs\]\s*$(.*?)(?=^\[|\Z)", text, re.M | re.S)
     if not table:
-        return []
-    array = re.search(r"^\s*retain\s*=\s*\[(.*?)\]", table.group(1), re.M | re.S)
-    if not array:
-        return []
-    items = re.sub(r"#[^\n]*", "", array.group(1))
-    if re.sub(r'"[^"]*"', "", items).strip(" ,\n\t\r"):
+        return [], None
+
+    def unreadable(key: str, shape: str) -> NoReturn:
         die(
-            f"cannot read `retain` in {source} on Python {sys.version_info.major}."
-            f"{sys.version_info.minor}; write it as a list of double-quoted version "
-            f"strings, or run this on Python 3.11 or newer"
+            f"cannot read `{key}` in {source} on Python {sys.version_info.major}."
+            f"{sys.version_info.minor}; write it as {shape}, or run this on Python 3.11 or newer"
         )
-    return re.findall(r'"([^"]*)"', items)
+
+    pins: list[str] = []
+    array = re.search(r"^\s*retain\s*=\s*\[(.*?)\]", table.group(1), re.M | re.S)
+    if array:
+        items = re.sub(r"#[^\n]*", "", array.group(1))
+        if re.sub(r'"[^"]*"', "", items).strip(" ,\n\t\r"):
+            unreadable("retain", "a list of double-quoted version strings")
+        pins = re.findall(r'"([^"]*)"', items)
+
+    floor: str | None = None
+    line = re.search(r"^\s*floor\s*=(.*)$", table.group(1), re.M)
+    if line:
+        value = re.fullmatch(r'\s*"([^"]*)"\s*(?:#.*)?', line.group(1))
+        if not value:
+            unreadable("floor", "a double-quoted version string")
+        floor = value.group(1)
+    return pins, floor
 
 
 def read_published() -> list[str]:
@@ -144,9 +167,23 @@ def plan(
     published: list[str],
     pins: list[str],
     directories: list[str],
-) -> tuple[dict[str, str], list[str], list[str], list[str]]:
-    """Return what is kept and why, what is retired, what is swept, and the notes."""
+    floor: str | None = None,
+) -> tuple[dict[str, str], dict[str, str], list[str], list[str]]:
+    """Return what is kept and why, what is retired and why, what is swept, and the notes."""
     notes: list[str] = []
+
+    def below_floor(version: str) -> bool:
+        return floor is not None and rank(version) < rank(floor)
+
+    # A pin exists to protect a version from an irreversible retirement, and the floor
+    # exists to retire it. One of the two is a mistake, and guessing which would either
+    # serve a version that must not be served or retire one somebody decided to keep.
+    contradicted = sorted((pin for pin in pins if order(pin) and below_floor(pin)), key=rank, reverse=True)
+    if contradicted:
+        die(
+            f"{', '.join(contradicted)} is pinned in pyproject.toml but is below the floor "
+            f"{floor} — refusing to prune on a policy that both keeps and retires it"
+        )
 
     # Only version-shaped directories are ever candidates for the sweep. Every directory on
     # the branch is mike's, so in principle anything the index does not name is stale — but
@@ -176,10 +213,15 @@ def plan(
         )
 
     keep: dict[str, str] = {deploying: "the version being deployed"}
+    if below_floor(deploying):
+        notes.append(
+            f"{deploying} is below the floor {floor} and is kept because it is the version being "
+            "deployed; the release that lifts the version to the floor retires it."
+        )
 
     # Newest first by semver, so 0.10.0 outranks 0.9.0 the way a string sort would not.
     older = sorted((v for v in published if v != deploying and order(v)), key=rank, reverse=True)
-    if older:
+    if older and not below_floor(older[0]):
         keep.setdefault(older[0], "the release published before it")
 
     # A pin is satisfied by anything the site can still serve: a version the index names, or
@@ -212,7 +254,10 @@ def plan(
             keep.setdefault(version, "kept because its name is not a version number")
             notes.append(f"{version} is published under a name that is not a version number, and is kept.")
 
-    retired = sorted((v for v in published if v not in keep), key=rank, reverse=True)
+    retired = {
+        version: f"below the floor {floor}" if below_floor(version) else "superseded"
+        for version in sorted((v for v in published if v not in keep), key=rank, reverse=True)
+    }
     orphans = sorted((d for d in version_dirs if d not in keep and d not in published), key=rank, reverse=True)
     return keep, retired, orphans, notes
 
@@ -235,11 +280,16 @@ def main() -> None:
     if order(args.deploying) is None:
         die(f"refusing to prune — '{args.deploying}' is not a version number")
 
+    pins, floor = read_policy(args.pyproject)
+    if floor is not None and order(floor) is None:
+        die(f"refusing to prune — the floor '{floor}' in {args.pyproject} is not a version number")
+
     keep, retired, orphans, notes = plan(
         args.deploying,
         read_published(),
-        read_pins(args.pyproject),
+        pins,
         args.directories.split(),
+        floor,
     )
 
     if not args.explain:
@@ -255,7 +305,9 @@ def main() -> None:
     print()
     if retired:
         print("Retired by the next deploy:")
-        print(f"  {' '.join(retired)}\n")
+        for version, reason in retired.items():
+            print(f"  {version:<10} {reason}")
+        print()
     else:
         print("Retired by the next deploy:\n  nothing — every published version is retained.\n")
     if orphans:
@@ -265,7 +317,7 @@ def main() -> None:
     if retired or orphans:
         print("Retiring is not reversible from the site: republishing one of those means")
         print("checking its tag out, assembling the site and deploying it by hand. A version")
-        print("to keep goes in `[tool.mthds.docs] retain` in pyproject.toml.\n")
+        print("to keep goes in `[tool.mthds.docs] retain` in pyproject.toml, at or above its floor.\n")
     for note in notes:
         print(f"note: {note}")
     if notes:

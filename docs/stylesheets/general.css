@@ -219,3 +219,18 @@ body,
 .md-footer {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
+/* ───── Cookie consent banner ───── */
+/* Material colours its buttons with --md-primary-fg-color, which this palette uses as the
+   header's near-white background, so the outlined "Manage settings" would vanish on the
+   banner. Accept and Reject stay filled alike, so that refusing is as easy as accepting. */
+.md-consent .md-button {
+  color: var(--md-typeset-color);
+  border-color: currentcolor;
+}
+
+.md-consent .md-button--primary {
+  background-color: var(--md-primary-bg-color);
+  border-color: var(--md-primary-bg-color);
+  color: var(--md-primary-fg-color);
+}

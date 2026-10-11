@@ -27,12 +27,20 @@ Homepage = "https://mthds.ai/latest/"
 Repository = "https://github.com/mthds-ai/mthds"
 
 [tool.mthds.docs]
-# Versions mthds.ai keeps beyond the release being deployed and the one before it, which
-# are retained automatically. Each entry here is an editorial decision that the site still
-# answers for that standard. Dropping one retires it at the next deploy, and retiring is
-# not reversible from the site — republishing means checking that tag out and deploying by
-# hand. `make docs-retention` prints what the next deploy would keep and retire.
-retain = ["0.10.0"]  # the last 0.x standard
+# What mthds.ai serves, read by scripts/docs_retention.py; `make docs-retention` prints
+# what the next deploy would keep and retire. Retiring is not reversible from the site —
+# republishing means checking that tag out and deploying by hand.
+#
+# `floor` is the oldest version the site serves: every published version below it is
+# retired, the release before the one being deployed included. 6.0.0 is the first version
+# built with the cookie consent banner; every version before it starts PostHog without
+# consent, so none of them is served.
+#
+# `retain` names versions kept beyond the release being deployed and the one before it,
+# which are retained automatically. Each entry is an editorial decision that the site
+# still answers for that standard, and an entry below `floor` stops the deploy.
+floor = "6.0.0"
+retain = []
 
 [tool.uv]
 required-version = ">=0.7.2"
