@@ -570,7 +570,13 @@ components:
       additionalProperties: true
       properties:
         sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
-        size: { type: integer, minimum: 0 }
+        size:
+          type: integer
+          minimum: 0
+          description: >
+            The length of the bytes, a JSON integer written without a fraction or an
+            exponent. A size written 13.0 is refused, although JSON Schema's integer
+            type admits it.
         upload: { $ref: '#/components/schemas/UploadTarget' }
     UploadTarget:
       type: object

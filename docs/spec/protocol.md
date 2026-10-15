@@ -129,7 +129,7 @@ The request lists blobs by hash and size, each `size` a JSON integer written wit
 }
 ```
 
-The `200` answer lists every blob of the request the runner does not hold, each with where to upload it:
+The `200` answer lists every blob of the request the runner does not hold, each with its `size`, a JSON integer written in the same way, and where to upload it:
 
 ```json
 {

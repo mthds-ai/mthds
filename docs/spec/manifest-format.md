@@ -320,7 +320,7 @@ When loading a `.mthds` bundle, a compliant implementation SHOULD discover the m
 
 1. Check the current directory for `METHODS.toml`.
 2. If not found, move to the parent directory.
-3. Stop when `METHODS.toml` is found, a `.git` entry is encountered (a directory, or the file a submodule or a worktree holds), or the filesystem root is reached.
+3. Stop when `METHODS.toml` is found, an entry named `.git` of any kind is encountered (a directory, a file such as the one a submodule or a worktree holds, or a symbolic link, never followed), which is the entry that marks a nested repository under [the membership rule](./method-tree.md#the-membership-rule), or the filesystem root is reached.
 4. If no manifest is found, the bundle is treated as a standalone bundle (no package).
 
 The directory where discovery finds `METHODS.toml` is the root of the method's tree. When discovery finds none, the root is the directory handed over, or, for a `.mthds` file named alone, the tree is that one file (see [Method Tree: The Root](./method-tree.md#the-root)).

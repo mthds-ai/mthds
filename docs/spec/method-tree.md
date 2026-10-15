@@ -128,14 +128,14 @@ A file reference is resolved against the directory of the file that holds it, as
 3. **Decode it.** In URL context, the path is split into segments at each `/` before each segment is percent-decoded, so decoding never creates a separator. A segment whose decoding yields a `/`, a `\`, a control character, or bytes that are not UTF-8 makes the reference malformed. A reference in path context is never percent-decoded.
 4. **Normalize it to NFC**, so a reference an editor wrote in decomposed form names the same file as one written composed.
 5. **Resolve it.** Take the directory of the holding file's tree path, which is the root for a file at the root, join the path to it with `/`, and normalize the result lexically: drop each `.` segment, and let each `..` segment remove the segment before it. A `..` that would climb above the root is refused as leaving the tree.
-6. **Check the result.** A result that is not a tree path, such as one holding an empty segment, as a reference ending in `/` does, is refused as not a tree path.
+6. **Check the result.** A result that is not a tree path, such as one holding an empty segment, as a reference ending in `/` does, is refused as not a tree path. The check reads the resolved path, so `a//b` is refused, while `a//../b` resolves to `a/b`, its `..` having removed the empty segment before it.
 7. **Look it up.** The result MUST name a file of the tree. A result at which the tree holds no file is refused as not in the tree, and so is one naming a directory of the tree, as `images/.` resolves to `images`, or the root itself, as `a/..` does.
 
 In the example, `../shared/logo.png` held by `templates/letter.html` resolves to `shared/logo.png`.
 
 **Resolving a reference is a lookup in the tree's set of paths, never a file system access.** A reference can only name a file the tree holds, which is what makes `..` harmless, and no implementation opens a path that a method's author, or a caller, wrote.
 
-A reference refused as not in the tree names the reference and the path it resolved to, written `.` when that is the root. An implementation that listed the tree from a directory also names the rule that excluded the file, when one did, and for a file inside a nested repository or a nested package it names that directory, so an author who meant to ship the file learns why it is not in the tree. In the one-file tree of a `.mthds` file named alone, the refusal says to run the method's directory or to add a `METHODS.toml`.
+A reference refused as not in the tree names the reference and the path it resolved to, written `.` when that is the root. An implementation that listed the tree from a directory also names the rule that excluded the file, when one did, and for a file inside a nested repository or a nested package it names that directory, so an author who meant to ship the file learns why it is not in the tree. In the one-file tree of a `.mthds` file named alone, the refusal says to run the method's directory or to add a `METHODS.toml`. That advice belongs to this refusal alone: a reference from a one-file tree that fails an earlier step is refused by that step, as malformed, as not a tree path or as leaving the tree, like any other.
 
 ## The Tree Digest
 

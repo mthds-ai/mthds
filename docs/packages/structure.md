@@ -107,7 +107,7 @@ When loading a `.mthds` bundle, a compliant runtime discovers the manifest by wa
 
 1. Check the bundle's directory for `METHODS.toml`.
 2. If not found, move to the parent directory.
-3. Stop when `METHODS.toml` is found, a `.git` entry is encountered, or the filesystem root is reached.
+3. Stop when `METHODS.toml` is found, an entry named `.git` of any kind is encountered (a directory, a file or a symbolic link), or the filesystem root is reached.
 4. If no manifest is found, the bundle is treated as a standalone bundle.
 
 The folder where the manifest is found is the root of the method's files, so handing over a bundle or a subfolder of a package hands over the whole package.
