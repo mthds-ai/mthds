@@ -200,9 +200,9 @@ For example: `github.com/acme/legal-tools` → `https://github.com/acme/legal-to
 
 The resolution chain for fetching a dependency is:
 
-1. **Local path** — if the dependency has a `path` field in `METHODS.toml`, resolve from the local filesystem.
+1. **Local path** — if the dependency has a `path` field in `METHODS.toml`, resolve from the local filesystem: the dependency's tree is the method tree rooted at that directory.
 2. **Local cache** — check `~/.mthds/packages/{address}/{version}/` for a cached copy.
-3. **VCS fetch** — clone the repository at the resolved version tag using `git clone --depth 1 --branch {tag}`.
+3. **VCS fetch** — clone the repository at the resolved version tag without a checkout, using `git clone --depth 1 --branch {tag} --no-checkout`, locate the package in the commit, and read its tree from the commit's git objects as stored, filtered by the membership rule with that commit's own `.gitignore` files (see [Method Tree: Dependencies Are Trees of Their Own](./method-tree.md#dependencies-are-trees-of-their-own)). No checkout filter, line-ending conversion or `export-ignore` attribute applies, so the tree, and its digest, are the same on every machine.
 
 Version tags in the remote repository MAY use a `v` prefix (e.g., `v1.0.0`). The prefix is stripped during version parsing.
 
@@ -220,7 +220,7 @@ For example:
 ~/.mthds/packages/github.com/acme/legal-tools/1.0.0/
 ```
 
-The `.git` directory is removed from cached copies.
+A cached copy holds the package's tree and nothing else, its files written from the commit's objects at their tree paths, so it holds no `.git` directory.
 
 ## Cross-Package Reference Examples
 
@@ -340,7 +340,7 @@ This section consolidates the validation rules scattered throughout this specifi
 
 1. **PipeLLM**: All prompt variables MUST have matching inputs. All inputs MUST be used.
 2. **PipeStructure**: Exactly one input MUST be declared. The input concept MUST be `Text` or refine `Text`. `output` MUST NOT be `Text` or refine `Text`.
-3. **PipeFunc**: `function_name` MUST be present.
+3. **PipeFunc**: `function_name` MUST be present and MUST be an import path holding at least one dot, whose module path names a module of the [method tree](./method-tree.md) (see [PipeFunc](./mthds-format.md#operator-pipefunc)).
 4. **PipeImgGen**: `prompt` MUST be present. All prompt and negative_prompt variables MUST have matching inputs. All inputs MUST be used.
 5. **PipeExtract**: Exactly one input MUST be declared. `output` MUST be `"Page[]"`.
 6. **PipeSearch**: `prompt` MUST be present. All prompt variables MUST have matching inputs. All inputs MUST be used. `output` MUST be `SearchResult` or refine `SearchResult`.
@@ -364,6 +364,7 @@ This section consolidates the validation rules scattered throughout this specifi
 9. All dependency version constraints MUST be valid.
 10. Domain paths in `[exports]` MUST be valid domain codes and MUST NOT use reserved domains.
 11. All pipe codes in `[exports]` MUST be valid `snake_case`.
+12. `exclude`, if present, MUST be an array of strings, none holding a line break.
 
 ### Package-Level Validation
 
@@ -376,7 +377,7 @@ This section consolidates the validation rules scattered throughout this specifi
 ### Lock File Validation
 
 1. Each entry's `version` MUST be valid semver.
-2. Each entry's `hash` MUST match `sha256:[0-9a-f]{64}`.
+2. Each entry's `digest` MUST match `sha256:[0-9a-f]{64}`. An entry carrying a `hash` field predates tree digests and MUST be refused with a message saying that `lock` regenerates the file (see [Locks Written Before Tree Digests](./lock-format.md#locks-written-before-tree-digests)).
 3. Each entry's `fingerprint` MUST be a 64-character lowercase hex digest.
 4. Each entry's `source` MUST start with `https://` and end with `.git`.
 5. Each entry's `commit` MUST be a 40-character lowercase hex digest.

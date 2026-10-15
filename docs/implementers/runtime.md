@@ -58,7 +58,7 @@ function find_manifest(bundle_path):
     while true:
         if "METHODS.toml" exists in current:
             return parse_manifest(current / "METHODS.toml")
-        if ".git" directory exists in current:
+        if ".git" entry exists in current:  // a directory, or a submodule's or worktree's file
             return null  // stop at repository boundary
         parent = parent_directory(current)
         if parent == current:
@@ -68,12 +68,14 @@ function find_manifest(bundle_path):
 
 If no manifest is found, the bundle is treated as a standalone bundle: all pipes are public, no dependencies are available beyond native concepts, and the bundle is not distributable.
 
+The directory where the manifest is found is the root of the method's [tree](../spec/method-tree.md). With no manifest, the root is the directory the caller handed over, or, for a bundle named alone, the tree is that one file, and a file reference from it to any other file is refused, saying to run the method's directory or to add a `METHODS.toml`.
+
 ## Loading a Package
 
 Loading a package involves these steps in order:
 
 1. **Parse the manifest** — read `METHODS.toml` and validate all fields (address, version, dependencies, exports). Reject immediately on any parse or validation error.
-2. **Discover bundles** — recursively find all `.mthds` files under the package root.
+2. **List the method tree** — apply the [membership rule](../spec/method-tree.md#the-membership-rule) under the root, refusing a symbolic link and a malformed path, and take every `.mthds` file of the tree as the package's bundles. Every other file of the tree is a method file a step may name by [file reference](../spec/method-tree.md#file-references) or, for a `PipeFunc`, by import path; resolve each by looking it up in the tree's set of paths, never by opening a path.
 3. **Parse all bundles** — parse each `.mthds` file into a bundle blueprint. Collect parse errors.
 4. **Resolve dependencies** — for each dependency in the manifest:
     - If it has a `path` field, resolve from the local filesystem (non-transitive).
@@ -171,7 +173,7 @@ A compliant runtime must support the plain string form of `template`. The table 
 
 ## Exposing a Runner over HTTP
 
-A runtime becomes a network-accessible **runner** by implementing the [MTHDS Protocol](../spec/protocol.md) — the minimal HTTP contract of five routes: `POST /execute`, `POST /start`, `POST /validate`, `GET /models`, `GET /version`. The normative artifact is the protocol's [OpenAPI document](../spec/openapi/mthds-protocol.openapi.yaml).
+A runtime becomes a network-accessible **runner** by implementing the [MTHDS Protocol](../spec/protocol.md) — the minimal HTTP contract of five required routes: `POST /execute`, `POST /start`, `POST /validate`, `GET /models`, `GET /version`, plus the optional `POST /blobs/missing` and `PUT /blobs/{sha256}` for a runner that keeps a blob store. A method reaches a runner as its whole [method tree](../spec/method-tree.md), a `files` map of file entries, so the runner reads a method only from the files it is sent. The normative artifact is the protocol's [OpenAPI document](../spec/openapi/mthds-protocol.openapi.yaml).
 
 The protocol deliberately excludes everything that is not "run a method": no run store, no completion channel for async runs (webhooks or polling are implementation extensions), no users, no billing, no catalog. Implementations may extend the surface with extra routes or optional request properties, but must not change the protocol routes' shapes — see the [extension policy](../spec/protocol.md#extension-policy).
 

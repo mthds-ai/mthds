@@ -38,7 +38,7 @@ The vision — a federated, typed, searchable network of AI methods that agents 
 
 ## Signed Manifests and a Trust Store
 
-The specified integrity chain is content-derived: the lock's byte hash and crate fingerprint are recomputable by anyone from source (see [The Lock File](lock-file.md)). Signed manifests would add **provenance** on top — *who published this* — for ecosystems that need it:
+The specified integrity chain is content-derived: the lock's tree digest and crate fingerprint are recomputable by anyone from source (see [The Lock File](lock-file.md)). Signed manifests would add **provenance** on top — *who published this* — for ecosystems that need it:
 
 - A detached signature object binding the SHA-256 of the raw `METHODS.toml` bytes to an Ed25519 signature, with the signer identity, a timestamp, and a `public_key_id` for key rotation.
 - Verification: recompute the manifest digest, reconstruct the canonical signing payload (sorted-key JSON, no whitespace), verify the signature against the identified public key.
