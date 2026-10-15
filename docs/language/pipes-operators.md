@@ -326,7 +326,15 @@ model       = "@default-premium"
 
 ## PipeFunc
 
-Calls a registered Python function.
+Calls a Python function that lives in the method's own folder.
+
+```
+text_tools/
+├── METHODS.toml
+├── text.mthds
+└── funcs/
+    └── text_utils.py     (defines capitalize)
+```
 
 ```toml
 [pipe.capitalize_text]
@@ -334,18 +342,18 @@ type          = "PipeFunc"
 description   = "Capitalize the input text"
 inputs        = { text = "Text" }
 output        = "Text"
-function_name = "my_package.text_utils.capitalize"
+function_name = "funcs.text_utils.capitalize"
 ```
 
-**What this does:** Passes the `Text` input to the Python function `my_package.text_utils.capitalize` and returns the result as `Text`.
+**What this does:** Passes the `Text` input to the function `capitalize` of the module `funcs/text_utils.py` and returns the result as `Text`.
 
 **Key fields:**
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `function_name` | Yes | The fully-qualified name of the Python function to call. |
+| `function_name` | Yes | The import path of the Python function to call, from the root of the method's folder: the module path, a dot, and the function's name. |
 
-PipeFunc bridges MTHDS with custom code. The function must be registered in the runtime.
+PipeFunc bridges MTHDS with custom code, and that code is ordinary Python kept beside the bundle. `function_name` is read the way Python reads an import: the method's root folder is the import root, so `funcs.text_utils.capitalize` names the function `capitalize` of `funcs/text_utils.py`, and that module can import its own helpers from the same folder. A name with no dot names no module and is rejected. The name is read in NFC, so an accented name finds its module however an editor encoded the accent, and a segment that Python would read as another name, such as one holding the ligature `ﬁ` or a fullwidth letter, is rejected (see [PipeFunc](../spec/mthds-format.md#operator-pipefunc)). The Python travels with the method as part of its [method tree](../spec/method-tree.md), and the third-party packages it imports are declared in a [`requirements.txt`](../spec/method-tree.md#python-dependencies-requirementstxt) at the root. What the function must look like, and how it is called, is the runtime's to define.
 
 ## PipeImgGen
 

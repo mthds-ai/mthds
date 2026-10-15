@@ -101,3 +101,5 @@ A `.mthds` file works on its own, without a package manifest. When used standalo
 - The bundle is not distributable (no package address).
 
 This makes `.mthds` files ideal for learning, prototyping, and simple projects. When you need distribution, add a `METHODS.toml` manifest — see [The Package System](../packages/structure.md).
+
+A bundle named on its own is a method of one file: the files beside it do not travel with it, so a step that names a template or a Python module next to it is refused until you run the bundle's folder instead, or add a `METHODS.toml` to make that folder a method's root. See [Method Tree: The Root](../spec/method-tree.md#the-root).

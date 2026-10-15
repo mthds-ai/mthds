@@ -33,6 +33,7 @@ A `METHODS.toml` file contains up to three top-level sections:
 | `license` | string | No | SPDX license identifier (e.g., `"MIT"`, `"Apache-2.0"`). |
 | `mthds_version` | string | No | MTHDS standard version constraint. If set, MUST be a valid version constraint. |
 | `main_pipe` | string | No | The package's entry-point pipe code. MUST be `snake_case` (matching `[a-z][a-z0-9_]*`). Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe). |
+| `exclude` | array of strings | No | Patterns, in `.gitignore` syntax, naming files to keep out of the package's method tree. See [Exclude](#exclude). |
 
 ### Address Format
 
@@ -116,7 +117,7 @@ MAJOR.MINOR.PATCH[-pre-release][+build-metadata]
 
 The `mthds_version` field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see [Version Constraint Syntax](#version-constraint-syntax)).
 
-The current MTHDS standard version is `6.0.0`. See [Versioning](./versioning.md) for what moves it.
+The current MTHDS standard version is `7.0.0`. See [Versioning](./versioning.md) for what moves it.
 
 ### Main Pipe
 
@@ -142,6 +143,24 @@ address   = "github.com/acme/legal-tools"
 version   = "0.3.0"
 main_pipe = "analyze_nda"
 ```
+
+### Exclude
+
+The optional `exclude` field lists patterns naming files to keep out of the package's [method tree](./method-tree.md) without keeping them out of git, such as sample data an author keeps in the repository but that no run needs:
+
+```toml
+[package]
+name    = "invoice_letters"
+address = "github.com/acme/invoice-letters"
+version = "1.0.0"
+exclude = ["samples/", "*.psd"]
+```
+
+**Constraints:**
+
+- Each entry is one pattern in the syntax of a `.gitignore` file, as [gitignore](https://git-scm.com/docs/gitignore) documents it, and MUST NOT hold a line break. An entry starting with `#` is a comment, as it would be in a `.gitignore` file, and `\#` escapes it.
+- The patterns are read relative to the package's root, as git reads `core.excludesFile`, below every `.gitignore` file of the tree in precedence. [The Membership Rule](./method-tree.md#the-membership-rule) states how they combine with the tree's other exclusions.
+- Each pattern is normalized to NFC before it is matched, as [the membership rule](./method-tree.md#the-membership-rule) normalizes every pattern, so a pattern written in decomposed form matches the same names as one written composed.
 
 ## The `[dependencies]` Section
 
@@ -254,6 +273,8 @@ A `.mthds` file without a `METHODS.toml` manifest is a standalone bundle. It beh
 
 This preserves the "single file = working method" experience for learning, prototyping, and simple projects.
 
+A method with no manifest is either a directory a caller hands over, whose method tree is rooted at that directory, or a `.mthds` file named alone, whose method tree is that one file and nothing else, so a file reference from it to any file beside it is refused. See [Method Tree: The Root](./method-tree.md#the-root).
+
 ## Package Directory Structure
 
 A package is a directory containing a `METHODS.toml` manifest and one or more `.mthds` bundle files. The directory layout follows a progressive enhancement principle — start minimal, add structure as needed.
@@ -276,26 +297,34 @@ legal_tools/
 ├── contract_analysis.mthds
 ├── shareholder_agreements.mthds
 ├── scoring.mthds
+├── requirements.txt
+├── funcs/
+│   └── scoring.py
+├── templates/
+│   └── nda_report.html
 ├── README.md
 └── LICENSE
 ```
 
 **Rules:**
 
-- `METHODS.toml` MUST be at the directory root.
+- `METHODS.toml` MUST be at the directory root, which is the root of the package's [method tree](./method-tree.md).
 - `methods.lock` MUST be at the directory root, alongside `METHODS.toml`.
-- `.mthds` files MAY be at the root or in subdirectories. A compliant implementation MUST discover all `.mthds` files recursively.
-- A single directory SHOULD contain one package. A repository MAY host several packages in subdirectories — a **library repository** — in which case each package is identified by its own manifest, and a specific package is located by manifest identity, never by directory path (see [Distribution: Locating a Package Inside a Clone](../packages/distribution.md#locating-a-package-inside-a-clone)).
+- `.mthds` files MAY be at the root or in subdirectories. A compliant implementation MUST load every `.mthds` file of the method tree, and only those: a bundle the [membership rule](./method-tree.md#the-membership-rule) excludes is not part of the package.
+- Every file of the method tree belongs to the package and travels with it, whether a step reads it, such as a Python module or a template, or it is carried for people and agents, such as a `README.md`.
+- A single directory SHOULD contain one package. A repository MAY host several packages in subdirectories — a **library repository** — in which case each package is identified by its own manifest, and a specific package is located by manifest identity, never by directory path (see [Distribution: Locating a Package Inside a Clone](../packages/distribution.md#locating-a-package-inside-a-clone)). A package in a directory below another package's root is out of that package's method tree, by the [membership rule](./method-tree.md#the-membership-rule)'s nested-package default, so packages never hold one another.
 - The directory name is not part of the package's identity and MAY differ from the manifest `name` (see [Name](#name)).
 
 ## Manifest Discovery
 
-When loading a `.mthds` bundle, a compliant implementation SHOULD discover the manifest by walking up from the bundle file's directory:
+When loading a `.mthds` bundle, a compliant implementation SHOULD discover the manifest by walking up from the bundle file's directory, or from the directory a caller hands over:
 
 1. Check the current directory for `METHODS.toml`.
 2. If not found, move to the parent directory.
-3. Stop when `METHODS.toml` is found, a `.git` directory is encountered, or the filesystem root is reached.
+3. Stop when `METHODS.toml` is found, an entry named `.git` of any kind is encountered (a directory, a file such as the one a submodule or a worktree holds, or a symbolic link, never followed), which is the entry that marks a nested repository under [the membership rule](./method-tree.md#the-membership-rule), or the filesystem root is reached.
 4. If no manifest is found, the bundle is treated as a standalone bundle (no package).
+
+The directory where discovery finds `METHODS.toml` is the root of the method's tree. When discovery finds none, the root is the directory handed over, or, for a `.mthds` file named alone, the tree is that one file (see [Method Tree: The Root](./method-tree.md#the-root)).
 
 ## Complete Manifest Example
 
@@ -308,8 +337,9 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=6.0.0"
+mthds_version = ">=7.0.0"
 main_pipe     = "analyze_nda"
+exclude       = ["drafts/"]
 
 [exports.legal]
 pipes = ["classify_document"]

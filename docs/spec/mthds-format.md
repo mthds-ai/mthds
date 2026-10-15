@@ -340,7 +340,7 @@ MTHDS defines pipe types in two categories:
 |------|-------|-------------|
 | PipeLLM | `"PipeLLM"` | Generates output using a large language model. |
 | PipeStructure | `"PipeStructure"` | Turns text into a structured concept using a large language model. |
-| PipeFunc | `"PipeFunc"` | Calls a registered Python function. |
+| PipeFunc | `"PipeFunc"` | Calls a Python function of the method's tree. |
 | PipeImgGen | `"PipeImgGen"` | Generates images using an image generation model. |
 | PipeExtract | `"PipeExtract"` | Extracts structured content from documents. |
 | PipeSearch | `"PipeSearch"` | Searches the web and returns structured results. |
@@ -515,7 +515,7 @@ model       = "@default-premium"
 
 ## Operator: PipeFunc
 
-Calls a registered Python function.
+Calls a Python function of the method's tree.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -523,9 +523,17 @@ Calls a registered Python function.
 | `description` | string | Yes | — |
 | `inputs` | table | No | — |
 | `output` | string | Yes | — |
-| `function_name` | string | Yes | The fully-qualified name of the Python function to call. |
+| `function_name` | string | Yes | The import path of the Python function to call, read from the root of the [method tree](./method-tree.md) that holds the bundle. |
 
 **Example:**
+
+```
+text_tools/
+├── METHODS.toml
+├── text.mthds
+└── funcs/
+    └── text_utils.py     (defines capitalize)
+```
 
 ```toml
 [pipe.capitalize_text]
@@ -533,8 +541,18 @@ type          = "PipeFunc"
 description   = "Capitalize the input text"
 inputs        = { text = "Text" }
 output        = "Text"
-function_name = "my_package.text_utils.capitalize"
+function_name = "funcs.text_utils.capitalize"
 ```
+
+**Locating the function.** `function_name` is a Python import path whose import root is the root of the method tree that holds the bundle, which for a bundle of a dependency is that dependency's own root. The name is normalized to NFC before anything else, as a [file reference](./method-tree.md#file-references) is, so a name an editor wrote in decomposed form finds the module whose tree path is in NFC: `function_name = "café.brew"`, its `é` written as `e` and a combining accent, names the function `brew` of the module `café.py`. The name then splits at its last dot: the part before it is the module path and the part after it is the name of the function, an attribute of that module. The module path `funcs.text_utils` names the file `funcs/text_utils.py` of the tree, or the package `funcs/text_utils/__init__.py`, each dot of the module path being read as a `/`, and the modules that module imports are resolved by Python from the same root, so a helper module in a subdirectory has a place to live and relative imports work.
+
+**Validation rules:**
+
+- `function_name` MUST hold at least one dot. A name with no dot, such as `capitalize`, names no module and is rejected.
+- Every dot-separated segment of `function_name`, once the name is in NFC, MUST be a Python identifier that is not a Python keyword and that NFKC normalization leaves unchanged. Python reads identifiers in NFKC, so a segment NFKC would change would make Python import another file than the one the tree holds under that name: `function_name = "ﬁles.load"`, whose first letters are the ligature `ﬁ`, would be imported as `files` while the tree's lookup names `ﬁles.py`. Such a segment, holding a ligature or a fullwidth letter, is rejected as an invalid `function_name`, never mapped to its NFKC form.
+- The module path MUST name a module of the tree: the tree holds the file `<module path>.py` or the file `<module path>/__init__.py`. A tree holding both is rejected as ambiguous, naming both files. A validator given the tree checks this without running any Python, and names the pipe whose module is missing.
+
+A method declares the third-party Python packages its functions import in its [`requirements.txt`](./method-tree.md#python-dependencies-requirementstxt). The standard specifies how a step locates its function and nothing about what the function must look like: how a runtime marks a function as callable from a method, the convention by which it is called, and how the runtime imports a tree's modules without letting them collide with another tree's or with its own are the runtime's to define and check.
 
 ## Operator: PipeImgGen
 

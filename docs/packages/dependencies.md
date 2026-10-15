@@ -78,6 +78,7 @@ This is similar to Cargo's `path` dependencies or Go's `replace` directives.
 - They are NOT resolved transitively — only the root package's local paths are honored.
 - They are excluded from the [lock file](lock-file.md).
 - When publishing, the `path` field is informational — consumers fetch via the `address`.
+- Each one is a [method tree](../spec/method-tree.md#dependencies-are-trees-of-their-own) of its own, rooted at its directory and listed by the same rules as any method's files.
 
 ## See Also
 

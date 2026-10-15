@@ -52,7 +52,7 @@ The infrastructure for distributing and composing methods at scale.
 
 When a standalone bundle is not enough — when you want to share methods, depend on other people's work, or control which methods are public — you add a `METHODS.toml` manifest. This turns a directory of bundles into a **package**: a distributable unit with a globally unique address, semantic versioning, declared dependencies, and explicit exports.
 
-Packages are stored in Git repositories. The package address (e.g., `github.com/acme/legal-tools`) doubles as the fetch location — no upload step, no proprietary hosting. A lock file (`methods.lock`) pins exact versions with integrity hashes and semantic fingerprints for verifiable installs.
+Packages are stored in Git repositories. The package address (e.g., `github.com/acme/legal-tools`) doubles as the fetch location — no upload step, no proprietary hosting. A lock file (`methods.lock`) pins exact versions with tree digests and semantic fingerprints for verifiable installs.
 
 Cross-package references use the `->` syntax: `scoring_lib->scoring.compute_weighted_score` reads as "from the `scoring_lib` dependency, get `compute_weighted_score` in the `scoring` domain." The separator was chosen for readability by non-technical audiences — arrows are intuitive, visually distinct from dots, and universally understood.
 

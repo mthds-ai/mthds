@@ -17,7 +17,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=6.0.0"
+mthds_version = ">=7.0.0"
 main_pipe     = "analyze_nda"
 
 [exports.legal]
@@ -45,8 +45,9 @@ The `[package]` section defines the package's identity:
 | `description` | Yes | Human-readable summary of the package's purpose. Must not be empty. |
 | `authors` | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | No | [SPDX license identifier](https://spdx.org/licenses/) (e.g., `"MIT"`, `"Apache-2.0"`). |
-| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `6.0.0`. |
+| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `7.0.0`. |
 | `main_pipe` | No | The package's entry-point pipe. Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe) below. |
+| `exclude` | No | Patterns, in `.gitignore` syntax, naming files to keep out of the package's method tree. See [Exclude](#exclude) below. |
 
 ## Package Addresses
 
@@ -101,6 +102,20 @@ main_pipe = "analyze_nda"
 - The value MUST be a valid `snake_case` pipe code (matching `[a-z][a-z0-9_]*`).
 - The referenced pipe is **auto-exported** — it is part of the package's public surface by virtue of being `main_pipe`, whether or not it also appears in `[exports]`.
 - The field is optional. Packages without a `main_pipe` can still be used as libraries — consumers import specific pipes by their qualified names.
+
+## Exclude
+
+Every file in the package's folder travels with the package, except dotfiles, a few defaults such as `__pycache__/`, Python virtual environments and other packages nested inside the folder, and whatever the folder's own `.gitignore` files ignore (see [Package Structure: Method Files](structure.md#method-files)). The `exclude` field keeps more files out of the package without keeping them out of git, such as sample data you keep in the repository but no run needs:
+
+```toml
+[package]
+name    = "invoice_letters"
+address = "github.com/acme/invoice-letters"
+version = "1.0.0"
+exclude = ["samples/", "*.psd"]
+```
+
+Each entry is one pattern written as it would be in a `.gitignore` file, read from the package's root. See [Specification: Exclude](../spec/manifest-format.md#exclude) for the exact rules.
 
 ## The `[dependencies]` Section
 
