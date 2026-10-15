@@ -12,8 +12,8 @@ Before any file is parsed, establish the [method tree](../spec/method-tree.md) t
 
 - Find the root from what the caller handed over: the nearest directory at or above it holding `METHODS.toml`, else the directory handed over, else, for a `.mthds` file named alone, a tree of that one file.
 - List the tree under the [membership rule](../spec/method-tree.md#the-membership-rule), pruning excluded directories first, among them a nested repository or a nested package, meaning a directory below the root holding a `.git` entry or its own `METHODS.toml`. Refuse a symbolic link or any other entry that is neither a regular file nor a directory, naming its path, unless the rule excludes it. A package read from a cache is not listed again: its files are its tree as written.
-- Normalize every name to NFC, and refuse a path that breaks the [tree path](../spec/method-tree.md#tree-paths) rules, two names equal after normalization, two paths differing only by letter case, and a path past the length bound, naming each path.
-- When the tree arrives as a map of [file entries](../spec/method-tree.md#the-file-entry) rather than from a directory, refuse a key that is not a tree path or that the membership rule could not admit, a key given twice, two keys differing only by letter case or one naming a directory of another, a malformed entry, and a hash entry whose bytes the receiver does not hold.
+- Normalize every name to NFC, and refuse a path that breaks the [tree path](../spec/method-tree.md#tree-paths) rules, two names equal after normalization, two paths equal, or one naming a directory of another, once both are converted to lowercase, and a path past the length bound, naming each path.
+- When the tree arrives as a map of [file entries](../spec/method-tree.md#the-file-entry) rather than from a directory, refuse a key that is not a tree path or that the membership rule could not admit, a key given twice, two keys equal, or one naming a directory of another, once both are converted to lowercase, a malformed entry, and a hash entry whose bytes the receiver does not hold.
 
 ## Stage 1: TOML Parsing
 

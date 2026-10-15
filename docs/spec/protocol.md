@@ -74,7 +74,7 @@ The map must form a tree. A runner refuses with a `422` naming the offending pat
 
 - a key is not a tree path, or names a file the membership rule could never admit, such as a dotfile;
 - one path is given twice, verbatim or after normalization;
-- two paths differ only by letter case, or one names a directory of another;
+- two paths are equal, or one names a directory of another, once both are converted to lowercase, such as `readme.md` beside `README.md`, or `Templates` beside `templates/letter.html`;
 - an entry is malformed.
 
 A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem whose `missing_blobs` member lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer what to upload. The tree's files are the method's own: a file a caller supplies for one run is an input, never an entry of `files`.

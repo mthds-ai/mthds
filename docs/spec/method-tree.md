@@ -93,7 +93,7 @@ A **tree path** names a file of a tree from its root, such as `templates/letter.
 - It is encoded as UTF-8 in Unicode Normalization Form C (NFC), and tree paths are compared, sorted and matched byte for byte on that encoding.
 - Each segment is at most 255 bytes long and the whole path at most 1024 bytes long, in that encoding.
 
-Within one tree, no two paths differ only by letter case: no two paths are equal once both are converted to lowercase by Unicode's default case conversion, so a tree written out on a case-insensitive file system loses no file. And no path names a directory of another: one tree never holds both `templates` and `templates/letter.html`.
+Within one tree, once every path is converted to lowercase by Unicode's default case conversion, no two paths are equal and no path names a directory of another: one tree never holds both `README.md` and `readme.md`, nor both `templates` and `templates/letter.html`, nor both `Templates` and `templates/letter.html`. A tree written out on a case-insensitive file system therefore loses no file and never needs a file and a directory under one name.
 
 A name listed from a file system is normalized to NFC, since some file systems hand back a decomposed form of an accented name, and two names in one directory that are equal after normalization are refused, naming both. A path that breaks any rule above is refused, naming it.
 
@@ -196,7 +196,7 @@ A map of entries is refused, naming the offending path, when one of its keys:
 
 - is not a [tree path](#tree-paths), or holds a segment that the membership rule's dot-segment rule or its name defaults exclude (a segment starting with a dot, a `__pycache__` or `node_modules` directory, or a file named `pyvenv.cfg`), or names a file `METHODS.toml` anywhere but at the root, since no tree has such a member;
 - is given twice in the document, verbatim or after normalization, which a receiver detects in the text it parses rather than keeping one of the values;
-- differs from another key only by letter case, or names a directory of another key.
+- equals another key, or names a directory of another key, once both are converted to lowercase as the [tree path](#tree-paths) rules state, such as `readme.md` beside `README.md`, or `Templates` beside `templates/letter.html`.
 
 A map with no key is refused: a tree holds at least one file.
 

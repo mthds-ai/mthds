@@ -474,8 +474,10 @@ components:
         path; no segment names a __pycache__ or node_modules directory, no key names
         a file called pyvenv.cfg, and no key names a file called METHODS.toml anywhere
         but at the root, which the membership rule never admits. No key is
-        given twice, verbatim or after normalization, no two keys differ only by letter
-        case, and no key names a directory of another. The pattern below checks the
+        given twice, verbatim or after normalization, and once every key is converted
+        to lowercase, no two keys are equal and no key names a directory of another,
+        so neither README.md and readme.md nor Templates and templates/letter.html
+        share one map. The pattern below checks the
         characters and segments; the other rules are checked by the runner, which
         answers a map breaking any of them with a 422 naming the path.
       minProperties: 1
