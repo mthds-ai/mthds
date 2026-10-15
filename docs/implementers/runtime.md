@@ -58,7 +58,7 @@ function find_manifest(bundle_path):
     while true:
         if "METHODS.toml" exists in current:
             return parse_manifest(current / "METHODS.toml")
-        if ".git" entry exists in current:  // a directory, or a submodule's or worktree's file
+        if an entry named ".git" is present in current, as lstat sees it:  // any kind, a dangling link included, never followed
             return null  // stop at repository boundary
         parent = parent_directory(current)
         if parent == current:

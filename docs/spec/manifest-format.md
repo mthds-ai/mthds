@@ -160,6 +160,7 @@ exclude = ["samples/", "*.psd"]
 
 - Each entry is one pattern in the syntax of a `.gitignore` file, as [gitignore](https://git-scm.com/docs/gitignore) documents it, and MUST NOT hold a line break. An entry starting with `#` is a comment, as it would be in a `.gitignore` file, and `\#` escapes it.
 - The patterns are read relative to the package's root, as git reads `core.excludesFile`, below every `.gitignore` file of the tree in precedence. [The Membership Rule](./method-tree.md#the-membership-rule) states how they combine with the tree's other exclusions.
+- Each pattern is normalized to NFC before it is matched, as [the membership rule](./method-tree.md#the-membership-rule) normalizes every pattern, so a pattern written in decomposed form matches the same names as one written composed.
 
 ## The `[dependencies]` Section
 
@@ -320,7 +321,7 @@ When loading a `.mthds` bundle, a compliant implementation SHOULD discover the m
 
 1. Check the current directory for `METHODS.toml`.
 2. If not found, move to the parent directory.
-3. Stop when `METHODS.toml` is found, a `.git` entry is encountered (a directory, or the file a submodule or a worktree holds), or the filesystem root is reached.
+3. Stop when `METHODS.toml` is found, an entry named `.git` of any kind is encountered (a directory, a file such as the one a submodule or a worktree holds, or a symbolic link, never followed), which is the entry that marks a nested repository under [the membership rule](./method-tree.md#the-membership-rule), or the filesystem root is reached.
 4. If no manifest is found, the bundle is treated as a standalone bundle (no package).
 
 The directory where discovery finds `METHODS.toml` is the root of the method's tree. When discovery finds none, the root is the directory handed over, or, for a `.mthds` file named alone, the tree is that one file (see [Method Tree: The Root](./method-tree.md#the-root)).

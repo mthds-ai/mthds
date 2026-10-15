@@ -468,16 +468,20 @@ components:
       type: object
       description: >
         A method tree, as a map from tree path to file entry, holding every file of the
-        tree. Each key is a tree path: a relative POSIX path in Unicode NFC, with no
+        tree. Each key is a tree path: a relative POSIX path already in Unicode NFC
+        (a key that is not is refused, never normalized), with no
         empty, '.' or '..' segment, no segment starting with a dot, no backslash, colon
         or control character, at most 255 UTF-8 bytes per segment and 1024 for the
         path; no segment names a __pycache__ or node_modules directory, no key names
         a file called pyvenv.cfg, and no key names a file called METHODS.toml anywhere
-        but at the root, which the membership rule never admits. No key is
-        given twice, verbatim or after normalization, and once every key is converted
-        to lowercase, no two keys are equal and no key names a directory of another,
-        so neither README.md and readme.md nor Templates and templates/letter.html
-        share one map. The pattern below checks the
+        but at the root, which the membership rule never admits. No key is given
+        twice, as written or once its JSON escapes are decoded. No two keys collide,
+        and no key collides with a directory of another, under Unicode full case
+        folding (the entries of status C and F in the CaseFolding.txt of Unicode 14.0
+        or later, with no locale tailoring) of the key in NFC, normalized to NFC
+        again, so neither README.md
+        and readme.md, nor straße.txt and STRASSE.txt, nor Templates and
+        templates/letter.html share one map. The pattern below checks the
         characters and segments; the other rules are checked by the runner, which
         answers a map breaking any of them with a 422 naming the path.
       minProperties: 1
@@ -488,7 +492,8 @@ components:
     FileEntry:
       description: >
         One file of a method tree: its text, its bytes in Base64, or the hash of bytes
-        the runner already holds. There is no URL form.
+        the runner already holds. There is no URL form, and an entry object that
+        gives one of its keys twice is refused, as a key given twice in the map is.
       oneOf:
         - type: string
           description: The file's text. Its bytes are the UTF-8 encoding of this string, exactly.
@@ -496,7 +501,10 @@ components:
         - $ref: '#/components/schemas/HashFileEntry'
     Base64FileEntry:
       type: object
-      description: Any bytes, in the standard Base64 alphabet of RFC 4648, padded, with no line breaks.
+      description: >
+        Any bytes, in the standard Base64 alphabet of RFC 4648, padded, with no line
+        breaks, and canonical as RFC 4648 section 3.5 defines it: an encoding whose
+        pad bits are not zero is not valid Base64 and is refused.
       required: [base64]
       additionalProperties: false
       properties:
@@ -511,7 +519,13 @@ components:
       additionalProperties: false
       properties:
         sha256: { type: string, pattern: '^[0-9a-f]{64}$', description: The SHA-256 of the bytes, in lowercase hexadecimal. }
-        size: { type: integer, minimum: 0, description: The length of the bytes. }
+        size:
+          type: integer
+          minimum: 0
+          description: >
+            The length of the bytes, a JSON integer written without a fraction or an
+            exponent. A size written 13.0 is refused, although JSON Schema's integer
+            type admits it.
     BlobRef:
       type: object
       description: A blob, named by its SHA-256 in lowercase hexadecimal and its length in bytes.
@@ -519,7 +533,13 @@ components:
       additionalProperties: false
       properties:
         sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
-        size: { type: integer, minimum: 0 }
+        size:
+          type: integer
+          minimum: 0
+          description: >
+            The length of the bytes, a JSON integer written without a fraction or an
+            exponent. A size written 13.0 is refused, although JSON Schema's integer
+            type admits it.
     MissingBlobsRequest:
       type: object
       description: The blobs a sender is about to send by hash, and optionally the tree they make up.
@@ -550,7 +570,13 @@ components:
       additionalProperties: true
       properties:
         sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
-        size: { type: integer, minimum: 0 }
+        size:
+          type: integer
+          minimum: 0
+          description: >
+            The length of the bytes, a JSON integer written without a fraction or an
+            exponent. A size written 13.0 is refused, although JSON Schema's integer
+            type admits it.
         upload: { $ref: '#/components/schemas/UploadTarget' }
     UploadTarget:
       type: object
