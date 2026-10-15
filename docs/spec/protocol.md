@@ -117,7 +117,7 @@ A sender chooses per file between an inline entry and a hash entry, and may mix 
 
 ### `POST /blobs/missing`
 
-The request lists blobs by hash and size, and may name the tree they make up:
+The request lists blobs by hash and size, each `size` a JSON integer written without a fraction or an exponent, as in a hash entry, and may name the tree they make up:
 
 ```json
 {
