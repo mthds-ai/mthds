@@ -42,6 +42,7 @@
 
 - [Versioning](https://mthds.ai/latest/spec/versioning/index.md): Versioning
 - [.mthds File Format](https://mthds.ai/latest/spec/mthds-format/index.md): .mthds File Format
+- [Method Tree](https://mthds.ai/latest/spec/method-tree/index.md): Method Tree
 - [Native Concept Definitions](https://mthds.ai/latest/spec/native-concepts/index.md): Native Concept Definitions
 - [Intent Hints](https://mthds.ai/latest/spec/intent-hints/index.md): Intent Hints
 - [METHODS.toml Format](https://mthds.ai/latest/spec/manifest-format/index.md): METHODS.toml Format

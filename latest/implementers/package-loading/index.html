@@ -1744,6 +1744,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../spec/native-concepts/" class="md-nav__link">
         
   
@@ -3135,10 +3163,11 @@
 <li>List remote tags: <code>git ls-remote --tags {url}</code>.</li>
 <li>Filter tags that parse as valid semver (strip optional <code>v</code> prefix).</li>
 <li>Select version via MVS.</li>
-<li>Clone at the selected tag: <code>git clone --depth 1 --branch {tag}</code>.</li>
+<li>Clone at the selected tag without a checkout: <code>git clone --depth 1 --branch {tag} --no-checkout</code>.</li>
+<li>Locate the package in the commit by manifest identity, and read its <a href="../../spec/method-tree/#dependencies-are-trees-of-their-own">tree</a> from the commit's git objects as stored (<code>git ls-tree -r -z</code>, <code>git cat-file blob</code>), with no checkout filter, line-ending conversion or <code>export-ignore</code> applied, filtered by the membership rule with that commit's own <code>.gitignore</code> files. A submodule contributes no file, and a symbolic link the rule does not exclude is an error naming its path.</li>
 </ul>
 </li>
-<li><strong>Cache storage</strong> — store the cloned directory under <code>~/.mthds/packages/{address}/{version}/</code>, removing the <code>.git</code> directory.</li>
+<li><strong>Cache storage</strong> — write the package's tree, and nothing else, under <code>~/.mthds/packages/{address}/{version}/</code>, each file at its tree path. The entry's files are then the package's tree as written: a later read, a cache hit included, takes every file of the entry and never applies the membership rule again (see <a href="../../spec/method-tree/#dependencies-are-trees-of-their-own">Dependencies Are Trees of Their Own</a>).</li>
 </ol>
 <p>Cache writes use a staging directory with atomic rename for safety against partial writes.</p>
 <h2 id="library-assembly">Library Assembly</h2>

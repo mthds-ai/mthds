@@ -1865,6 +1865,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../spec/native-concepts/" class="md-nav__link">
         
   
@@ -3179,6 +3207,7 @@
 <li>They are NOT resolved transitively — only the root package's local paths are honored.</li>
 <li>They are excluded from the <a href="../lock-file/">lock file</a>.</li>
 <li>When publishing, the <code>path</code> field is informational — consumers fetch via the <code>address</code>.</li>
+<li>Each one is a <a href="../../spec/method-tree/#dependencies-are-trees-of-their-own">method tree</a> of its own, rooted at its directory and listed by the same rules as any method's files.</li>
 </ul>
 <h2 id="see-also">See Also</h2>
 <ul>

@@ -1912,6 +1912,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../spec/native-concepts/" class="md-nav__link">
         
   
@@ -3191,7 +3219,7 @@
 <h3 id="pillar-2-the-package-system">Pillar 2 — The Package System</h3>
 <p>The infrastructure for distributing and composing methods at scale.</p>
 <p>When a standalone bundle is not enough — when you want to share methods, depend on other people's work, or control which methods are public — you add a <code>METHODS.toml</code> manifest. This turns a directory of bundles into a <strong>package</strong>: a distributable unit with a globally unique address, semantic versioning, declared dependencies, and explicit exports.</p>
-<p>Packages are stored in Git repositories. The package address (e.g., <code>github.com/acme/legal-tools</code>) doubles as the fetch location — no upload step, no proprietary hosting. A lock file (<code>methods.lock</code>) pins exact versions with integrity hashes and semantic fingerprints for verifiable installs.</p>
+<p>Packages are stored in Git repositories. The package address (e.g., <code>github.com/acme/legal-tools</code>) doubles as the fetch location — no upload step, no proprietary hosting. A lock file (<code>methods.lock</code>) pins exact versions with tree digests and semantic fingerprints for verifiable installs.</p>
 <p>Cross-package references use the <code>-&gt;</code> syntax: <code>scoring_lib-&gt;scoring.compute_weighted_score</code> reads as "from the <code>scoring_lib</code> dependency, get <code>compute_weighted_score</code> in the <code>scoring</code> domain." The separator was chosen for readability by non-technical audiences — arrows are intuitive, visually distinct from dots, and universally understood.</p>
 <p><a href="../packages/structure/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"></path></svg></span> The Package System</a></p>
 <h2 id="core-concepts-at-a-glance">Core Concepts at a Glance</h2>

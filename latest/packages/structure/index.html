@@ -1296,6 +1296,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#method-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-three-artifacts" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1867,6 +1878,34 @@
     
   
     .mthds File Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
   
 
     
@@ -3020,6 +3059,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#method-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Method Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-three-artifacts" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3125,6 +3175,30 @@
 └── LICENSE
 </code></pre></div>
 <p>This package has multiple bundles, each declaring its own domain (<code>legal</code>, <code>legal.contracts</code>, <code>legal.contracts.shareholder</code>, <code>scoring</code>). The <code>methods.lock</code> file records exact dependency versions for verifiable installs.</p>
+<h2 id="method-files">Method Files</h2>
+<p>A package is its folder. Every file under the folder that holds <code>METHODS.toml</code> belongs to the method and travels with it, whatever it is for:</p>
+<div class="highlight"><pre><span></span><code>invoice_letters/
+├── METHODS.toml
+├── letters.mthds
+├── requirements.txt
+├── funcs/
+│   └── totals.py
+├── templates/
+│   ├── letter.html
+│   └── logo.png
+├── README.md
+├── .gitignore
+└── .venv/
+</code></pre></div>
+<p>Here the bundle, the Python module a <code>PipeFunc</code> step calls, the template and the logo it shows, the <code>requirements.txt</code> that declares the Python packages <code>totals.py</code> imports, and the <code>README.md</code> all travel together. There is no list of files to maintain: drop a file into the folder and it is part of the method.</p>
+<p>A few files stay out on their own, so that a method never carries what it should not:</p>
+<ul>
+<li><strong>Anything whose name starts with a dot</strong>, at any depth: <code>.git/</code>, <code>.venv/</code>, <code>.env</code>, <code>.gitignore</code> and the <code>.mthds/</code> folder where installed dependencies live.</li>
+<li><strong>The defaults</strong>: <code>__pycache__/</code>, <code>node_modules/</code>, any Python virtual environment whatever its name, any repository nested inside the folder, and any other package nested inside it, meaning a subfolder holding its own <code>METHODS.toml</code>, which travels as a package of its own.</li>
+<li><strong>Whatever the folder's own <code>.gitignore</code> files ignore</strong>, read exactly as git reads them, so what travels is what git would publish.</li>
+<li><strong>Whatever the manifest's <a href="../manifest/#exclude"><code>exclude</code></a> patterns name</strong>, for files you want out of the method but still in git.</li>
+</ul>
+<p>A step names another file by its path from the bundle that uses it, such as <code>templates/letter.html</code>, or <code>../shared/logo.png</code> from a template one folder down, and that path is looked up among the method's files, never on the disk of whoever runs it. A symbolic link inside the folder is refused rather than followed. The <a href="../../spec/method-tree/">Method Tree</a> specification states every rule exactly, along with the tree digest that identifies a method by its files.</p>
 <h2 id="the-three-artifacts">The Three Artifacts</h2>
 <p>Three artifacts carry a package through its life, and each answers a different question:</p>
 <ul>
@@ -3136,7 +3210,7 @@
 <ul>
 <li><code>METHODS.toml</code> must be at the directory root.</li>
 <li><code>methods.lock</code> must be alongside <code>METHODS.toml</code> at the root.</li>
-<li><code>.mthds</code> files can be at the root or in subdirectories. A compliant runtime discovers all <code>.mthds</code> files recursively.</li>
+<li><code>.mthds</code> files can be at the root or in subdirectories. A compliant runtime loads every <code>.mthds</code> file among the method's files, and only those.</li>
 <li>A single directory should contain one package.</li>
 <li>The directory name is not part of the package's identity — the manifest <code>name</code> is. A kebab-case repository holding a snake_case-named package is perfectly fine.</li>
 </ul>
@@ -3148,6 +3222,7 @@
 <li>The bundle is not distributable (no package address).</li>
 </ul>
 <p>This preserves the "single file = working method" experience for learning, prototyping, and simple projects. When you need distribution, add a <code>METHODS.toml</code> — the rest of this section shows how.</p>
+<p>A bundle named on its own carries nothing else with it: its method is that one file. A step that names a template or a Python module beside it is refused until you hand over the folder instead, which makes the folder the method, or add a <code>METHODS.toml</code> to it.</p>
 <h2 id="progressive-enhancement">Progressive Enhancement</h2>
 <p>The package system follows a progressive enhancement principle:</p>
 <ol>
@@ -3162,12 +3237,14 @@
 <ol>
 <li>Check the bundle's directory for <code>METHODS.toml</code>.</li>
 <li>If not found, move to the parent directory.</li>
-<li>Stop when <code>METHODS.toml</code> is found, a <code>.git</code> directory is encountered, or the filesystem root is reached.</li>
+<li>Stop when <code>METHODS.toml</code> is found, an entry named <code>.git</code> of any kind is encountered (a directory, a file or a symbolic link), or the filesystem root is reached.</li>
 <li>If no manifest is found, the bundle is treated as a standalone bundle.</li>
 </ol>
+<p>The folder where the manifest is found is the root of the method's files, so handing over a bundle or a subfolder of a package hands over the whole package.</p>
 <h2 id="see-also">See Also</h2>
 <ul>
 <li><a href="../../spec/manifest-format/#package-directory-structure">Specification: Package Directory Structure</a> — normative reference for layout rules.</li>
+<li><a href="../../spec/method-tree/">Specification: Method Tree</a> — normative reference for which files make up a method and how they are named.</li>
 <li><a href="../manifest/">The Manifest</a> — what goes inside <code>METHODS.toml</code>.</li>
 <li><a href="../../spec/library-crate/">Specification: Library Crate Format</a> — the resolution artifact a package's library resolves into.</li>
 </ul>

@@ -1,10 +1,10 @@
 # HTTP Runner Protocol
 
-The MTHDS Protocol is the minimal HTTP contract every MTHDS runner implements. Any server that serves these five routes with the shapes defined here is an MTHDS-compliant runner. A runner is just a runner: it executes methods, validates bundles, and reports what models it can route to and what version it is. It keeps no run store and owns no user, billing, or catalog concepts.
+The MTHDS Protocol is the minimal HTTP contract every MTHDS runner implements. Any server that serves its five required routes with the shapes defined here is an MTHDS-compliant runner, and a runner that keeps a blob store also serves the optional blob routes. A runner is just a runner: it executes methods, validates bundles, and reports what models it can route to and what version it is. It keeps no run store and owns no user, billing, or catalog concepts.
 
 The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml). This page walks through it in prose, then renders it route by route — every parameter, request body, and response schema — in the [route reference](#route-reference) below. Where prose and YAML disagree, the YAML wins.
 
-## The five routes
+## The routes
 
 | Method | Path | Purpose |
 |--------|------|---------|
@@ -13,6 +13,10 @@ The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](
 | `POST` | `/validate` | Parse, validate, and dry-run an MTHDS bundle. |
 | `GET` | `/models` | The models this runner can route to. Optional `?type=` filter on the [model category](#model-categories) (`llm` · `extract` · `img_gen` · `search` · `judgment`). |
 | `GET` | `/version` | Always public. Protocol and runner versions — the handshake clients use for feature detection. |
+| `POST` | `/blobs/missing` | Optional, served by a runner that keeps a [blob store](#sending-files-by-hash). Which of the listed blobs the runner lacks, and where to upload each. |
+| `PUT` | `/blobs/{sha256}` | Optional. Uploads one blob's bytes to a runner that stores them itself. |
+
+The first five routes are required of every runner. The last two are served by a runner whose `/version` declares `blob_store: true`, and `PUT /blobs/{sha256}` only by one that stores uploaded bytes itself rather than pointing its senders at another upload target.
 
 All errors are [RFC 7807](https://www.rfc-editor.org/rfc/rfc7807) `application/problem+json` documents. Auth is implementation-defined: a bearer-token slot is reserved, and anonymous access is allowed for self-hosted runners.
 
@@ -34,20 +38,44 @@ The protocol itself is versioned by this standard (`protocol_version` in `/versi
 ```json
 {
   "pipe_code": "analyze_contract",
-  "mthds_contents": ["domain = \"legal\"\n..."],
+  "files": {
+    "METHODS.toml": "[package]\nname = \"contract_review\"\n...",
+    "contracts.mthds": "domain = \"legal\"\n...",
+    "templates/report.html": "<html>...",
+    "templates/logo.png": { "base64": "iVBORw0KGgo..." }
+  },
   "inputs": {
     "contract": { "concept": "native.Document", "content": { "url": "..." } }
   }
 }
 ```
 
-At least one of `pipe_code` / `mthds_contents` is required. If `mthds_contents` is provided without `pipe_code`, the first bundle must declare a `main_pipe`. Optional fields: `output_name`, `output_multiplicity`, `dynamic_output_concept_ref`. Each input is a stuff in the wire form the [CLI I/O Contract](./cli-io-contract.md#stuffs-on-the-wire) defines: `concept` names the concept by its crate key, as a string, and `content` is its value.
+`files` carries the method: its whole [method tree](./method-tree.md), as a map from tree path to file entry (see [Method files](#method-files) below). At least one of `pipe_code` / `files` is required, and `pipe_code` alone names a pipe the runner already holds. When `files` is given without `pipe_code`, the run starts at the manifest's `main_pipe` when the tree holds a `METHODS.toml` at its root, or else, in a method with no manifest, at the one `main_pipe` its bundles declare. A tree whose manifest declares no `main_pipe`, or with no manifest whose bundles declare none or several, is refused with a `422` naming its bundles by their tree paths. Optional fields: `output_name`, `output_multiplicity`, `dynamic_output_concept_ref`. Each input is a stuff in the wire form the [CLI I/O Contract](./cli-io-contract.md#stuffs-on-the-wire) defines: `concept` names the concept by its crate key, as a string, and `content` is its value.
 
 The 200 response is a `RunResultExecute` — the completed run, holding two base fields: `pipeline_run_id` (mandatory, server-generated and authoritative) and `pipe_output` (the method's serialized output; always present — a completed run has output, either a value or an explicit absence document). Anything more an implementation returns — a run state, timestamps, output naming, anything else — is an extension field (see [Extension policy](#extension-policy)), declared and documented by that implementation.
 
 `pipe_output` is a working memory of stuffs in the same wire form as the inputs, and it carries references only: a concept's definition never travels in a working memory. A client that needs the structure behind a `concept` resolves the key against the library crate, or reads it from the `pipe_io_contracts` a validating runner reports. The stuff's shape is the standard's, not the protocol's: the OpenAPI document types an input's `concept` as a string and leaves `pipe_output` an open object, the CLI I/O Contract fixes what its entries look like, and a change to that shape moves the [standard version](./versioning.md#the-protocol-version) and no protocol number — the way the recommended extension fields of the validate report are shaped by their own pages.
 
 The protocol sets no time limit on `/execute`; deployments cap it at their proxy layer. For long-running methods prefer `/start`. Implementations **MAY** answer `202 + RunResultStart` (just the run id, no output yet) with a `Location` header pointing at an implementation-defined status resource when they cannot hold the connection open ([RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.3) asynchronous pattern). Simple runners never emit 202; clients that cannot handle it should use `/start`.
+
+### Method files
+
+A request's `files` map holds every file of the method's tree under its [tree path](./method-tree.md#tree-paths): its bundles, its manifest when it has one, and every other file a step may read or that travels with the method, such as a Python module, a template, an image or a `requirements.txt`. Each value is a [file entry](./method-tree.md#the-file-entry) in one of three forms:
+
+- **a string**, the file's text, whose bytes are its UTF-8 encoding;
+- **`{ "base64": "…" }`**, any bytes, in standard padded Base64, canonical, with its pad bits zero;
+- **`{ "sha256": "…", "size": … }`**, bytes the runner already holds in its blob store, named by their SHA-256 in lowercase hexadecimal and their length, a JSON integer written without a fraction or an exponent.
+
+The map must form a tree. A runner refuses with a `422` naming the offending path a map in which:
+
+- a key is not a tree path, such as a key not already in NFC, which a runner refuses rather than normalize, or names a file the membership rule could never admit, such as a dotfile;
+- one path is given twice, as written or once its JSON escapes are decoded, or an entry object gives one of its own keys twice;
+- two paths [collide](./method-tree.md#tree-paths), or one collides with a directory of another, under the Unicode full case folding the method tree defines, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`;
+- an entry is malformed, such as Base64 whose pad bits are not zero, or a `size` written `13.0`.
+
+A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem whose `missing_blobs` member lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer what to upload. The tree's files are the method's own: a file a caller supplies for one run is an input, never an entry of `files`.
+
+A runner reads a method only from the files it is sent. A [file reference](./method-tree.md#file-references) resolves in the tree's set of paths and a hash in the blob store, so no request names a path on the runner's own disk. Each implementation bounds a file's size, the tree's file count and its total size, and the total of the inline entries, and refuses a tree past one of them with a problem naming the limit.
 
 ## Starting a method asynchronously
 
@@ -61,7 +89,7 @@ The protocol mandates no run store, and it defines **no completion channel for `
 
 ## Validating a bundle
 
-`POST /validate` takes `mthds_contents` (always an array, even for a single file) and an optional `allow_signatures` flag (default `false` — strict; when `true`, the validation sweep tolerates unimplemented pipe signatures by minting a mock).
+`POST /validate` takes `files`, the method's tree as `/execute` takes it (see [Method files](#method-files)), and an optional `allow_signatures` flag (default `false` — strict; when `true`, the validation sweep tolerates unimplemented pipe signatures by minting a mock). A validating runner judges the whole tree: every bundle, and every file a bundle names by file reference or by a `PipeFunc`'s import path.
 
 `/validate` is a **diagnostic endpoint**: its job is to return a *verdict* about the submitted bundle, and every verdict it can produce — valid or invalid — rides a **200**, discriminated in the body on the mandatory `is_valid` field.
 
@@ -72,20 +100,74 @@ The protocol mandates no run store, and it defines **no completion channel for `
 
 A client pattern-matches `is_valid` to learn the verdict — it never inspects a status code or catches an exception body. Non-2xx is reserved for the cases where **no verdict could be produced**: a malformed request body is a `422` problem, auth a `401`/`403`, a server fault a `5xx`. So a non-2xx on `/validate` always means "the endpoint could not produce a verdict," never "your bundle is bad" — which keeps expected validation failures out of the 4xx error budget and never editorializes a verdict into a spurious retry. Signatures are never an error: an unimplemented signature reached during validation is a *runnability fact* (`is_runnable: false` + `pending_signatures`), not a validation failure, and `allow_signatures` only affects the dry-run sweep, not the verdict.
 
+## Sending files by hash
+
+A runner MAY keep a **blob store**: bytes keyed by their SHA-256, written once and never changed. A runner that keeps one declares `blob_store: true` in `GET /version` and serves `POST /blobs/missing`, so a sender uploads each file at most once and then sends the method's tree by hash. A second run of an unchanged method uploads nothing, and editing one template uploads one file.
+
+1. The sender lists the method's tree and computes each file's SHA-256 and the [tree digest](./method-tree.md#the-tree-digest).
+2. It asks `POST /blobs/missing` which of those blobs the runner lacks.
+3. It uploads each missing blob as the answer says.
+4. It sends the run, or the validation, with a hash entry for each file it chose to send by hash.
+
+A sender chooses per file between an inline entry and a hash entry, and may mix both in one request; neither form is second-class.
+
+### `POST /blobs/missing`
+
+The request lists blobs by hash and size, each `size` a JSON integer written without a fraction or an exponent, as in a hash entry, and may name the tree they make up:
+
+```json
+{
+  "digest": "sha256:801fca61b41566e46d3fb1923e323590da7a539fd3e7af7455e7cba3934d4674",
+  "blobs": [
+    { "sha256": "af12591480ada38cf107d1a76bc5e2e111ad4c7ec5f3a2a63d058f5f5ab6b91c", "size": 12 },
+    { "sha256": "3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0", "size": 13 }
+  ]
+}
+```
+
+The `200` answer lists every blob of the request the runner does not hold, each with its `size`, a JSON integer written in the same way, and where to upload it:
+
+```json
+{
+  "missing": [
+    {
+      "sha256": "3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0",
+      "size": 13,
+      "upload": {
+        "method": "PUT",
+        "url": "https://runner.example.com/v1/blobs/3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0",
+        "headers": { "content-type": "application/octet-stream" }
+      }
+    }
+  ]
+}
+```
+
+To upload a missing blob, the sender sends the blob's bytes as the whole body of a request with the given `method` to the given `url`, carrying exactly the given `headers`. The upload target is the runner's to choose: its own `PUT /blobs/{sha256}`, or any other address that stores the bytes where the runner reads its blobs. A blob the runner holds is left out of `missing`, and an empty `missing` means the sender has nothing to upload.
+
+The optional `digest` names the tree the listed blobs make up. A runner that keeps a record of the trees it has held in full MAY answer with an empty `missing` when it holds the tree that digest names, which makes the check for an unchanged method one lookup however many files it has. It records a tree only after checking that it holds every file the tree's listing names, and never takes an uploaded blob as such a record, since anyone can upload bytes that happen to form a listing.
+
+A request naming one hash twice with different sizes is a `422`, and so is a blob past the runner's limits, refused before anything is uploaded with a problem naming the limit. Which callers share a blob store is the runner's policy: a hash entry resolves only in the store the runner keeps for its caller, and a runner serving several tenants SHOULD keep each one's blobs apart, so that holding a hash never tells one tenant what another has stored.
+
+### `PUT /blobs/{sha256}`
+
+The upload target of a runner that stores bytes itself. The body is the blob's bytes and nothing else. The runner computes their SHA-256 and refuses with a `422` a body whose hash differs from the one in the path. A blob is written once and never changed, so uploading bytes the runner already holds succeeds without changing anything; either way the answer is a `204`.
+
 ## Discovery
 
 `GET /models` returns the runner's model deck — the models it can route to (`{name, type}` entries), optionally filtered by category. Implementations may add their own routing metadata (aliases, fallback chains, anything else) as additional properties.
 
-`GET /version` is always public (no auth). It returns `protocol_version` (required) and an optional `runner_version` — implementations may add their own identification on top:
+`GET /version` is always public (no auth). It returns `protocol_version` (required), an optional `runner_version`, and an optional `blob_store` flag, which is `true` for a runner that keeps a blob store and serves the [blob routes](#sending-files-by-hash), and `false` or absent for one that does not — implementations may add their own identification on top:
 
 ```json
 {
-  "protocol_version": "0.7.0",
-  "runner_version": "2.3.0"
+  "protocol_version": "1.0.0",
+  "runner_version": "2.3.0",
+  "blob_store": true
 }
 ```
 
-Clients use `/version` as the handshake: it reports the protocol and runner versions, and any additional properties let clients detect vendor extensions before relying on them.
+Clients use `/version` as the handshake: it reports the protocol and runner versions and whether the runner takes files by hash, and any additional properties let clients detect vendor extensions before relying on them.
 
 ### Model categories
 
@@ -116,7 +198,7 @@ Implementations may extend the surface — extra routes, extra optional request 
 
 ## Conformance
 
-An implementation claiming conformance states it as: *implements MTHDS Protocol v0.7*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, and `/version` is public.
+An implementation claiming conformance states it as: *implements MTHDS Protocol v1.0*. Conformance means: the five required routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, `/version` is public, and a runner that declares `blob_store: true` serves `POST /blobs/missing` and resolves hash entries from its blob store.
 
 The protocol number moves under its own rule — a new route, a new optional field or a new [model category](#model-categories) is a minor bump, a changed shape or meaning is a major one — independently of the standard version. The recommended extension fields above are not such an addition: they are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number. See [Versioning](./versioning.md#the-protocol-version).
 
@@ -204,9 +286,7 @@ Execute a method synchronously and return its full output.
     ```json
     {
         "pipe_code": "string",
-        "mthds_contents": [
-            "string"
-        ],
+        "files": null,
         "inputs": {},
         "output_name": "string",
         "output_multiplicity": null,
@@ -221,7 +301,7 @@ Execute a method synchronously and return its full output.
         ```json
         {
             "type": "object",
-            "description": "At least one of pipe_code / mthds_contents is required (enforced by the anyOf rule below). If mthds_contents is provided without pipe_code, the first bundle must declare a main_pipe. Extension-open: implementations MAY accept extra top-level properties (extension args).\n",
+            "description": "At least one of pipe_code / files is required (enforced by the anyOf rule below). If files is provided without pipe_code, the run starts at the manifest's main_pipe when the tree holds a METHODS.toml at its root, or else, in a method with no manifest, at the one main_pipe its bundles declare; a tree whose manifest declares none, or with no manifest whose bundles declare none or several, is a 422 naming its bundles by their tree paths. Extension-open: implementations MAY accept extra top-level properties (extension args).\n",
             "additionalProperties": true,
             "anyOf": [
                 {
@@ -237,12 +317,11 @@ Execute a method synchronously and return its full output.
                 },
                 {
                     "required": [
-                        "mthds_contents"
+                        "files"
                     ],
                     "properties": {
-                        "mthds_contents": {
-                            "type": "array",
-                            "minItems": 1
+                        "files": {
+                            "$ref": "#/components/schemas/MethodFiles"
                         }
                     }
                 }
@@ -253,18 +332,18 @@ Execute a method synchronously and return its full output.
                         "string",
                         "null"
                     ],
-                    "description": "Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents)."
+                    "description": "Code of the pipe to execute (a pipe the runner already holds, or one defined in a bundle of files)."
                 },
-                "mthds_contents": {
-                    "type": [
-                        "array",
-                        "null"
-                    ],
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "MTHDS bundle contents to load (always an array, even for a single file; never empty). Implementations bound count and per-file size."
+                "files": {
+                    "description": "The method to load, as its whole method tree. Implementations bound a file's size, the tree's file count and total size, and the total of the inline entries.",
+                    "anyOf": [
+                        {
+                            "$ref": "#/components/schemas/MethodFiles"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
                 },
                 "inputs": {
                     "type": [
@@ -451,9 +530,7 @@ Start a method asynchronously; returns its pipeline_run_id immediately.
     ```json
     {
         "pipe_code": "string",
-        "mthds_contents": [
-            "string"
-        ],
+        "files": null,
         "inputs": {},
         "output_name": "string",
         "output_multiplicity": null,
@@ -468,7 +545,7 @@ Start a method asynchronously; returns its pipeline_run_id immediately.
         ```json
         {
             "type": "object",
-            "description": "At least one of pipe_code / mthds_contents is required (enforced by the anyOf rule below). If mthds_contents is provided without pipe_code, the first bundle must declare a main_pipe. Extension-open: implementations MAY accept extra top-level properties (extension args).\n",
+            "description": "At least one of pipe_code / files is required (enforced by the anyOf rule below). If files is provided without pipe_code, the run starts at the manifest's main_pipe when the tree holds a METHODS.toml at its root, or else, in a method with no manifest, at the one main_pipe its bundles declare; a tree whose manifest declares none, or with no manifest whose bundles declare none or several, is a 422 naming its bundles by their tree paths. Extension-open: implementations MAY accept extra top-level properties (extension args).\n",
             "additionalProperties": true,
             "anyOf": [
                 {
@@ -484,12 +561,11 @@ Start a method asynchronously; returns its pipeline_run_id immediately.
                 },
                 {
                     "required": [
-                        "mthds_contents"
+                        "files"
                     ],
                     "properties": {
-                        "mthds_contents": {
-                            "type": "array",
-                            "minItems": 1
+                        "files": {
+                            "$ref": "#/components/schemas/MethodFiles"
                         }
                     }
                 }
@@ -500,18 +576,18 @@ Start a method asynchronously; returns its pipeline_run_id immediately.
                         "string",
                         "null"
                     ],
-                    "description": "Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents)."
+                    "description": "Code of the pipe to execute (a pipe the runner already holds, or one defined in a bundle of files)."
                 },
-                "mthds_contents": {
-                    "type": [
-                        "array",
-                        "null"
-                    ],
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "MTHDS bundle contents to load (always an array, even for a single file; never empty). Implementations bound count and per-file size."
+                "files": {
+                    "description": "The method to load, as its whole method tree. Implementations bound a file's size, the tree's file count and total size, and the total of the inline entries.",
+                    "anyOf": [
+                        {
+                            "$ref": "#/components/schemas/MethodFiles"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
                 },
                 "inputs": {
                     "type": [
@@ -654,9 +730,7 @@ Parse, validate, and dry-run an MTHDS bundle.
     
     ```json
     {
-        "mthds_contents": [
-            "string"
-        ],
+        "files": {},
         "allow_signatures": true
     }
     ```
@@ -669,16 +743,12 @@ Parse, validate, and dry-run an MTHDS bundle.
         {
             "type": "object",
             "required": [
-                "mthds_contents"
+                "files"
             ],
             "properties": {
-                "mthds_contents": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "MTHDS contents to load (always an array, even for a single file)."
+                "files": {
+                    "$ref": "#/components/schemas/MethodFiles",
+                    "description": "The method to validate, as its whole method tree; the runner judges every bundle and every file a bundle names."
                 },
                 "allow_signatures": {
                     "type": "boolean",
@@ -838,7 +908,8 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
         ```json
         {
             "protocol_version": "string",
-            "runner_version": "string"
+            "runner_version": "string",
+            "blob_store": true
         }
         ```
         <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
@@ -849,7 +920,7 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
             ```json
             {
                 "type": "object",
-                "description": "The handshake. The protocol defines protocol_version (required) plus an optional runner_version; implementations MAY add their own identification (a name, an underlying runtime version, anything else) as additional properties.\n",
+                "description": "The handshake. The protocol defines protocol_version (required) plus an optional runner_version and an optional blob_store flag; implementations MAY add their own identification (a name, an underlying runtime version, anything else) as additional properties.\n",
                 "required": [
                     "protocol_version"
                 ],
@@ -865,6 +936,11 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
                             "null"
                         ],
                         "description": "Version of the runner serving this protocol (optional)."
+                    },
+                    "blob_store": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers any hash entry with a 422 listing missing_blobs.\n"
                     }
                 }
             }
@@ -876,9 +952,303 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
 
 
 
+## <span class="api-tag">blobs</span>
+
+
+<hr class="operation-separator" />
+
+### <span class="http-post">POST</span> /blobs/missing
+Which of these blobs the runner lacks, and where to upload each.
+
+??? note "Description"
+    OPTIONAL — served by a runner whose /version declares blob_store true. The answer lists every blob of the request the runner does not hold, each with an upload target; a blob it holds is left out, and an empty list means there is nothing to upload. The optional digest names the tree the blobs make up: a runner that records the trees it has held in full, recording one only after checking it holds every file the tree's listing names and never taking an uploaded blob as such a record, MAY answer an empty list when it holds the tree that digest names. A hash given twice with different sizes, or a blob past the runner's limits, is a 422, refused before anything is uploaded.
+
+
+
+**Input parameters**
+
+<table>
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>In</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Nullable</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="parameter-name"><code>bearer</code></td>
+            <td>header</td>
+            <td>string</td>
+            <td>N/A</td>
+            <td>No</td>
+            <td>Token semantics are implementation-defined.</td>
+        </tr>
+    </tbody>
+</table>
+<p class="request-body-title"><strong>Request body</strong></p>
+
+
+
+=== "application/json"
+    
+    
+    ```json
+    {
+        "blobs": [
+            {
+                "sha256": "string",
+                "size": 0
+            }
+        ],
+        "digest": "string"
+    }
+    ```
+    <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
+
+    
+
+    ??? hint "Schema of the request body"
+        ```json
+        {
+            "type": "object",
+            "description": "The blobs a sender is about to send by hash, and optionally the tree they make up.",
+            "required": [
+                "blobs"
+            ],
+            "additionalProperties": true,
+            "properties": {
+                "blobs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/BlobRef"
+                    },
+                    "description": "The blobs to check, each hash listed once."
+                },
+                "digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$",
+                    "description": "The tree digest of the method tree the blobs make up (optional)."
+                }
+            }
+        }
+        ```
+
+<p class="responses-title"><strong>Responses</strong></p>
+
+
+=== "200 OK"
+    
+    === "application/json"
+        
+        
+        ```json
+        {
+            "missing": [
+                {
+                    "sha256": "string",
+                    "size": 0,
+                    "upload": {
+                        "method": "string",
+                        "url": "string",
+                        "headers": {}
+                    }
+                }
+            ]
+        }
+        ```
+        <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
+        
+        
+
+        ??? hint "Schema of the response body"
+            ```json
+            {
+                "type": "object",
+                "description": "The blobs of the request the runner does not hold. Extension-open.",
+                "required": [
+                    "missing"
+                ],
+                "additionalProperties": true,
+                "properties": {
+                    "missing": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MissingBlob"
+                        }
+                    }
+                }
+            }
+            ```
+    
+    
+=== "422 Unprocessable Content"
+    <div class="common-response"><p>Refer to the common response description: <a href="#validationproblem" class="ref-link">ValidationProblem</a>.</p></div>
+=== "Other responses"
+    <div class="common-response"><p>Refer to the common response description: <a href="#problem" class="ref-link">Problem</a>.</p></div>
+
+
+<hr class="operation-separator" />
+
+### <span class="http-put">PUT</span> /blobs/<span class="route-param">{sha256}</span>
+Upload one blob's bytes to a runner that stores them itself.
+
+??? note "Description"
+    OPTIONAL — served by a runner that keeps a blob store and stores uploaded bytes itself, as the upload target its POST /blobs/missing answers name. The body is the blob's bytes and nothing else. A body whose SHA-256 differs from the path is a 422. A blob is written once and never changed, so uploading bytes the runner already holds succeeds without changing anything.
+
+
+
+**Input parameters**
+
+<table>
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>In</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Nullable</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="parameter-name"><code>bearer</code></td>
+            <td>header</td>
+            <td>string</td>
+            <td>N/A</td>
+            <td>No</td>
+            <td>Token semantics are implementation-defined.</td>
+        </tr>
+        <tr>
+            <td class="parameter-name"><code>sha256</code></td>
+            <td>path</td>
+            <td>string</td>
+            <td></td>
+            <td>No</td>
+            <td>The SHA-256 of the body, in lowercase hexadecimal.</td>
+        </tr>
+    </tbody>
+</table>
+<p class="request-body-title"><strong>Request body</strong></p>
+
+
+
+=== "application/octet-stream"
+    
+    
+    ```json
+    "TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQ="
+    ```
+    <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
+
+    
+
+    ??? hint "Schema of the request body"
+        ```json
+        {
+            "type": "string",
+            "format": "binary"
+        }
+        ```
+
+<p class="responses-title"><strong>Responses</strong></p>
+
+
+=== "204 No Content"
+=== "422 Unprocessable Content"
+    <div class="common-response"><p>Refer to the common response description: <a href="#validationproblem" class="ref-link">ValidationProblem</a>.</p></div>
+=== "Other responses"
+    <div class="common-response"><p>Refer to the common response description: <a href="#problem" class="ref-link">Problem</a>.</p></div>
+
+
+
 
 ---
 ## Schemas
+
+
+### Base64FileEntry
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>base64</code></td>
+            <td><span class="string-type">string</span></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+### BlobRef
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>sha256</code></td>
+            <td><span class="string-type">string</span></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><code>size</code></td>
+            <td><span class="integer-type">integer</span></td>
+            <td>The length of the bytes, a JSON integer written without a fraction or an exponent. A size written 13.0 is refused, although JSON Schema's integer type admits it.
+</td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+### FileEntry
+<span>Type: </span>
+
+
+
+### HashFileEntry
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>sha256</code></td>
+            <td><span class="string-type">string</span></td>
+            <td>The SHA-256 of the bytes</td>
+        </tr>
+        <tr>
+            <td><code>size</code></td>
+            <td><span class="integer-type">integer</span></td>
+            <td>The length of the bytes, a JSON integer written without a fraction or an exponent. A size written 13.0 is refused, although JSON Schema's integer type admits it.
+</td>
+        </tr>
+    </tbody>
+</table>
+
 
 
 ### InvalidValidationReport
@@ -916,6 +1286,90 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
             <td><code>validation_errors</code></td>
             <td>Array&lt;<a href="#validationerror" class="ref-link">ValidationError</a>&gt;</td>
             <td>Per-error diagnostics — non-empty on every invalid verdict.</td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+### MethodFiles
+
+
+
+
+### MissingBlob
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>sha256</code></td>
+            <td><span class="string-type">string</span></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><code>size</code></td>
+            <td><span class="integer-type">integer</span></td>
+            <td>The length of the bytes, a JSON integer written without a fraction or an exponent. A size written 13.0 is refused, although JSON Schema's integer type admits it.
+</td>
+        </tr>
+        <tr>
+            <td><code>upload</code></td>
+            <td><a href="#uploadtarget" class="ref-link">UploadTarget</a></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+### MissingBlobsRequest
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>blobs</code></td>
+            <td>Array&lt;<a href="#blobref" class="ref-link">BlobRef</a>&gt;</td>
+            <td>The blobs to check, each hash listed once.</td>
+        </tr>
+        <tr>
+            <td><code>digest</code></td>
+            <td><span class="string-type">string</span></td>
+            <td>The tree digest of the method tree the blobs make up (optional).</td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+### MissingBlobsResult
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>missing</code></td>
+            <td>Array&lt;<a href="#missingblob" class="ref-link">MissingBlob</a>&gt;</td>
+            <td></td>
         </tr>
     </tbody>
 </table>
@@ -965,6 +1419,12 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
             <td></td>
         </tr>
         <tr>
+            <td><code>missing_blobs</code></td>
+            <td>Array&lt;<span class="string-type">string</span>&gt;</td>
+            <td>On a 422 refusing hash entries, every hash of the request the runner does not hold, in lowercase hexadecimal, so a sender learns in one answer what to upload.
+</td>
+        </tr>
+        <tr>
             <td><code>status</code></td>
             <td><span class="integer-type">integer</span></td>
             <td></td>
@@ -1001,14 +1461,14 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
             <td>Override for the dynamic output concept reference.</td>
         </tr>
         <tr>
+            <td><code>files</code></td>
+            <td></td>
+            <td>The method to load, as its whole method tree. Implementations bound a file's size, the tree's file count and total size, and the total of the inline entries.</td>
+        </tr>
+        <tr>
             <td><code>inputs</code></td>
             <td></td>
             <td>Method inputs: map of input name to { concept, content }. Content shapes follow the concept's structure; content validation is deliberately loose here and strict inside the runtime.</td>
-        </tr>
-        <tr>
-            <td><code>mthds_contents</code></td>
-            <td>Array&lt;<span class="string-type">string</span>&gt;</td>
-            <td>MTHDS bundle contents to load (always an array, even for a single file; never empty). Implementations bound count and per-file size.</td>
         </tr>
         <tr>
             <td><code>output_multiplicity</code></td>
@@ -1023,7 +1483,7 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
         <tr>
             <td><code>pipe_code</code></td>
             <td><span class="string-type">string</span> &#124; <span class="null-type">null</span></td>
-            <td>Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents).</td>
+            <td>Code of the pipe to execute (a pipe the runner already holds, or one defined in a bundle of files).</td>
         </tr>
     </tbody>
 </table>
@@ -1077,6 +1537,37 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
 
 
 
+### UploadTarget
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>headers</code></td>
+            <td></td>
+            <td>The headers to send, exactly.</td>
+        </tr>
+        <tr>
+            <td><code>method</code></td>
+            <td><span class="string-type">string</span></td>
+            <td>The HTTP method, such as PUT.</td>
+        </tr>
+        <tr>
+            <td><code>url</code></td>
+            <td><span class="string-type">string</span>(<span class="uri-format format">uri</span>)</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+
+
 ### ValidateRequest
 
 <table>
@@ -1094,9 +1585,9 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
             <td>When true, the validation sweep tolerates unimplemented pipe signatures (signatures dry-run by minting a mock). Strict by default.</td>
         </tr>
         <tr>
-            <td><code>mthds_contents</code></td>
-            <td>Array&lt;<span class="string-type">string</span>&gt;</td>
-            <td>MTHDS contents to load (always an array, even for a single file).</td>
+            <td><code>files</code></td>
+            <td><a href="#methodfiles" class="ref-link">MethodFiles</a></td>
+            <td>The method to validate, as its whole method tree; the runner judges every bundle and every file a bundle names.</td>
         </tr>
     </tbody>
 </table>
@@ -1178,6 +1669,12 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
     </thead>
     <tbody>
         <tr>
+            <td><code>blob_store</code></td>
+            <td><span class="boolean-type">boolean</span></td>
+            <td>True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers any hash entry with a 422 listing missing_blobs.
+</td>
+        </tr>
+        <tr>
             <td><code>protocol_version</code></td>
             <td><span class="string-type">string</span></td>
             <td>MTHDS Protocol version implemented.</td>
@@ -1212,7 +1709,10 @@ RFC 7807 problem document.
         "title": "string",
         "status": 0,
         "detail": "string",
-        "instance": "string"
+        "instance": "string",
+        "missing_blobs": [
+            "string"
+        ]
     }
     ```
     <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
@@ -1240,6 +1740,14 @@ RFC 7807 problem document.
                 },
                 "instance": {
                     "type": "string"
+                },
+                "missing_blobs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "description": "On a 422 refusing hash entries, every hash of the request the runner does not hold, in lowercase hexadecimal, so a sender learns in one answer what to upload.\n"
                 }
             }
         }
@@ -1251,7 +1759,7 @@ RFC 7807 problem document.
 
 
 ### ValidationProblem
-The request failed validation (RFC 7807). On /execute and /start a bad bundle also lands here; on /validate an invalid bundle is a 200 verdict, so there a 422 is request-shape only.
+The request failed validation (RFC 7807). On /execute and /start a bad bundle also lands here; on /validate an invalid bundle is a 200 verdict, so there a 422 is request-shape only. A request whose files map is not a tree is a 422 naming the offending path, and a request naming a hash entry the runner does not hold, or any hash entry when it keeps no blob store, is a 422 whose missing_blobs member lists each such hash.
 
 
 <p class="message-separator"></p>
@@ -1265,7 +1773,10 @@ The request failed validation (RFC 7807). On /execute and /start a bad bundle al
         "title": "string",
         "status": 0,
         "detail": "string",
-        "instance": "string"
+        "instance": "string",
+        "missing_blobs": [
+            "string"
+        ]
     }
     ```
     <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
@@ -1293,6 +1804,14 @@ The request failed validation (RFC 7807). On /execute and /start a bad bundle al
                 },
                 "instance": {
                     "type": "string"
+                },
+                "missing_blobs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "description": "On a 422 refusing hash entries, every hash of the request the runner does not hold, in lowercase hexadecimal, so a sender learns in one answer what to upload.\n"
                 }
             }
         }
@@ -1328,10 +1847,12 @@ The request failed validation (RFC 7807). On /execute and /start a bad bundle al
 
 ## Tags
 
-| Name      | Description                                       |
-| --------- | ------------------------------------------------- |
-| run       | Execute methods, synchronously or asynchronously. |
-| validate  | Static + dry-run validation of MTHDS bundles.     |
-| discovery | What this runner is and what it can route to.     |
+| Name      | Description                                                                                                                                                                                                    |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| run       | Execute methods, synchronously or asynchronously.                                                                                                                                                              |
+| validate  | Static + dry-run validation of MTHDS bundles.                                                                                                                                                                  |
+| discovery | What this runner is and what it can route to.                                                                                                                                                                  |
+| blobs     | Optional. A runner whose /version declares blob_store true keeps a blob store (bytes keyed by their SHA-256, written once, never changed), so a sender uploads a file at most once and then sends it by hash.
+ |
 
 

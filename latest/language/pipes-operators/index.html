@@ -2068,6 +2068,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../spec/native-concepts/" class="md-nav__link">
         
   
@@ -3819,15 +3847,21 @@
 <span class="n">model</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"@default-premium"</span>
 </code></pre></div>
 <h2 id="pipefunc">PipeFunc</h2>
-<p>Calls a registered Python function.</p>
+<p>Calls a Python function that lives in the method's own folder.</p>
+<div class="highlight"><pre><span></span><code>text_tools/
+├── METHODS.toml
+├── text.mthds
+└── funcs/
+    └── text_utils.py     (defines capitalize)
+</code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="k">[pipe.capitalize_text]</span>
 <span class="n">type</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeFunc"</span>
 <span class="n">description</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"Capitalize the input text"</span>
 <span class="n">inputs</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">text</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Text"</span><span class="w"> </span><span class="p">}</span>
 <span class="n">output</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"Text"</span>
-<span class="n">function_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"my_package.text_utils.capitalize"</span>
+<span class="n">function_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"funcs.text_utils.capitalize"</span>
 </code></pre></div>
-<p><strong>What this does:</strong> Passes the <code>Text</code> input to the Python function <code>my_package.text_utils.capitalize</code> and returns the result as <code>Text</code>.</p>
+<p><strong>What this does:</strong> Passes the <code>Text</code> input to the function <code>capitalize</code> of the module <code>funcs/text_utils.py</code> and returns the result as <code>Text</code>.</p>
 <p><strong>Key fields:</strong></p>
 <table>
 <thead>
@@ -3841,11 +3875,11 @@
 <tr>
 <td><code>function_name</code></td>
 <td>Yes</td>
-<td>The fully-qualified name of the Python function to call.</td>
+<td>The import path of the Python function to call, from the root of the method's folder: the module path, a dot, and the function's name.</td>
 </tr>
 </tbody>
 </table>
-<p>PipeFunc bridges MTHDS with custom code. The function must be registered in the runtime.</p>
+<p>PipeFunc bridges MTHDS with custom code, and that code is ordinary Python kept beside the bundle. <code>function_name</code> is read the way Python reads an import: the method's root folder is the import root, so <code>funcs.text_utils.capitalize</code> names the function <code>capitalize</code> of <code>funcs/text_utils.py</code>, and that module can import its own helpers from the same folder. A name with no dot names no module and is rejected. The name is read in NFC, so an accented name finds its module however an editor encoded the accent, and a segment that Python would read as another name, such as one holding the ligature <code>ﬁ</code> or a fullwidth letter, is rejected (see <a href="../../spec/mthds-format/#operator-pipefunc">PipeFunc</a>). The Python travels with the method as part of its <a href="../../spec/method-tree/">method tree</a>, and the third-party packages it imports are declared in a <a href="../../spec/method-tree/#python-dependencies-requirementstxt"><code>requirements.txt</code></a> at the root. What the function must look like, and how it is called, is the runtime's to define.</p>
 <h2 id="pipeimggen">PipeImgGen</h2>
 <p>Generates images using an image generation model.</p>
 <div class="highlight"><pre><span></span><code><span class="k">[pipe.generate_portrait]</span>

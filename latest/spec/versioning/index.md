@@ -4,8 +4,8 @@ MTHDS carries **two version numbers**, and they move independently:
 
 | Number | Governs | Current |
 |---|---|---|
-| **Standard version** | The language, the native concept set, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff | `6.0.0` |
-| **Protocol version** | The HTTP runner contract — its routes and their request and response shapes | `0.7.0` |
+| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff | `7.0.0` |
+| **Protocol version** | The HTTP runner contract — its routes and their request and response shapes | `1.0.0` |
 
 Both are [Semantic Versioning 2.0.0](https://semver.org/) numbers. Everything else that carries a version — a package's own `version`, a runner's `runner_version`, an implementation's release number — belongs to that package, runner, or implementation and is governed by whoever publishes it.
 
@@ -17,13 +17,14 @@ It governs everything this specification defines other than the HTTP protocol:
 
 - The [`.mthds` file format](./mthds-format.md) — the language itself: its sections, its keys, its pipe types, its concept structure language.
 - The [native concept definitions](./native-concepts.md) — the pinned set every implementation materializes.
+- The [method tree](./method-tree.md) — which files make up a method, how a file is named and referenced, the tree digest, the file entry, and `requirements.txt`.
 - The [`METHODS.toml` format](./manifest-format.md) and the [`methods.lock` format](./lock-format.md).
 - The [library crate format](./library-crate.md) and the [namespace resolution rules](./namespace-resolution.md).
 - The [CLI I/O contract](./cli-io-contract.md) — the wire form of a stuff, and the envelopes a method reads and writes when it is invoked from a command line.
 
 ### What Bumps the Standard Version
 
-- **MAJOR** — a breaking change to any of the above. A key removed or renamed, a native concept's shape changed, a rule that makes a previously valid bundle, manifest, or lock file invalid, or a previously invalid one valid in a way that changes what an existing document means.
+- **MAJOR** — a breaking change to any of the above. A key removed or renamed, a native concept's shape changed, a rule that changes which files make up a method tree or what its digest is, a rule that makes a previously valid bundle, manifest, or lock file invalid, or a previously invalid one valid in a way that changes what an existing document means.
 - **MINOR** — an additive change. A new native concept, a new pipe type, a new optional key, a new field type: documents valid under the previous version stay valid and keep their meaning.
 - **PATCH** — a change that is normatively inert. A clarification, a corrected example, a reworded rule that states what was already true, a new guide, a typo fix.
 

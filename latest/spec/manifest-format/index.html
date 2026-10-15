@@ -1756,6 +1756,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../native-concepts/" class="md-nav__link">
         
   
@@ -1965,6 +1993,17 @@
     <span class="md-ellipsis">
       
         Main Pipe
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exclude" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exclude
       
     </span>
   </a>
@@ -3254,6 +3293,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#exclude" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exclude
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3509,6 +3559,12 @@
 <td>No</td>
 <td>The package's entry-point pipe code. MUST be <code>snake_case</code> (matching <code>[a-z][a-z0-9_]*</code>). Auto-exported by virtue of being <code>main_pipe</code>. See <a href="#main-pipe">Main Pipe</a>.</td>
 </tr>
+<tr>
+<td><code>exclude</code></td>
+<td>array of strings</td>
+<td>No</td>
+<td>Patterns, in <code>.gitignore</code> syntax, naming files to keep out of the package's method tree. See <a href="#exclude">Exclude</a>.</td>
+</tr>
 </tbody>
 </table>
 <h3 id="address-format">Address Format</h3>
@@ -3563,7 +3619,7 @@ acme/legal-tools                # No dot in hostname
 <p><strong>Examples:</strong> <code>1.0.0</code>, <code>0.3.0</code>, <code>2.1.3-beta.1</code>, <code>1.0.0-rc.1+build.42</code></p>
 <h3 id="mthds_version-constraints">mthds_version Constraints</h3>
 <p>The <code>mthds_version</code> field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see <a href="#version-constraint-syntax">Version Constraint Syntax</a>).</p>
-<p>The current MTHDS standard version is <code>6.0.0</code>. See <a href="../versioning/">Versioning</a> for what moves it.</p>
+<p>The current MTHDS standard version is <code>7.0.0</code>. See <a href="../versioning/">Versioning</a> for what moves it.</p>
 <h3 id="main-pipe">Main Pipe</h3>
 <p>The optional <code>main_pipe</code> field designates the package's primary entry point — the pipe that runs when a user invokes the package by name or address:</p>
 <div class="highlight"><pre><span></span><code>mthds<span class="w"> </span>run<span class="w"> </span>method<span class="w"> </span>nda_analyzer
@@ -3582,6 +3638,20 @@ mthds<span class="w"> </span>run<span class="w"> </span>method<span class="w"> <
 <span class="n">version</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"0.3.0"</span>
 <span class="n">main_pipe</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"analyze_nda"</span>
 </code></pre></div>
+<h3 id="exclude">Exclude</h3>
+<p>The optional <code>exclude</code> field lists patterns naming files to keep out of the package's <a href="../method-tree/">method tree</a> without keeping them out of git, such as sample data an author keeps in the repository but that no run needs:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[package]</span>
+<span class="n">name</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"invoice_letters"</span>
+<span class="n">address</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"github.com/acme/invoice-letters"</span>
+<span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"1.0.0"</span>
+<span class="n">exclude</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"samples/"</span><span class="p">,</span><span class="w"> </span><span class="s2">"*.psd"</span><span class="p">]</span>
+</code></pre></div>
+<p><strong>Constraints:</strong></p>
+<ul>
+<li>Each entry is one pattern in the syntax of a <code>.gitignore</code> file, as <a href="https://git-scm.com/docs/gitignore" target="_blank" rel="noopener">gitignore</a> documents it, and MUST NOT hold a line break. An entry starting with <code>#</code> is a comment, as it would be in a <code>.gitignore</code> file, and <code>\#</code> escapes it.</li>
+<li>The patterns are read relative to the package's root, as git reads <code>core.excludesFile</code>, below every <code>.gitignore</code> file of the tree in precedence. <a href="../method-tree/#the-membership-rule">The Membership Rule</a> states how they combine with the tree's other exclusions.</li>
+<li>Each pattern is normalized to NFC before it is matched, as <a href="../method-tree/#the-membership-rule">the membership rule</a> normalizes every pattern, so a pattern written in decomposed form matches the same names as one written composed.</li>
+</ul>
 <h2 id="the-dependencies-section">The <code>[dependencies]</code> Section</h2>
 <div class="admonition note">
 <p class="admonition-title">Implementation status</p>
@@ -3774,6 +3844,7 @@ mthds<span class="w"> </span>run<span class="w"> </span>method<span class="w"> <
 <li>No package address (not distributable).</li>
 </ul>
 <p>This preserves the "single file = working method" experience for learning, prototyping, and simple projects.</p>
+<p>A method with no manifest is either a directory a caller hands over, whose method tree is rooted at that directory, or a <code>.mthds</code> file named alone, whose method tree is that one file and nothing else, so a file reference from it to any file beside it is refused. See <a href="../method-tree/#the-root">Method Tree: The Root</a>.</p>
 <h2 id="package-directory-structure">Package Directory Structure</h2>
 <p>A package is a directory containing a <code>METHODS.toml</code> manifest and one or more <code>.mthds</code> bundle files. The directory layout follows a progressive enhancement principle — start minimal, add structure as needed.</p>
 <p><strong>Minimal package:</strong></p>
@@ -3789,25 +3860,32 @@ mthds<span class="w"> </span>run<span class="w"> </span>method<span class="w"> <
 ├── contract_analysis.mthds
 ├── shareholder_agreements.mthds
 ├── scoring.mthds
+├── requirements.txt
+├── funcs/
+│   └── scoring.py
+├── templates/
+│   └── nda_report.html
 ├── README.md
 └── LICENSE
 </code></pre></div>
 <p><strong>Rules:</strong></p>
 <ul>
-<li><code>METHODS.toml</code> MUST be at the directory root.</li>
+<li><code>METHODS.toml</code> MUST be at the directory root, which is the root of the package's <a href="../method-tree/">method tree</a>.</li>
 <li><code>methods.lock</code> MUST be at the directory root, alongside <code>METHODS.toml</code>.</li>
-<li><code>.mthds</code> files MAY be at the root or in subdirectories. A compliant implementation MUST discover all <code>.mthds</code> files recursively.</li>
-<li>A single directory SHOULD contain one package. A repository MAY host several packages in subdirectories — a <strong>library repository</strong> — in which case each package is identified by its own manifest, and a specific package is located by manifest identity, never by directory path (see <a href="../../packages/distribution/#locating-a-package-inside-a-clone">Distribution: Locating a Package Inside a Clone</a>).</li>
+<li><code>.mthds</code> files MAY be at the root or in subdirectories. A compliant implementation MUST load every <code>.mthds</code> file of the method tree, and only those: a bundle the <a href="../method-tree/#the-membership-rule">membership rule</a> excludes is not part of the package.</li>
+<li>Every file of the method tree belongs to the package and travels with it, whether a step reads it, such as a Python module or a template, or it is carried for people and agents, such as a <code>README.md</code>.</li>
+<li>A single directory SHOULD contain one package. A repository MAY host several packages in subdirectories — a <strong>library repository</strong> — in which case each package is identified by its own manifest, and a specific package is located by manifest identity, never by directory path (see <a href="../../packages/distribution/#locating-a-package-inside-a-clone">Distribution: Locating a Package Inside a Clone</a>). A package in a directory below another package's root is out of that package's method tree, by the <a href="../method-tree/#the-membership-rule">membership rule</a>'s nested-package default, so packages never hold one another.</li>
 <li>The directory name is not part of the package's identity and MAY differ from the manifest <code>name</code> (see <a href="#name">Name</a>).</li>
 </ul>
 <h2 id="manifest-discovery">Manifest Discovery</h2>
-<p>When loading a <code>.mthds</code> bundle, a compliant implementation SHOULD discover the manifest by walking up from the bundle file's directory:</p>
+<p>When loading a <code>.mthds</code> bundle, a compliant implementation SHOULD discover the manifest by walking up from the bundle file's directory, or from the directory a caller hands over:</p>
 <ol>
 <li>Check the current directory for <code>METHODS.toml</code>.</li>
 <li>If not found, move to the parent directory.</li>
-<li>Stop when <code>METHODS.toml</code> is found, a <code>.git</code> directory is encountered, or the filesystem root is reached.</li>
+<li>Stop when <code>METHODS.toml</code> is found, an entry named <code>.git</code> of any kind is encountered (a directory, a file such as the one a submodule or a worktree holds, or a symbolic link, never followed), which is the entry that marks a nested repository under <a href="../method-tree/#the-membership-rule">the membership rule</a>, or the filesystem root is reached.</li>
 <li>If no manifest is found, the bundle is treated as a standalone bundle (no package).</li>
 </ol>
+<p>The directory where discovery finds <code>METHODS.toml</code> is the root of the method's tree. When discovery finds none, the root is the directory handed over, or, for a <code>.mthds</code> file named alone, the tree is that one file (see <a href="../method-tree/#the-root">Method Tree: The Root</a>).</p>
 <h2 id="complete-manifest-example">Complete Manifest Example</h2>
 <div class="highlight"><pre><span></span><code><span class="k">[package]</span>
 <span class="n">name</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="s2">"nda_analyzer"</span>
@@ -3817,8 +3895,9 @@ mthds<span class="w"> </span>run<span class="w"> </span>method<span class="w"> <
 <span class="n">description</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"Legal document analysis and contract review methods."</span>
 <span class="n">authors</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"ACME Legal Tech &lt;legal@acme.com&gt;"</span><span class="p">]</span>
 <span class="n">license</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"MIT"</span>
-<span class="n">mthds_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"&gt;=6.0.0"</span>
+<span class="n">mthds_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"&gt;=7.0.0"</span>
 <span class="n">main_pipe</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"analyze_nda"</span>
+<span class="n">exclude</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"drafts/"</span><span class="p">]</span>
 
 <span class="k">[exports.legal]</span>
 <span class="n">pipes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"classify_document"</span><span class="p">]</span>

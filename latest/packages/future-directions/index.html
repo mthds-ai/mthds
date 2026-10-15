@@ -1854,6 +1854,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../spec/native-concepts/" class="md-nav__link">
         
   
@@ -3065,7 +3093,7 @@
 <p>Constructing the graph is an indexing concern layered over the specified pipeline: resolve every concept reference (including cross-package <code>refines</code> targets through declared aliases) to an address-prefixed identity, build refinement edges, and connect pipes whose types are compatible — excluding, rather than guessing at, anything unresolvable. Type-driven results would be ranked purely by types: social signals never influence them.</p>
 <p>The vision — a federated, typed, searchable network of AI methods that agents can navigate and extend — is described on <a href="../../know-how-graph/">The Know-How Graph</a>.</p>
 <h2 id="signed-manifests-and-a-trust-store">Signed Manifests and a Trust Store</h2>
-<p>The specified integrity chain is content-derived: the lock's byte hash and crate fingerprint are recomputable by anyone from source (see <a href="../lock-file/">The Lock File</a>). Signed manifests would add <strong>provenance</strong> on top — <em>who published this</em> — for ecosystems that need it:</p>
+<p>The specified integrity chain is content-derived: the lock's tree digest and crate fingerprint are recomputable by anyone from source (see <a href="../lock-file/">The Lock File</a>). Signed manifests would add <strong>provenance</strong> on top — <em>who published this</em> — for ecosystems that need it:</p>
 <ul>
 <li>A detached signature object binding the SHA-256 of the raw <code>METHODS.toml</code> bytes to an Ed25519 signature, with the signer identity, a timestamp, and a <code>public_key_id</code> for key rotation.</li>
 <li>Verification: recompute the manifest digest, reconstruct the canonical signing payload (sorted-key JSON, no whitespace), verify the signature against the identified public key.</li>

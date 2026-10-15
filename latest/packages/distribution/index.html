@@ -1497,6 +1497,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#a-packages-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A Package's Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-two-caches" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1889,6 +1900,34 @@
     
   
     .mthds File Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
   
 
     
@@ -3075,6 +3114,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#a-packages-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A Package's Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#the-two-caches" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3187,21 +3237,25 @@ github.com/mthds/methods/documents     → https://github.com/mthds/methods.git
 <p>If no manifest matches, or more than one does, the tool MUST fail loudly, listing the package identities the clone does contain. It MUST NOT fall back to guessing by directory name.</p>
 <h2 id="version-tags">Version Tags</h2>
 <p>Version tags in remote repositories may use a <code>v</code> prefix (e.g., <code>v1.0.0</code>). The prefix is stripped during version parsing. Both <code>v1.0.0</code> and <code>1.0.0</code> are recognized.</p>
-<p>Tags are listed using <code>git ls-remote --tags</code>, and only those that parse as valid semantic versions are considered. Fetching a resolved version clones at its tag: <code>git clone --depth 1 --branch {tag}</code>.</p>
+<p>Tags are listed using <code>git ls-remote --tags</code>, and only those that parse as valid semantic versions are considered. Fetching a resolved version clones at its tag without a checkout, <code>git clone --depth 1 --branch {tag} --no-checkout</code>, and reads the package's files from the commit itself (see <a href="#a-packages-files">A Package's Files</a>).</p>
 <div class="admonition note">
 <p class="admonition-title">Open question: version tags in a library repository</p>
 <p>Git tags are repository-wide, while each package in a library repository carries its own manifest <code>version</code>. How repository tags map to per-package versions — per-package tag prefixes are the anticipated direction — is an open question of the standard, deliberately recorded rather than silently decided. Until it is settled, packages that need independently versioned releases SHOULD live in their own repositories, and a library repository SHOULD version its packages in lockstep.</p>
 </div>
 <p>A tag can be re-pointed; the commit it resolved to cannot. Tools therefore record the <strong>resolved commit SHA</strong> of every fetch — it is the provenance entry in the <a href="../lock-file/">lock file</a> and the honest key for any clone cache. Every fetched-package operation SHOULD be attributable to its <code>(address, tag, commit)</code> triple.</p>
+<h2 id="a-packages-files">A Package's Files</h2>
+<p>A package is a <a href="../../spec/method-tree/">method tree</a>: every file of its directory travels with it, its bundles, its Python modules, its templates and its <code>README.md</code> alike, except the files the <a href="../../spec/method-tree/#the-membership-rule">membership rule</a> keeps out. A fetched package's files are read from the resolved commit's git objects exactly as they were committed, with no checkout filter, line-ending conversion or <code>export-ignore</code> attribute applied, and filtered by that same rule, reading the <code>.gitignore</code> files the commit holds. So a file committed despite a <code>.gitignore</code> pattern that matches it is out of the published package, as it is out of a local run of the same directory, and the package's <a href="../../spec/method-tree/#the-tree-digest">tree digest</a>, which the <a href="../lock-file/">lock file</a> records, is the same on every machine.</p>
+<p>A package never carries another package inside it: each dependency is a tree of its own, with its own digest, and the <code>.mthds/</code> folder where a project keeps its installed packages starts with a dot, so it is out of every tree.</p>
 <h2 id="the-two-caches">The Two Caches</h2>
 <p>Two caches with two distinct jobs stand between a remote repository and a running method:</p>
 <ul>
-<li>The <strong>global VCS cache</strong>, <code>~/.mthds/packages/{address}/{version}/</code>, holds fetched package sources, shared across projects. Entries are written atomically (staging directory, then rename), the <code>.git</code> directory is removed, and each entry records the commit SHA it was fetched at.</li>
+<li>The <strong>global VCS cache</strong>, <code>~/.mthds/packages/{address}/{version}/</code>, holds fetched packages' trees, shared across projects. Entries are written atomically (staging directory, then rename), each holds the package's tree and nothing else, written from the commit's objects, and each records the commit SHA it was fetched at.</li>
 <li>The <strong>project-local method cache</strong>, <code>.mthds/methods/&lt;name&gt;/</code> inside the consuming project, is what <a href="../../spec/library-crate/#closure-assembly">closure assembly</a> reads. It is deterministic by construction: resolution reads only from disk.</li>
 </ul>
-<p><strong>Install is the bridge.</strong> Installing a package's dependencies walks the <a href="../lock-file/">lock file</a>, fetches anything missing into the global cache (verifying the byte hash against the lock — a mismatch is a hard failure), and materializes each locked dependency into the project-local cache. After install, resolving and running the method touches no network.</p>
+<p>An entry of either cache is a package's tree as written: a reader takes every file of the entry as a file of the package and never applies the <a href="../../spec/method-tree/#the-membership-rule">membership rule</a> to it again. The <code>.gitignore</code> files that shaped the tree are not in the entry, so applying the rule a second time could drop a file the package holds, one that a manifest <code>exclude</code> pattern names and a <code>.gitignore</code> file re-included (see <a href="../../spec/method-tree/#dependencies-are-trees-of-their-own">Method Tree: Dependencies Are Trees of Their Own</a>).</p>
+<p><strong>Install is the bridge.</strong> Installing a package's dependencies walks the <a href="../lock-file/">lock file</a>, fetches anything missing into the global cache (verifying the tree digest against the lock — a mismatch is a hard failure), and materializes each locked dependency into the project-local cache. After install, resolving and running the method touches no network.</p>
 <h2 id="fetched-content-and-runtime-policy">Fetched Content and Runtime Policy</h2>
-<p>A fetched package directory may contain files beyond <code>.mthds</code> bundles — documentation, assets, or implementation-specific code. What a runtime <em>executes</em> from fetched content is runtime policy, not standard semantics: a runtime MAY refuse fetched executable content, or classes of it, according to its own security model, and SHOULD say so with an error that names the rule rather than silently ignoring files. The standard requires only that the MTHDS content itself — manifest, bundles, lock — be interpreted as specified.</p>
+<p>A fetched package's tree may hold files beyond <code>.mthds</code> bundles — documentation, assets, or implementation-specific code. What a runtime <em>executes</em> from fetched content is runtime policy, not standard semantics: a runtime MAY refuse fetched executable content, or classes of it, according to its own security model, and SHOULD say so with an error that names the rule rather than silently ignoring files. The standard requires only that the MTHDS content itself — manifest, bundles, lock — be interpreted as specified.</p>
 <h2 id="discovery-registry-indexes">Discovery: Registry Indexes</h2>
 <p>One or more <a href="../registry/">registries</a> index packages without owning them: they crawl known package addresses, parse manifests and bundles, and serve search, package pages, validation badges, and freshness signals.</p>
 <p><strong>The registry is off the install path — by design, not by accident.</strong> Because <a href="../version-resolution/">version resolution</a> needs nothing beyond the manifests and the repositories' own tags, and packages are fetched straight from their repositories, bare Git access is sufficient to resolve, lock, and install anything. A registry can disappear without breaking a single build.</p>

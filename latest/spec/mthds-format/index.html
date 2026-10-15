@@ -12,7 +12,7 @@
     <link rel="prev" href="../versioning/">
   
   
-    <link rel="next" href="../native-concepts/">
+    <link rel="next" href="../method-tree/">
   
   
     
@@ -2447,6 +2447,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../native-concepts/" class="md-nav__link">
         
   
@@ -4809,7 +4837,7 @@
 <tr>
 <td>PipeFunc</td>
 <td><code>"PipeFunc"</code></td>
-<td>Calls a registered Python function.</td>
+<td>Calls a Python function of the method's tree.</td>
 </tr>
 <tr>
 <td>PipeImgGen</td>
@@ -5167,7 +5195,7 @@
 <span class="n">model</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"@default-premium"</span>
 </code></pre></div>
 <h2 id="operator-pipefunc">Operator: PipeFunc</h2>
-<p>Calls a registered Python function.</p>
+<p>Calls a Python function of the method's tree.</p>
 <table>
 <thead>
 <tr>
@@ -5206,18 +5234,32 @@
 <td><code>function_name</code></td>
 <td>string</td>
 <td>Yes</td>
-<td>The fully-qualified name of the Python function to call.</td>
+<td>The import path of the Python function to call, read from the root of the <a href="../method-tree/">method tree</a> that holds the bundle.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Example:</strong></p>
+<div class="highlight"><pre><span></span><code>text_tools/
+├── METHODS.toml
+├── text.mthds
+└── funcs/
+    └── text_utils.py     (defines capitalize)
+</code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="k">[pipe.capitalize_text]</span>
 <span class="n">type</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeFunc"</span>
 <span class="n">description</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"Capitalize the input text"</span>
 <span class="n">inputs</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">text</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Text"</span><span class="w"> </span><span class="p">}</span>
 <span class="n">output</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"Text"</span>
-<span class="n">function_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"my_package.text_utils.capitalize"</span>
+<span class="n">function_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"funcs.text_utils.capitalize"</span>
 </code></pre></div>
+<p><strong>Locating the function.</strong> <code>function_name</code> is a Python import path whose import root is the root of the method tree that holds the bundle, which for a bundle of a dependency is that dependency's own root. The name is normalized to NFC before anything else, as a <a href="../method-tree/#file-references">file reference</a> is, so a name an editor wrote in decomposed form finds the module whose tree path is in NFC: <code>function_name = "café.brew"</code>, its <code>é</code> written as <code>e</code> and a combining accent, names the function <code>brew</code> of the module <code>café.py</code>. The name then splits at its last dot: the part before it is the module path and the part after it is the name of the function, an attribute of that module. The module path <code>funcs.text_utils</code> names the file <code>funcs/text_utils.py</code> of the tree, or the package <code>funcs/text_utils/__init__.py</code>, each dot of the module path being read as a <code>/</code>, and the modules that module imports are resolved by Python from the same root, so a helper module in a subdirectory has a place to live and relative imports work.</p>
+<p><strong>Validation rules:</strong></p>
+<ul>
+<li><code>function_name</code> MUST hold at least one dot. A name with no dot, such as <code>capitalize</code>, names no module and is rejected.</li>
+<li>Every dot-separated segment of <code>function_name</code>, once the name is in NFC, MUST be a Python identifier that is not a Python keyword and that NFKC normalization leaves unchanged. Python reads identifiers in NFKC, so a segment NFKC would change would make Python import another file than the one the tree holds under that name: <code>function_name = "ﬁles.load"</code>, whose first letters are the ligature <code>ﬁ</code>, would be imported as <code>files</code> while the tree's lookup names <code>ﬁles.py</code>. Such a segment, holding a ligature or a fullwidth letter, is rejected as an invalid <code>function_name</code>, never mapped to its NFKC form.</li>
+<li>The module path MUST name a module of the tree: the tree holds the file <code>&lt;module path&gt;.py</code> or the file <code>&lt;module path&gt;/__init__.py</code>. A tree holding both is rejected as ambiguous, naming both files. A validator given the tree checks this without running any Python, and names the pipe whose module is missing.</li>
+</ul>
+<p>A method declares the third-party Python packages its functions import in its <a href="../method-tree/#python-dependencies-requirementstxt"><code>requirements.txt</code></a>. The standard specifies how a step locates its function and nothing about what the function must look like: how a runtime marks a function as callable from a method, the convention by which it is called, and how the runtime imports a tree's modules without letting them collide with another tree's or with its own are the runtime's to define and check.</p>
 <h2 id="operator-pipeimggen">Operator: PipeImgGen</h2>
 <p>Generates images using an image generation model. The pipe carries a required <code>prompt</code> string template (and an optional <code>negative_prompt</code> template); it does not take a dedicated prompt concept as input. Declared <code>inputs</code> are injected into the <code>prompt</code> at runtime, each variable according to the concept its path reaches (see <a href="#inputs-read-through-templates">Inputs Read Through Templates</a>): a variable that reaches text is interpolated into the prompt text, while a variable that reaches an <code>Image</code> (a single image or a list), such as <code>$source</code> on a <code>source = "Image"</code> input or <code>$page.page_view</code> on a <code>page = "Page"</code> input, is injected as a reference image — each image becomes an <code>[Image N]</code> token in the rendered text and is passed to the generator alongside it, enabling image-to-image, reference-image, and image-editing generation.</p>
 <table>
@@ -7033,13 +7075,13 @@
         
         
           
-          <a href="../native-concepts/" class="md-footer__link md-footer__link--next" aria-label="Next: Native Concept Definitions">
+          <a href="../method-tree/" class="md-footer__link md-footer__link--next" aria-label="Next: Method Tree">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Native Concept Definitions
+                Method Tree
               </div>
             </div>
             <div class="md-footer__button md-icon">

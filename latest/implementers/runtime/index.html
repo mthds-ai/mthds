@@ -1744,6 +1744,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../spec/native-concepts/" class="md-nav__link">
         
   
@@ -3189,7 +3217,7 @@
     while true:
         if "METHODS.toml" exists in current:
             return parse_manifest(current / "METHODS.toml")
-        if ".git" directory exists in current:
+        if an entry named ".git" is present in current, as lstat sees it:  // any kind, a dangling link included, never followed
             return null  // stop at repository boundary
         parent = parent_directory(current)
         if parent == current:
@@ -3197,11 +3225,12 @@
         current = parent
 </code></pre></div>
 <p>If no manifest is found, the bundle is treated as a standalone bundle: all pipes are public, no dependencies are available beyond native concepts, and the bundle is not distributable.</p>
+<p>The directory where the manifest is found is the root of the method's <a href="../../spec/method-tree/">tree</a>. With no manifest, the root is the directory the caller handed over, or, for a bundle named alone, the tree is that one file, and a file reference from it to any other file is refused, saying to run the method's directory or to add a <code>METHODS.toml</code>.</p>
 <h2 id="loading-a-package">Loading a Package</h2>
 <p>Loading a package involves these steps in order:</p>
 <ol>
 <li><strong>Parse the manifest</strong> — read <code>METHODS.toml</code> and validate all fields (address, version, dependencies, exports). Reject immediately on any parse or validation error.</li>
-<li><strong>Discover bundles</strong> — recursively find all <code>.mthds</code> files under the package root.</li>
+<li><strong>List the method tree</strong> — for a directory being listed, apply the <a href="../../spec/method-tree/#the-membership-rule">membership rule</a> under the root, refusing a symbolic link and a malformed path; for a package read from a cache, take every file of the cache entry as written, since those files already are its tree and the rule is never applied to them again. Take every <code>.mthds</code> file of the tree as the package's bundles. Every other file of the tree is a method file a step may name by <a href="../../spec/method-tree/#file-references">file reference</a> or, for a <code>PipeFunc</code>, by import path; resolve each by looking it up in the tree's set of paths, never by opening a path.</li>
 <li><strong>Parse all bundles</strong> — parse each <code>.mthds</code> file into a bundle blueprint. Collect parse errors.</li>
 <li><strong>Resolve dependencies</strong> — for each dependency in the manifest:<ul>
 <li>If it has a <code>path</code> field, resolve from the local filesystem (non-transitive).</li>
@@ -3331,7 +3360,7 @@
 <p>See <a href="../../language/pipes-operators/#template-mode">Pipes — Operators: Template Mode</a> for the user-facing reference on template categories, filters, and shorthand syntax.</p>
 <p>A compliant runtime must support the plain string form of <code>template</code>. The table form with <code>category</code>, <code>templating_style</code>, and <code>extra_context</code> is an advanced feature that implementations may support progressively.</p>
 <h2 id="exposing-a-runner-over-http">Exposing a Runner over HTTP</h2>
-<p>A runtime becomes a network-accessible <strong>runner</strong> by implementing the <a href="../../spec/protocol/">MTHDS Protocol</a> — the minimal HTTP contract of five routes: <code>POST /execute</code>, <code>POST /start</code>, <code>POST /validate</code>, <code>GET /models</code>, <code>GET /version</code>. The normative artifact is the protocol's <a href="../../spec/openapi/mthds-protocol.openapi.yaml">OpenAPI document</a>.</p>
+<p>A runtime becomes a network-accessible <strong>runner</strong> by implementing the <a href="../../spec/protocol/">MTHDS Protocol</a> — the minimal HTTP contract of five required routes: <code>POST /execute</code>, <code>POST /start</code>, <code>POST /validate</code>, <code>GET /models</code>, <code>GET /version</code>, plus the optional <code>POST /blobs/missing</code> and <code>PUT /blobs/{sha256}</code> for a runner that keeps a blob store. A method reaches a runner as its whole <a href="../../spec/method-tree/">method tree</a>, a <code>files</code> map of file entries, so the runner reads a method only from the files it is sent. The normative artifact is the protocol's <a href="../../spec/openapi/mthds-protocol.openapi.yaml">OpenAPI document</a>.</p>
 <p>The protocol deliberately excludes everything that is not "run a method": no run store, no completion channel for async runs (webhooks or polling are implementation extensions), no users, no billing, no catalog. Implementations may extend the surface with extra routes or optional request properties, but must not change the protocol routes' shapes — see the <a href="../../spec/protocol/#extension-policy">extension policy</a>.</p>
 <p>The reference implementation is <code>pipelex-api</code> (source-available under the Elastic License 2.0, self-hostable Docker image), which implements the protocol and extends it with stateless <code>/build/*</code> authoring helpers. That license belongs to the implementation, not to the protocol: the standard and its OpenAPI document are published under the <a href="../../license/">MIT License</a>, and any runtime may implement the protocol under a license of its own choosing.</p>
 <p><code>/validate</code> is a diagnostic endpoint: a produced verdict — valid or invalid — always rides a 200, discriminated on <code>is_valid</code> (the protocol also declares the runnability facts <code>is_runnable</code> / <code>pending_signatures</code>; a non-2xx means <em>no verdict could be produced</em>, not an invalid bundle). Beyond those declared fields a runner returns its own verification artifacts as implementation-defined additional properties on the valid arm. The reference implementation (Pipelex) returns <code>pipe_io_contracts</code> — a map keyed by namespaced <code>pipe_ref</code> (<code>&lt;domain&gt;.&lt;pipe_code&gt;</code>) giving each pipe's resolved input and output contracts (the concept and multiplicity of every input and of the output). The map contains entries only for pipes defined in the validated package, not its transitive dependencies (whose pipes resolve under the package-qualified <code>alias-&gt;domain.pipe_code</code> form), so the <code>&lt;domain&gt;.&lt;pipe_code&gt;</code> keys cannot collide across packages. The name is documented here only to encourage convergence among implementations; it is not part of the protocol, and other runners may expose their own artifacts under their own keys. On the invalid arm (<code>is_valid: false</code>) the protocol requires a non-empty <code>validation_errors[]</code> (one diagnostic per failure); each item's <code>category</code> is implementation-defined — the reference implementation (Pipelex) narrows it to its own closed vocabulary.</p>

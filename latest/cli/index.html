@@ -1754,6 +1754,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../spec/native-concepts/" class="md-nav__link">
         
   
@@ -3497,14 +3525,14 @@ mthds<span class="w"> </span>package<span class="w"> </span>add<span class="w"> 
 <p><strong>Usage:</strong></p>
 <div class="highlight"><pre><span></span><code>mthds package lock
 </code></pre></div>
-<p>Reads the <code>[dependencies]</code> section of <code>METHODS.toml</code>, resolves all versions with <a href="../packages/version-resolution/">Minimum Version Selection</a> (including transitive dependencies), and writes the lock file: exact versions, byte hashes, crate fingerprints, sources, and commits. Because resolution is deterministic from the manifests, re-running <code>lock</code> against unchanged manifests reproduces the same file.</p>
+<p>Reads the <code>[dependencies]</code> section of <code>METHODS.toml</code>, resolves all versions with <a href="../packages/version-resolution/">Minimum Version Selection</a> (including transitive dependencies), and writes the lock file: exact versions, tree digests, crate fingerprints, sources, and commits. Because resolution is deterministic from the manifests, re-running <code>lock</code> against unchanged manifests reproduces the same file.</p>
 <hr>
 <h3 id="mthds-package-install"><code>mthds package install</code></h3>
 <p>Fetch and verify all dependencies pinned by <code>methods.lock</code>.</p>
 <p><strong>Usage:</strong></p>
 <div class="highlight"><pre><span></span><code>mthds package install
 </code></pre></div>
-<p>For each entry in the lock file, checks the global cache (<code>~/.mthds/packages/</code>), fetches what is missing via Git, verifies the byte hash against the lock (a mismatch is a hard failure), and materializes each dependency into the project-local cache (see <a href="../packages/distribution/#the-two-caches">Distribution: The Two Caches</a>).</p>
+<p>For each entry in the lock file, checks the global cache (<code>~/.mthds/packages/</code>), fetches what is missing via Git, verifies the tree digest against the lock (a mismatch is a hard failure), and materializes each dependency into the project-local cache (see <a href="../packages/distribution/#the-two-caches">Distribution: The Two Caches</a>).</p>
 <hr>
 <h3 id="mthds-package-update"><code>mthds package update</code></h3>
 <p>Raise the dependency floors in <code>METHODS.toml</code> to the latest available versions, then re-lock.</p>

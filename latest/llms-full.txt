@@ -101,7 +101,7 @@ The infrastructure for distributing and composing methods at scale.
 
 When a standalone bundle is not enough — when you want to share methods, depend on other people's work, or control which methods are public — you add a `METHODS.toml` manifest. This turns a directory of bundles into a **package**: a distributable unit with a globally unique address, semantic versioning, declared dependencies, and explicit exports.
 
-Packages are stored in Git repositories. The package address (e.g., `github.com/acme/legal-tools`) doubles as the fetch location — no upload step, no proprietary hosting. A lock file (`methods.lock`) pins exact versions with integrity hashes and semantic fingerprints for verifiable installs.
+Packages are stored in Git repositories. The package address (e.g., `github.com/acme/legal-tools`) doubles as the fetch location — no upload step, no proprietary hosting. A lock file (`methods.lock`) pins exact versions with tree digests and semantic fingerprints for verifiable installs.
 
 Cross-package references use the `->` syntax: `scoring_lib->scoring.compute_weighted_score` reads as "from the `scoring_lib` dependency, get `compute_weighted_score` in the `scoring` domain." The separator was chosen for readability by non-technical audiences — arrows are intuitive, visually distinct from dots, and universally understood.
 
@@ -507,6 +507,8 @@ A `.mthds` file works on its own, without a package manifest. When used standalo
 - The bundle is not distributable (no package address).
 
 This makes `.mthds` files ideal for learning, prototyping, and simple projects. When you need distribution, add a `METHODS.toml` manifest — see [The Package System](../packages/structure.md).
+
+A bundle named on its own is a method of one file: the files beside it do not travel with it, so a step that names a template or a Python module next to it is refused until you run the bundle's folder instead, or add a `METHODS.toml` to make that folder a method's root. See [Method Tree: The Root](../spec/method-tree.md#the-root).
 
 
 ## Concepts
@@ -1128,7 +1130,15 @@ model       = "@default-premium"
 
 ## PipeFunc
 
-Calls a registered Python function.
+Calls a Python function that lives in the method's own folder.
+
+```
+text_tools/
+├── METHODS.toml
+├── text.mthds
+└── funcs/
+    └── text_utils.py     (defines capitalize)
+```
 
 ```toml
 [pipe.capitalize_text]
@@ -1136,18 +1146,18 @@ type          = "PipeFunc"
 description   = "Capitalize the input text"
 inputs        = { text = "Text" }
 output        = "Text"
-function_name = "my_package.text_utils.capitalize"
+function_name = "funcs.text_utils.capitalize"
 ```
 
-**What this does:** Passes the `Text` input to the Python function `my_package.text_utils.capitalize` and returns the result as `Text`.
+**What this does:** Passes the `Text` input to the function `capitalize` of the module `funcs/text_utils.py` and returns the result as `Text`.
 
 **Key fields:**
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `function_name` | Yes | The fully-qualified name of the Python function to call. |
+| `function_name` | Yes | The import path of the Python function to call, from the root of the method's folder: the module path, a dot, and the function's name. |
 
-PipeFunc bridges MTHDS with custom code. The function must be registered in the runtime.
+PipeFunc bridges MTHDS with custom code, and that code is ordinary Python kept beside the bundle. `function_name` is read the way Python reads an import: the method's root folder is the import root, so `funcs.text_utils.capitalize` names the function `capitalize` of `funcs/text_utils.py`, and that module can import its own helpers from the same folder. A name with no dot names no module and is rejected. The name is read in NFC, so an accented name finds its module however an editor encoded the accent, and a segment that Python would read as another name, such as one holding the ligature `ﬁ` or a fullwidth letter, is rejected (see [PipeFunc](../spec/mthds-format.md#operator-pipefunc)). The Python travels with the method as part of its [method tree](../spec/method-tree.md), and the third-party packages it imports are declared in a [`requirements.txt`](../spec/method-tree.md#python-dependencies-requirementstxt) at the root. What the function must look like, and how it is called, is the runtime's to define.
 
 ## PipeImgGen
 
@@ -2791,6 +2801,36 @@ legal_tools/
 
 This package has multiple bundles, each declaring its own domain (`legal`, `legal.contracts`, `legal.contracts.shareholder`, `scoring`). The `methods.lock` file records exact dependency versions for verifiable installs.
 
+## Method Files
+
+A package is its folder. Every file under the folder that holds `METHODS.toml` belongs to the method and travels with it, whatever it is for:
+
+```
+invoice_letters/
+├── METHODS.toml
+├── letters.mthds
+├── requirements.txt
+├── funcs/
+│   └── totals.py
+├── templates/
+│   ├── letter.html
+│   └── logo.png
+├── README.md
+├── .gitignore
+└── .venv/
+```
+
+Here the bundle, the Python module a `PipeFunc` step calls, the template and the logo it shows, the `requirements.txt` that declares the Python packages `totals.py` imports, and the `README.md` all travel together. There is no list of files to maintain: drop a file into the folder and it is part of the method.
+
+A few files stay out on their own, so that a method never carries what it should not:
+
+- **Anything whose name starts with a dot**, at any depth: `.git/`, `.venv/`, `.env`, `.gitignore` and the `.mthds/` folder where installed dependencies live.
+- **The defaults**: `__pycache__/`, `node_modules/`, any Python virtual environment whatever its name, any repository nested inside the folder, and any other package nested inside it, meaning a subfolder holding its own `METHODS.toml`, which travels as a package of its own.
+- **Whatever the folder's own `.gitignore` files ignore**, read exactly as git reads them, so what travels is what git would publish.
+- **Whatever the manifest's [`exclude`](manifest.md#exclude) patterns name**, for files you want out of the method but still in git.
+
+A step names another file by its path from the bundle that uses it, such as `templates/letter.html`, or `../shared/logo.png` from a template one folder down, and that path is looked up among the method's files, never on the disk of whoever runs it. A symbolic link inside the folder is refused rather than followed. The [Method Tree](../spec/method-tree.md) specification states every rule exactly, along with the tree digest that identifies a method by its files.
+
 ## The Three Artifacts
 
 Three artifacts carry a package through its life, and each answers a different question:
@@ -2803,7 +2843,7 @@ Three artifacts carry a package through its life, and each answers a different q
 
 - `METHODS.toml` must be at the directory root.
 - `methods.lock` must be alongside `METHODS.toml` at the root.
-- `.mthds` files can be at the root or in subdirectories. A compliant runtime discovers all `.mthds` files recursively.
+- `.mthds` files can be at the root or in subdirectories. A compliant runtime loads every `.mthds` file among the method's files, and only those.
 - A single directory should contain one package.
 - The directory name is not part of the package's identity — the manifest `name` is. A kebab-case repository holding a snake_case-named package is perfectly fine.
 
@@ -2816,6 +2856,8 @@ A `.mthds` file works without a package manifest. When used standalone:
 - The bundle is not distributable (no package address).
 
 This preserves the "single file = working method" experience for learning, prototyping, and simple projects. When you need distribution, add a `METHODS.toml` — the rest of this section shows how.
+
+A bundle named on its own carries nothing else with it: its method is that one file. A step that names a template or a Python module beside it is refused until you hand over the folder instead, which makes the folder the method, or add a `METHODS.toml` to it.
 
 ## Progressive Enhancement
 
@@ -2834,12 +2876,15 @@ When loading a `.mthds` bundle, a compliant runtime discovers the manifest by wa
 
 1. Check the bundle's directory for `METHODS.toml`.
 2. If not found, move to the parent directory.
-3. Stop when `METHODS.toml` is found, a `.git` directory is encountered, or the filesystem root is reached.
+3. Stop when `METHODS.toml` is found, an entry named `.git` of any kind is encountered (a directory, a file or a symbolic link), or the filesystem root is reached.
 4. If no manifest is found, the bundle is treated as a standalone bundle.
+
+The folder where the manifest is found is the root of the method's files, so handing over a bundle or a subfolder of a package hands over the whole package.
 
 ## See Also
 
 - [Specification: Package Directory Structure](../spec/manifest-format.md#package-directory-structure) — normative reference for layout rules.
+- [Specification: Method Tree](../spec/method-tree.md) — normative reference for which files make up a method and how they are named.
 - [The Manifest](manifest.md) — what goes inside `METHODS.toml`.
 - [Specification: Library Crate Format](../spec/library-crate.md) — the resolution artifact a package's library resolves into.
 
@@ -2861,7 +2906,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=6.0.0"
+mthds_version = ">=7.0.0"
 main_pipe     = "analyze_nda"
 
 [exports.legal]
@@ -2889,8 +2934,9 @@ The `[package]` section defines the package's identity:
 | `description` | Yes | Human-readable summary of the package's purpose. Must not be empty. |
 | `authors` | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | No | [SPDX license identifier](https://spdx.org/licenses/) (e.g., `"MIT"`, `"Apache-2.0"`). |
-| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `6.0.0`. |
+| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `7.0.0`. |
 | `main_pipe` | No | The package's entry-point pipe. Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe) below. |
+| `exclude` | No | Patterns, in `.gitignore` syntax, naming files to keep out of the package's method tree. See [Exclude](#exclude) below. |
 
 ## Package Addresses
 
@@ -2945,6 +2991,20 @@ main_pipe = "analyze_nda"
 - The value MUST be a valid `snake_case` pipe code (matching `[a-z][a-z0-9_]*`).
 - The referenced pipe is **auto-exported** — it is part of the package's public surface by virtue of being `main_pipe`, whether or not it also appears in `[exports]`.
 - The field is optional. Packages without a `main_pipe` can still be used as libraries — consumers import specific pipes by their qualified names.
+
+## Exclude
+
+Every file in the package's folder travels with the package, except dotfiles, a few defaults such as `__pycache__/`, Python virtual environments and other packages nested inside the folder, and whatever the folder's own `.gitignore` files ignore (see [Package Structure: Method Files](structure.md#method-files)). The `exclude` field keeps more files out of the package without keeping them out of git, such as sample data you keep in the repository but no run needs:
+
+```toml
+[package]
+name    = "invoice_letters"
+address = "github.com/acme/invoice-letters"
+version = "1.0.0"
+exclude = ["samples/", "*.psd"]
+```
+
+Each entry is one pattern written as it would be in a `.gitignore` file, read from the package's root. See [Specification: Exclude](../spec/manifest-format.md#exclude) for the exact rules.
 
 ## The `[dependencies]` Section
 
@@ -3107,6 +3167,7 @@ This is similar to Cargo's `path` dependencies or Go's `replace` directives.
 - They are NOT resolved transitively — only the root package's local paths are honored.
 - They are excluded from the [lock file](lock-file.md).
 - When publishing, the `path` field is informational — consumers fetch via the `address`.
+- Each one is a [method tree](../spec/method-tree.md#dependencies-are-trees-of-their-own) of its own, rooted at its directory and listed by the same rules as any method's files.
 
 ## See Also
 
@@ -3259,27 +3320,27 @@ steps = [
 
 # The Lock File
 
-The `methods.lock` file records the exact resolved versions, integrity hashes, and semantic fingerprints for all remote dependencies. It makes installs verifiable — every developer and CI system can prove it fetched the same bytes, carrying the same meaning, that the original resolution saw.
+The `methods.lock` file records the exact resolved versions, tree digests, and semantic fingerprints for all remote dependencies. It makes installs verifiable — every developer and CI system can prove it fetched the same bytes, carrying the same meaning, that the original resolution saw.
 
 ## What It Looks Like
 
 ```toml
 ["github.com/mthds/document-processing"]
 version     = "1.2.3"
-hash        = "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+digest      = "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
 fingerprint = "7c9e2b4f8a1d3e5c7b9f2a4d6e8c1b3f5a7d9e2c4b6f8a1d3e5c7b9f2a4d6e8c"
 source      = "https://github.com/mthds/document-processing.git"
 commit      = "8f5b2c1a9d3e7f4b6a8c2e5d1f9b3a7c4e6d8f2b"
 
 ["github.com/mthds/scoring-lib"]
 version     = "0.5.1"
-hash        = "sha256:e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6"
+digest      = "sha256:e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6"
 fingerprint = "2d4f6a8c1e3b5d7f9a2c4e6b8d1f3a5c7e9b2d4f6a8c1e3b5d7f9a2c4e6b8d1f"
 source      = "https://github.com/mthds/scoring-lib.git"
 commit      = "3a7c4e6d8f2b8f5b2c1a9d3e7f4b6a8c2e5d1f9b"
 ```
 
-Each entry records a package address, the exact resolved version, a SHA-256 integrity hash of the fetched bytes, the semantic fingerprint of what those bytes mean, the HTTPS clone URL, and the commit the version tag pointed to when it was locked.
+Each entry records a package address, the exact resolved version, the tree digest of the fetched files, the semantic fingerprint of what those bytes mean, the HTTPS clone URL, and the commit the version tag pointed to when it was locked.
 
 ## Why the Lock Is Regenerable
 
@@ -3294,29 +3355,23 @@ The lock file must be named `methods.lock` and placed at the package root, along
 | Field | Description |
 |-------|-------------|
 | `version` | The exact resolved version (valid semver). |
-| `hash` | SHA-256 integrity **byte hash** of the fetched package directory (`sha256:` followed by 64 hex characters) — what was fetched. |
+| `digest` | The [tree digest](../spec/method-tree.md#the-tree-digest) of the fetched package's files (`sha256:` followed by 64 hex characters) — what was fetched. |
 | `fingerprint` | The [library crate fingerprint](../spec/library-crate.md#fingerprint) of the dependency's resolved content (64 lowercase hex characters) — what it means. Stable across reformatting; moves exactly when the dependency's effective type surface, prompts, or entry points change. |
 | `source` | The HTTPS clone URL the package was fetched from. Ends with `.git`. |
 | `commit` | The commit SHA the resolved version tag pointed to at lock time. A tag can be re-pointed; the commit cannot — it is the provenance record and the honest cache key. |
 
-The byte hash and the fingerprint are two different questions answered side by side: *did I fetch the same bytes?* and *does it still mean the same thing?* A dependency update whose fingerprint is unchanged changed nothing a consumer can observe; one whose fingerprint moved can be shown as a semantic diff before you adopt it.
+The tree digest and the fingerprint are two different questions answered side by side: *did I fetch the same bytes?* and *does it still mean the same thing?* A dependency update whose fingerprint is unchanged changed nothing a consumer can observe; one whose fingerprint moved can be shown as a semantic diff before you adopt it.
 
 ## Which Packages Are Locked
 
 - **Remote dependencies** (those without a `path` field) are locked, including all transitive remote dependencies.
 - **Local path dependencies** are NOT locked. They are resolved from the filesystem at load time and are expected to change during development.
 
-## How the Hash Is Computed
+## How the Digest Is Computed
 
-The integrity hash is a deterministic SHA-256 hash of the package directory:
+The digest is the package's [tree digest](../spec/method-tree.md#the-tree-digest): the SHA-256 of a listing that holds one line per file of the package, sorted by path, each line being what `sha256sum` prints for that file. The files are those the package's folder holds in the commit its version points at, read from git exactly as committed and filtered by the same rules that decide which files travel with any method, so the digest is the same on every machine and anyone can recompute it with git and coreutils.
 
-1. Collect all regular files recursively under the package directory.
-2. Exclude any path containing `.git` in its components.
-3. Sort files by their POSIX-normalized relative path (for cross-platform determinism).
-4. For each file in sorted order, feed into the hasher:
-    - The relative path string, encoded as UTF-8.
-    - The raw file bytes.
-5. Format as `sha256:` followed by the 64-character lowercase hex digest.
+A lock written before standard `7.0.0` records a `hash` instead of a `digest`. Such a lock is refused when it is read, with a message saying it predates tree digests: run `mthds package lock` to regenerate it. Its old hashes are never checked, so nothing is reported as tampered with.
 
 ## When the Lock File Updates
 
@@ -3331,9 +3386,9 @@ The lock file is regenerated whenever the manifests change or a tool re-locks:
 When installing from a lock file, the tool:
 
 1. Locates the fetched or cached package directory for each entry.
-2. Recomputes the SHA-256 byte hash using the algorithm above.
-3. Compares the computed hash with the lock file's `hash` field.
-4. Rejects the installation if any hash does not match — a hard failure, never a warning.
+2. Recomputes the tree digest of the package's files.
+3. Compares the computed digest with the lock file's `digest` field.
+4. Rejects the installation if any digest does not match — a hard failure, never a warning.
 
 ## Deterministic Output
 
@@ -3402,25 +3457,33 @@ If no manifest matches, or more than one does, the tool MUST fail loudly, listin
 
 Version tags in remote repositories may use a `v` prefix (e.g., `v1.0.0`). The prefix is stripped during version parsing. Both `v1.0.0` and `1.0.0` are recognized.
 
-Tags are listed using `git ls-remote --tags`, and only those that parse as valid semantic versions are considered. Fetching a resolved version clones at its tag: `git clone --depth 1 --branch {tag}`.
+Tags are listed using `git ls-remote --tags`, and only those that parse as valid semantic versions are considered. Fetching a resolved version clones at its tag without a checkout, `git clone --depth 1 --branch {tag} --no-checkout`, and reads the package's files from the commit itself (see [A Package's Files](#a-packages-files)).
 
 !!! note "Open question: version tags in a library repository"
     Git tags are repository-wide, while each package in a library repository carries its own manifest `version`. How repository tags map to per-package versions — per-package tag prefixes are the anticipated direction — is an open question of the standard, deliberately recorded rather than silently decided. Until it is settled, packages that need independently versioned releases SHOULD live in their own repositories, and a library repository SHOULD version its packages in lockstep.
 
 A tag can be re-pointed; the commit it resolved to cannot. Tools therefore record the **resolved commit SHA** of every fetch — it is the provenance entry in the [lock file](lock-file.md) and the honest key for any clone cache. Every fetched-package operation SHOULD be attributable to its `(address, tag, commit)` triple.
 
+## A Package's Files
+
+A package is a [method tree](../spec/method-tree.md): every file of its directory travels with it, its bundles, its Python modules, its templates and its `README.md` alike, except the files the [membership rule](../spec/method-tree.md#the-membership-rule) keeps out. A fetched package's files are read from the resolved commit's git objects exactly as they were committed, with no checkout filter, line-ending conversion or `export-ignore` attribute applied, and filtered by that same rule, reading the `.gitignore` files the commit holds. So a file committed despite a `.gitignore` pattern that matches it is out of the published package, as it is out of a local run of the same directory, and the package's [tree digest](../spec/method-tree.md#the-tree-digest), which the [lock file](lock-file.md) records, is the same on every machine.
+
+A package never carries another package inside it: each dependency is a tree of its own, with its own digest, and the `.mthds/` folder where a project keeps its installed packages starts with a dot, so it is out of every tree.
+
 ## The Two Caches
 
 Two caches with two distinct jobs stand between a remote repository and a running method:
 
-- The **global VCS cache**, `~/.mthds/packages/{address}/{version}/`, holds fetched package sources, shared across projects. Entries are written atomically (staging directory, then rename), the `.git` directory is removed, and each entry records the commit SHA it was fetched at.
+- The **global VCS cache**, `~/.mthds/packages/{address}/{version}/`, holds fetched packages' trees, shared across projects. Entries are written atomically (staging directory, then rename), each holds the package's tree and nothing else, written from the commit's objects, and each records the commit SHA it was fetched at.
 - The **project-local method cache**, `.mthds/methods/<name>/` inside the consuming project, is what [closure assembly](../spec/library-crate.md#closure-assembly) reads. It is deterministic by construction: resolution reads only from disk.
 
-**Install is the bridge.** Installing a package's dependencies walks the [lock file](lock-file.md), fetches anything missing into the global cache (verifying the byte hash against the lock — a mismatch is a hard failure), and materializes each locked dependency into the project-local cache. After install, resolving and running the method touches no network.
+An entry of either cache is a package's tree as written: a reader takes every file of the entry as a file of the package and never applies the [membership rule](../spec/method-tree.md#the-membership-rule) to it again. The `.gitignore` files that shaped the tree are not in the entry, so applying the rule a second time could drop a file the package holds, one that a manifest `exclude` pattern names and a `.gitignore` file re-included (see [Method Tree: Dependencies Are Trees of Their Own](../spec/method-tree.md#dependencies-are-trees-of-their-own)).
+
+**Install is the bridge.** Installing a package's dependencies walks the [lock file](lock-file.md), fetches anything missing into the global cache (verifying the tree digest against the lock — a mismatch is a hard failure), and materializes each locked dependency into the project-local cache. After install, resolving and running the method touches no network.
 
 ## Fetched Content and Runtime Policy
 
-A fetched package directory may contain files beyond `.mthds` bundles — documentation, assets, or implementation-specific code. What a runtime *executes* from fetched content is runtime policy, not standard semantics: a runtime MAY refuse fetched executable content, or classes of it, according to its own security model, and SHOULD say so with an error that names the rule rather than silently ignoring files. The standard requires only that the MTHDS content itself — manifest, bundles, lock — be interpreted as specified.
+A fetched package's tree may hold files beyond `.mthds` bundles — documentation, assets, or implementation-specific code. What a runtime *executes* from fetched content is runtime policy, not standard semantics: a runtime MAY refuse fetched executable content, or classes of it, according to its own security model, and SHOULD say so with an error that names the rule rather than silently ignoring files. The standard requires only that the MTHDS content itself — manifest, bundles, lock — be interpreted as specified.
 
 ## Discovery: Registry Indexes
 
@@ -3976,7 +4039,7 @@ The vision — a federated, typed, searchable network of AI methods that agents 
 
 ## Signed Manifests and a Trust Store
 
-The specified integrity chain is content-derived: the lock's byte hash and crate fingerprint are recomputable by anyone from source (see [The Lock File](lock-file.md)). Signed manifests would add **provenance** on top — *who published this* — for ecosystems that need it:
+The specified integrity chain is content-derived: the lock's tree digest and crate fingerprint are recomputable by anyone from source (see [The Lock File](lock-file.md)). Signed manifests would add **provenance** on top — *who published this* — for ecosystems that need it:
 
 - A detached signature object binding the SHA-256 of the raw `METHODS.toml` bytes to an Ed25519 signature, with the signer identity, a timestamp, and a `public_key_id` for key rotation.
 - Verification: recompute the manifest digest, reconstruct the canonical signing payload (sorted-key JSON, no whitespace), verify the signature against the identified public key.
@@ -4016,8 +4079,8 @@ MTHDS carries **two version numbers**, and they move independently:
 
 | Number | Governs | Current |
 |---|---|---|
-| **Standard version** | The language, the native concept set, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff | `6.0.0` |
-| **Protocol version** | The HTTP runner contract — its routes and their request and response shapes | `0.7.0` |
+| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff | `7.0.0` |
+| **Protocol version** | The HTTP runner contract — its routes and their request and response shapes | `1.0.0` |
 
 Both are [Semantic Versioning 2.0.0](https://semver.org/) numbers. Everything else that carries a version — a package's own `version`, a runner's `runner_version`, an implementation's release number — belongs to that package, runner, or implementation and is governed by whoever publishes it.
 
@@ -4029,13 +4092,14 @@ It governs everything this specification defines other than the HTTP protocol:
 
 - The [`.mthds` file format](./mthds-format.md) — the language itself: its sections, its keys, its pipe types, its concept structure language.
 - The [native concept definitions](./native-concepts.md) — the pinned set every implementation materializes.
+- The [method tree](./method-tree.md) — which files make up a method, how a file is named and referenced, the tree digest, the file entry, and `requirements.txt`.
 - The [`METHODS.toml` format](./manifest-format.md) and the [`methods.lock` format](./lock-format.md).
 - The [library crate format](./library-crate.md) and the [namespace resolution rules](./namespace-resolution.md).
 - The [CLI I/O contract](./cli-io-contract.md) — the wire form of a stuff, and the envelopes a method reads and writes when it is invoked from a command line.
 
 ### What Bumps the Standard Version
 
-- **MAJOR** — a breaking change to any of the above. A key removed or renamed, a native concept's shape changed, a rule that makes a previously valid bundle, manifest, or lock file invalid, or a previously invalid one valid in a way that changes what an existing document means.
+- **MAJOR** — a breaking change to any of the above. A key removed or renamed, a native concept's shape changed, a rule that changes which files make up a method tree or what its digest is, a rule that makes a previously valid bundle, manifest, or lock file invalid, or a previously invalid one valid in a way that changes what an existing document means.
 - **MINOR** — an additive change. A new native concept, a new pipe type, a new optional key, a new field type: documents valid under the previous version stay valid and keep their meaning.
 - **PATCH** — a change that is normatively inert. A clarification, a corrected example, a reworded rule that states what was already true, a new guide, a typo fix.
 
@@ -4459,7 +4523,7 @@ MTHDS defines pipe types in two categories:
 |------|-------|-------------|
 | PipeLLM | `"PipeLLM"` | Generates output using a large language model. |
 | PipeStructure | `"PipeStructure"` | Turns text into a structured concept using a large language model. |
-| PipeFunc | `"PipeFunc"` | Calls a registered Python function. |
+| PipeFunc | `"PipeFunc"` | Calls a Python function of the method's tree. |
 | PipeImgGen | `"PipeImgGen"` | Generates images using an image generation model. |
 | PipeExtract | `"PipeExtract"` | Extracts structured content from documents. |
 | PipeSearch | `"PipeSearch"` | Searches the web and returns structured results. |
@@ -4634,7 +4698,7 @@ model       = "@default-premium"
 
 ## Operator: PipeFunc
 
-Calls a registered Python function.
+Calls a Python function of the method's tree.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -4642,9 +4706,17 @@ Calls a registered Python function.
 | `description` | string | Yes | — |
 | `inputs` | table | No | — |
 | `output` | string | Yes | — |
-| `function_name` | string | Yes | The fully-qualified name of the Python function to call. |
+| `function_name` | string | Yes | The import path of the Python function to call, read from the root of the [method tree](./method-tree.md) that holds the bundle. |
 
 **Example:**
+
+```
+text_tools/
+├── METHODS.toml
+├── text.mthds
+└── funcs/
+    └── text_utils.py     (defines capitalize)
+```
 
 ```toml
 [pipe.capitalize_text]
@@ -4652,8 +4724,18 @@ type          = "PipeFunc"
 description   = "Capitalize the input text"
 inputs        = { text = "Text" }
 output        = "Text"
-function_name = "my_package.text_utils.capitalize"
+function_name = "funcs.text_utils.capitalize"
 ```
+
+**Locating the function.** `function_name` is a Python import path whose import root is the root of the method tree that holds the bundle, which for a bundle of a dependency is that dependency's own root. The name is normalized to NFC before anything else, as a [file reference](./method-tree.md#file-references) is, so a name an editor wrote in decomposed form finds the module whose tree path is in NFC: `function_name = "café.brew"`, its `é` written as `e` and a combining accent, names the function `brew` of the module `café.py`. The name then splits at its last dot: the part before it is the module path and the part after it is the name of the function, an attribute of that module. The module path `funcs.text_utils` names the file `funcs/text_utils.py` of the tree, or the package `funcs/text_utils/__init__.py`, each dot of the module path being read as a `/`, and the modules that module imports are resolved by Python from the same root, so a helper module in a subdirectory has a place to live and relative imports work.
+
+**Validation rules:**
+
+- `function_name` MUST hold at least one dot. A name with no dot, such as `capitalize`, names no module and is rejected.
+- Every dot-separated segment of `function_name`, once the name is in NFC, MUST be a Python identifier that is not a Python keyword and that NFKC normalization leaves unchanged. Python reads identifiers in NFKC, so a segment NFKC would change would make Python import another file than the one the tree holds under that name: `function_name = "ﬁles.load"`, whose first letters are the ligature `ﬁ`, would be imported as `files` while the tree's lookup names `ﬁles.py`. Such a segment, holding a ligature or a fullwidth letter, is rejected as an invalid `function_name`, never mapped to its NFKC form.
+- The module path MUST name a module of the tree: the tree holds the file `<module path>.py` or the file `<module path>/__init__.py`. A tree holding both is rejected as ambiguous, naming both files. A validator given the tree checks this without running any Python, and names the pipe whose module is missing.
+
+A method declares the third-party Python packages its functions import in its [`requirements.txt`](./method-tree.md#python-dependencies-requirementstxt). The standard specifies how a step locates its function and nothing about what the function must look like: how a runtime marks a function as callable from a method, the convention by which it is called, and how the runtime imports a tree's modules without letting them collide with another tree's or with its own are the runtime's to define and check.
 
 ## Operator: PipeImgGen
 
@@ -5592,6 +5674,264 @@ prompt      = "Write a clever one-liner joke about $topic. Be concise and witty.
 ```
 
 
+## Method Tree
+
+# Method Tree
+
+A method is a tree of files. Its bundles, its manifest, the Python modules its `PipeFunc` steps call, the templates and images its steps read, its `requirements.txt` and its `README.md` are all files of one tree, each named by its path from the tree's root, and the tree as a whole is identified by its digest. This page defines that object once: where the root is, which files belong, how a file is named and how one file names another, the digest, the file entry that carries a file from one program to another, and how a method declares its Python.
+
+```
+invoices/
+├── METHODS.toml
+├── README.md
+├── main.mthds
+├── requirements.txt
+├── funcs/
+│   ├── __init__.py
+│   ├── totals.py
+│   └── __pycache__/
+├── templates/
+│   ├── letter.html
+│   └── logo.png
+├── results/
+│   ├── .gitignore        (holds the single pattern *)
+│   └── run-1.json
+├── .gitignore
+└── .venv/
+```
+
+The method tree of this directory is:
+
+```
+METHODS.toml
+README.md
+funcs/__init__.py
+funcs/totals.py
+main.mthds
+requirements.txt
+templates/letter.html
+templates/logo.png
+```
+
+`.gitignore` and `.venv/` are out because their names start with a dot, `funcs/__pycache__/` is out by default, and `results/run-1.json` is out because the `.gitignore` file in its directory ignores every file there. Every other file belongs to the tree and travels with the method, whether a step reads it or it is carried for people and agents to read.
+
+!!! note "Implementation status"
+    The method tree is committed design. This page is the contract implementations are brought into conformance with — the same forward-contract convention the [Library Crate Format](./library-crate.md#specification-status) uses for its unrealized sections. Conformance is asserted against this document as each piece lands.
+
+## The Root
+
+A **method tree** is the set of regular files under a **root** directory that the [membership rule](#the-membership-rule) admits, each named by its [tree path](#tree-paths) from the root. The root is the directory holding `METHODS.toml`. A compliant implementation finds it from what a caller hands over:
+
+- **A directory.** The root is the nearest directory at or above the directory handed over that holds `METHODS.toml`, found by [Manifest Discovery](./manifest-format.md#manifest-discovery). When there is none, the method has no manifest, and the directory handed over is its root.
+- **A `.mthds` file named alone.** The root is the nearest directory at or above the file's own directory that holds `METHODS.toml`, found the same way. When there is none, the tree is that one file, under its file name, and nothing beside it is read: no `.gitignore` file and no `pyvenv.cfg` entry, beside it or above it, applies to it, so of the membership rule only the dot-segment rule reaches it. A [file reference](#file-references) from it to any other file is refused, with a message saying to run the method's directory or to add a `METHODS.toml`.
+
+A `.mthds` file named alone that the membership rule keeps out of its own tree is refused, naming the rule that excludes it: with no manifest, only a name starting with a dot does so, and when a `METHODS.toml` makes a root, so does any other part of the rule, such as a `.gitignore` file under that root that ignores the file.
+
+Sending a directory is always the caller's explicit act. A `.mthds` file named alone never carries the files beside it unless a manifest makes their directory a method's root, so a bundle saved among unrelated documents never takes them anywhere.
+
+A run loads one root tree and the trees of the packages it depends on, each with its own root and its own digest (see [Dependencies Are Trees of Their Own](#dependencies-are-trees-of-their-own)).
+
+A method's files are its own: they are authored once, travel with the method, and are its identity. A file a caller supplies for one run reaches the run as an input, a stuff in the wire form of the [CLI I/O Contract](./cli-io-contract.md#stuffs-on-the-wire), and is never a file of the tree.
+
+## The Membership Rule
+
+A regular file under the root belongs to the tree unless one of the following excludes it, and a directory that one of them excludes is excluded with everything under it:
+
+1. **A path segment starting with a dot.** This keeps out `.git/`, `.venv/`, `.env`, `.gitignore`, the `.mthds/` directory where a project keeps its installed packages, and every other dotfile and dot directory, the state of editors and tools included. It is the rule that keeps the commonest secret files out by construction.
+2. **The defaults.** A directory named `__pycache__` or `node_modules`; any directory holding an entry named `pyvenv.cfg` that is a regular file or a symbolic link, the link never followed, since [PEP 405](https://peps.python.org/pep-0405/) places a `pyvenv.cfg` file at the top of every Python virtual environment, so a virtual environment stays out whatever its name, while a directory named `pyvenv.cfg` marks nothing; any directory below the root holding an entry named `.git` of any kind, a directory, a file such as the one a submodule or a worktree holds, or a symbolic link, never followed, whatever that entry holds and whether or not git would take it for a repository, so a nested repository stays out, as git leaves it out of every commit; and any directory below the root holding a file named `METHODS.toml`, so a nested package stays out, since it is another package and travels as a tree of its own (see [Dependencies Are Trees of Their Own](#dependencies-are-trees-of-their-own)). The `pyvenv.cfg` default applies to the root too, so a root that is itself a virtual environment holds an empty tree, which no surface accepts. The root's own `METHODS.toml` is the manifest that makes it the root, and it excludes nothing.
+3. **The tree's own `.gitignore` files.** The patterns of every `.gitignore` file inside the root, at any depth, read with git's own semantics as [gitignore](https://git-scm.com/docs/gitignore) documents them: a pattern applies relative to the directory of the file that holds it, a deeper file's patterns take precedence over a shallower one's, git never descends into an excluded directory, and so a negation cannot re-include a file under an excluded directory. A `.gitignore` file is read as UTF-8, skipping a leading byte order mark as git skips it, and one whose bytes are not UTF-8 is an error naming its path, never skipped silently, as a symbolic link is. A `.gitignore` file inside an excluded directory is never read, so it is never an error. A pattern is normalized to NFC before it is matched, so a pattern an editor wrote in decomposed form matches the same names as one written composed, and it then matches tree paths byte for byte, letter case included, as git matches with `core.ignoreCase` off, whatever the file system. Only these files count: neither a user's global excludes, nor a repository's `info/exclude`, nor a `.gitignore` file above the root, so the same directory yields the same tree on every machine.
+4. **The manifest's `exclude` patterns.** The patterns of [`[package] exclude`](./manifest-format.md#exclude), in the same syntax and normalized to NFC in the same way, read as git reads `core.excludesFile`: relative to the root, and below every `.gitignore` file in precedence, so a negation in a `.gitignore` file can re-include a file they exclude. They keep out of the tree what a method wants kept out of the tree but not out of git.
+
+No pattern re-includes a file that the dot-segment rule or a default excludes. A default looks at a directory's own entries whatever the patterns say of them, so a pattern that ignores a nested `.git` entry, a `pyvenv.cfg` entry or a nested `METHODS.toml` file does not bring its directory back.
+
+The rule is deliberately close to what git would commit from the directory. A package is published by pushing a tag, so honouring the tree's own `.gitignore` files makes a local run, a run on a remote runner and a run of the published package see the same files.
+
+### Symbolic Links and Other Entries
+
+A symbolic link that the membership rule does not exclude is an error naming its path: it is never followed and never skipped silently, since a link is either a mistake or a reach outside the root, and both deserve to be seen. Exclusion prunes first, so a link inside an excluded directory is never visited, and a link the rule excludes is no error. An entry that is neither a regular file, nor a directory, nor a symbolic link, such as a named pipe or a device, is an error naming its path in the same way.
+
+### Run Artifacts Beside a Method
+
+A tool that creates a directory under a method's root to write its own files into, such as the results of a run, SHOULD make that directory self-excluding by writing into it a `.gitignore` file holding the single pattern `*`. The directory then stays out of the tree and out of git, and neither this rule nor its defaults need to know the directory's name.
+
+### Checking the Rule Against Git
+
+Because the membership rule follows git, git itself can produce the expected listing of a test tree, which keeps an implementation from sharing a misreading of git's semantics with the person who wrote its tests. In a scratch repository holding the test tree, with global and system configuration turned off, `core.ignoreCase` set to `false`, and `core.excludesFile` holding the case's `exclude` patterns one per line, `git -c core.ignoreCase=false ls-files --others --exclude-standard -z` lists the files git would commit. Setting `core.ignoreCase` matters on a case-insensitive file system, where `git init` writes `core.ignoreCase = true` into the scratch repository's own configuration and git then matches every pattern regardless of case, so that `*.PY` would exclude `a.py`, whereas the membership rule matches tree paths byte for byte. Git also matches a pattern as it is written against a name as the file system holds it, so every pattern goes into the scratch repository, in its `.gitignore` files and in `core.excludesFile`, normalized to NFC, as the membership rule normalizes it before matching, and every file and directory of the scratch tree is written under its name in NFC, as the membership rule reads it. A test whose point is a name stored on disk in decomposed form is therefore checked without git as its oracle. Git applies the patterns and nothing else, so the dot-segment rule and the defaults are applied after its listing, which gives the same result because no pattern re-includes what they exclude and a `.gitignore` file inside an excluded directory reaches nothing outside it. Dropping from git's output every path holding a segment that starts with a dot, every path inside a `__pycache__` or `node_modules` directory, and every path at or inside a directory holding an entry named `pyvenv.cfg` that is a file or a symbolic link, a directory below the root holding an entry named `.git`, or a directory below the root holding `METHODS.toml` gives the tree's listing. These last three defaults are read from the test tree itself rather than from git's output, since git never lists a `.git` entry and a pattern may keep out of that output the very file that triggers the other two.
+
+The nested repository default is where the membership rule and git part ways. Git leaves a directory out as a nested repository only when its `.git` entry leads to a repository, and lists as untracked the files under a directory whose `.git` entry is an empty directory, or a file that names no repository, such as one whose `gitdir:` line points nowhere. The membership rule excludes any directory below the root holding an entry named `.git` of any kind, whatever it holds, so the files git lists under such a directory are dropped with the rest.
+
+## Tree Paths
+
+A **tree path** names a file of a tree from its root, such as `templates/letter.html`:
+
+- It is a relative POSIX path: segments separated by `/`, with no leading or trailing `/` and no empty segment.
+- No segment is `.` or `..`, and no segment holds a backslash (`\`), a colon (`:`), or a control character, meaning any character of Unicode general category `Cc`, NUL and the line breaks among them.
+- It is encoded as UTF-8 in Unicode Normalization Form C (NFC), and tree paths are compared, sorted and matched byte for byte on that encoding.
+- Each segment is at most 255 bytes long and the whole path at most 1024 bytes long, in that encoding.
+
+Two tree paths **collide** when their case foldings are equal. The case folding of a tree path takes two steps: the path in NFC is mapped by Unicode full case folding, which replaces each character holding an entry of status `C` or `F` in the [`CaseFolding.txt`](https://www.unicode.org/Public/14.0.0/ucd/CaseFolding.txt) of Unicode 14.0 or of any later version by that entry's mapping, with no locale tailoring, and the result is normalized to NFC again. In Python it is `nfc(nfc(p).casefold())`, where `nfc` is `unicodedata.normalize("NFC", …)`. Implementations reading different versions of the file may differ only on characters assigned after Unicode 14.0. Case folding is what a case-insensitive file system compares names by, and it reaches further than converting to lowercase: `ß` collides with `SS`, `ẞ` with `ß`, `ς` with `σ`, and `ſ` with `s`. JavaScript has no built-in full case folding, `toLowerCase` being a case conversion and not a folding, so an implementation written in it carries the folding table itself.
+
+Within one tree, no two paths collide and no path collides with a directory of another: one tree never holds both `README.md` and `readme.md`, nor both `straße.txt` and `STRASSE.txt`, nor both `templates` and `templates/letter.html`, nor both `Templates` and `templates/letter.html`. A tree written out on a case-insensitive file system therefore loses no file and never needs a file and a directory under one name.
+
+A name listed from a file system is normalized to NFC, since some file systems hand back a decomposed form of an accented name, and two names in one directory that are equal after normalization are refused, naming both. A tree path given as text rather than listed, such as a key of a [map of file entries](#the-file-entry), is never normalized: one not already in NFC is not a tree path. A [file reference](#file-references) is not a tree path but names one, and is normalized as it is resolved. A path that breaks any rule above is refused, naming it.
+
+The [membership rule](#the-membership-rule) applies before these rules, so a name it excludes is never checked against them: a name that breaks them is excluded silently, whether the rule excludes it directly, as a pattern naming it does, or it lies inside an excluded directory.
+
+A tree path is a name, never a storage location. A receiver that stores a file keeps it under its hash, as [the file entry](#the-file-entry) carries it, so a tree path may hold accents, spaces or a non-Latin script, and no storage system's naming rules reach an author.
+
+## File References
+
+A **file reference** is a relative path, written in a file of a tree, that names another file of the same tree. It is written in one of two contexts:
+
+- **Path context**: a field of a bundle that names a file, whose whole value is the reference's path. Every field that names a method file, whether this specification defines it or an implementation adds it, is a file reference in path context and follows this rule.
+- **URL context**: a relative URL inside a template, such as the `src` of an image in an HTML template, whose path is what is left once its query and its fragment are dropped, since they take no part. Only a relative URL with a path is a file reference. A URL that names a [scheme](https://www.rfc-editor.org/rfc/rfc3986#section-3.1), such as `https:`, `data:` or `mailto:`, one that holds an [authority](https://www.rfc-editor.org/rfc/rfc3986#section-3.2), such as `//host/x`, and one with no path, such as `#top`, `?v=2` or an empty one, are not file references: each is left exactly as written and never refused.
+
+```
+letters/
+├── METHODS.toml
+├── shared/
+│   └── logo.png
+└── templates/
+    └── letter.html       (holds <img src="../shared/logo.png">)
+```
+
+A file reference is resolved against the directory of the file that holds it, as a relative URL is resolved in a web page, and is refused in one of four ways: as **a malformed reference**, written in a form a file reference never takes; as **not a tree path**, when it is empty or names a file in a way no tree path can, such as with an empty segment or a trailing `/`; as **leaving the tree**, when it climbs above the root; or as **not in the tree**, when the tree holds no file at the path it resolves to. The steps run in this order, and a reference that fails more than one check is refused by the first step that fails:
+
+1. **Take its path**, as its context defines it. In path context, an empty reference is refused as not a tree path.
+2. **Check its form.** A reference is written with `/` separators, so it is refused as malformed when its path holds a backslash or is absolute, starting with `/`, and, in path context, when it names a scheme or holds an authority.
+3. **Decode it.** In URL context, the path is split into segments at each `/` before each segment is percent-decoded, so decoding never creates a separator. A segment whose decoding yields a `/`, a `\`, a control character, or bytes that are not UTF-8 makes the reference malformed, and so does a `%` not followed by two hexadecimal digits, as in `logo%2.png` or `100%.png`. A reference in path context is never percent-decoded.
+4. **Normalize it to NFC**, so a reference an editor wrote in decomposed form names the same file as one written composed.
+5. **Resolve it.** Take the directory of the holding file's tree path, which is the root for a file at the root, join the path to it with `/`, and normalize the result lexically: drop each `.` segment, and let each `..` segment remove the segment before it. A `..` that would climb above the root is refused as leaving the tree.
+6. **Check the result.** A result naming the root, with no segment or with only a trailing `/`, as `../` held by `templates/letter.html` resolves to, is the root itself, which this step lets through to the next, where it is refused as not in the tree, its resolved path named `.`. Any other result that is not a tree path, such as one holding an empty segment, as `images/` does by ending in `/` after a name, is refused as not a tree path. The check reads the resolved path, so `a//b` is refused, while `a//../b` resolves to `a/b`, its `..` having removed the empty segment before it.
+7. **Look it up.** The result MUST name a file of the tree. A result at which the tree holds no file is refused as not in the tree, and so is one naming a directory of the tree, as `images/.` resolves to `images`, or the root itself, as `a/..` does, whose resolved path is named `.`.
+
+In the example, `../shared/logo.png` held by `templates/letter.html` resolves to `shared/logo.png`.
+
+**Resolving a reference is a lookup in the tree's set of paths, never a file system access.** A reference can only name a file the tree holds, which is what makes `..` harmless, and no implementation opens a path that a method's author, or a caller, wrote.
+
+A reference refused as not in the tree names the reference and the path it resolved to, written `.` when that is the root. An implementation that listed the tree from a directory also names the rule that excluded the file, when one did, and for a file inside a nested repository or a nested package it names that directory, so an author who meant to ship the file learns why it is not in the tree. In the one-file tree of a `.mthds` file named alone, the refusal says to run the method's directory or to add a `METHODS.toml`. That advice belongs to this refusal alone: a reference from a one-file tree that fails an earlier step is refused by that step, as malformed, as not a tree path or as leaving the tree, like any other.
+
+## The Tree Digest
+
+The **tree digest** identifies a tree by its bytes. It is `sha256:` followed by the lowercase hexadecimal SHA-256 of the tree's **listing**, which holds one line per file of the tree, sorted by tree path byte for byte, each line being exactly what `sha256sum` prints for that file: the SHA-256 of the file's bytes in lowercase hexadecimal, two spaces, the file's tree path, and a line feed.
+
+```bash
+mkdir -p greetings/funcs greetings/templates && cd greetings
+printf '# Greetings\n' > README.md
+printf 'domain = "greetings"\n' > main.mthds
+printf 'def shout(text):\n    return text.upper()\n' > funcs/text_utils.py
+printf '<p>Hello</p>\n' > templates/card.html
+```
+
+The listing of this tree is:
+
+```
+af12591480ada38cf107d1a76bc5e2e111ad4c7ec5f3a2a63d058f5f5ab6b91c  README.md
+d78fff51f2aea9cb634456d3c83925ae047d967798f28e8a4b3e7b232a1dc097  funcs/text_utils.py
+45b0d6a4796412598db6d328978990fc44563e59057d6e3bfc8419ae3ed3981f  main.mthds
+3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0  templates/card.html
+```
+
+and its digest is `sha256:801fca61b41566e46d3fb1923e323590da7a539fd3e7af7455e7cba3934d4674`.
+
+The encoding is injective: a hash has a fixed width and a tree path holds no line break, so two different trees never share a listing.
+
+### The Reference Pipeline
+
+Anyone can recompute a digest with coreutils. Given the tree's paths, one per line, sort them in the C locale, pass each to `sha256sum`, and pass the listing to `sha256sum` once more:
+
+```bash
+cd greetings
+printf '%s\n' README.md funcs/text_utils.py main.mthds templates/card.html \
+  | LC_ALL=C sort \
+  | while IFS= read -r f; do sha256sum -- "$f"; done \
+  | sha256sum
+# 801fca61b41566e46d3fb1923e323590da7a539fd3e7af7455e7cba3934d4674  -
+```
+
+`LC_ALL=C` is what makes `sort` order the paths byte for byte. Under another locale it orders them differently, here `funcs/text_utils.py`, `main.mthds`, `README.md`, `templates/card.html`, and the digest it gives is wrong. `shasum -a 256` prints the same line format as `sha256sum` and can stand in for it. A conformance corpus takes its expected digests from this pipeline rather than from any implementation.
+
+### Digest and Fingerprint
+
+The tree digest and the [library crate fingerprint](./library-crate.md#fingerprint) answer different questions. The digest changes with any byte of any file and with any tree path, comments and formatting included, so it says whether two trees hold the same files. The fingerprint changes only when what the method means changes, so it says whether two methods do the same thing. The [lock file](./lock-format.md) records both for each dependency.
+
+## The File Entry
+
+A **file entry** is how one file of a tree travels from one program to another, under its tree path, as its bytes or as their hash. A tree travels as a map from tree path to file entry:
+
+```json
+{
+  "README.md": "# Greetings\n",
+  "main.mthds": "domain = \"greetings\"\n",
+  "funcs/text_utils.py": { "base64": "ZGVmIHNob3V0KHRleHQpOgogICAgcmV0dXJuIHRleHQudXBwZXIoKQo=" },
+  "templates/card.html": {
+    "sha256": "3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0",
+    "size": 13
+  }
+}
+```
+
+This map carries the `greetings` tree above, so its digest is `sha256:801fca61b41566e46d3fb1923e323590da7a539fd3e7af7455e7cba3934d4674` whichever form each file travels in. An entry takes exactly one of three forms:
+
+- **A string** is the file's text: the file's bytes are the UTF-8 encoding of the string, exactly, with no line ending converted and no byte order mark added. A string holding a code point that UTF-8 cannot encode, such as a lone surrogate, is refused. This is the shorthand that keeps the commonest case, a bundle pasted as text, a one-liner.
+- **`{ "base64": "…" }`** carries any bytes, encoded with the standard Base64 alphabet of [RFC 4648](https://www.rfc-editor.org/rfc/rfc4648#section-4), padded, with no line breaks, and canonical as [RFC 4648](https://www.rfc-editor.org/rfc/rfc4648#section-3.5) defines it: the pad bits, which the last character before the `=` padding carries beyond the encoded bytes, are zero. An encoding that breaks any of these, non-zero pad bits included, is not valid Base64, and its entry is refused.
+- **`{ "sha256": "…", "size": … }`** names bytes the receiver already holds: `sha256` is their SHA-256 in lowercase hexadecimal and `size` their length in bytes, a JSON integer written without a fraction or an exponent, so a `size` written `13.0` is refused. It resolves only in the receiver's own blob store, and a receiver that does not hold those bytes, or holds them with another size, refuses the entry, naming the hash.
+
+An entry object holds no other key and no key twice, and no entry names a file by URL: a URL form would let a sender point the receiver at an address of its choosing, which is exactly what reading only the files it is sent prevents.
+
+A map of entries is refused, naming the offending path, when one of its keys:
+
+- is not a [tree path](#tree-paths), which a key not already in NFC is not, since a receiver refuses such a key rather than normalize it, so two keys equal after normalization never both stand; or holds a segment that the membership rule's dot-segment rule or its name defaults exclude (a segment starting with a dot, a `__pycache__` or `node_modules` directory, or a file named `pyvenv.cfg`), or names a file `METHODS.toml` anywhere but at the root, since no tree has such a member;
+- is given twice in the document, as written or once its JSON escapes are decoded, which a receiver detects in the text it parses rather than keeping one of the values, or holds an entry object that gives one of its own keys twice, which is refused in the same way;
+- [collides](#tree-paths) with another key, or with a directory of another key, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`.
+
+A map with no key is refused: a tree holds at least one file.
+
+The same map is the method source of a request under the [HTTP Runner Protocol](./protocol.md#method-files), where a runner that keeps a blob store also lets a sender upload once the files it lacks and send the rest by hash. A map has no order, so no file of it is "the first": a request that names no pipe starts at the method's `main_pipe`, as the protocol states.
+
+### Limits
+
+The standard bounds a tree path's length and nothing else. Each implementation bounds as its own policy a file's size, a tree's file count and its total size, and the total of a request's inline entries, and refuses a tree past one of them with a message naming the limit. A program listing a tree for a receiver whose limits it knows SHOULD count files and sum their sizes as it walks the directory, and stop at the first limit passed, before hashing any file, with a message naming the root, the limit and the count reached, so that a directory handed over by mistake is refused in moments rather than read in full.
+
+## Python Modules
+
+A `PipeFunc` names its function by its Python import path from the root of the tree that holds the bundle, which is the import root: `function_name = "funcs.text_utils.shout"` names the function `shout` of the module `funcs/text_utils.py` of the `greetings` tree, and the modules that one imports are resolved from the same root. The name is normalized to NFC before it is mapped to a module's tree path, as a [file reference](#file-references) is at step 4, so a name written in decomposed form finds its module, and each of its segments must be a Python identifier that NFKC normalization leaves unchanged, since Python reads identifiers in NFKC and would otherwise import another file than the tree holds. The rule is the [PipeFunc](./mthds-format.md#operator-pipefunc) field's own, with an example of each.
+
+## Python Dependencies: `requirements.txt`
+
+A method whose Python needs third-party packages declares them in a file named `requirements.txt` at the root of its tree:
+
+```
+# The packages funcs/totals.py imports
+pandas>=2.2,<3
+openpyxl==3.1.5
+tzdata; python_version >= "3.12"
+```
+
+Each line is blank, a comment whose first character other than a space or a tab is `#`, or exactly one requirement written as [PEP 508](https://peps.python.org/pep-0508/) defines it, environment markers included. A requirement naming a URL (`name @ https://…`), an option of any kind (a line starting with `-`, such as `-e`, `-r`, `-c` or `--index-url`), a comment after a requirement, and a line continued with a backslash are refused, naming the line. Only the root's `requirements.txt` declares anything: a file of that name elsewhere in the tree is an ordinary file.
+
+The standard specifies the file and nothing about how it is satisfied. A runtime decides how to satisfy it, and a runtime that cannot, such as one whose environment lacks a declared package or holds it at a version the requirement excludes, SHOULD refuse the method when it loads, naming each package it cannot satisfy, rather than fail later inside a function.
+
+## Dependencies Are Trees of Their Own
+
+A package a method depends on is a tree of its own, with its own root and its own digest, and never travels inside the tree that depends on it. The `.mthds/` directory where a project keeps its installed packages starts with a dot, so it is out of every tree, and a package kept in a directory below another package's root is out of that package's tree by the nested-package default, so the packages of a library repository never hold one another.
+
+- A dependency with a local `path` is the method tree rooted at that directory, listed under the membership rule like any other.
+- A fetched dependency's tree is the set of files of the package's directory in the commit its resolved version points at, **read from the commit's git objects as stored**, with no checkout filter, no line-ending conversion and no `export-ignore` attribute applied, so its digest is the same on every machine, and **filtered by the membership rule**, reading the `.gitignore` files that commit holds inside the package's directory and the package's own `exclude` patterns. A file committed despite a pattern that matches it is therefore out of the published tree as it is out of the local one, a submodule contributes no file, and a symbolic link committed in the package's directory is an error naming its path unless the rule excludes it.
+
+**A tree written out is read back as written.** A copy of a tree that a program writes to disk, such as a package in a cache, holds the tree's files at their tree paths and nothing else, and those files are the tree: a reader takes every file of the copy as a file of the tree and never applies the membership rule to it again. The rule cannot be applied twice, since the `.gitignore` files that shaped the tree start with a dot and are left out of the copy, so a manifest `exclude` pattern that one of them overrode with a negation would exclude its file a second time.
+
+The [lock file](./lock-format.md) records each fetched dependency's tree digest, which an install checks against the tree it fetched.
+
+## See Also
+
+- [`.mthds` File Format: PipeFunc](./mthds-format.md#operator-pipefunc) — how a step names its function by import path.
+- [METHODS.toml Manifest Format](./manifest-format.md) — the root's manifest, its `exclude` patterns, and Manifest Discovery.
+- [methods.lock Format](./lock-format.md) — the lock records each dependency's tree digest.
+- [HTTP Runner Protocol](./protocol.md#method-files) — a request's `files` and the optional blob routes.
+- [Distribution](../packages/distribution.md) — how a package is fetched and cached as a tree.
+
+
 ## Native Concept Definitions
 
 # Native Concept Definitions
@@ -6052,6 +6392,7 @@ A `METHODS.toml` file contains up to three top-level sections:
 | `license` | string | No | SPDX license identifier (e.g., `"MIT"`, `"Apache-2.0"`). |
 | `mthds_version` | string | No | MTHDS standard version constraint. If set, MUST be a valid version constraint. |
 | `main_pipe` | string | No | The package's entry-point pipe code. MUST be `snake_case` (matching `[a-z][a-z0-9_]*`). Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe). |
+| `exclude` | array of strings | No | Patterns, in `.gitignore` syntax, naming files to keep out of the package's method tree. See [Exclude](#exclude). |
 
 ### Address Format
 
@@ -6135,7 +6476,7 @@ MAJOR.MINOR.PATCH[-pre-release][+build-metadata]
 
 The `mthds_version` field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see [Version Constraint Syntax](#version-constraint-syntax)).
 
-The current MTHDS standard version is `6.0.0`. See [Versioning](./versioning.md) for what moves it.
+The current MTHDS standard version is `7.0.0`. See [Versioning](./versioning.md) for what moves it.
 
 ### Main Pipe
 
@@ -6161,6 +6502,24 @@ address   = "github.com/acme/legal-tools"
 version   = "0.3.0"
 main_pipe = "analyze_nda"
 ```
+
+### Exclude
+
+The optional `exclude` field lists patterns naming files to keep out of the package's [method tree](./method-tree.md) without keeping them out of git, such as sample data an author keeps in the repository but that no run needs:
+
+```toml
+[package]
+name    = "invoice_letters"
+address = "github.com/acme/invoice-letters"
+version = "1.0.0"
+exclude = ["samples/", "*.psd"]
+```
+
+**Constraints:**
+
+- Each entry is one pattern in the syntax of a `.gitignore` file, as [gitignore](https://git-scm.com/docs/gitignore) documents it, and MUST NOT hold a line break. An entry starting with `#` is a comment, as it would be in a `.gitignore` file, and `\#` escapes it.
+- The patterns are read relative to the package's root, as git reads `core.excludesFile`, below every `.gitignore` file of the tree in precedence. [The Membership Rule](./method-tree.md#the-membership-rule) states how they combine with the tree's other exclusions.
+- Each pattern is normalized to NFC before it is matched, as [the membership rule](./method-tree.md#the-membership-rule) normalizes every pattern, so a pattern written in decomposed form matches the same names as one written composed.
 
 ## The `[dependencies]` Section
 
@@ -6273,6 +6632,8 @@ A `.mthds` file without a `METHODS.toml` manifest is a standalone bundle. It beh
 
 This preserves the "single file = working method" experience for learning, prototyping, and simple projects.
 
+A method with no manifest is either a directory a caller hands over, whose method tree is rooted at that directory, or a `.mthds` file named alone, whose method tree is that one file and nothing else, so a file reference from it to any file beside it is refused. See [Method Tree: The Root](./method-tree.md#the-root).
+
 ## Package Directory Structure
 
 A package is a directory containing a `METHODS.toml` manifest and one or more `.mthds` bundle files. The directory layout follows a progressive enhancement principle — start minimal, add structure as needed.
@@ -6295,26 +6656,34 @@ legal_tools/
 ├── contract_analysis.mthds
 ├── shareholder_agreements.mthds
 ├── scoring.mthds
+├── requirements.txt
+├── funcs/
+│   └── scoring.py
+├── templates/
+│   └── nda_report.html
 ├── README.md
 └── LICENSE
 ```
 
 **Rules:**
 
-- `METHODS.toml` MUST be at the directory root.
+- `METHODS.toml` MUST be at the directory root, which is the root of the package's [method tree](./method-tree.md).
 - `methods.lock` MUST be at the directory root, alongside `METHODS.toml`.
-- `.mthds` files MAY be at the root or in subdirectories. A compliant implementation MUST discover all `.mthds` files recursively.
-- A single directory SHOULD contain one package. A repository MAY host several packages in subdirectories — a **library repository** — in which case each package is identified by its own manifest, and a specific package is located by manifest identity, never by directory path (see [Distribution: Locating a Package Inside a Clone](../packages/distribution.md#locating-a-package-inside-a-clone)).
+- `.mthds` files MAY be at the root or in subdirectories. A compliant implementation MUST load every `.mthds` file of the method tree, and only those: a bundle the [membership rule](./method-tree.md#the-membership-rule) excludes is not part of the package.
+- Every file of the method tree belongs to the package and travels with it, whether a step reads it, such as a Python module or a template, or it is carried for people and agents, such as a `README.md`.
+- A single directory SHOULD contain one package. A repository MAY host several packages in subdirectories — a **library repository** — in which case each package is identified by its own manifest, and a specific package is located by manifest identity, never by directory path (see [Distribution: Locating a Package Inside a Clone](../packages/distribution.md#locating-a-package-inside-a-clone)). A package in a directory below another package's root is out of that package's method tree, by the [membership rule](./method-tree.md#the-membership-rule)'s nested-package default, so packages never hold one another.
 - The directory name is not part of the package's identity and MAY differ from the manifest `name` (see [Name](#name)).
 
 ## Manifest Discovery
 
-When loading a `.mthds` bundle, a compliant implementation SHOULD discover the manifest by walking up from the bundle file's directory:
+When loading a `.mthds` bundle, a compliant implementation SHOULD discover the manifest by walking up from the bundle file's directory, or from the directory a caller hands over:
 
 1. Check the current directory for `METHODS.toml`.
 2. If not found, move to the parent directory.
-3. Stop when `METHODS.toml` is found, a `.git` directory is encountered, or the filesystem root is reached.
+3. Stop when `METHODS.toml` is found, an entry named `.git` of any kind is encountered (a directory, a file such as the one a submodule or a worktree holds, or a symbolic link, never followed), which is the entry that marks a nested repository under [the membership rule](./method-tree.md#the-membership-rule), or the filesystem root is reached.
 4. If no manifest is found, the bundle is treated as a standalone bundle (no package).
+
+The directory where discovery finds `METHODS.toml` is the root of the method's tree. When discovery finds none, the root is the directory handed over, or, for a `.mthds` file named alone, the tree is that one file (see [Method Tree: The Root](./method-tree.md#the-root)).
 
 ## Complete Manifest Example
 
@@ -6327,8 +6696,9 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=6.0.0"
+mthds_version = ">=7.0.0"
 main_pipe     = "analyze_nda"
+exclude       = ["drafts/"]
 
 [exports.legal]
 pipes = ["classify_document"]
@@ -6345,7 +6715,7 @@ pipes = ["compute_weighted_score"]
 
 # methods.lock Format
 
-The `methods.lock` file records, for every remote dependency of a package, the exact resolved version, an integrity hash of what was fetched, the semantic fingerprint of what it means, and the provenance of where it came from. It is auto-generated and SHOULD be committed to version control.
+The `methods.lock` file records, for every remote dependency of a package, the exact resolved version, the tree digest of what was fetched, the semantic fingerprint of what it means, and the provenance of where it came from. It is auto-generated and SHOULD be committed to version control.
 
 !!! note "Implementation status"
     The lock file is committed design. This section is the contract implementations are brought into conformance with — the same forward-contract convention the [Library Crate Format](./library-crate.md#specification-status) uses for its unrealized sections. Conformance is asserted against this document as each piece lands.
@@ -6369,14 +6739,14 @@ The lock file is a flat TOML document where each top-level table key is a packag
 ```toml
 ["github.com/mthds/document-processing"]
 version     = "1.2.3"
-hash        = "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+digest      = "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
 fingerprint = "7c9e2b4f8a1d3e5c7b9f2a4d6e8c1b3f5a7d9e2c4b6f8a1d3e5c7b9f2a4d6e8c"
 source      = "https://github.com/mthds/document-processing.git"
 commit      = "8f5b2c1a9d3e7f4b6a8c2e5d1f9b3a7c4e6d8f2b"
 
 ["github.com/mthds/scoring-lib"]
 version     = "0.5.1"
-hash        = "sha256:e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6"
+digest      = "sha256:e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6"
 fingerprint = "2d4f6a8c1e3b5d7f9a2c4e6b8d1f3a5c7e9b2d4f6a8c1e3b5d7f9a2c4e6b8d1f"
 source      = "https://github.com/mthds/scoring-lib.git"
 commit      = "3a7c4e6d8f2b8f5b2c1a9d3e7f4b6a8c2e5d1f9b"
@@ -6391,24 +6761,20 @@ Each entry in the lock file contains:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `version` | string | Yes | The exact resolved version. MUST be valid semver. |
-| `hash` | string | Yes | Integrity **byte hash** of the fetched package directory. MUST match the pattern `sha256:[0-9a-f]{64}`. Records *what was fetched*. |
+| `digest` | string | Yes | The [tree digest](./method-tree.md#the-tree-digest) of the fetched package's tree. MUST match the pattern `sha256:[0-9a-f]{64}`. Records *what was fetched*. |
 | `fingerprint` | string | Yes | The **semantic fingerprint** of the dependency's resolved content — the [library crate fingerprint](./library-crate.md#fingerprint) of the library the dependency's package resolves into, as a 64-character lowercase hex digest. Records *what it means*. |
 | `source` | string | Yes | The HTTPS clone URL the package was fetched from, derived from the address (see [Fetching Remote Dependencies](./namespace-resolution.md#fetching-remote-dependencies)). MUST start with `https://` and MUST end with `.git`. |
 | `commit` | string | Yes | The commit SHA the resolved version tag pointed to at lock time, as a 40-character lowercase hex digest. Provenance: a tag can be re-pointed; the commit cannot. It is also the honest cache key for tooling that caches clones. |
 
-The `hash` and the `fingerprint` are two deliberately distinct digests joined per dependency at this one point. The byte hash is transport integrity: it changes when any fetched byte changes, including formatting and comments. The fingerprint is semantic identity: it is stable across reformatting and changes exactly when the dependency's effective type surface, prompts, or entry points change. Together they let tooling verify a fetch and explain an update — a version bump whose fingerprint is unchanged changed nothing a consumer can observe; one whose fingerprint moved can be diffed semantically.
+The `digest` and the `fingerprint` are two deliberately distinct digests joined per dependency at this one point. The tree digest is transport integrity: it changes when any fetched byte changes, including formatting and comments. The fingerprint is semantic identity: it is stable across reformatting and changes exactly when the dependency's effective type surface, prompts, or entry points change. Together they let tooling verify a fetch and explain an update — a version bump whose fingerprint is unchanged changed nothing a consumer can observe; one whose fingerprint moved can be diffed semantically.
 
-## Hash Computation
+## Digest Computation
 
-The integrity hash is a deterministic SHA-256 hash of the package directory contents, computed as follows:
+The `digest` is the [tree digest](./method-tree.md#the-tree-digest) of the dependency's package tree: the SHA-256 of the tree's listing, one `sha256sum` line per file sorted by tree path byte for byte, written `sha256:` followed by the 64-character lowercase hex digest. The tree is the one [Method Tree: Dependencies Are Trees of Their Own](./method-tree.md#dependencies-are-trees-of-their-own) defines for a fetched package: the files of the package's directory in the resolved commit, read from the commit's git objects as stored and filtered by the membership rule with that commit's own `.gitignore` files. Anyone can recompute it from the commit with coreutils and git alone.
 
-1. Collect all regular files recursively under the package directory.
-2. Exclude any path containing `.git` in its components.
-3. Sort files by their POSIX-normalized relative path (for cross-platform determinism).
-4. For each file in sorted order, feed into the hasher:
-   a. The relative path string, encoded as UTF-8.
-   b. The raw file bytes.
-5. The resulting hash is formatted as `sha256:` followed by the 64-character lowercase hex digest.
+### Locks Written Before Tree Digests
+
+A lock written before standard `7.0.0` records a `hash` field in each entry, computed by an algorithm that concatenated paths and file contents with no separator, so two different directories could share one hash. A compliant implementation MUST refuse, when it parses the lock, any entry carrying a `hash` field, with a message saying that the lock predates tree digests and that running `lock` regenerates it. It MUST NOT verify a `hash`, so an untouched dependency of an old lock is never reported as tampered with. Since the lock is a regenerable [verification record](#a-verification-record-not-a-resolution-record), regenerating it is always safe.
 
 ## Fingerprint Computation
 
@@ -6432,11 +6798,11 @@ The lock file is regenerated when the manifests change or when a tool re-locks:
 When installing from a lock file, a compliant implementation MUST:
 
 1. For each entry in the lock file, locate the corresponding fetched or cached package directory.
-2. Recompute the SHA-256 byte hash of that directory using the algorithm described above.
-3. Compare the computed hash with the `hash` field in the lock file.
-4. Reject the installation if any hash does not match (integrity failure). A mismatch is a hard failure, never a warning.
+2. Recompute the tree digest of that package's tree, as described above, either from the files of the cached copy as written, every file at its path, without applying the [membership rule](./method-tree.md#the-membership-rule) again, or from the commit, filtered by the membership rule as [Dependencies Are Trees of Their Own](./method-tree.md#dependencies-are-trees-of-their-own) states.
+3. Compare the computed digest with the `digest` field in the lock file.
+4. Reject the installation if any digest does not match (integrity failure). A mismatch is a hard failure, never a warning.
 
-An implementation SHOULD additionally recompute the `fingerprint` and report a mismatch: a byte hash that matches while the fingerprint does not indicates a defect in one of the implementations, since the fingerprint is a pure function of the fetched content.
+An implementation SHOULD additionally recompute the `fingerprint` and report a mismatch: a tree digest that matches while the fingerprint does not indicates a defect in one of the implementations, since the fingerprint is a pure function of the fetched content.
 
 ## Deterministic Output
 
@@ -7438,9 +7804,9 @@ For example: `github.com/acme/legal-tools` → `https://github.com/acme/legal-to
 
 The resolution chain for fetching a dependency is:
 
-1. **Local path** — if the dependency has a `path` field in `METHODS.toml`, resolve from the local filesystem.
+1. **Local path** — if the dependency has a `path` field in `METHODS.toml`, resolve from the local filesystem: the dependency's tree is the method tree rooted at that directory.
 2. **Local cache** — check `~/.mthds/packages/{address}/{version}/` for a cached copy.
-3. **VCS fetch** — clone the repository at the resolved version tag using `git clone --depth 1 --branch {tag}`.
+3. **VCS fetch** — clone the repository at the resolved version tag without a checkout, using `git clone --depth 1 --branch {tag} --no-checkout`, locate the package in the commit, and read its tree from the commit's git objects as stored, filtered by the membership rule with that commit's own `.gitignore` files (see [Method Tree: Dependencies Are Trees of Their Own](./method-tree.md#dependencies-are-trees-of-their-own)). No checkout filter, line-ending conversion or `export-ignore` attribute applies, so the tree, and its digest, are the same on every machine.
 
 Version tags in the remote repository MAY use a `v` prefix (e.g., `v1.0.0`). The prefix is stripped during version parsing.
 
@@ -7458,7 +7824,7 @@ For example:
 ~/.mthds/packages/github.com/acme/legal-tools/1.0.0/
 ```
 
-The `.git` directory is removed from cached copies.
+A cached copy holds the package's tree and nothing else, its files written from the commit's objects at their tree paths, so it holds no `.git` directory. Its files are the package's tree as written: a reader takes every file of the copy as a file of the tree and never applies the [membership rule](./method-tree.md#the-membership-rule) to it again, since the `.gitignore` files that shaped the tree are not in the copy, and a manifest `exclude` pattern that one of them negated would exclude its file a second time (see [Method Tree: Dependencies Are Trees of Their Own](./method-tree.md#dependencies-are-trees-of-their-own)).
 
 ## Cross-Package Reference Examples
 
@@ -7578,7 +7944,7 @@ This section consolidates the validation rules scattered throughout this specifi
 
 1. **PipeLLM**: All prompt variables MUST have matching inputs. All inputs MUST be used.
 2. **PipeStructure**: Exactly one input MUST be declared. The input concept MUST be `Text` or refine `Text`. `output` MUST NOT be `Text` or refine `Text`.
-3. **PipeFunc**: `function_name` MUST be present.
+3. **PipeFunc**: `function_name` MUST be present and, once normalized to NFC, MUST be an import path holding at least one dot, each dot-separated segment a Python identifier that is not a keyword and that NFKC normalization leaves unchanged, whose module path names a module of the [method tree](./method-tree.md) (see [PipeFunc](./mthds-format.md#operator-pipefunc)).
 4. **PipeImgGen**: `prompt` MUST be present. All prompt and negative_prompt variables MUST have matching inputs. All inputs MUST be used.
 5. **PipeExtract**: Exactly one input MUST be declared. `output` MUST be `"Page[]"`.
 6. **PipeSearch**: `prompt` MUST be present. All prompt variables MUST have matching inputs. All inputs MUST be used. `output` MUST be `SearchResult` or refine `SearchResult`.
@@ -7602,6 +7968,7 @@ This section consolidates the validation rules scattered throughout this specifi
 9. All dependency version constraints MUST be valid.
 10. Domain paths in `[exports]` MUST be valid domain codes and MUST NOT use reserved domains.
 11. All pipe codes in `[exports]` MUST be valid `snake_case`.
+12. `exclude`, if present, MUST be an array of strings, none holding a line break.
 
 ### Package-Level Validation
 
@@ -7614,7 +7981,7 @@ This section consolidates the validation rules scattered throughout this specifi
 ### Lock File Validation
 
 1. Each entry's `version` MUST be valid semver.
-2. Each entry's `hash` MUST match `sha256:[0-9a-f]{64}`.
+2. Each entry's `digest` MUST match `sha256:[0-9a-f]{64}`. An entry carrying a `hash` field predates tree digests and MUST be refused with a message saying that `lock` regenerates the file (see [Locks Written Before Tree Digests](./lock-format.md#locks-written-before-tree-digests)).
 3. Each entry's `fingerprint` MUST be a 64-character lowercase hex digest.
 4. Each entry's `source` MUST start with `https://` and end with `.git`.
 5. Each entry's `commit` MUST be a 40-character lowercase hex digest.
@@ -7876,11 +8243,11 @@ The `--inputs` flag always wins — the stdin data is ignored.
 
 # HTTP Runner Protocol
 
-The MTHDS Protocol is the minimal HTTP contract every MTHDS runner implements. Any server that serves these five routes with the shapes defined here is an MTHDS-compliant runner. A runner is just a runner: it executes methods, validates bundles, and reports what models it can route to and what version it is. It keeps no run store and owns no user, billing, or catalog concepts.
+The MTHDS Protocol is the minimal HTTP contract every MTHDS runner implements. Any server that serves its five required routes with the shapes defined here is an MTHDS-compliant runner, and a runner that keeps a blob store also serves the optional blob routes. A runner is just a runner: it executes methods, validates bundles, and reports what models it can route to and what version it is. It keeps no run store and owns no user, billing, or catalog concepts.
 
 The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml). This page walks through it in prose, then renders it route by route — every parameter, request body, and response schema — in the [route reference](#route-reference) below. Where prose and YAML disagree, the YAML wins.
 
-## The five routes
+## The routes
 
 | Method | Path | Purpose |
 |--------|------|---------|
@@ -7889,6 +8256,10 @@ The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](
 | `POST` | `/validate` | Parse, validate, and dry-run an MTHDS bundle. |
 | `GET` | `/models` | The models this runner can route to. Optional `?type=` filter on the [model category](#model-categories) (`llm` · `extract` · `img_gen` · `search` · `judgment`). |
 | `GET` | `/version` | Always public. Protocol and runner versions — the handshake clients use for feature detection. |
+| `POST` | `/blobs/missing` | Optional, served by a runner that keeps a [blob store](#sending-files-by-hash). Which of the listed blobs the runner lacks, and where to upload each. |
+| `PUT` | `/blobs/{sha256}` | Optional. Uploads one blob's bytes to a runner that stores them itself. |
+
+The first five routes are required of every runner. The last two are served by a runner whose `/version` declares `blob_store: true`, and `PUT /blobs/{sha256}` only by one that stores uploaded bytes itself rather than pointing its senders at another upload target.
 
 All errors are [RFC 7807](https://www.rfc-editor.org/rfc/rfc7807) `application/problem+json` documents. Auth is implementation-defined: a bearer-token slot is reserved, and anonymous access is allowed for self-hosted runners.
 
@@ -7910,20 +8281,44 @@ The protocol itself is versioned by this standard (`protocol_version` in `/versi
 ```json
 {
   "pipe_code": "analyze_contract",
-  "mthds_contents": ["domain = \"legal\"\n..."],
+  "files": {
+    "METHODS.toml": "[package]\nname = \"contract_review\"\n...",
+    "contracts.mthds": "domain = \"legal\"\n...",
+    "templates/report.html": "<html>...",
+    "templates/logo.png": { "base64": "iVBORw0KGgo..." }
+  },
   "inputs": {
     "contract": { "concept": "native.Document", "content": { "url": "..." } }
   }
 }
 ```
 
-At least one of `pipe_code` / `mthds_contents` is required. If `mthds_contents` is provided without `pipe_code`, the first bundle must declare a `main_pipe`. Optional fields: `output_name`, `output_multiplicity`, `dynamic_output_concept_ref`. Each input is a stuff in the wire form the [CLI I/O Contract](./cli-io-contract.md#stuffs-on-the-wire) defines: `concept` names the concept by its crate key, as a string, and `content` is its value.
+`files` carries the method: its whole [method tree](./method-tree.md), as a map from tree path to file entry (see [Method files](#method-files) below). At least one of `pipe_code` / `files` is required, and `pipe_code` alone names a pipe the runner already holds. When `files` is given without `pipe_code`, the run starts at the manifest's `main_pipe` when the tree holds a `METHODS.toml` at its root, or else, in a method with no manifest, at the one `main_pipe` its bundles declare. A tree whose manifest declares no `main_pipe`, or with no manifest whose bundles declare none or several, is refused with a `422` naming its bundles by their tree paths. Optional fields: `output_name`, `output_multiplicity`, `dynamic_output_concept_ref`. Each input is a stuff in the wire form the [CLI I/O Contract](./cli-io-contract.md#stuffs-on-the-wire) defines: `concept` names the concept by its crate key, as a string, and `content` is its value.
 
 The 200 response is a `RunResultExecute` — the completed run, holding two base fields: `pipeline_run_id` (mandatory, server-generated and authoritative) and `pipe_output` (the method's serialized output; always present — a completed run has output, either a value or an explicit absence document). Anything more an implementation returns — a run state, timestamps, output naming, anything else — is an extension field (see [Extension policy](#extension-policy)), declared and documented by that implementation.
 
 `pipe_output` is a working memory of stuffs in the same wire form as the inputs, and it carries references only: a concept's definition never travels in a working memory. A client that needs the structure behind a `concept` resolves the key against the library crate, or reads it from the `pipe_io_contracts` a validating runner reports. The stuff's shape is the standard's, not the protocol's: the OpenAPI document types an input's `concept` as a string and leaves `pipe_output` an open object, the CLI I/O Contract fixes what its entries look like, and a change to that shape moves the [standard version](./versioning.md#the-protocol-version) and no protocol number — the way the recommended extension fields of the validate report are shaped by their own pages.
 
 The protocol sets no time limit on `/execute`; deployments cap it at their proxy layer. For long-running methods prefer `/start`. Implementations **MAY** answer `202 + RunResultStart` (just the run id, no output yet) with a `Location` header pointing at an implementation-defined status resource when they cannot hold the connection open ([RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.3) asynchronous pattern). Simple runners never emit 202; clients that cannot handle it should use `/start`.
+
+### Method files
+
+A request's `files` map holds every file of the method's tree under its [tree path](./method-tree.md#tree-paths): its bundles, its manifest when it has one, and every other file a step may read or that travels with the method, such as a Python module, a template, an image or a `requirements.txt`. Each value is a [file entry](./method-tree.md#the-file-entry) in one of three forms:
+
+- **a string**, the file's text, whose bytes are its UTF-8 encoding;
+- **`{ "base64": "…" }`**, any bytes, in standard padded Base64, canonical, with its pad bits zero;
+- **`{ "sha256": "…", "size": … }`**, bytes the runner already holds in its blob store, named by their SHA-256 in lowercase hexadecimal and their length, a JSON integer written without a fraction or an exponent.
+
+The map must form a tree. A runner refuses with a `422` naming the offending path a map in which:
+
+- a key is not a tree path, such as a key not already in NFC, which a runner refuses rather than normalize, or names a file the membership rule could never admit, such as a dotfile;
+- one path is given twice, as written or once its JSON escapes are decoded, or an entry object gives one of its own keys twice;
+- two paths [collide](./method-tree.md#tree-paths), or one collides with a directory of another, under the Unicode full case folding the method tree defines, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`;
+- an entry is malformed, such as Base64 whose pad bits are not zero, or a `size` written `13.0`.
+
+A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem whose `missing_blobs` member lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer what to upload. The tree's files are the method's own: a file a caller supplies for one run is an input, never an entry of `files`.
+
+A runner reads a method only from the files it is sent. A [file reference](./method-tree.md#file-references) resolves in the tree's set of paths and a hash in the blob store, so no request names a path on the runner's own disk. Each implementation bounds a file's size, the tree's file count and its total size, and the total of the inline entries, and refuses a tree past one of them with a problem naming the limit.
 
 ## Starting a method asynchronously
 
@@ -7937,7 +8332,7 @@ The protocol mandates no run store, and it defines **no completion channel for `
 
 ## Validating a bundle
 
-`POST /validate` takes `mthds_contents` (always an array, even for a single file) and an optional `allow_signatures` flag (default `false` — strict; when `true`, the validation sweep tolerates unimplemented pipe signatures by minting a mock).
+`POST /validate` takes `files`, the method's tree as `/execute` takes it (see [Method files](#method-files)), and an optional `allow_signatures` flag (default `false` — strict; when `true`, the validation sweep tolerates unimplemented pipe signatures by minting a mock). A validating runner judges the whole tree: every bundle, and every file a bundle names by file reference or by a `PipeFunc`'s import path.
 
 `/validate` is a **diagnostic endpoint**: its job is to return a *verdict* about the submitted bundle, and every verdict it can produce — valid or invalid — rides a **200**, discriminated in the body on the mandatory `is_valid` field.
 
@@ -7948,20 +8343,74 @@ The protocol mandates no run store, and it defines **no completion channel for `
 
 A client pattern-matches `is_valid` to learn the verdict — it never inspects a status code or catches an exception body. Non-2xx is reserved for the cases where **no verdict could be produced**: a malformed request body is a `422` problem, auth a `401`/`403`, a server fault a `5xx`. So a non-2xx on `/validate` always means "the endpoint could not produce a verdict," never "your bundle is bad" — which keeps expected validation failures out of the 4xx error budget and never editorializes a verdict into a spurious retry. Signatures are never an error: an unimplemented signature reached during validation is a *runnability fact* (`is_runnable: false` + `pending_signatures`), not a validation failure, and `allow_signatures` only affects the dry-run sweep, not the verdict.
 
+## Sending files by hash
+
+A runner MAY keep a **blob store**: bytes keyed by their SHA-256, written once and never changed. A runner that keeps one declares `blob_store: true` in `GET /version` and serves `POST /blobs/missing`, so a sender uploads each file at most once and then sends the method's tree by hash. A second run of an unchanged method uploads nothing, and editing one template uploads one file.
+
+1. The sender lists the method's tree and computes each file's SHA-256 and the [tree digest](./method-tree.md#the-tree-digest).
+2. It asks `POST /blobs/missing` which of those blobs the runner lacks.
+3. It uploads each missing blob as the answer says.
+4. It sends the run, or the validation, with a hash entry for each file it chose to send by hash.
+
+A sender chooses per file between an inline entry and a hash entry, and may mix both in one request; neither form is second-class.
+
+### `POST /blobs/missing`
+
+The request lists blobs by hash and size, each `size` a JSON integer written without a fraction or an exponent, as in a hash entry, and may name the tree they make up:
+
+```json
+{
+  "digest": "sha256:801fca61b41566e46d3fb1923e323590da7a539fd3e7af7455e7cba3934d4674",
+  "blobs": [
+    { "sha256": "af12591480ada38cf107d1a76bc5e2e111ad4c7ec5f3a2a63d058f5f5ab6b91c", "size": 12 },
+    { "sha256": "3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0", "size": 13 }
+  ]
+}
+```
+
+The `200` answer lists every blob of the request the runner does not hold, each with its `size`, a JSON integer written in the same way, and where to upload it:
+
+```json
+{
+  "missing": [
+    {
+      "sha256": "3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0",
+      "size": 13,
+      "upload": {
+        "method": "PUT",
+        "url": "https://runner.example.com/v1/blobs/3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0",
+        "headers": { "content-type": "application/octet-stream" }
+      }
+    }
+  ]
+}
+```
+
+To upload a missing blob, the sender sends the blob's bytes as the whole body of a request with the given `method` to the given `url`, carrying exactly the given `headers`. The upload target is the runner's to choose: its own `PUT /blobs/{sha256}`, or any other address that stores the bytes where the runner reads its blobs. A blob the runner holds is left out of `missing`, and an empty `missing` means the sender has nothing to upload.
+
+The optional `digest` names the tree the listed blobs make up. A runner that keeps a record of the trees it has held in full MAY answer with an empty `missing` when it holds the tree that digest names, which makes the check for an unchanged method one lookup however many files it has. It records a tree only after checking that it holds every file the tree's listing names, and never takes an uploaded blob as such a record, since anyone can upload bytes that happen to form a listing.
+
+A request naming one hash twice with different sizes is a `422`, and so is a blob past the runner's limits, refused before anything is uploaded with a problem naming the limit. Which callers share a blob store is the runner's policy: a hash entry resolves only in the store the runner keeps for its caller, and a runner serving several tenants SHOULD keep each one's blobs apart, so that holding a hash never tells one tenant what another has stored.
+
+### `PUT /blobs/{sha256}`
+
+The upload target of a runner that stores bytes itself. The body is the blob's bytes and nothing else. The runner computes their SHA-256 and refuses with a `422` a body whose hash differs from the one in the path. A blob is written once and never changed, so uploading bytes the runner already holds succeeds without changing anything; either way the answer is a `204`.
+
 ## Discovery
 
 `GET /models` returns the runner's model deck — the models it can route to (`{name, type}` entries), optionally filtered by category. Implementations may add their own routing metadata (aliases, fallback chains, anything else) as additional properties.
 
-`GET /version` is always public (no auth). It returns `protocol_version` (required) and an optional `runner_version` — implementations may add their own identification on top:
+`GET /version` is always public (no auth). It returns `protocol_version` (required), an optional `runner_version`, and an optional `blob_store` flag, which is `true` for a runner that keeps a blob store and serves the [blob routes](#sending-files-by-hash), and `false` or absent for one that does not — implementations may add their own identification on top:
 
 ```json
 {
-  "protocol_version": "0.7.0",
-  "runner_version": "2.3.0"
+  "protocol_version": "1.0.0",
+  "runner_version": "2.3.0",
+  "blob_store": true
 }
 ```
 
-Clients use `/version` as the handshake: it reports the protocol and runner versions, and any additional properties let clients detect vendor extensions before relying on them.
+Clients use `/version` as the handshake: it reports the protocol and runner versions and whether the runner takes files by hash, and any additional properties let clients detect vendor extensions before relying on them.
 
 ### Model categories
 
@@ -7992,7 +8441,7 @@ Implementations may extend the surface — extra routes, extra optional request 
 
 ## Conformance
 
-An implementation claiming conformance states it as: *implements MTHDS Protocol v0.7*. Conformance means: the five routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, and `/version` is public.
+An implementation claiming conformance states it as: *implements MTHDS Protocol v1.0*. Conformance means: the five required routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, `/version` is public, and a runner that declares `blob_store: true` serves `POST /blobs/missing` and resolves hash entries from its blob store.
 
 The protocol number moves under its own rule — a new route, a new optional field or a new [model category](#model-categories) is a minor bump, a changed shape or meaning is a major one — independently of the standard version. The recommended extension fields above are not such an addition: they are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number. See [Versioning](./versioning.md#the-protocol-version).
 
@@ -8080,9 +8529,7 @@ Execute a method synchronously and return its full output.
     ```json
     {
         "pipe_code": "string",
-        "mthds_contents": [
-            "string"
-        ],
+        "files": null,
         "inputs": {},
         "output_name": "string",
         "output_multiplicity": null,
@@ -8097,7 +8544,7 @@ Execute a method synchronously and return its full output.
         ```json
         {
             "type": "object",
-            "description": "At least one of pipe_code / mthds_contents is required (enforced by the anyOf rule below). If mthds_contents is provided without pipe_code, the first bundle must declare a main_pipe. Extension-open: implementations MAY accept extra top-level properties (extension args).\n",
+            "description": "At least one of pipe_code / files is required (enforced by the anyOf rule below). If files is provided without pipe_code, the run starts at the manifest's main_pipe when the tree holds a METHODS.toml at its root, or else, in a method with no manifest, at the one main_pipe its bundles declare; a tree whose manifest declares none, or with no manifest whose bundles declare none or several, is a 422 naming its bundles by their tree paths. Extension-open: implementations MAY accept extra top-level properties (extension args).\n",
             "additionalProperties": true,
             "anyOf": [
                 {
@@ -8113,12 +8560,11 @@ Execute a method synchronously and return its full output.
                 },
                 {
                     "required": [
-                        "mthds_contents"
+                        "files"
                     ],
                     "properties": {
-                        "mthds_contents": {
-                            "type": "array",
-                            "minItems": 1
+                        "files": {
+                            "$ref": "#/components/schemas/MethodFiles"
                         }
                     }
                 }
@@ -8129,18 +8575,18 @@ Execute a method synchronously and return its full output.
                         "string",
                         "null"
                     ],
-                    "description": "Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents)."
+                    "description": "Code of the pipe to execute (a pipe the runner already holds, or one defined in a bundle of files)."
                 },
-                "mthds_contents": {
-                    "type": [
-                        "array",
-                        "null"
-                    ],
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "MTHDS bundle contents to load (always an array, even for a single file; never empty). Implementations bound count and per-file size."
+                "files": {
+                    "description": "The method to load, as its whole method tree. Implementations bound a file's size, the tree's file count and total size, and the total of the inline entries.",
+                    "anyOf": [
+                        {
+                            "$ref": "#/components/schemas/MethodFiles"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
                 },
                 "inputs": {
                     "type": [
@@ -8327,9 +8773,7 @@ Start a method asynchronously; returns its pipeline_run_id immediately.
     ```json
     {
         "pipe_code": "string",
-        "mthds_contents": [
-            "string"
-        ],
+        "files": null,
         "inputs": {},
         "output_name": "string",
         "output_multiplicity": null,
@@ -8344,7 +8788,7 @@ Start a method asynchronously; returns its pipeline_run_id immediately.
         ```json
         {
             "type": "object",
-            "description": "At least one of pipe_code / mthds_contents is required (enforced by the anyOf rule below). If mthds_contents is provided without pipe_code, the first bundle must declare a main_pipe. Extension-open: implementations MAY accept extra top-level properties (extension args).\n",
+            "description": "At least one of pipe_code / files is required (enforced by the anyOf rule below). If files is provided without pipe_code, the run starts at the manifest's main_pipe when the tree holds a METHODS.toml at its root, or else, in a method with no manifest, at the one main_pipe its bundles declare; a tree whose manifest declares none, or with no manifest whose bundles declare none or several, is a 422 naming its bundles by their tree paths. Extension-open: implementations MAY accept extra top-level properties (extension args).\n",
             "additionalProperties": true,
             "anyOf": [
                 {
@@ -8360,12 +8804,11 @@ Start a method asynchronously; returns its pipeline_run_id immediately.
                 },
                 {
                     "required": [
-                        "mthds_contents"
+                        "files"
                     ],
                     "properties": {
-                        "mthds_contents": {
-                            "type": "array",
-                            "minItems": 1
+                        "files": {
+                            "$ref": "#/components/schemas/MethodFiles"
                         }
                     }
                 }
@@ -8376,18 +8819,18 @@ Start a method asynchronously; returns its pipeline_run_id immediately.
                         "string",
                         "null"
                     ],
-                    "description": "Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents)."
+                    "description": "Code of the pipe to execute (a pipe the runner already holds, or one defined in a bundle of files)."
                 },
-                "mthds_contents": {
-                    "type": [
-                        "array",
-                        "null"
-                    ],
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "MTHDS bundle contents to load (always an array, even for a single file; never empty). Implementations bound count and per-file size."
+                "files": {
+                    "description": "The method to load, as its whole method tree. Implementations bound a file's size, the tree's file count and total size, and the total of the inline entries.",
+                    "anyOf": [
+                        {
+                            "$ref": "#/components/schemas/MethodFiles"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ]
                 },
                 "inputs": {
                     "type": [
@@ -8530,9 +8973,7 @@ Parse, validate, and dry-run an MTHDS bundle.
     
     ```json
     {
-        "mthds_contents": [
-            "string"
-        ],
+        "files": {},
         "allow_signatures": true
     }
     ```
@@ -8545,16 +8986,12 @@ Parse, validate, and dry-run an MTHDS bundle.
         {
             "type": "object",
             "required": [
-                "mthds_contents"
+                "files"
             ],
             "properties": {
-                "mthds_contents": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    },
-                    "description": "MTHDS contents to load (always an array, even for a single file)."
+                "files": {
+                    "$ref": "#/components/schemas/MethodFiles",
+                    "description": "The method to validate, as its whole method tree; the runner judges every bundle and every file a bundle names."
                 },
                 "allow_signatures": {
                     "type": "boolean",
@@ -8714,7 +9151,8 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
         ```json
         {
             "protocol_version": "string",
-            "runner_version": "string"
+            "runner_version": "string",
+            "blob_store": true
         }
         ```
         <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
@@ -8725,7 +9163,7 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
             ```json
             {
                 "type": "object",
-                "description": "The handshake. The protocol defines protocol_version (required) plus an optional runner_version; implementations MAY add their own identification (a name, an underlying runtime version, anything else) as additional properties.\n",
+                "description": "The handshake. The protocol defines protocol_version (required) plus an optional runner_version and an optional blob_store flag; implementations MAY add their own identification (a name, an underlying runtime version, anything else) as additional properties.\n",
                 "required": [
                     "protocol_version"
                 ],
@@ -8741,6 +9179,11 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
                             "null"
                         ],
                         "description": "Version of the runner serving this protocol (optional)."
+                    },
+                    "blob_store": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers any hash entry with a 422 listing missing_blobs.\n"
                     }
                 }
             }
@@ -8752,9 +9195,303 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
 
 
 
+## <span class="api-tag">blobs</span>
+
+
+<hr class="operation-separator" />
+
+### <span class="http-post">POST</span> /blobs/missing
+Which of these blobs the runner lacks, and where to upload each.
+
+??? note "Description"
+    OPTIONAL — served by a runner whose /version declares blob_store true. The answer lists every blob of the request the runner does not hold, each with an upload target; a blob it holds is left out, and an empty list means there is nothing to upload. The optional digest names the tree the blobs make up: a runner that records the trees it has held in full, recording one only after checking it holds every file the tree's listing names and never taking an uploaded blob as such a record, MAY answer an empty list when it holds the tree that digest names. A hash given twice with different sizes, or a blob past the runner's limits, is a 422, refused before anything is uploaded.
+
+
+
+**Input parameters**
+
+<table>
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>In</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Nullable</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="parameter-name"><code>bearer</code></td>
+            <td>header</td>
+            <td>string</td>
+            <td>N/A</td>
+            <td>No</td>
+            <td>Token semantics are implementation-defined.</td>
+        </tr>
+    </tbody>
+</table>
+<p class="request-body-title"><strong>Request body</strong></p>
+
+
+
+=== "application/json"
+    
+    
+    ```json
+    {
+        "blobs": [
+            {
+                "sha256": "string",
+                "size": 0
+            }
+        ],
+        "digest": "string"
+    }
+    ```
+    <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
+
+    
+
+    ??? hint "Schema of the request body"
+        ```json
+        {
+            "type": "object",
+            "description": "The blobs a sender is about to send by hash, and optionally the tree they make up.",
+            "required": [
+                "blobs"
+            ],
+            "additionalProperties": true,
+            "properties": {
+                "blobs": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/BlobRef"
+                    },
+                    "description": "The blobs to check, each hash listed once."
+                },
+                "digest": {
+                    "type": "string",
+                    "pattern": "^sha256:[0-9a-f]{64}$",
+                    "description": "The tree digest of the method tree the blobs make up (optional)."
+                }
+            }
+        }
+        ```
+
+<p class="responses-title"><strong>Responses</strong></p>
+
+
+=== "200 OK"
+    
+    === "application/json"
+        
+        
+        ```json
+        {
+            "missing": [
+                {
+                    "sha256": "string",
+                    "size": 0,
+                    "upload": {
+                        "method": "string",
+                        "url": "string",
+                        "headers": {}
+                    }
+                }
+            ]
+        }
+        ```
+        <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
+        
+        
+
+        ??? hint "Schema of the response body"
+            ```json
+            {
+                "type": "object",
+                "description": "The blobs of the request the runner does not hold. Extension-open.",
+                "required": [
+                    "missing"
+                ],
+                "additionalProperties": true,
+                "properties": {
+                    "missing": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MissingBlob"
+                        }
+                    }
+                }
+            }
+            ```
+    
+    
+=== "422 Unprocessable Content"
+    <div class="common-response"><p>Refer to the common response description: <a href="#validationproblem" class="ref-link">ValidationProblem</a>.</p></div>
+=== "Other responses"
+    <div class="common-response"><p>Refer to the common response description: <a href="#problem" class="ref-link">Problem</a>.</p></div>
+
+
+<hr class="operation-separator" />
+
+### <span class="http-put">PUT</span> /blobs/<span class="route-param">{sha256}</span>
+Upload one blob's bytes to a runner that stores them itself.
+
+??? note "Description"
+    OPTIONAL — served by a runner that keeps a blob store and stores uploaded bytes itself, as the upload target its POST /blobs/missing answers name. The body is the blob's bytes and nothing else. A body whose SHA-256 differs from the path is a 422. A blob is written once and never changed, so uploading bytes the runner already holds succeeds without changing anything.
+
+
+
+**Input parameters**
+
+<table>
+    <thead>
+        <tr>
+            <th>Parameter</th>
+            <th>In</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Nullable</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="parameter-name"><code>bearer</code></td>
+            <td>header</td>
+            <td>string</td>
+            <td>N/A</td>
+            <td>No</td>
+            <td>Token semantics are implementation-defined.</td>
+        </tr>
+        <tr>
+            <td class="parameter-name"><code>sha256</code></td>
+            <td>path</td>
+            <td>string</td>
+            <td></td>
+            <td>No</td>
+            <td>The SHA-256 of the body, in lowercase hexadecimal.</td>
+        </tr>
+    </tbody>
+</table>
+<p class="request-body-title"><strong>Request body</strong></p>
+
+
+
+=== "application/octet-stream"
+    
+    
+    ```json
+    "TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQ="
+    ```
+    <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
+
+    
+
+    ??? hint "Schema of the request body"
+        ```json
+        {
+            "type": "string",
+            "format": "binary"
+        }
+        ```
+
+<p class="responses-title"><strong>Responses</strong></p>
+
+
+=== "204 No Content"
+=== "422 Unprocessable Content"
+    <div class="common-response"><p>Refer to the common response description: <a href="#validationproblem" class="ref-link">ValidationProblem</a>.</p></div>
+=== "Other responses"
+    <div class="common-response"><p>Refer to the common response description: <a href="#problem" class="ref-link">Problem</a>.</p></div>
+
+
+
 
 ---
 ## Schemas
+
+
+### Base64FileEntry
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>base64</code></td>
+            <td><span class="string-type">string</span></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+### BlobRef
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>sha256</code></td>
+            <td><span class="string-type">string</span></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><code>size</code></td>
+            <td><span class="integer-type">integer</span></td>
+            <td>The length of the bytes, a JSON integer written without a fraction or an exponent. A size written 13.0 is refused, although JSON Schema's integer type admits it.
+</td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+### FileEntry
+<span>Type: </span>
+
+
+
+### HashFileEntry
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>sha256</code></td>
+            <td><span class="string-type">string</span></td>
+            <td>The SHA-256 of the bytes</td>
+        </tr>
+        <tr>
+            <td><code>size</code></td>
+            <td><span class="integer-type">integer</span></td>
+            <td>The length of the bytes, a JSON integer written without a fraction or an exponent. A size written 13.0 is refused, although JSON Schema's integer type admits it.
+</td>
+        </tr>
+    </tbody>
+</table>
+
 
 
 ### InvalidValidationReport
@@ -8792,6 +9529,90 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
             <td><code>validation_errors</code></td>
             <td>Array&lt;<a href="#validationerror" class="ref-link">ValidationError</a>&gt;</td>
             <td>Per-error diagnostics — non-empty on every invalid verdict.</td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+### MethodFiles
+
+
+
+
+### MissingBlob
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>sha256</code></td>
+            <td><span class="string-type">string</span></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td><code>size</code></td>
+            <td><span class="integer-type">integer</span></td>
+            <td>The length of the bytes, a JSON integer written without a fraction or an exponent. A size written 13.0 is refused, although JSON Schema's integer type admits it.
+</td>
+        </tr>
+        <tr>
+            <td><code>upload</code></td>
+            <td><a href="#uploadtarget" class="ref-link">UploadTarget</a></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+### MissingBlobsRequest
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>blobs</code></td>
+            <td>Array&lt;<a href="#blobref" class="ref-link">BlobRef</a>&gt;</td>
+            <td>The blobs to check, each hash listed once.</td>
+        </tr>
+        <tr>
+            <td><code>digest</code></td>
+            <td><span class="string-type">string</span></td>
+            <td>The tree digest of the method tree the blobs make up (optional).</td>
+        </tr>
+    </tbody>
+</table>
+
+
+
+### MissingBlobsResult
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>missing</code></td>
+            <td>Array&lt;<a href="#missingblob" class="ref-link">MissingBlob</a>&gt;</td>
+            <td></td>
         </tr>
     </tbody>
 </table>
@@ -8841,6 +9662,12 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
             <td></td>
         </tr>
         <tr>
+            <td><code>missing_blobs</code></td>
+            <td>Array&lt;<span class="string-type">string</span>&gt;</td>
+            <td>On a 422 refusing hash entries, every hash of the request the runner does not hold, in lowercase hexadecimal, so a sender learns in one answer what to upload.
+</td>
+        </tr>
+        <tr>
             <td><code>status</code></td>
             <td><span class="integer-type">integer</span></td>
             <td></td>
@@ -8877,14 +9704,14 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
             <td>Override for the dynamic output concept reference.</td>
         </tr>
         <tr>
+            <td><code>files</code></td>
+            <td></td>
+            <td>The method to load, as its whole method tree. Implementations bound a file's size, the tree's file count and total size, and the total of the inline entries.</td>
+        </tr>
+        <tr>
             <td><code>inputs</code></td>
             <td></td>
             <td>Method inputs: map of input name to { concept, content }. Content shapes follow the concept's structure; content validation is deliberately loose here and strict inside the runtime.</td>
-        </tr>
-        <tr>
-            <td><code>mthds_contents</code></td>
-            <td>Array&lt;<span class="string-type">string</span>&gt;</td>
-            <td>MTHDS bundle contents to load (always an array, even for a single file; never empty). Implementations bound count and per-file size.</td>
         </tr>
         <tr>
             <td><code>output_multiplicity</code></td>
@@ -8899,7 +9726,7 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
         <tr>
             <td><code>pipe_code</code></td>
             <td><span class="string-type">string</span> &#124; <span class="null-type">null</span></td>
-            <td>Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents).</td>
+            <td>Code of the pipe to execute (a pipe the runner already holds, or one defined in a bundle of files).</td>
         </tr>
     </tbody>
 </table>
@@ -8953,6 +9780,37 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
 
 
 
+### UploadTarget
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><code>headers</code></td>
+            <td></td>
+            <td>The headers to send, exactly.</td>
+        </tr>
+        <tr>
+            <td><code>method</code></td>
+            <td><span class="string-type">string</span></td>
+            <td>The HTTP method, such as PUT.</td>
+        </tr>
+        <tr>
+            <td><code>url</code></td>
+            <td><span class="string-type">string</span>(<span class="uri-format format">uri</span>)</td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+
+
 ### ValidateRequest
 
 <table>
@@ -8970,9 +9828,9 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
             <td>When true, the validation sweep tolerates unimplemented pipe signatures (signatures dry-run by minting a mock). Strict by default.</td>
         </tr>
         <tr>
-            <td><code>mthds_contents</code></td>
-            <td>Array&lt;<span class="string-type">string</span>&gt;</td>
-            <td>MTHDS contents to load (always an array, even for a single file).</td>
+            <td><code>files</code></td>
+            <td><a href="#methodfiles" class="ref-link">MethodFiles</a></td>
+            <td>The method to validate, as its whole method tree; the runner judges every bundle and every file a bundle names.</td>
         </tr>
     </tbody>
 </table>
@@ -9054,6 +9912,12 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
     </thead>
     <tbody>
         <tr>
+            <td><code>blob_store</code></td>
+            <td><span class="boolean-type">boolean</span></td>
+            <td>True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers any hash entry with a 422 listing missing_blobs.
+</td>
+        </tr>
+        <tr>
             <td><code>protocol_version</code></td>
             <td><span class="string-type">string</span></td>
             <td>MTHDS Protocol version implemented.</td>
@@ -9088,7 +9952,10 @@ RFC 7807 problem document.
         "title": "string",
         "status": 0,
         "detail": "string",
-        "instance": "string"
+        "instance": "string",
+        "missing_blobs": [
+            "string"
+        ]
     }
     ```
     <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
@@ -9116,6 +9983,14 @@ RFC 7807 problem document.
                 },
                 "instance": {
                     "type": "string"
+                },
+                "missing_blobs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "description": "On a 422 refusing hash entries, every hash of the request the runner does not hold, in lowercase hexadecimal, so a sender learns in one answer what to upload.\n"
                 }
             }
         }
@@ -9127,7 +10002,7 @@ RFC 7807 problem document.
 
 
 ### ValidationProblem
-The request failed validation (RFC 7807). On /execute and /start a bad bundle also lands here; on /validate an invalid bundle is a 200 verdict, so there a 422 is request-shape only.
+The request failed validation (RFC 7807). On /execute and /start a bad bundle also lands here; on /validate an invalid bundle is a 200 verdict, so there a 422 is request-shape only. A request whose files map is not a tree is a 422 naming the offending path, and a request naming a hash entry the runner does not hold, or any hash entry when it keeps no blob store, is a 422 whose missing_blobs member lists each such hash.
 
 
 <p class="message-separator"></p>
@@ -9141,7 +10016,10 @@ The request failed validation (RFC 7807). On /execute and /start a bad bundle al
         "title": "string",
         "status": 0,
         "detail": "string",
-        "instance": "string"
+        "instance": "string",
+        "missing_blobs": [
+            "string"
+        ]
     }
     ```
     <span class="small-note">⚠️</span>&nbsp;<em class="small-note warning">This example has been generated automatically from the schema and it is not accurate. Refer to the schema for more information.</em>
@@ -9169,6 +10047,14 @@ The request failed validation (RFC 7807). On /execute and /start a bad bundle al
                 },
                 "instance": {
                     "type": "string"
+                },
+                "missing_blobs": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "description": "On a 422 refusing hash entries, every hash of the request the runner does not hold, in lowercase hexadecimal, so a sender learns in one answer what to upload.\n"
                 }
             }
         }
@@ -9204,11 +10090,13 @@ The request failed validation (RFC 7807). On /execute and /start a bad bundle al
 
 ## Tags
 
-| Name      | Description                                       |
-| --------- | ------------------------------------------------- |
-| run       | Execute methods, synchronously or asynchronously. |
-| validate  | Static + dry-run validation of MTHDS bundles.     |
-| discovery | What this runner is and what it can route to.     |
+| Name      | Description                                                                                                                                                                                                    |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| run       | Execute methods, synchronously or asynchronously.                                                                                                                                                              |
+| validate  | Static + dry-run validation of MTHDS bundles.                                                                                                                                                                  |
+| discovery | What this runner is and what it can route to.                                                                                                                                                                  |
+| blobs     | Optional. A runner whose /version declares blob_store true keeps a blob store (bytes keyed by their SHA-256, written once, never changed), so a sender uploads a file at most once and then sends it by hash.
+ |
 
 
 
@@ -9426,7 +10314,7 @@ Resolve dependencies and generate `methods.lock`.
 mthds package lock
 ```
 
-Reads the `[dependencies]` section of `METHODS.toml`, resolves all versions with [Minimum Version Selection](../packages/version-resolution.md) (including transitive dependencies), and writes the lock file: exact versions, byte hashes, crate fingerprints, sources, and commits. Because resolution is deterministic from the manifests, re-running `lock` against unchanged manifests reproduces the same file.
+Reads the `[dependencies]` section of `METHODS.toml`, resolves all versions with [Minimum Version Selection](../packages/version-resolution.md) (including transitive dependencies), and writes the lock file: exact versions, tree digests, crate fingerprints, sources, and commits. Because resolution is deterministic from the manifests, re-running `lock` against unchanged manifests reproduces the same file.
 
 ---
 
@@ -9440,7 +10328,7 @@ Fetch and verify all dependencies pinned by `methods.lock`.
 mthds package install
 ```
 
-For each entry in the lock file, checks the global cache (`~/.mthds/packages/`), fetches what is missing via Git, verifies the byte hash against the lock (a mismatch is a hard failure), and materializes each dependency into the project-local cache (see [Distribution: The Two Caches](../packages/distribution.md#the-two-caches)).
+For each entry in the lock file, checks the global cache (`~/.mthds/packages/`), fetches what is missing via Git, verifies the tree digest against the lock (a mismatch is a hard failure), and materializes each dependency into the project-local cache (see [Distribution: The Two Caches](../packages/distribution.md#the-two-caches)).
 
 ---
 
@@ -9869,7 +10757,7 @@ version       = "0.1.0"
 description   = "Text summarization and document classification methods"
 authors       = ["Your Name <you@example.com>"]
 license       = "MIT"
-mthds_version = ">=6.0.0"
+mthds_version = ">=7.0.0"
 ```
 
 ## Step 5: Validate
@@ -10153,7 +11041,7 @@ function find_manifest(bundle_path):
     while true:
         if "METHODS.toml" exists in current:
             return parse_manifest(current / "METHODS.toml")
-        if ".git" directory exists in current:
+        if an entry named ".git" is present in current, as lstat sees it:  // any kind, a dangling link included, never followed
             return null  // stop at repository boundary
         parent = parent_directory(current)
         if parent == current:
@@ -10163,12 +11051,14 @@ function find_manifest(bundle_path):
 
 If no manifest is found, the bundle is treated as a standalone bundle: all pipes are public, no dependencies are available beyond native concepts, and the bundle is not distributable.
 
+The directory where the manifest is found is the root of the method's [tree](../spec/method-tree.md). With no manifest, the root is the directory the caller handed over, or, for a bundle named alone, the tree is that one file, and a file reference from it to any other file is refused, saying to run the method's directory or to add a `METHODS.toml`.
+
 ## Loading a Package
 
 Loading a package involves these steps in order:
 
 1. **Parse the manifest** — read `METHODS.toml` and validate all fields (address, version, dependencies, exports). Reject immediately on any parse or validation error.
-2. **Discover bundles** — recursively find all `.mthds` files under the package root.
+2. **List the method tree** — for a directory being listed, apply the [membership rule](../spec/method-tree.md#the-membership-rule) under the root, refusing a symbolic link and a malformed path; for a package read from a cache, take every file of the cache entry as written, since those files already are its tree and the rule is never applied to them again. Take every `.mthds` file of the tree as the package's bundles. Every other file of the tree is a method file a step may name by [file reference](../spec/method-tree.md#file-references) or, for a `PipeFunc`, by import path; resolve each by looking it up in the tree's set of paths, never by opening a path.
 3. **Parse all bundles** — parse each `.mthds` file into a bundle blueprint. Collect parse errors.
 4. **Resolve dependencies** — for each dependency in the manifest:
     - If it has a `path` field, resolve from the local filesystem (non-transitive).
@@ -10266,7 +11156,7 @@ A compliant runtime must support the plain string form of `template`. The table 
 
 ## Exposing a Runner over HTTP
 
-A runtime becomes a network-accessible **runner** by implementing the [MTHDS Protocol](../spec/protocol.md) — the minimal HTTP contract of five routes: `POST /execute`, `POST /start`, `POST /validate`, `GET /models`, `GET /version`. The normative artifact is the protocol's [OpenAPI document](../spec/openapi/mthds-protocol.openapi.yaml).
+A runtime becomes a network-accessible **runner** by implementing the [MTHDS Protocol](../spec/protocol.md) — the minimal HTTP contract of five required routes: `POST /execute`, `POST /start`, `POST /validate`, `GET /models`, `GET /version`, plus the optional `POST /blobs/missing` and `PUT /blobs/{sha256}` for a runner that keeps a blob store. A method reaches a runner as its whole [method tree](../spec/method-tree.md), a `files` map of file entries, so the runner reads a method only from the files it is sent. The normative artifact is the protocol's [OpenAPI document](../spec/openapi/mthds-protocol.openapi.yaml).
 
 The protocol deliberately excludes everything that is not "run a method": no run store, no completion channel for async runs (webhooks or polling are implementation extensions), no users, no billing, no catalog. Implementations may extend the surface with extra routes or optional request properties, but must not change the protocol routes' shapes — see the [extension policy](../spec/protocol.md#extension-policy).
 
@@ -10280,6 +11170,15 @@ The reference implementation is `pipelex-api` (source-available under the Elasti
 # Validation Rules
 
 This page consolidates all validation rules from the [Specification](../spec/mthds-format.md) into an ordered checklist for implementers. Rules are grouped by the stage at which they should be enforced.
+
+## Before Parsing: The Method Tree
+
+Before any file is parsed, establish the [method tree](../spec/method-tree.md) the files come from:
+
+- Find the root from what the caller handed over: the nearest directory at or above it holding `METHODS.toml`, else the directory handed over, else, for a `.mthds` file named alone, a tree of that one file.
+- List the tree under the [membership rule](../spec/method-tree.md#the-membership-rule), with every pattern normalized to NFC, pruning excluded directories first, among them a nested repository or a nested package, meaning a directory below the root holding an entry named `.git` of any kind, whatever it holds, or its own `METHODS.toml`. Refuse a symbolic link or any other entry that is neither a regular file nor a directory, naming its path, unless the rule excludes it, and refuse in the same way a `.gitignore` file the listing reads whose bytes are not UTF-8, once a leading byte order mark is skipped. A package read from a cache is not listed again: its files are its tree as written.
+- Normalize every name to NFC, and refuse a path that breaks the [tree path](../spec/method-tree.md#tree-paths) rules, two names equal after normalization, two paths that collide, or one colliding with a directory of another, under the Unicode full case folding the tree path rules define, and a path past the length bound, naming each path. A name the membership rule excludes is never checked, so an invalid one is excluded silently.
+- When the tree arrives as a map of [file entries](../spec/method-tree.md#the-file-entry) rather than from a directory, refuse a key that is not a tree path, such as one not already in NFC, or that the membership rule could not admit; a key given twice in the map or inside an entry object; two keys that collide, or one colliding with a directory of another; a malformed entry, such as non-canonical Base64 or a `size` written with a fraction or an exponent; and a hash entry whose bytes the receiver does not hold.
 
 ## Stage 1: TOML Parsing
 
@@ -10336,7 +11235,8 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 
 **PipeFunc:**
 
-- `function_name` MUST be present and non-empty.
+- `function_name` MUST be present and, once normalized to NFC, MUST be an import path holding at least one dot, each dot-separated segment a Python identifier that is not a keyword and that NFKC normalization leaves unchanged, so a segment holding a ligature such as `ﬁ` or a fullwidth letter is rejected.
+- Given the method tree, the module path, everything before the last dot, MUST name a module of the tree: `<module path>.py` or `<module path>/__init__.py`, each dot read as `/`, and not both. See [PipeFunc](../spec/mthds-format.md#operator-pipefunc).
 
 **PipeImgGen:**
 
@@ -10446,6 +11346,7 @@ For `METHODS.toml`:
 9. All dependency version constraints MUST be valid.
 10. Domain paths in `[exports]` MUST be valid domain codes and MUST NOT use reserved domains (`native`, `mthds`, `pipelex`).
 11. All pipe codes in `[exports]` MUST be valid `snake_case`.
+12. `exclude`, if present, MUST be an array of strings, none holding a line break.
 
 ## Stage 7: Package-Level Validation
 
@@ -10456,13 +11357,16 @@ After loading all bundles and resolving dependencies:
 3. Cross-package pipe references MUST target pipes exported by the dependency — diagnosed at validation time, never silently filtered at load time.
 4. Exported pipes MUST exist in the scanned bundles.
 5. Same-domain concept and pipe code collisions across bundles (within one package) are errors.
+6. Every [file reference](../spec/method-tree.md#file-references), normalized to NFC, MUST resolve, lexically and inside the tree, to a file of the tree, and a reference that does not is refused by the first step of the resolution that fails: as malformed, such as an absolute one, as not a tree path, such as an empty one, as leaving the tree, or as not in the tree, naming a file the tree does not hold, a directory of the tree or its root. A reference refused as not in the tree names the reference and the path it resolved to, `.` for the root, and the rule that excluded the file when one did. A URL in a template that names a scheme, holds an authority or has no path is not a file reference, and is left as written.
+7. Every `PipeFunc`'s module MUST be a module of its tree, as Stage 4 states.
+8. A `requirements.txt` at the root MUST hold only blank lines, comments and PEP 508 requirements with no URL, and no option (see [`requirements.txt`](../spec/method-tree.md#python-dependencies-requirementstxt)).
 
 ## Stage 8: Lock File Validation
 
 For `methods.lock`:
 
 1. Each entry's `version` MUST be valid semver.
-2. Each entry's `hash` MUST match `sha256:[0-9a-f]{64}`.
+2. Each entry's `digest` MUST match `sha256:[0-9a-f]{64}`. An entry carrying a `hash` field predates tree digests: refuse the lock with a message saying that `lock` regenerates it, and verify nothing.
 3. Each entry's `fingerprint` MUST be a 64-character lowercase hex digest.
 4. Each entry's `source` MUST start with `https://` and end with `.git`.
 5. Each entry's `commit` MUST be a 40-character lowercase hex digest.
@@ -10538,8 +11442,9 @@ Remote packages are fetched via Git, trying each source in order (this fetch seq
     - List remote tags: `git ls-remote --tags {url}`.
     - Filter tags that parse as valid semver (strip optional `v` prefix).
     - Select version via MVS.
-    - Clone at the selected tag: `git clone --depth 1 --branch {tag}`.
-3. **Cache storage** — store the cloned directory under `~/.mthds/packages/{address}/{version}/`, removing the `.git` directory.
+    - Clone at the selected tag without a checkout: `git clone --depth 1 --branch {tag} --no-checkout`.
+    - Locate the package in the commit by manifest identity, and read its [tree](../spec/method-tree.md#dependencies-are-trees-of-their-own) from the commit's git objects as stored (`git ls-tree -r -z`, `git cat-file blob`), with no checkout filter, line-ending conversion or `export-ignore` applied, filtered by the membership rule with that commit's own `.gitignore` files. A submodule contributes no file, and a symbolic link the rule does not exclude is an error naming its path.
+3. **Cache storage** — write the package's tree, and nothing else, under `~/.mthds/packages/{address}/{version}/`, each file at its tree path. The entry's files are then the package's tree as written: a later read, a cache hit included, takes every file of the entry and never applies the membership rule again (see [Dependencies Are Trees of Their Own](../spec/method-tree.md#dependencies-are-trees-of-their-own)).
 
 Cache writes use a staging directory with atomic rename for safety against partial writes.
 
@@ -10733,7 +11638,7 @@ The following integration points describe the full scope of MTHDS-aware language
 
 # Roadmap
 
-The MTHDS standard is at version `6.0.0`. This page outlines planned and potential directions for future development.
+The MTHDS standard is at version `7.0.0`. This page outlines planned and potential directions for future development.
 
 ## Near-Term
 

@@ -1914,6 +1914,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../native-concepts/" class="md-nav__link">
         
   
@@ -3171,13 +3199,13 @@
 <tbody>
 <tr>
 <td><strong>Standard version</strong></td>
-<td>The language, the native concept set, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff</td>
-<td><code>6.0.0</code></td>
+<td>The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff</td>
+<td><code>7.0.0</code></td>
 </tr>
 <tr>
 <td><strong>Protocol version</strong></td>
 <td>The HTTP runner contract — its routes and their request and response shapes</td>
-<td><code>0.7.0</code></td>
+<td><code>1.0.0</code></td>
 </tr>
 </tbody>
 </table>
@@ -3188,13 +3216,14 @@
 <ul>
 <li>The <a href="../mthds-format/"><code>.mthds</code> file format</a> — the language itself: its sections, its keys, its pipe types, its concept structure language.</li>
 <li>The <a href="../native-concepts/">native concept definitions</a> — the pinned set every implementation materializes.</li>
+<li>The <a href="../method-tree/">method tree</a> — which files make up a method, how a file is named and referenced, the tree digest, the file entry, and <code>requirements.txt</code>.</li>
 <li>The <a href="../manifest-format/"><code>METHODS.toml</code> format</a> and the <a href="../lock-format/"><code>methods.lock</code> format</a>.</li>
 <li>The <a href="../library-crate/">library crate format</a> and the <a href="../namespace-resolution/">namespace resolution rules</a>.</li>
 <li>The <a href="../cli-io-contract/">CLI I/O contract</a> — the wire form of a stuff, and the envelopes a method reads and writes when it is invoked from a command line.</li>
 </ul>
 <h3 id="what-bumps-the-standard-version">What Bumps the Standard Version</h3>
 <ul>
-<li><strong>MAJOR</strong> — a breaking change to any of the above. A key removed or renamed, a native concept's shape changed, a rule that makes a previously valid bundle, manifest, or lock file invalid, or a previously invalid one valid in a way that changes what an existing document means.</li>
+<li><strong>MAJOR</strong> — a breaking change to any of the above. A key removed or renamed, a native concept's shape changed, a rule that changes which files make up a method tree or what its digest is, a rule that makes a previously valid bundle, manifest, or lock file invalid, or a previously invalid one valid in a way that changes what an existing document means.</li>
 <li><strong>MINOR</strong> — an additive change. A new native concept, a new pipe type, a new optional key, a new field type: documents valid under the previous version stay valid and keep their meaning.</li>
 <li><strong>PATCH</strong> — a change that is normatively inert. A clarification, a corrected example, a reworded rule that states what was already true, a new guide, a typo fix.</li>
 </ul>

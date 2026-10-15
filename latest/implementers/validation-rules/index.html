@@ -1744,6 +1744,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../spec/native-concepts/" class="md-nav__link">
         
   
@@ -2555,6 +2583,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#before-parsing-the-method-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before Parsing: The Method Tree
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#stage-1-toml-parsing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2995,6 +3034,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#before-parsing-the-method-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before Parsing: The Method Tree
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#stage-1-toml-parsing" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3104,6 +3154,14 @@
 
 <h1 id="validation-rules">Validation Rules</h1>
 <p>This page consolidates all validation rules from the <a href="../../spec/mthds-format/">Specification</a> into an ordered checklist for implementers. Rules are grouped by the stage at which they should be enforced.</p>
+<h2 id="before-parsing-the-method-tree">Before Parsing: The Method Tree</h2>
+<p>Before any file is parsed, establish the <a href="../../spec/method-tree/">method tree</a> the files come from:</p>
+<ul>
+<li>Find the root from what the caller handed over: the nearest directory at or above it holding <code>METHODS.toml</code>, else the directory handed over, else, for a <code>.mthds</code> file named alone, a tree of that one file.</li>
+<li>List the tree under the <a href="../../spec/method-tree/#the-membership-rule">membership rule</a>, with every pattern normalized to NFC, pruning excluded directories first, among them a nested repository or a nested package, meaning a directory below the root holding an entry named <code>.git</code> of any kind, whatever it holds, or its own <code>METHODS.toml</code>. Refuse a symbolic link or any other entry that is neither a regular file nor a directory, naming its path, unless the rule excludes it, and refuse in the same way a <code>.gitignore</code> file the listing reads whose bytes are not UTF-8, once a leading byte order mark is skipped. A package read from a cache is not listed again: its files are its tree as written.</li>
+<li>Normalize every name to NFC, and refuse a path that breaks the <a href="../../spec/method-tree/#tree-paths">tree path</a> rules, two names equal after normalization, two paths that collide, or one colliding with a directory of another, under the Unicode full case folding the tree path rules define, and a path past the length bound, naming each path. A name the membership rule excludes is never checked, so an invalid one is excluded silently.</li>
+<li>When the tree arrives as a map of <a href="../../spec/method-tree/#the-file-entry">file entries</a> rather than from a directory, refuse a key that is not a tree path, such as one not already in NFC, or that the membership rule could not admit; a key given twice in the map or inside an entry object; two keys that collide, or one colliding with a directory of another; a malformed entry, such as non-canonical Base64 or a <code>size</code> written with a fraction or an exponent; and a hash entry whose bytes the receiver does not hold.</li>
+</ul>
 <h2 id="stage-1-toml-parsing">Stage 1: TOML Parsing</h2>
 <p>Before any MTHDS-specific validation, the file must be valid TOML.</p>
 <ul>
@@ -3154,7 +3212,8 @@
 </ul>
 <p><strong>PipeFunc:</strong></p>
 <ul>
-<li><code>function_name</code> MUST be present and non-empty.</li>
+<li><code>function_name</code> MUST be present and, once normalized to NFC, MUST be an import path holding at least one dot, each dot-separated segment a Python identifier that is not a keyword and that NFKC normalization leaves unchanged, so a segment holding a ligature such as <code>ﬁ</code> or a fullwidth letter is rejected.</li>
+<li>Given the method tree, the module path, everything before the last dot, MUST name a module of the tree: <code>&lt;module path&gt;.py</code> or <code>&lt;module path&gt;/__init__.py</code>, each dot read as <code>/</code>, and not both. See <a href="../../spec/mthds-format/#operator-pipefunc">PipeFunc</a>.</li>
 </ul>
 <p><strong>PipeImgGen:</strong></p>
 <ul>
@@ -3262,6 +3321,7 @@
 <li>All dependency version constraints MUST be valid.</li>
 <li>Domain paths in <code>[exports]</code> MUST be valid domain codes and MUST NOT use reserved domains (<code>native</code>, <code>mthds</code>, <code>pipelex</code>).</li>
 <li>All pipe codes in <code>[exports]</code> MUST be valid <code>snake_case</code>.</li>
+<li><code>exclude</code>, if present, MUST be an array of strings, none holding a line break.</li>
 </ol>
 <h2 id="stage-7-package-level-validation">Stage 7: Package-Level Validation</h2>
 <p>After loading all bundles and resolving dependencies:</p>
@@ -3271,12 +3331,15 @@
 <li>Cross-package pipe references MUST target pipes exported by the dependency — diagnosed at validation time, never silently filtered at load time.</li>
 <li>Exported pipes MUST exist in the scanned bundles.</li>
 <li>Same-domain concept and pipe code collisions across bundles (within one package) are errors.</li>
+<li>Every <a href="../../spec/method-tree/#file-references">file reference</a>, normalized to NFC, MUST resolve, lexically and inside the tree, to a file of the tree, and a reference that does not is refused by the first step of the resolution that fails: as malformed, such as an absolute one, as not a tree path, such as an empty one, as leaving the tree, or as not in the tree, naming a file the tree does not hold, a directory of the tree or its root. A reference refused as not in the tree names the reference and the path it resolved to, <code>.</code> for the root, and the rule that excluded the file when one did. A URL in a template that names a scheme, holds an authority or has no path is not a file reference, and is left as written.</li>
+<li>Every <code>PipeFunc</code>'s module MUST be a module of its tree, as Stage 4 states.</li>
+<li>A <code>requirements.txt</code> at the root MUST hold only blank lines, comments and PEP 508 requirements with no URL, and no option (see <a href="../../spec/method-tree/#python-dependencies-requirementstxt"><code>requirements.txt</code></a>).</li>
 </ol>
 <h2 id="stage-8-lock-file-validation">Stage 8: Lock File Validation</h2>
 <p>For <code>methods.lock</code>:</p>
 <ol>
 <li>Each entry's <code>version</code> MUST be valid semver.</li>
-<li>Each entry's <code>hash</code> MUST match <code>sha256:[0-9a-f]{64}</code>.</li>
+<li>Each entry's <code>digest</code> MUST match <code>sha256:[0-9a-f]{64}</code>. An entry carrying a <code>hash</code> field predates tree digests: refuse the lock with a message saying that <code>lock</code> regenerates it, and verify nothing.</li>
 <li>Each entry's <code>fingerprint</code> MUST be a 64-character lowercase hex digest.</li>
 <li>Each entry's <code>source</code> MUST start with <code>https://</code> and end with <code>.git</code>.</li>
 <li>Each entry's <code>commit</code> MUST be a 40-character lowercase hex digest.</li>

@@ -1756,6 +1756,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../native-concepts/" class="md-nav__link">
         
   
@@ -3826,9 +3854,9 @@
 <p>For example: <code>github.com/acme/legal-tools</code> → <code>https://github.com/acme/legal-tools.git</code>, and <code>github.com/mthds/methods/documents</code> → <code>https://github.com/mthds/methods.git</code> with <code>documents</code> locating the package inside the clone.</p>
 <p>The resolution chain for fetching a dependency is:</p>
 <ol>
-<li><strong>Local path</strong> — if the dependency has a <code>path</code> field in <code>METHODS.toml</code>, resolve from the local filesystem.</li>
+<li><strong>Local path</strong> — if the dependency has a <code>path</code> field in <code>METHODS.toml</code>, resolve from the local filesystem: the dependency's tree is the method tree rooted at that directory.</li>
 <li><strong>Local cache</strong> — check <code>~/.mthds/packages/{address}/{version}/</code> for a cached copy.</li>
-<li><strong>VCS fetch</strong> — clone the repository at the resolved version tag using <code>git clone --depth 1 --branch {tag}</code>.</li>
+<li><strong>VCS fetch</strong> — clone the repository at the resolved version tag without a checkout, using <code>git clone --depth 1 --branch {tag} --no-checkout</code>, locate the package in the commit, and read its tree from the commit's git objects as stored, filtered by the membership rule with that commit's own <code>.gitignore</code> files (see <a href="../method-tree/#dependencies-are-trees-of-their-own">Method Tree: Dependencies Are Trees of Their Own</a>). No checkout filter, line-ending conversion or <code>export-ignore</code> attribute applies, so the tree, and its digest, are the same on every machine.</li>
 </ol>
 <p>Version tags in the remote repository MAY use a <code>v</code> prefix (e.g., <code>v1.0.0</code>). The prefix is stripped during version parsing.</p>
 <h2 id="cache-layout">Cache Layout</h2>
@@ -3838,7 +3866,7 @@
 <p>For example:</p>
 <div class="highlight"><pre><span></span><code>~/.mthds/packages/github.com/acme/legal-tools/1.0.0/
 </code></pre></div>
-<p>The <code>.git</code> directory is removed from cached copies.</p>
+<p>A cached copy holds the package's tree and nothing else, its files written from the commit's objects at their tree paths, so it holds no <code>.git</code> directory. Its files are the package's tree as written: a reader takes every file of the copy as a file of the tree and never applies the <a href="../method-tree/#the-membership-rule">membership rule</a> to it again, since the <code>.gitignore</code> files that shaped the tree are not in the copy, and a manifest <code>exclude</code> pattern that one of them negated would exclude its file a second time (see <a href="../method-tree/#dependencies-are-trees-of-their-own">Method Tree: Dependencies Are Trees of Their Own</a>).</p>
 <h2 id="cross-package-reference-examples">Cross-Package Reference Examples</h2>
 <p>The following examples illustrate the complete reference resolution for cross-package scenarios.</p>
 <p><strong>Setup:</strong> Package A depends on Package B with alias <code>scoring_lib</code>.</p>
@@ -3939,7 +3967,7 @@
 <ol>
 <li><strong>PipeLLM</strong>: All prompt variables MUST have matching inputs. All inputs MUST be used.</li>
 <li><strong>PipeStructure</strong>: Exactly one input MUST be declared. The input concept MUST be <code>Text</code> or refine <code>Text</code>. <code>output</code> MUST NOT be <code>Text</code> or refine <code>Text</code>.</li>
-<li><strong>PipeFunc</strong>: <code>function_name</code> MUST be present.</li>
+<li><strong>PipeFunc</strong>: <code>function_name</code> MUST be present and, once normalized to NFC, MUST be an import path holding at least one dot, each dot-separated segment a Python identifier that is not a keyword and that NFKC normalization leaves unchanged, whose module path names a module of the <a href="../method-tree/">method tree</a> (see <a href="../mthds-format/#operator-pipefunc">PipeFunc</a>).</li>
 <li><strong>PipeImgGen</strong>: <code>prompt</code> MUST be present. All prompt and negative_prompt variables MUST have matching inputs. All inputs MUST be used.</li>
 <li><strong>PipeExtract</strong>: Exactly one input MUST be declared. <code>output</code> MUST be <code>"Page[]"</code>.</li>
 <li><strong>PipeSearch</strong>: <code>prompt</code> MUST be present. All prompt variables MUST have matching inputs. All inputs MUST be used. <code>output</code> MUST be <code>SearchResult</code> or refine <code>SearchResult</code>.</li>
@@ -3963,6 +3991,7 @@
 <li>All dependency version constraints MUST be valid.</li>
 <li>Domain paths in <code>[exports]</code> MUST be valid domain codes and MUST NOT use reserved domains.</li>
 <li>All pipe codes in <code>[exports]</code> MUST be valid <code>snake_case</code>.</li>
+<li><code>exclude</code>, if present, MUST be an array of strings, none holding a line break.</li>
 </ol>
 <h3 id="package-level-validation">Package-Level Validation</h3>
 <ol>
@@ -3975,7 +4004,7 @@
 <h3 id="lock-file-validation">Lock File Validation</h3>
 <ol>
 <li>Each entry's <code>version</code> MUST be valid semver.</li>
-<li>Each entry's <code>hash</code> MUST match <code>sha256:[0-9a-f]{64}</code>.</li>
+<li>Each entry's <code>digest</code> MUST match <code>sha256:[0-9a-f]{64}</code>. An entry carrying a <code>hash</code> field predates tree digests and MUST be refused with a message saying that <code>lock</code> regenerates the file (see <a href="../lock-format/#locks-written-before-tree-digests">Locks Written Before Tree Digests</a>).</li>
 <li>Each entry's <code>fingerprint</code> MUST be a 64-character lowercase hex digest.</li>
 <li>Each entry's <code>source</code> MUST start with <code>https://</code> and end with <code>.git</code>.</li>
 <li>Each entry's <code>commit</code> MUST be a 40-character lowercase hex digest.</li>

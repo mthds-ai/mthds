@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   
-    <meta name="description" content="The methods.lock file records exact resolved versions, integrity hashes, and semantic fingerprints for verifiable MTHDS installs.">
+    <meta name="description" content="The methods.lock file records exact resolved versions, tree digests, and semantic fingerprints for verifiable MTHDS installs.">
   
   
   
@@ -147,14 +147,14 @@
 <meta property="og:site_name" content="MTHDS">
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="The Lock File">
-<meta property="og:description" content="The methods.lock file records exact resolved versions, integrity hashes, and semantic fingerprints for verifiable MTHDS installs.">
+<meta property="og:description" content="The methods.lock file records exact resolved versions, tree digests, and semantic fingerprints for verifiable MTHDS installs.">
 <meta property="og:image" content="https://mthds.ai/latest/images/og-banner.jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:url" content="https://mthds.ai/latest/packages/lock-file/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="The Lock File">
-<meta name="twitter:description" content="The methods.lock file records exact resolved versions, integrity hashes, and semantic fingerprints for verifiable MTHDS installs.">
+<meta name="twitter:description" content="The methods.lock file records exact resolved versions, tree digests, and semantic fingerprints for verifiable MTHDS installs.">
 <meta name="twitter:image" content="https://mthds.ai/latest/images/og-banner.jpeg">
 <script type="application/ld+json">
 {
@@ -173,7 +173,7 @@
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": "The Lock File",
-  "description": "The methods.lock file records exact resolved versions, integrity hashes, and semantic fingerprints for verifiable MTHDS installs.",
+  "description": "The methods.lock file records exact resolved versions, tree digests, and semantic fingerprints for verifiable MTHDS installs.",
   "url": "https://mthds.ai/latest/packages/lock-file/",
   "publisher": {
     "@type": "Organization",
@@ -1469,10 +1469,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-the-hash-is-computed" class="md-nav__link">
+  <a href="#how-the-digest-is-computed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How the Hash Is Computed
+        How the Digest Is Computed
       
     </span>
   </a>
@@ -1889,6 +1889,34 @@
     
   
     .mthds File Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
   
 
     
@@ -3075,10 +3103,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#how-the-hash-is-computed" class="md-nav__link">
+  <a href="#how-the-digest-is-computed" class="md-nav__link">
     <span class="md-ellipsis">
       
-        How the Hash Is Computed
+        How the Digest Is Computed
       
     </span>
   </a>
@@ -3150,23 +3178,23 @@
 
 
 <h1 id="the-lock-file">The Lock File</h1>
-<p>The <code>methods.lock</code> file records the exact resolved versions, integrity hashes, and semantic fingerprints for all remote dependencies. It makes installs verifiable — every developer and CI system can prove it fetched the same bytes, carrying the same meaning, that the original resolution saw.</p>
+<p>The <code>methods.lock</code> file records the exact resolved versions, tree digests, and semantic fingerprints for all remote dependencies. It makes installs verifiable — every developer and CI system can prove it fetched the same bytes, carrying the same meaning, that the original resolution saw.</p>
 <h2 id="what-it-looks-like">What It Looks Like</h2>
 <div class="highlight"><pre><span></span><code><span class="k">[</span><span class="s2">"github.com/mthds/document-processing"</span><span class="k">]</span>
 <span class="n">version</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"1.2.3"</span>
-<span class="n">hash</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"</span>
+<span class="n">digest</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"</span>
 <span class="n">fingerprint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"7c9e2b4f8a1d3e5c7b9f2a4d6e8c1b3f5a7d9e2c4b6f8a1d3e5c7b9f2a4d6e8c"</span>
 <span class="n">source</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/mthds/document-processing.git"</span>
 <span class="n">commit</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"8f5b2c1a9d3e7f4b6a8c2e5d1f9b3a7c4e6d8f2b"</span>
 
 <span class="k">[</span><span class="s2">"github.com/mthds/scoring-lib"</span><span class="k">]</span>
 <span class="n">version</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"0.5.1"</span>
-<span class="n">hash</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"sha256:e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6"</span>
+<span class="n">digest</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"sha256:e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6"</span>
 <span class="n">fingerprint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"2d4f6a8c1e3b5d7f9a2c4e6b8d1f3a5c7e9b2d4f6a8c1e3b5d7f9a2c4e6b8d1f"</span>
 <span class="n">source</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/mthds/scoring-lib.git"</span>
 <span class="n">commit</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"3a7c4e6d8f2b8f5b2c1a9d3e7f4b6a8c2e5d1f9b"</span>
 </code></pre></div>
-<p>Each entry records a package address, the exact resolved version, a SHA-256 integrity hash of the fetched bytes, the semantic fingerprint of what those bytes mean, the HTTPS clone URL, and the commit the version tag pointed to when it was locked.</p>
+<p>Each entry records a package address, the exact resolved version, the tree digest of the fetched files, the semantic fingerprint of what those bytes mean, the HTTPS clone URL, and the commit the version tag pointed to when it was locked.</p>
 <h2 id="why-the-lock-is-regenerable">Why the Lock Is Regenerable</h2>
 <p>Version resolution is <a href="../version-resolution/">Minimum Version Selection</a>: the resolved versions are fully determined by the manifests and the published version tags — a newer release never changes the answer, and no registry has to be consulted. The lock file can therefore be regenerated from the manifests plus the fetched sources, and regeneration reproduces the same entries as long as the repositories' published version tags — which tags exist, and which commits they point at — have not changed. It is a verification record — proof of what was fetched and what it meant — not the thing that decides versions. (<code>go.sum</code> plays the same role next to <code>go.mod</code>.)</p>
 <h2 id="file-location">File Location</h2>
@@ -3185,8 +3213,8 @@
 <td>The exact resolved version (valid semver).</td>
 </tr>
 <tr>
-<td><code>hash</code></td>
-<td>SHA-256 integrity <strong>byte hash</strong> of the fetched package directory (<code>sha256:</code> followed by 64 hex characters) — what was fetched.</td>
+<td><code>digest</code></td>
+<td>The <a href="../../spec/method-tree/#the-tree-digest">tree digest</a> of the fetched package's files (<code>sha256:</code> followed by 64 hex characters) — what was fetched.</td>
 </tr>
 <tr>
 <td><code>fingerprint</code></td>
@@ -3202,25 +3230,15 @@
 </tr>
 </tbody>
 </table>
-<p>The byte hash and the fingerprint are two different questions answered side by side: <em>did I fetch the same bytes?</em> and <em>does it still mean the same thing?</em> A dependency update whose fingerprint is unchanged changed nothing a consumer can observe; one whose fingerprint moved can be shown as a semantic diff before you adopt it.</p>
+<p>The tree digest and the fingerprint are two different questions answered side by side: <em>did I fetch the same bytes?</em> and <em>does it still mean the same thing?</em> A dependency update whose fingerprint is unchanged changed nothing a consumer can observe; one whose fingerprint moved can be shown as a semantic diff before you adopt it.</p>
 <h2 id="which-packages-are-locked">Which Packages Are Locked</h2>
 <ul>
 <li><strong>Remote dependencies</strong> (those without a <code>path</code> field) are locked, including all transitive remote dependencies.</li>
 <li><strong>Local path dependencies</strong> are NOT locked. They are resolved from the filesystem at load time and are expected to change during development.</li>
 </ul>
-<h2 id="how-the-hash-is-computed">How the Hash Is Computed</h2>
-<p>The integrity hash is a deterministic SHA-256 hash of the package directory:</p>
-<ol>
-<li>Collect all regular files recursively under the package directory.</li>
-<li>Exclude any path containing <code>.git</code> in its components.</li>
-<li>Sort files by their POSIX-normalized relative path (for cross-platform determinism).</li>
-<li>For each file in sorted order, feed into the hasher:<ul>
-<li>The relative path string, encoded as UTF-8.</li>
-<li>The raw file bytes.</li>
-</ul>
-</li>
-<li>Format as <code>sha256:</code> followed by the 64-character lowercase hex digest.</li>
-</ol>
+<h2 id="how-the-digest-is-computed">How the Digest Is Computed</h2>
+<p>The digest is the package's <a href="../../spec/method-tree/#the-tree-digest">tree digest</a>: the SHA-256 of a listing that holds one line per file of the package, sorted by path, each line being what <code>sha256sum</code> prints for that file. The files are those the package's folder holds in the commit its version points at, read from git exactly as committed and filtered by the same rules that decide which files travel with any method, so the digest is the same on every machine and anyone can recompute it with git and coreutils.</p>
+<p>A lock written before standard <code>7.0.0</code> records a <code>hash</code> instead of a <code>digest</code>. Such a lock is refused when it is read, with a message saying it predates tree digests: run <code>mthds package lock</code> to regenerate it. Its old hashes are never checked, so nothing is reported as tampered with.</p>
 <h2 id="when-the-lock-file-updates">When the Lock File Updates</h2>
 <p>The lock file is regenerated whenever the manifests change or a tool re-locks:</p>
 <ul>
@@ -3232,9 +3250,9 @@
 <p>When installing from a lock file, the tool:</p>
 <ol>
 <li>Locates the fetched or cached package directory for each entry.</li>
-<li>Recomputes the SHA-256 byte hash using the algorithm above.</li>
-<li>Compares the computed hash with the lock file's <code>hash</code> field.</li>
-<li>Rejects the installation if any hash does not match — a hard failure, never a warning.</li>
+<li>Recomputes the tree digest of the package's files.</li>
+<li>Compares the computed digest with the lock file's <code>digest</code> field.</li>
+<li>Rejects the installation if any digest does not match — a hard failure, never a warning.</li>
 </ol>
 <h2 id="deterministic-output">Deterministic Output</h2>
 <p>Lock file entries are sorted by package address (lexicographic ascending) to produce clean version control diffs.</p>

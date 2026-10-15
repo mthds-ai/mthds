@@ -3,7 +3,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   
-    <meta name="description" content="Formal specification of the methods.lock file format — resolved versions, integrity hashes, semantic fingerprints, and install-time verification.">
+    <meta name="description" content="Formal specification of the methods.lock file format — resolved versions, tree digests, semantic fingerprints, and install-time verification.">
   
   
   
@@ -147,14 +147,14 @@
 <meta property="og:site_name" content="MTHDS">
 <meta property="og:locale" content="en_US">
 <meta property="og:title" content="methods.lock Format">
-<meta property="og:description" content="Formal specification of the methods.lock file format — resolved versions, integrity hashes, semantic fingerprints, and install-time verification.">
+<meta property="og:description" content="Formal specification of the methods.lock file format — resolved versions, tree digests, semantic fingerprints, and install-time verification.">
 <meta property="og:image" content="https://mthds.ai/latest/images/og-banner.jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:url" content="https://mthds.ai/latest/spec/lock-format/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="methods.lock Format">
-<meta name="twitter:description" content="Formal specification of the methods.lock file format — resolved versions, integrity hashes, semantic fingerprints, and install-time verification.">
+<meta name="twitter:description" content="Formal specification of the methods.lock file format — resolved versions, tree digests, semantic fingerprints, and install-time verification.">
 <meta name="twitter:image" content="https://mthds.ai/latest/images/og-banner.jpeg">
 <script type="application/ld+json">
 {
@@ -173,7 +173,7 @@
   "@context": "https://schema.org",
   "@type": "TechArticle",
   "headline": "methods.lock Format",
-  "description": "Formal specification of the methods.lock file format \u2014 resolved versions, integrity hashes, semantic fingerprints, and install-time verification.",
+  "description": "Formal specification of the methods.lock file format \u2014 resolved versions, tree digests, semantic fingerprints, and install-time verification.",
   "url": "https://mthds.ai/latest/spec/lock-format/",
   "publisher": {
     "@type": "Organization",
@@ -1756,6 +1756,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../native-concepts/" class="md-nav__link">
         
   
@@ -1955,13 +1983,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#hash-computation" class="md-nav__link">
+  <a href="#digest-computation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Hash Computation
+        Digest Computation
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Digest Computation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#locks-written-before-tree-digests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Locks Written Before Tree Digests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3093,13 +3138,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#hash-computation" class="md-nav__link">
+  <a href="#digest-computation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Hash Computation
+        Digest Computation
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Digest Computation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#locks-written-before-tree-digests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Locks Written Before Tree Digests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -3179,7 +3241,7 @@
 
 
 <h1 id="methodslock-format">methods.lock Format</h1>
-<p>The <code>methods.lock</code> file records, for every remote dependency of a package, the exact resolved version, an integrity hash of what was fetched, the semantic fingerprint of what it means, and the provenance of where it came from. It is auto-generated and SHOULD be committed to version control.</p>
+<p>The <code>methods.lock</code> file records, for every remote dependency of a package, the exact resolved version, the tree digest of what was fetched, the semantic fingerprint of what it means, and the provenance of where it came from. It is auto-generated and SHOULD be committed to version control.</p>
 <div class="admonition note">
 <p class="admonition-title">Implementation status</p>
 <p>The lock file is committed design. This section is the contract implementations are brought into conformance with — the same forward-contract convention the <a href="../library-crate/#specification-status">Library Crate Format</a> uses for its unrealized sections. Conformance is asserted against this document as each piece lands.</p>
@@ -3194,14 +3256,14 @@
 <p>The lock file is a flat TOML document where each top-level table key is a package address, and the value is a table containing the locked metadata for that package.</p>
 <div class="highlight"><pre><span></span><code><span class="k">[</span><span class="s2">"github.com/mthds/document-processing"</span><span class="k">]</span>
 <span class="n">version</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"1.2.3"</span>
-<span class="n">hash</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"</span>
+<span class="n">digest</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"</span>
 <span class="n">fingerprint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"7c9e2b4f8a1d3e5c7b9f2a4d6e8c1b3f5a7d9e2c4b6f8a1d3e5c7b9f2a4d6e8c"</span>
 <span class="n">source</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/mthds/document-processing.git"</span>
 <span class="n">commit</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"8f5b2c1a9d3e7f4b6a8c2e5d1f9b3a7c4e6d8f2b"</span>
 
 <span class="k">[</span><span class="s2">"github.com/mthds/scoring-lib"</span><span class="k">]</span>
 <span class="n">version</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"0.5.1"</span>
-<span class="n">hash</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"sha256:e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6"</span>
+<span class="n">digest</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"sha256:e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6"</span>
 <span class="n">fingerprint</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"2d4f6a8c1e3b5d7f9a2c4e6b8d1f3a5c7e9b2d4f6a8c1e3b5d7f9a2c4e6b8d1f"</span>
 <span class="n">source</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"https://github.com/mthds/scoring-lib.git"</span>
 <span class="n">commit</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"3a7c4e6d8f2b8f5b2c1a9d3e7f4b6a8c2e5d1f9b"</span>
@@ -3226,10 +3288,10 @@
 <td>The exact resolved version. MUST be valid semver.</td>
 </tr>
 <tr>
-<td><code>hash</code></td>
+<td><code>digest</code></td>
 <td>string</td>
 <td>Yes</td>
-<td>Integrity <strong>byte hash</strong> of the fetched package directory. MUST match the pattern <code>sha256:[0-9a-f]{64}</code>. Records <em>what was fetched</em>.</td>
+<td>The <a href="../method-tree/#the-tree-digest">tree digest</a> of the fetched package's tree. MUST match the pattern <code>sha256:[0-9a-f]{64}</code>. Records <em>what was fetched</em>.</td>
 </tr>
 <tr>
 <td><code>fingerprint</code></td>
@@ -3251,18 +3313,11 @@
 </tr>
 </tbody>
 </table>
-<p>The <code>hash</code> and the <code>fingerprint</code> are two deliberately distinct digests joined per dependency at this one point. The byte hash is transport integrity: it changes when any fetched byte changes, including formatting and comments. The fingerprint is semantic identity: it is stable across reformatting and changes exactly when the dependency's effective type surface, prompts, or entry points change. Together they let tooling verify a fetch and explain an update — a version bump whose fingerprint is unchanged changed nothing a consumer can observe; one whose fingerprint moved can be diffed semantically.</p>
-<h2 id="hash-computation">Hash Computation</h2>
-<p>The integrity hash is a deterministic SHA-256 hash of the package directory contents, computed as follows:</p>
-<ol>
-<li>Collect all regular files recursively under the package directory.</li>
-<li>Exclude any path containing <code>.git</code> in its components.</li>
-<li>Sort files by their POSIX-normalized relative path (for cross-platform determinism).</li>
-<li>For each file in sorted order, feed into the hasher:
-   a. The relative path string, encoded as UTF-8.
-   b. The raw file bytes.</li>
-<li>The resulting hash is formatted as <code>sha256:</code> followed by the 64-character lowercase hex digest.</li>
-</ol>
+<p>The <code>digest</code> and the <code>fingerprint</code> are two deliberately distinct digests joined per dependency at this one point. The tree digest is transport integrity: it changes when any fetched byte changes, including formatting and comments. The fingerprint is semantic identity: it is stable across reformatting and changes exactly when the dependency's effective type surface, prompts, or entry points change. Together they let tooling verify a fetch and explain an update — a version bump whose fingerprint is unchanged changed nothing a consumer can observe; one whose fingerprint moved can be diffed semantically.</p>
+<h2 id="digest-computation">Digest Computation</h2>
+<p>The <code>digest</code> is the <a href="../method-tree/#the-tree-digest">tree digest</a> of the dependency's package tree: the SHA-256 of the tree's listing, one <code>sha256sum</code> line per file sorted by tree path byte for byte, written <code>sha256:</code> followed by the 64-character lowercase hex digest. The tree is the one <a href="../method-tree/#dependencies-are-trees-of-their-own">Method Tree: Dependencies Are Trees of Their Own</a> defines for a fetched package: the files of the package's directory in the resolved commit, read from the commit's git objects as stored and filtered by the membership rule with that commit's own <code>.gitignore</code> files. Anyone can recompute it from the commit with coreutils and git alone.</p>
+<h3 id="locks-written-before-tree-digests">Locks Written Before Tree Digests</h3>
+<p>A lock written before standard <code>7.0.0</code> records a <code>hash</code> field in each entry, computed by an algorithm that concatenated paths and file contents with no separator, so two different directories could share one hash. A compliant implementation MUST refuse, when it parses the lock, any entry carrying a <code>hash</code> field, with a message saying that the lock predates tree digests and that running <code>lock</code> regenerates it. It MUST NOT verify a <code>hash</code>, so an untouched dependency of an old lock is never reported as tampered with. Since the lock is a regenerable <a href="#a-verification-record-not-a-resolution-record">verification record</a>, regenerating it is always safe.</p>
 <h2 id="fingerprint-computation">Fingerprint Computation</h2>
 <p>The <code>fingerprint</code> is the <a href="../library-crate/#fingerprint">library crate fingerprint</a> of the dependency's resolved content: the dependency package is resolved into a library on its own (its bundles as the host, its own dependencies folded in per that specification), normalized, and fingerprinted per the crate specification's canonicalization rules. It is recomputable by any consumer from the fetched source — no registry or third party has to be trusted to have computed it honestly.</p>
 <h2 id="which-packages-are-locked">Which Packages Are Locked</h2>
@@ -3281,11 +3336,11 @@
 <p>When installing from a lock file, a compliant implementation MUST:</p>
 <ol>
 <li>For each entry in the lock file, locate the corresponding fetched or cached package directory.</li>
-<li>Recompute the SHA-256 byte hash of that directory using the algorithm described above.</li>
-<li>Compare the computed hash with the <code>hash</code> field in the lock file.</li>
-<li>Reject the installation if any hash does not match (integrity failure). A mismatch is a hard failure, never a warning.</li>
+<li>Recompute the tree digest of that package's tree, as described above, either from the files of the cached copy as written, every file at its path, without applying the <a href="../method-tree/#the-membership-rule">membership rule</a> again, or from the commit, filtered by the membership rule as <a href="../method-tree/#dependencies-are-trees-of-their-own">Dependencies Are Trees of Their Own</a> states.</li>
+<li>Compare the computed digest with the <code>digest</code> field in the lock file.</li>
+<li>Reject the installation if any digest does not match (integrity failure). A mismatch is a hard failure, never a warning.</li>
 </ol>
-<p>An implementation SHOULD additionally recompute the <code>fingerprint</code> and report a mismatch: a byte hash that matches while the fingerprint does not indicates a defect in one of the implementations, since the fingerprint is a pure function of the fetched content.</p>
+<p>An implementation SHOULD additionally recompute the <code>fingerprint</code> and report a mismatch: a tree digest that matches while the fingerprint does not indicates a defect in one of the implementations, since the fingerprint is a pure function of the fetched content.</p>
 <h2 id="deterministic-output">Deterministic Output</h2>
 <p>Lock file entries MUST be sorted by package address (lexicographic ascending) to produce deterministic output suitable for clean version control diffs.</p>
 <p>An empty lock file (no remote dependencies) MAY be an empty file or absent entirely.</p>

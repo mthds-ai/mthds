@@ -209,7 +209,7 @@ Resolve dependencies and generate `methods.lock`.
 mthds package lock
 ```
 
-Reads the `[dependencies]` section of `METHODS.toml`, resolves all versions with [Minimum Version Selection](../packages/version-resolution.md) (including transitive dependencies), and writes the lock file: exact versions, byte hashes, crate fingerprints, sources, and commits. Because resolution is deterministic from the manifests, re-running `lock` against unchanged manifests reproduces the same file.
+Reads the `[dependencies]` section of `METHODS.toml`, resolves all versions with [Minimum Version Selection](../packages/version-resolution.md) (including transitive dependencies), and writes the lock file: exact versions, tree digests, crate fingerprints, sources, and commits. Because resolution is deterministic from the manifests, re-running `lock` against unchanged manifests reproduces the same file.
 
 ---
 
@@ -223,7 +223,7 @@ Fetch and verify all dependencies pinned by `methods.lock`.
 mthds package install
 ```
 
-For each entry in the lock file, checks the global cache (`~/.mthds/packages/`), fetches what is missing via Git, verifies the byte hash against the lock (a mismatch is a hard failure), and materializes each dependency into the project-local cache (see [Distribution: The Two Caches](../packages/distribution.md#the-two-caches)).
+For each entry in the lock file, checks the global cache (`~/.mthds/packages/`), fetches what is missing via Git, verifies the tree digest against the lock (a mismatch is a hard failure), and materializes each dependency into the project-local cache (see [Distribution: The Two Caches](../packages/distribution.md#the-two-caches)).
 
 ---
 
