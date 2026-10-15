@@ -160,6 +160,7 @@ exclude = ["samples/", "*.psd"]
 
 - Each entry is one pattern in the syntax of a `.gitignore` file, as [gitignore](https://git-scm.com/docs/gitignore) documents it, and MUST NOT hold a line break. An entry starting with `#` is a comment, as it would be in a `.gitignore` file, and `\#` escapes it.
 - The patterns are read relative to the package's root, as git reads `core.excludesFile`, below every `.gitignore` file of the tree in precedence. [The Membership Rule](./method-tree.md#the-membership-rule) states how they combine with the tree's other exclusions.
+- Each pattern is normalized to NFC before it is matched, as [the membership rule](./method-tree.md#the-membership-rule) normalizes every pattern, so a pattern written in decomposed form matches the same names as one written composed.
 
 ## The `[dependencies]` Section
 
