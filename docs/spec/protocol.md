@@ -67,15 +67,15 @@ The protocol sets no time limit on `/execute`; deployments cap it at their proxy
 A request's `files` map holds every file of the method's tree under its [tree path](./method-tree.md#tree-paths): its bundles, its manifest when it has one, and every other file a step may read or that travels with the method, such as a Python module, a template, an image or a `requirements.txt`. Each value is a [file entry](./method-tree.md#the-file-entry) in one of three forms:
 
 - **a string**, the file's text, whose bytes are its UTF-8 encoding;
-- **`{ "base64": "…" }`**, any bytes, in standard padded Base64;
-- **`{ "sha256": "…", "size": … }`**, bytes the runner already holds in its blob store, named by their SHA-256 in lowercase hexadecimal and their length.
+- **`{ "base64": "…" }`**, any bytes, in standard padded Base64, canonical, with its pad bits zero;
+- **`{ "sha256": "…", "size": … }`**, bytes the runner already holds in its blob store, named by their SHA-256 in lowercase hexadecimal and their length, a JSON integer written without a fraction or an exponent.
 
 The map must form a tree. A runner refuses with a `422` naming the offending path a map in which:
 
-- a key is not a tree path, or names a file the membership rule could never admit, such as a dotfile;
-- one path is given twice, verbatim or after normalization;
-- two paths are equal, or one names a directory of another, once both are converted to lowercase, such as `readme.md` beside `README.md`, or `Templates` beside `templates/letter.html`;
-- an entry is malformed.
+- a key is not a tree path, such as a key not already in NFC, which a runner refuses rather than normalize, or names a file the membership rule could never admit, such as a dotfile;
+- one path is given twice, as written or once its JSON escapes are decoded, or an entry object gives one of its own keys twice;
+- two paths [collide](./method-tree.md#tree-paths), or one collides with a directory of another, under the Unicode full case folding the method tree defines, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`;
+- an entry is malformed, such as Base64 whose pad bits are not zero, or a `size` written `13.0`.
 
 A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem whose `missing_blobs` member lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer what to upload. The tree's files are the method's own: a file a caller supplies for one run is an input, never an entry of `files`.
 
