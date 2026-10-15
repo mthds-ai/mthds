@@ -340,7 +340,7 @@ This section consolidates the validation rules scattered throughout this specifi
 
 1. **PipeLLM**: All prompt variables MUST have matching inputs. All inputs MUST be used.
 2. **PipeStructure**: Exactly one input MUST be declared. The input concept MUST be `Text` or refine `Text`. `output` MUST NOT be `Text` or refine `Text`.
-3. **PipeFunc**: `function_name` MUST be present and MUST be an import path holding at least one dot, whose module path names a module of the [method tree](./method-tree.md) (see [PipeFunc](./mthds-format.md#operator-pipefunc)).
+3. **PipeFunc**: `function_name` MUST be present and, once normalized to NFC, MUST be an import path holding at least one dot, each dot-separated segment a Python identifier that is not a keyword and that NFKC normalization leaves unchanged, whose module path names a module of the [method tree](./method-tree.md) (see [PipeFunc](./mthds-format.md#operator-pipefunc)).
 4. **PipeImgGen**: `prompt` MUST be present. All prompt and negative_prompt variables MUST have matching inputs. All inputs MUST be used.
 5. **PipeExtract**: Exactly one input MUST be declared. `output` MUST be `"Page[]"`.
 6. **PipeSearch**: `prompt` MUST be present. All prompt variables MUST have matching inputs. All inputs MUST be used. `output` MUST be `SearchResult` or refine `SearchResult`.
