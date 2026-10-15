@@ -232,6 +232,8 @@ A package a method depends on is a tree of its own, with its own root and its ow
 - A dependency with a local `path` is the method tree rooted at that directory, listed under the membership rule like any other.
 - A fetched dependency's tree is the set of files of the package's directory in the commit its resolved version points at, **read from the commit's git objects as stored**, with no checkout filter, no line-ending conversion and no `export-ignore` attribute applied, so its digest is the same on every machine, and **filtered by the membership rule**, reading the `.gitignore` files that commit holds inside the package's directory and the package's own `exclude` patterns. A file committed despite a pattern that matches it is therefore out of the published tree as it is out of the local one, a submodule contributes no file, and a symbolic link committed in the package's directory is an error naming its path unless the rule excludes it.
 
+**A tree written out is read back as written.** A copy of a tree that a program writes to disk, such as a package in a cache, holds the tree's files at their tree paths and nothing else, and those files are the tree: a reader takes every file of the copy as a file of the tree and never applies the membership rule to it again. The rule cannot be applied twice, since the `.gitignore` files that shaped the tree start with a dot and are left out of the copy, so a manifest `exclude` pattern that one of them overrode with a negation would exclude its file a second time.
+
 The [lock file](./lock-format.md) records each fetched dependency's tree digest, which an install checks against the tree it fetched.
 
 ## See Also

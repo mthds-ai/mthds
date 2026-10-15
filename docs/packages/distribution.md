@@ -75,6 +75,8 @@ Two caches with two distinct jobs stand between a remote repository and a runnin
 - The **global VCS cache**, `~/.mthds/packages/{address}/{version}/`, holds fetched packages' trees, shared across projects. Entries are written atomically (staging directory, then rename), each holds the package's tree and nothing else, written from the commit's objects, and each records the commit SHA it was fetched at.
 - The **project-local method cache**, `.mthds/methods/<name>/` inside the consuming project, is what [closure assembly](../spec/library-crate.md#closure-assembly) reads. It is deterministic by construction: resolution reads only from disk.
 
+An entry of either cache is a package's tree as written: a reader takes every file of the entry as a file of the package and never applies the [membership rule](../spec/method-tree.md#the-membership-rule) to it again. The `.gitignore` files that shaped the tree are not in the entry, so applying the rule a second time could drop a file the package holds, one that a manifest `exclude` pattern names and a `.gitignore` file re-included (see [Method Tree: Dependencies Are Trees of Their Own](../spec/method-tree.md#dependencies-are-trees-of-their-own)).
+
 **Install is the bridge.** Installing a package's dependencies walks the [lock file](lock-file.md), fetches anything missing into the global cache (verifying the tree digest against the lock — a mismatch is a hard failure), and materializes each locked dependency into the project-local cache. After install, resolving and running the method touches no network.
 
 ## Fetched Content and Runtime Policy

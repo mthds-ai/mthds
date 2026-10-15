@@ -72,7 +72,7 @@ Remote packages are fetched via Git, trying each source in order (this fetch seq
     - Select version via MVS.
     - Clone at the selected tag without a checkout: `git clone --depth 1 --branch {tag} --no-checkout`.
     - Locate the package in the commit by manifest identity, and read its [tree](../spec/method-tree.md#dependencies-are-trees-of-their-own) from the commit's git objects as stored (`git ls-tree -r -z`, `git cat-file blob`), with no checkout filter, line-ending conversion or `export-ignore` applied, filtered by the membership rule with that commit's own `.gitignore` files. A submodule contributes no file, and a symbolic link the rule does not exclude is an error naming its path.
-3. **Cache storage** — write the package's tree, and nothing else, under `~/.mthds/packages/{address}/{version}/`, each file at its tree path.
+3. **Cache storage** — write the package's tree, and nothing else, under `~/.mthds/packages/{address}/{version}/`, each file at its tree path. The entry's files are then the package's tree as written: a later read, a cache hit included, takes every file of the entry and never applies the membership rule again (see [Dependencies Are Trees of Their Own](../spec/method-tree.md#dependencies-are-trees-of-their-own)).
 
 Cache writes use a staging directory with atomic rename for safety against partial writes.
 

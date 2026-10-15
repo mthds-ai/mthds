@@ -75,7 +75,7 @@ The directory where the manifest is found is the root of the method's [tree](../
 Loading a package involves these steps in order:
 
 1. **Parse the manifest** — read `METHODS.toml` and validate all fields (address, version, dependencies, exports). Reject immediately on any parse or validation error.
-2. **List the method tree** — apply the [membership rule](../spec/method-tree.md#the-membership-rule) under the root, refusing a symbolic link and a malformed path, and take every `.mthds` file of the tree as the package's bundles. Every other file of the tree is a method file a step may name by [file reference](../spec/method-tree.md#file-references) or, for a `PipeFunc`, by import path; resolve each by looking it up in the tree's set of paths, never by opening a path.
+2. **List the method tree** — for a directory being listed, apply the [membership rule](../spec/method-tree.md#the-membership-rule) under the root, refusing a symbolic link and a malformed path; for a package read from a cache, take every file of the cache entry as written, since those files already are its tree and the rule is never applied to them again. Take every `.mthds` file of the tree as the package's bundles. Every other file of the tree is a method file a step may name by [file reference](../spec/method-tree.md#file-references) or, for a `PipeFunc`, by import path; resolve each by looking it up in the tree's set of paths, never by opening a path.
 3. **Parse all bundles** — parse each `.mthds` file into a bundle blueprint. Collect parse errors.
 4. **Resolve dependencies** — for each dependency in the manifest:
     - If it has a `path` field, resolve from the local filesystem (non-transitive).

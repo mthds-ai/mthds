@@ -220,7 +220,7 @@ For example:
 ~/.mthds/packages/github.com/acme/legal-tools/1.0.0/
 ```
 
-A cached copy holds the package's tree and nothing else, its files written from the commit's objects at their tree paths, so it holds no `.git` directory.
+A cached copy holds the package's tree and nothing else, its files written from the commit's objects at their tree paths, so it holds no `.git` directory. Its files are the package's tree as written: a reader takes every file of the copy as a file of the tree and never applies the [membership rule](./method-tree.md#the-membership-rule) to it again, since the `.gitignore` files that shaped the tree are not in the copy, and a manifest `exclude` pattern that one of them negated would exclude its file a second time (see [Method Tree: Dependencies Are Trees of Their Own](./method-tree.md#dependencies-are-trees-of-their-own)).
 
 ## Cross-Package Reference Examples
 

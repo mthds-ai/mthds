@@ -87,7 +87,7 @@ The lock file is regenerated when the manifests change or when a tool re-locks:
 When installing from a lock file, a compliant implementation MUST:
 
 1. For each entry in the lock file, locate the corresponding fetched or cached package directory.
-2. Recompute the tree digest of that package's tree, as described above.
+2. Recompute the tree digest of that package's tree, as described above, either from the files of the cached copy as written, every file at its path, without applying the [membership rule](./method-tree.md#the-membership-rule) again, or from the commit, filtered by the membership rule as [Dependencies Are Trees of Their Own](./method-tree.md#dependencies-are-trees-of-their-own) states.
 3. Compare the computed digest with the `digest` field in the lock file.
 4. Reject the installation if any digest does not match (integrity failure). A mismatch is a hard failure, never a warning.
 
