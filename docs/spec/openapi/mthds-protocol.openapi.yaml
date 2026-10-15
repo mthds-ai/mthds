@@ -471,8 +471,9 @@ components:
         tree. Each key is a tree path: a relative POSIX path in Unicode NFC, with no
         empty, '.' or '..' segment, no segment starting with a dot, no backslash, colon
         or control character, at most 255 UTF-8 bytes per segment and 1024 for the
-        path; no segment names a __pycache__ or node_modules directory and no key names
-        a file called pyvenv.cfg, which the membership rule never admits. No key is
+        path; no segment names a __pycache__ or node_modules directory, no key names
+        a file called pyvenv.cfg, and no key names a file called METHODS.toml anywhere
+        but at the root, which the membership rule never admits. No key is
         given twice, verbatim or after normalization, no two keys differ only by letter
         case, and no key names a directory of another. The pattern below checks the
         characters and segments; the other rules are checked by the runner, which

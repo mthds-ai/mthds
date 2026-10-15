@@ -311,7 +311,7 @@ legal_tools/
 - `methods.lock` MUST be at the directory root, alongside `METHODS.toml`.
 - `.mthds` files MAY be at the root or in subdirectories. A compliant implementation MUST load every `.mthds` file of the method tree, and only those: a bundle the [membership rule](./method-tree.md#the-membership-rule) excludes is not part of the package.
 - Every file of the method tree belongs to the package and travels with it, whether a step reads it, such as a Python module or a template, or it is carried for people and agents, such as a `README.md`.
-- A single directory SHOULD contain one package. A repository MAY host several packages in subdirectories — a **library repository** — in which case each package is identified by its own manifest, and a specific package is located by manifest identity, never by directory path (see [Distribution: Locating a Package Inside a Clone](../packages/distribution.md#locating-a-package-inside-a-clone)).
+- A single directory SHOULD contain one package. A repository MAY host several packages in subdirectories — a **library repository** — in which case each package is identified by its own manifest, and a specific package is located by manifest identity, never by directory path (see [Distribution: Locating a Package Inside a Clone](../packages/distribution.md#locating-a-package-inside-a-clone)). A package in a directory below another package's root is out of that package's method tree, by the [membership rule](./method-tree.md#the-membership-rule)'s nested-package default, so packages never hold one another.
 - The directory name is not part of the package's identity and MAY differ from the manifest `name` (see [Name](#name)).
 
 ## Manifest Discovery

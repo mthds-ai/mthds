@@ -105,7 +105,7 @@ main_pipe = "analyze_nda"
 
 ## Exclude
 
-Every file in the package's folder travels with the package, except dotfiles, a few defaults such as `__pycache__/` and Python virtual environments, and whatever the folder's own `.gitignore` files ignore (see [Package Structure: Method Files](structure.md#method-files)). The `exclude` field keeps more files out of the package without keeping them out of git, such as sample data you keep in the repository but no run needs:
+Every file in the package's folder travels with the package, except dotfiles, a few defaults such as `__pycache__/`, Python virtual environments and other packages nested inside the folder, and whatever the folder's own `.gitignore` files ignore (see [Package Structure: Method Files](structure.md#method-files)). The `exclude` field keeps more files out of the package without keeping them out of git, such as sample data you keep in the repository but no run needs:
 
 ```toml
 [package]
