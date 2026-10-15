@@ -221,7 +221,7 @@ The standard bounds a tree path's length and nothing else. Each implementation b
 
 ## Python Modules
 
-A `PipeFunc` names its function by its Python import path from the root of the tree that holds the bundle, which is the import root: `function_name = "funcs.text_utils.shout"` names the function `shout` of the module `funcs/text_utils.py` of the `greetings` tree, and the modules that one imports are resolved from the same root. The rule is the [PipeFunc](./mthds-format.md#operator-pipefunc) field's own.
+A `PipeFunc` names its function by its Python import path from the root of the tree that holds the bundle, which is the import root: `function_name = "funcs.text_utils.shout"` names the function `shout` of the module `funcs/text_utils.py` of the `greetings` tree, and the modules that one imports are resolved from the same root. The name is normalized to NFC before it is mapped to a module's tree path, as a [file reference](#file-references) is at step 4, so a name written in decomposed form finds its module, and each of its segments must be a Python identifier that NFKC normalization leaves unchanged, since Python reads identifiers in NFKC and would otherwise import another file than the tree holds. The rule is the [PipeFunc](./mthds-format.md#operator-pipefunc) field's own, with an example of each.
 
 ## Python Dependencies: `requirements.txt`
 

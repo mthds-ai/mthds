@@ -70,7 +70,7 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 
 **PipeFunc:**
 
-- `function_name` MUST be present and MUST be an import path holding at least one dot, each dot-separated segment a Python identifier that is not a keyword.
+- `function_name` MUST be present and, once normalized to NFC, MUST be an import path holding at least one dot, each dot-separated segment a Python identifier that is not a keyword and that NFKC normalization leaves unchanged, so a segment holding a ligature such as `ﬁ` or a fullwidth letter is rejected.
 - Given the method tree, the module path, everything before the last dot, MUST name a module of the tree: `<module path>.py` or `<module path>/__init__.py`, each dot read as `/`, and not both. See [PipeFunc](../spec/mthds-format.md#operator-pipefunc).
 
 **PipeImgGen:**
