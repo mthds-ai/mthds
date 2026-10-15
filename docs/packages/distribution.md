@@ -55,25 +55,33 @@ If no manifest matches, or more than one does, the tool MUST fail loudly, listin
 
 Version tags in remote repositories may use a `v` prefix (e.g., `v1.0.0`). The prefix is stripped during version parsing. Both `v1.0.0` and `1.0.0` are recognized.
 
-Tags are listed using `git ls-remote --tags`, and only those that parse as valid semantic versions are considered. Fetching a resolved version clones at its tag: `git clone --depth 1 --branch {tag}`.
+Tags are listed using `git ls-remote --tags`, and only those that parse as valid semantic versions are considered. Fetching a resolved version clones at its tag without a checkout, `git clone --depth 1 --branch {tag} --no-checkout`, and reads the package's files from the commit itself (see [A Package's Files](#a-packages-files)).
 
 !!! note "Open question: version tags in a library repository"
     Git tags are repository-wide, while each package in a library repository carries its own manifest `version`. How repository tags map to per-package versions — per-package tag prefixes are the anticipated direction — is an open question of the standard, deliberately recorded rather than silently decided. Until it is settled, packages that need independently versioned releases SHOULD live in their own repositories, and a library repository SHOULD version its packages in lockstep.
 
 A tag can be re-pointed; the commit it resolved to cannot. Tools therefore record the **resolved commit SHA** of every fetch — it is the provenance entry in the [lock file](lock-file.md) and the honest key for any clone cache. Every fetched-package operation SHOULD be attributable to its `(address, tag, commit)` triple.
 
+## A Package's Files
+
+A package is a [method tree](../spec/method-tree.md): every file of its directory travels with it, its bundles, its Python modules, its templates and its `README.md` alike, except the files the [membership rule](../spec/method-tree.md#the-membership-rule) keeps out. A fetched package's files are read from the resolved commit's git objects exactly as they were committed, with no checkout filter, line-ending conversion or `export-ignore` attribute applied, and filtered by that same rule, reading the `.gitignore` files the commit holds. So a file committed despite a `.gitignore` pattern that matches it is out of the published package, as it is out of a local run of the same directory, and the package's [tree digest](../spec/method-tree.md#the-tree-digest), which the [lock file](lock-file.md) records, is the same on every machine.
+
+A package never carries another package inside it: each dependency is a tree of its own, with its own digest, and the `.mthds/` folder where a project keeps its installed packages starts with a dot, so it is out of every tree.
+
 ## The Two Caches
 
 Two caches with two distinct jobs stand between a remote repository and a running method:
 
-- The **global VCS cache**, `~/.mthds/packages/{address}/{version}/`, holds fetched package sources, shared across projects. Entries are written atomically (staging directory, then rename), the `.git` directory is removed, and each entry records the commit SHA it was fetched at.
+- The **global VCS cache**, `~/.mthds/packages/{address}/{version}/`, holds fetched packages' trees, shared across projects. Entries are written atomically (staging directory, then rename), each holds the package's tree and nothing else, written from the commit's objects, and each records the commit SHA it was fetched at.
 - The **project-local method cache**, `.mthds/methods/<name>/` inside the consuming project, is what [closure assembly](../spec/library-crate.md#closure-assembly) reads. It is deterministic by construction: resolution reads only from disk.
 
-**Install is the bridge.** Installing a package's dependencies walks the [lock file](lock-file.md), fetches anything missing into the global cache (verifying the byte hash against the lock — a mismatch is a hard failure), and materializes each locked dependency into the project-local cache. After install, resolving and running the method touches no network.
+An entry of either cache is a package's tree as written: a reader takes every file of the entry as a file of the package and never applies the [membership rule](../spec/method-tree.md#the-membership-rule) to it again. The `.gitignore` files that shaped the tree are not in the entry, so applying the rule a second time could drop a file the package holds, one that a manifest `exclude` pattern names and a `.gitignore` file re-included (see [Method Tree: Dependencies Are Trees of Their Own](../spec/method-tree.md#dependencies-are-trees-of-their-own)).
+
+**Install is the bridge.** Installing a package's dependencies walks the [lock file](lock-file.md), fetches anything missing into the global cache (verifying the tree digest against the lock — a mismatch is a hard failure), and materializes each locked dependency into the project-local cache. After install, resolving and running the method touches no network.
 
 ## Fetched Content and Runtime Policy
 
-A fetched package directory may contain files beyond `.mthds` bundles — documentation, assets, or implementation-specific code. What a runtime *executes* from fetched content is runtime policy, not standard semantics: a runtime MAY refuse fetched executable content, or classes of it, according to its own security model, and SHOULD say so with an error that names the rule rather than silently ignoring files. The standard requires only that the MTHDS content itself — manifest, bundles, lock — be interpreted as specified.
+A fetched package's tree may hold files beyond `.mthds` bundles — documentation, assets, or implementation-specific code. What a runtime *executes* from fetched content is runtime policy, not standard semantics: a runtime MAY refuse fetched executable content, or classes of it, according to its own security model, and SHOULD say so with an error that names the rule rather than silently ignoring files. The standard requires only that the MTHDS content itself — manifest, bundles, lock — be interpreted as specified.
 
 ## Discovery: Registry Indexes
 

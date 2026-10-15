@@ -1,10 +1,10 @@
 ---
-description: "Formal specification of the methods.lock file format — resolved versions, integrity hashes, semantic fingerprints, and install-time verification."
+description: "Formal specification of the methods.lock file format — resolved versions, tree digests, semantic fingerprints, and install-time verification."
 ---
 
 # methods.lock Format
 
-The `methods.lock` file records, for every remote dependency of a package, the exact resolved version, an integrity hash of what was fetched, the semantic fingerprint of what it means, and the provenance of where it came from. It is auto-generated and SHOULD be committed to version control.
+The `methods.lock` file records, for every remote dependency of a package, the exact resolved version, the tree digest of what was fetched, the semantic fingerprint of what it means, and the provenance of where it came from. It is auto-generated and SHOULD be committed to version control.
 
 !!! note "Implementation status"
     The lock file is committed design. This section is the contract implementations are brought into conformance with — the same forward-contract convention the [Library Crate Format](./library-crate.md#specification-status) uses for its unrealized sections. Conformance is asserted against this document as each piece lands.
@@ -28,14 +28,14 @@ The lock file is a flat TOML document where each top-level table key is a packag
 ```toml
 ["github.com/mthds/document-processing"]
 version     = "1.2.3"
-hash        = "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
+digest      = "sha256:a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
 fingerprint = "7c9e2b4f8a1d3e5c7b9f2a4d6e8c1b3f5a7d9e2c4b6f8a1d3e5c7b9f2a4d6e8c"
 source      = "https://github.com/mthds/document-processing.git"
 commit      = "8f5b2c1a9d3e7f4b6a8c2e5d1f9b3a7c4e6d8f2b"
 
 ["github.com/mthds/scoring-lib"]
 version     = "0.5.1"
-hash        = "sha256:e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6"
+digest      = "sha256:e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6a7b8c9d0e5f6"
 fingerprint = "2d4f6a8c1e3b5d7f9a2c4e6b8d1f3a5c7e9b2d4f6a8c1e3b5d7f9a2c4e6b8d1f"
 source      = "https://github.com/mthds/scoring-lib.git"
 commit      = "3a7c4e6d8f2b8f5b2c1a9d3e7f4b6a8c2e5d1f9b"
@@ -50,24 +50,20 @@ Each entry in the lock file contains:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `version` | string | Yes | The exact resolved version. MUST be valid semver. |
-| `hash` | string | Yes | Integrity **byte hash** of the fetched package directory. MUST match the pattern `sha256:[0-9a-f]{64}`. Records *what was fetched*. |
+| `digest` | string | Yes | The [tree digest](./method-tree.md#the-tree-digest) of the fetched package's tree. MUST match the pattern `sha256:[0-9a-f]{64}`. Records *what was fetched*. |
 | `fingerprint` | string | Yes | The **semantic fingerprint** of the dependency's resolved content — the [library crate fingerprint](./library-crate.md#fingerprint) of the library the dependency's package resolves into, as a 64-character lowercase hex digest. Records *what it means*. |
 | `source` | string | Yes | The HTTPS clone URL the package was fetched from, derived from the address (see [Fetching Remote Dependencies](./namespace-resolution.md#fetching-remote-dependencies)). MUST start with `https://` and MUST end with `.git`. |
 | `commit` | string | Yes | The commit SHA the resolved version tag pointed to at lock time, as a 40-character lowercase hex digest. Provenance: a tag can be re-pointed; the commit cannot. It is also the honest cache key for tooling that caches clones. |
 
-The `hash` and the `fingerprint` are two deliberately distinct digests joined per dependency at this one point. The byte hash is transport integrity: it changes when any fetched byte changes, including formatting and comments. The fingerprint is semantic identity: it is stable across reformatting and changes exactly when the dependency's effective type surface, prompts, or entry points change. Together they let tooling verify a fetch and explain an update — a version bump whose fingerprint is unchanged changed nothing a consumer can observe; one whose fingerprint moved can be diffed semantically.
+The `digest` and the `fingerprint` are two deliberately distinct digests joined per dependency at this one point. The tree digest is transport integrity: it changes when any fetched byte changes, including formatting and comments. The fingerprint is semantic identity: it is stable across reformatting and changes exactly when the dependency's effective type surface, prompts, or entry points change. Together they let tooling verify a fetch and explain an update — a version bump whose fingerprint is unchanged changed nothing a consumer can observe; one whose fingerprint moved can be diffed semantically.
 
-## Hash Computation
+## Digest Computation
 
-The integrity hash is a deterministic SHA-256 hash of the package directory contents, computed as follows:
+The `digest` is the [tree digest](./method-tree.md#the-tree-digest) of the dependency's package tree: the SHA-256 of the tree's listing, one `sha256sum` line per file sorted by tree path byte for byte, written `sha256:` followed by the 64-character lowercase hex digest. The tree is the one [Method Tree: Dependencies Are Trees of Their Own](./method-tree.md#dependencies-are-trees-of-their-own) defines for a fetched package: the files of the package's directory in the resolved commit, read from the commit's git objects as stored and filtered by the membership rule with that commit's own `.gitignore` files. Anyone can recompute it from the commit with coreutils and git alone.
 
-1. Collect all regular files recursively under the package directory.
-2. Exclude any path containing `.git` in its components.
-3. Sort files by their POSIX-normalized relative path (for cross-platform determinism).
-4. For each file in sorted order, feed into the hasher:
-   a. The relative path string, encoded as UTF-8.
-   b. The raw file bytes.
-5. The resulting hash is formatted as `sha256:` followed by the 64-character lowercase hex digest.
+### Locks Written Before Tree Digests
+
+A lock written before standard `7.0.0` records a `hash` field in each entry, computed by an algorithm that concatenated paths and file contents with no separator, so two different directories could share one hash. A compliant implementation MUST refuse, when it parses the lock, any entry carrying a `hash` field, with a message saying that the lock predates tree digests and that running `lock` regenerates it. It MUST NOT verify a `hash`, so an untouched dependency of an old lock is never reported as tampered with. Since the lock is a regenerable [verification record](#a-verification-record-not-a-resolution-record), regenerating it is always safe.
 
 ## Fingerprint Computation
 
@@ -91,11 +87,11 @@ The lock file is regenerated when the manifests change or when a tool re-locks:
 When installing from a lock file, a compliant implementation MUST:
 
 1. For each entry in the lock file, locate the corresponding fetched or cached package directory.
-2. Recompute the SHA-256 byte hash of that directory using the algorithm described above.
-3. Compare the computed hash with the `hash` field in the lock file.
-4. Reject the installation if any hash does not match (integrity failure). A mismatch is a hard failure, never a warning.
+2. Recompute the tree digest of that package's tree, as described above, either from the files of the cached copy as written, every file at its path, without applying the [membership rule](./method-tree.md#the-membership-rule) again, or from the commit, filtered by the membership rule as [Dependencies Are Trees of Their Own](./method-tree.md#dependencies-are-trees-of-their-own) states.
+3. Compare the computed digest with the `digest` field in the lock file.
+4. Reject the installation if any digest does not match (integrity failure). A mismatch is a hard failure, never a warning.
 
-An implementation SHOULD additionally recompute the `fingerprint` and report a mismatch: a byte hash that matches while the fingerprint does not indicates a defect in one of the implementations, since the fingerprint is a pure function of the fetched content.
+An implementation SHOULD additionally recompute the `fingerprint` and report a mismatch: a tree digest that matches while the fingerprint does not indicates a defect in one of the implementations, since the fingerprint is a pure function of the fetched content.
 
 ## Deterministic Output
 

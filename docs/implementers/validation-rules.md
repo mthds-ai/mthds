@@ -6,6 +6,15 @@ description: "Complete validation checklist for MTHDS implementers — ordered b
 
 This page consolidates all validation rules from the [Specification](../spec/mthds-format.md) into an ordered checklist for implementers. Rules are grouped by the stage at which they should be enforced.
 
+## Before Parsing: The Method Tree
+
+Before any file is parsed, establish the [method tree](../spec/method-tree.md) the files come from:
+
+- Find the root from what the caller handed over: the nearest directory at or above it holding `METHODS.toml`, else the directory handed over, else, for a `.mthds` file named alone, a tree of that one file.
+- List the tree under the [membership rule](../spec/method-tree.md#the-membership-rule), pruning excluded directories first, among them a nested repository or a nested package, meaning a directory below the root holding a `.git` entry or its own `METHODS.toml`. Refuse a symbolic link or any other entry that is neither a regular file nor a directory, naming its path, unless the rule excludes it. A package read from a cache is not listed again: its files are its tree as written.
+- Normalize every name to NFC, and refuse a path that breaks the [tree path](../spec/method-tree.md#tree-paths) rules, two names equal after normalization, two paths equal, or one naming a directory of another, once both are converted to lowercase, and a path past the length bound, naming each path.
+- When the tree arrives as a map of [file entries](../spec/method-tree.md#the-file-entry) rather than from a directory, refuse a key that is not a tree path or that the membership rule could not admit, a key given twice, two keys equal, or one naming a directory of another, once both are converted to lowercase, a malformed entry, and a hash entry whose bytes the receiver does not hold.
+
 ## Stage 1: TOML Parsing
 
 Before any MTHDS-specific validation, the file must be valid TOML.
@@ -61,7 +70,8 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 
 **PipeFunc:**
 
-- `function_name` MUST be present and non-empty.
+- `function_name` MUST be present and MUST be an import path holding at least one dot, each dot-separated segment a Python identifier that is not a keyword.
+- Given the method tree, the module path, everything before the last dot, MUST name a module of the tree: `<module path>.py` or `<module path>/__init__.py`, each dot read as `/`, and not both. See [PipeFunc](../spec/mthds-format.md#operator-pipefunc).
 
 **PipeImgGen:**
 
@@ -171,6 +181,7 @@ For `METHODS.toml`:
 9. All dependency version constraints MUST be valid.
 10. Domain paths in `[exports]` MUST be valid domain codes and MUST NOT use reserved domains (`native`, `mthds`, `pipelex`).
 11. All pipe codes in `[exports]` MUST be valid `snake_case`.
+12. `exclude`, if present, MUST be an array of strings, none holding a line break.
 
 ## Stage 7: Package-Level Validation
 
@@ -181,13 +192,16 @@ After loading all bundles and resolving dependencies:
 3. Cross-package pipe references MUST target pipes exported by the dependency — diagnosed at validation time, never silently filtered at load time.
 4. Exported pipes MUST exist in the scanned bundles.
 5. Same-domain concept and pipe code collisions across bundles (within one package) are errors.
+6. Every [file reference](../spec/method-tree.md#file-references) MUST resolve, lexically and inside the tree, to a file of the tree. A reference that climbs above the root, or names a file the tree does not hold, is refused naming the reference and the path it resolved to, and the rule that excluded the file when one did.
+7. Every `PipeFunc`'s module MUST be a module of its tree, as Stage 4 states.
+8. A `requirements.txt` at the root MUST hold only blank lines, comments and PEP 508 requirements with no URL, and no option (see [`requirements.txt`](../spec/method-tree.md#python-dependencies-requirementstxt)).
 
 ## Stage 8: Lock File Validation
 
 For `methods.lock`:
 
 1. Each entry's `version` MUST be valid semver.
-2. Each entry's `hash` MUST match `sha256:[0-9a-f]{64}`.
+2. Each entry's `digest` MUST match `sha256:[0-9a-f]{64}`. An entry carrying a `hash` field predates tree digests: refuse the lock with a message saying that `lock` regenerates it, and verify nothing.
 3. Each entry's `fingerprint` MUST be a 64-character lowercase hex digest.
 4. Each entry's `source` MUST start with `https://` and end with `.git`.
 5. Each entry's `commit` MUST be a 40-character lowercase hex digest.

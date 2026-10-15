@@ -125,6 +125,7 @@ plugins:
         Reference:
         - spec/versioning.md: "Versioning"
         - spec/mthds-format.md: ".mthds File Format"
+        - spec/method-tree.md: "Method Tree"
         - spec/native-concepts.md: "Native Concept Definitions"
         - spec/intent-hints.md: "Intent Hints"
         - spec/manifest-format.md: "METHODS.toml Format"
@@ -223,6 +224,7 @@ nav:
     - Specification:
       - Versioning: spec/versioning.md
       - .mthds File Format: spec/mthds-format.md
+      - Method Tree: spec/method-tree.md
       - Native Concept Definitions: spec/native-concepts.md
       - Intent Hints: spec/intent-hints.md
       - METHODS.toml Format: spec/manifest-format.md

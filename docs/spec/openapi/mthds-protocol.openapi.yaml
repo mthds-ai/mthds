@@ -1,12 +1,14 @@
 openapi: 3.1.0
 info:
   title: MTHDS Protocol
-  version: 0.7.0
+  version: 1.0.0
   summary: The minimal HTTP contract every MTHDS runner implements.
   description: >
-    Five routes. Any server implementing them is an MTHDS-compliant runner. A runner
-    executes and validates methods; it keeps no run store and owns no user, billing,
-    or catalog concepts. Paths are relative to an implementation-chosen base URL.
+    Five required routes, and two optional blob routes for a runner that keeps a blob
+    store. Any server implementing the five required routes is an MTHDS-compliant
+    runner. A runner executes and validates methods, each sent as its whole method
+    tree, a map of file entries; it keeps no run store and owns no user, billing, or
+    catalog concepts. Paths are relative to an implementation-chosen base URL.
     Implementations may extend the surface (extra routes, extra request properties)
     but must not change the meaning or shape of the protocol routes. All errors are
     RFC 7807 application/problem+json.
@@ -28,6 +30,11 @@ tags:
     description: Static + dry-run validation of MTHDS bundles.
   - name: discovery
     description: What this runner is and what it can route to.
+  - name: blobs
+    description: >
+      Optional. A runner whose /version declares blob_store true keeps a blob store
+      (bytes keyed by their SHA-256, written once, never changed), so a sender uploads
+      a file at most once and then sends it by hash.
 paths:
   /execute:
     post:
@@ -160,6 +167,65 @@ paths:
               schema: { $ref: '#/components/schemas/VersionInfo' }
         default:
           $ref: '#/components/responses/Problem'
+  /blobs/missing:
+    post:
+      operationId: findMissingBlobs
+      tags: [blobs]
+      summary: Which of these blobs the runner lacks, and where to upload each.
+      description: >
+        OPTIONAL — served by a runner whose /version declares blob_store true. The
+        answer lists every blob of the request the runner does not hold, each with an
+        upload target; a blob it holds is left out, and an empty list means there is
+        nothing to upload. The optional digest names the tree the blobs make up: a
+        runner that records the trees it has held in full, recording one only after
+        checking it holds every file the tree's listing names and never taking an
+        uploaded blob as such a record, MAY answer an empty list when it holds the tree
+        that digest names. A hash given twice with different sizes, or a blob past the
+        runner's limits, is a 422, refused before anything is uploaded.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MissingBlobsRequest' }
+      responses:
+        '200':
+          description: The blobs of the request the runner does not hold, each with where to upload it.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MissingBlobsResult' }
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
+  /blobs/{sha256}:
+    put:
+      operationId: putBlob
+      tags: [blobs]
+      summary: Upload one blob's bytes to a runner that stores them itself.
+      description: >
+        OPTIONAL — served by a runner that keeps a blob store and stores uploaded
+        bytes itself, as the upload target its POST /blobs/missing answers name. The
+        body is the blob's bytes and nothing else. A body whose SHA-256 differs from the
+        path is a 422. A blob is written once and never changed, so uploading bytes the
+        runner already holds succeeds without changing anything.
+      parameters:
+        - name: sha256
+          in: path
+          required: true
+          schema: { type: string, pattern: '^[0-9a-f]{64}$' }
+          description: The SHA-256 of the body, in lowercase hexadecimal.
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema: { type: string, format: binary }
+      responses:
+        '204':
+          description: The blob is stored, now or already.
+        '422':
+          $ref: '#/components/responses/ValidationProblem'
+        default:
+          $ref: '#/components/responses/Problem'
 components:
   securitySchemes:
     bearer:
@@ -176,7 +242,10 @@ components:
       description: >
         The request failed validation (RFC 7807). On /execute and /start a bad
         bundle also lands here; on /validate an invalid bundle is a 200 verdict,
-        so there a 422 is request-shape only.
+        so there a 422 is request-shape only. A request whose files map is not a
+        tree is a 422 naming the offending path, and a request naming a hash entry
+        the runner does not hold, or any hash entry when it keeps no blob store, is
+        a 422 whose missing_blobs member lists each such hash.
       content:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
@@ -184,29 +253,30 @@ components:
     RunRequest:
       type: object
       description: >
-        At least one of pipe_code / mthds_contents is required (enforced by the anyOf
-        rule below). If mthds_contents is provided without pipe_code, the first bundle
-        must declare a main_pipe. Extension-open: implementations MAY accept extra
-        top-level properties (extension args).
+        At least one of pipe_code / files is required (enforced by the anyOf rule
+        below). If files is provided without pipe_code, the run starts at the
+        manifest's main_pipe when the tree holds a METHODS.toml at its root, or else,
+        in a method with no manifest, at the one main_pipe its bundles declare; a tree
+        whose manifest declares none, or with no manifest whose bundles declare none
+        or several, is a 422 naming its bundles by their tree paths. Extension-open:
+        implementations MAY accept extra top-level properties (extension args).
       additionalProperties: true
       anyOf:
         - required: [pipe_code]
           properties:
             pipe_code: { type: string, minLength: 1 }
-        - required: [mthds_contents]
+        - required: [files]
           properties:
-            mthds_contents:
-              type: array
-              minItems: 1
+            files: { $ref: '#/components/schemas/MethodFiles' }
       properties:
         pipe_code:
           type: [string, 'null']
-          description: Code of the pipe to execute (a pipe already registered, or one defined in mthds_contents).
-        mthds_contents:
-          type: [array, 'null']
-          minItems: 1
-          items: { type: string }
-          description: MTHDS bundle contents to load (always an array, even for a single file; never empty). Implementations bound count and per-file size.
+          description: Code of the pipe to execute (a pipe the runner already holds, or one defined in a bundle of files).
+        files:
+          description: The method to load, as its whole method tree. Implementations bound a file's size, the tree's file count and total size, and the total of the inline entries.
+          anyOf:
+            - $ref: '#/components/schemas/MethodFiles'
+            - type: 'null'
         inputs:
           type: [object, 'null']
           description: 'Method inputs: map of input name to { concept, content }. Content shapes follow the concept''s structure; content validation is deliberately loose here and strict inside the runtime.'
@@ -258,13 +328,11 @@ components:
           description: The run identifier — server-generated and authoritative.
     ValidateRequest:
       type: object
-      required: [mthds_contents]
+      required: [files]
       properties:
-        mthds_contents:
-          type: array
-          minItems: 1
-          items: { type: string }
-          description: MTHDS contents to load (always an array, even for a single file).
+        files:
+          $ref: '#/components/schemas/MethodFiles'
+          description: The method to validate, as its whole method tree; the runner judges every bundle and every file a bundle names.
         allow_signatures:
           type: boolean
           default: false
@@ -381,13 +449,125 @@ components:
       type: object
       description: >
         The handshake. The protocol defines protocol_version (required) plus an
-        optional runner_version; implementations MAY add their own identification
-        (a name, an underlying runtime version, anything else) as additional properties.
+        optional runner_version and an optional blob_store flag; implementations MAY
+        add their own identification (a name, an underlying runtime version, anything
+        else) as additional properties.
       required: [protocol_version]
       additionalProperties: true
       properties:
         protocol_version: { type: string, description: MTHDS Protocol version implemented. }
         runner_version: { type: [string, 'null'], description: Version of the runner serving this protocol (optional). }
+        blob_store:
+          type: boolean
+          default: false
+          description: >
+            True when the runner keeps a blob store: it serves POST /blobs/missing and
+            resolves hash entries in a files map. False or absent when it does not, in
+            which case it answers any hash entry with a 422 listing missing_blobs.
+    MethodFiles:
+      type: object
+      description: >
+        A method tree, as a map from tree path to file entry, holding every file of the
+        tree. Each key is a tree path: a relative POSIX path in Unicode NFC, with no
+        empty, '.' or '..' segment, no segment starting with a dot, no backslash, colon
+        or control character, at most 255 UTF-8 bytes per segment and 1024 for the
+        path; no segment names a __pycache__ or node_modules directory, no key names
+        a file called pyvenv.cfg, and no key names a file called METHODS.toml anywhere
+        but at the root, which the membership rule never admits. No key is
+        given twice, verbatim or after normalization, and once every key is converted
+        to lowercase, no two keys are equal and no key names a directory of another,
+        so neither README.md and readme.md nor Templates and templates/letter.html
+        share one map. The pattern below checks the
+        characters and segments; the other rules are checked by the runner, which
+        answers a map breaking any of them with a 422 naming the path.
+      minProperties: 1
+      propertyNames:
+        pattern: '^[^/\\:\x00-\x1F\x7F-\x9F.][^/\\:\x00-\x1F\x7F-\x9F]*(/[^/\\:\x00-\x1F\x7F-\x9F.][^/\\:\x00-\x1F\x7F-\x9F]*)*$'
+        maxLength: 1024
+      additionalProperties: { $ref: '#/components/schemas/FileEntry' }
+    FileEntry:
+      description: >
+        One file of a method tree: its text, its bytes in Base64, or the hash of bytes
+        the runner already holds. There is no URL form.
+      oneOf:
+        - type: string
+          description: The file's text. Its bytes are the UTF-8 encoding of this string, exactly.
+        - $ref: '#/components/schemas/Base64FileEntry'
+        - $ref: '#/components/schemas/HashFileEntry'
+    Base64FileEntry:
+      type: object
+      description: Any bytes, in the standard Base64 alphabet of RFC 4648, padded, with no line breaks.
+      required: [base64]
+      additionalProperties: false
+      properties:
+        base64: { type: string, contentEncoding: base64 }
+    HashFileEntry:
+      type: object
+      description: >
+        Bytes the runner already holds in its blob store, named by their SHA-256 and
+        their length. A runner that does not hold them, holds them with another size,
+        or keeps no blob store answers with a 422 listing missing_blobs.
+      required: [sha256, size]
+      additionalProperties: false
+      properties:
+        sha256: { type: string, pattern: '^[0-9a-f]{64}$', description: The SHA-256 of the bytes, in lowercase hexadecimal. }
+        size: { type: integer, minimum: 0, description: The length of the bytes. }
+    BlobRef:
+      type: object
+      description: A blob, named by its SHA-256 in lowercase hexadecimal and its length in bytes.
+      required: [sha256, size]
+      additionalProperties: false
+      properties:
+        sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
+        size: { type: integer, minimum: 0 }
+    MissingBlobsRequest:
+      type: object
+      description: The blobs a sender is about to send by hash, and optionally the tree they make up.
+      required: [blobs]
+      additionalProperties: true
+      properties:
+        blobs:
+          type: array
+          items: { $ref: '#/components/schemas/BlobRef' }
+          description: The blobs to check, each hash listed once.
+        digest:
+          type: string
+          pattern: '^sha256:[0-9a-f]{64}$'
+          description: The tree digest of the method tree the blobs make up (optional).
+    MissingBlobsResult:
+      type: object
+      description: The blobs of the request the runner does not hold. Extension-open.
+      required: [missing]
+      additionalProperties: true
+      properties:
+        missing:
+          type: array
+          items: { $ref: '#/components/schemas/MissingBlob' }
+    MissingBlob:
+      type: object
+      description: A blob the runner lacks, with where to upload it.
+      required: [sha256, size, upload]
+      additionalProperties: true
+      properties:
+        sha256: { type: string, pattern: '^[0-9a-f]{64}$' }
+        size: { type: integer, minimum: 0 }
+        upload: { $ref: '#/components/schemas/UploadTarget' }
+    UploadTarget:
+      type: object
+      description: >
+        Where to upload one blob. The sender sends the blob's bytes as the whole body of
+        a request with this method to this URL, carrying exactly these headers. The
+        target is the runner's choice: its own PUT /blobs/{sha256}, or any address that
+        stores the bytes where the runner reads its blobs.
+      required: [method, url, headers]
+      additionalProperties: true
+      properties:
+        method: { type: string, description: 'The HTTP method, such as PUT.' }
+        url: { type: string, format: uri }
+        headers:
+          type: object
+          additionalProperties: { type: string }
+          description: The headers to send, exactly.
     Problem:
       type: object
       description: RFC 7807.
@@ -397,3 +577,10 @@ components:
         status: { type: integer }
         detail: { type: string }
         instance: { type: string }
+        missing_blobs:
+          type: array
+          items: { type: string, pattern: '^[0-9a-f]{64}$' }
+          description: >
+            On a 422 refusing hash entries, every hash of the request the runner does
+            not hold, in lowercase hexadecimal, so a sender learns in one answer what to
+            upload.
