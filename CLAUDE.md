@@ -27,8 +27,9 @@ Pipelex is the maintainer and reference implementation. It appears ONLY in:
 - The About section (as maintainer and reference implementation)
 - "For Implementers" section (with "reference implementation" framing)
 - The Tooling section (the VS Code extension is named "Pipelex", `plxt` is distributed with Pipelex)
+- The core error registry's list of registered extension prefixes, `extension_prefixes` in `docs/spec/openapi/mthds-error-registry.yaml` and its JSON snapshot, and the table the generated Error Codes page (Reference) renders from it, which name the `pipelex` prefix and its owner as they name every registered prefix and its owner. Nothing else in the registry or its pages names Pipelex: no core entry, family or template names an implementation.
 
-Pipelex does NOT appear in: the landing page, the Language section, the Package System section, the Specification, the CLI Reference, or the Guides.
+Pipelex does NOT appear in: the landing page, the Language section, the Package System section, the Specification (beyond the registry's prefix list above), the CLI Reference, or the Guides.
 
 ### Terminology (must be consistent across all pages)
 
