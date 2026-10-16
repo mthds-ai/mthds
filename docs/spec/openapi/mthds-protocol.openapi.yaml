@@ -43,8 +43,8 @@ tags:
       Optional. A runner whose /version declares run_store true keeps a run store (a
       record of the runs it has started, by their pipeline_run_id), so a caller reads a
       run's status and its results after the fact, and it honours an Idempotency-Key
-      header on /execute and /start, so a request repeated under its key runs at most
-      once.
+      header on /execute and /start, so a request repeated under its key within 24
+      hours of the first request under it runs at most once.
 paths:
   /execute:
     post:
@@ -351,9 +351,13 @@ components:
         pattern: '^[!-~]+$'
       description: >
         Names the request, so that a runner whose /version declares run_store true runs
-        it at most once: a string of visible ASCII characters the client chooses and
-        never uses for another request, such as a UUID. The runner keeps each key per
-        caller, for at least 24 hours after the first request under it. The same
+        it at most once while it holds the key: a string of visible ASCII characters the
+        client chooses and never uses for another request, such as a UUID. The runner
+        keeps each key per caller, for at least 24 hours after the first request under
+        it, and takes a request under a key it no longer holds as a first request, so
+        the protocol promises nothing about a repeat past those 24 hours: a client that
+        cannot repeat within them reads the run when it knows its pipeline_run_id, and
+        otherwise treats the outcome as unknown and never repeats automatically. The same
         request, the same route with a body of the same JSON value whatever the order
         of its members and its whitespace, repeated under a held key is answered from
         the first execution: a 409 coded request.idempotency_key_in_use while the
