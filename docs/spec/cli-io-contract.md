@@ -172,7 +172,7 @@ The input resolution rules when receiving a full envelope:
 
 ## Error Propagation
 
-When a method invoked from the command line fails, its CLI writes the error on **stderr** and exits with a non-zero exit code. The error is the problem document the HTTP protocol defines under [Errors](./protocol.md#errors), without its `status` member: otherwise the same members with the same meanings, codes from the same registries, and the same rules for whoever emits or reads it. In its JSON form it is one object:
+When a method invoked from the command line fails, its CLI writes the error on **stderr** and exits with a non-zero exit code. The error is the problem document the HTTP protocol defines under [Errors](./protocol.md#errors), without its `status` member: otherwise the same members with the same meanings, codes from the same registries, and the same rules for whoever emits or reads it. It is the problem document of the protocol version that the release of the standard the CLI implements names, as [Versioning](./versioning.md#what-bumps-the-protocol-version) states. In its JSON form it is one object:
 
 ```json
 {
