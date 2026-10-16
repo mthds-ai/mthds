@@ -811,7 +811,7 @@
       "retry": "no",
       "raised_as": "problem",
       "status": 422,
-      "detail": "The input '{input}' does not fit its concept's structure at '{field}' ({finding}).",
+      "detail": "The input '{input}' does not fit its concept's structure at '{field}'.",
       "steps": {
         "actor": {
           "kind": "change_input",
@@ -830,13 +830,9 @@
         "field": {
           "type": "identifier",
           "description": "The field of the input that fails, as a dotted path."
-        },
-        "finding": {
-          "type": "caller_text",
-          "description": "What the check found, such as the rule the value breaks."
         }
       },
-      "meaning": "An input's value fails its concept's structure, such as a required field that is missing or a value of the wrong type, or breaks the rules of its content type.",
+      "meaning": "An input's value fails its concept's structure, such as a required field that is missing or a value of the wrong type, or breaks the rules of its content type. The problem names the field and never what the check found in the value, which a validator's message can quote and which is the content of the run's input.",
       "what_to_do": "Compare the input with its concept's structure at the field `params.field` names, and correct the value.",
       "see": [
         {
@@ -2778,7 +2774,7 @@
       "retry": "no",
       "raised_as": "problem",
       "status": 422,
-      "detail": "A template of pipe '{pipe}' failed to render at '{variable}' ({finding}).",
+      "detail": "A template of pipe '{pipe}' failed to render at '{variable}'.",
       "steps": {
         "actor": {
           "kind": "change_method",
@@ -2797,14 +2793,10 @@
         "variable": {
           "type": "identifier",
           "description": "The variable the template was reading when it failed."
-        },
-        "finding": {
-          "type": "caller_text",
-          "description": "What the template engine reported."
         }
       },
-      "meaning": "A method's template raised while rendering with this run's values, such as a filter applied to a value it cannot take.",
-      "what_to_do": "Check how the template uses the variable `params.variable` names, guard the read if the value can be absent, and run the method again.",
+      "meaning": "A method's template raised while rendering with this run's values, such as a filter applied to a value it cannot take. The problem does not carry what the template engine reported, which can quote the run's inputs or outputs; an implementation keeps it for whoever runs the runtime, in its logs for instance.",
+      "what_to_do": "Check how the template uses the variable `params.variable` names, rendering it locally on the same inputs to read the engine's report, or reading the report where whoever runs the runtime keeps it. Guard the read if the value can be absent, and run the method again.",
       "see": [
         {
           "title": "Inputs read through templates",
@@ -2932,7 +2924,7 @@
       "retry": "no",
       "raised_as": "problem",
       "status": 422,
-      "detail": "The binding '{binding}' of pipe '{pipe}' could not follow '{segment}' in this run's value ({finding}).",
+      "detail": "The binding '{binding}' of pipe '{pipe}' could not follow '{segment}' in this run's value.",
       "steps": {
         "actor": {
           "kind": "change_method",
@@ -2955,13 +2947,9 @@
         "segment": {
           "type": "identifier",
           "description": "The path segment the binding could not follow."
-        },
-        "finding": {
-          "type": "caller_text",
-          "description": "What the runtime found in the value."
         }
       },
-      "meaning": "At run time a bound value contradicts the structure its concept declares, so the binding step cannot walk its path.",
+      "meaning": "At run time a bound value contradicts the structure its concept declares, so the binding step cannot walk its path. The problem names the segment and never what the runtime found there, which is the run's own data.",
       "what_to_do": "Check the step's `from` path against the value the earlier step produced, and correct the path or the concept.",
       "see": [
         {
