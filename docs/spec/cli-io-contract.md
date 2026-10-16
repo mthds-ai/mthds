@@ -168,7 +168,7 @@ The input resolution rules when receiving a full envelope:
     extract-terms --with-memory | assess-risk
     ```
 
-3. **Error on failure**: If a declared input of the downstream method matches no stuff in the upstream's working memory, and the single-input shortcut does not apply, the downstream method fails with an `input.missing` problem naming that input, as [Error Propagation](#error-propagation) shows.
+3. **Error on failure**: If an input the downstream method requires, one declared without the `?` marker, matches no stuff in the upstream's working memory, and the single-input shortcut does not apply, the downstream method fails with an `input.missing` problem naming that input, as [Error Propagation](#error-propagation) shows. An [optional](../language/optionality.md) input that matches no stuff is left unbound, and the method runs with that input absent.
 
 ## Error Propagation
 
@@ -191,7 +191,7 @@ When a method invoked from the command line fails, its CLI writes the error on *
 }
 ```
 
-This is the problem a method in a chain writes when it declares several inputs, one of them named `analysis`, and the [full envelope](#full-envelope) it reads holds no stuff of that name. `code` says what happened. `domain` says who must act, here the caller, by changing the inputs. `retry` says whether running the method again with the same inputs can succeed, here `no`. `next_step` says what to do next, as a `kind` from the protocol's closed list and a sentence. `params` holds the facts the sentences were written from, and `location` says where the error happened, here the input it concerns. When an error happens inside a pipe, `location.pipe` names the pipe that failed rather than a controller around it, and `location.path` lists the pipe codes from the method's main pipe down to it, as [Parameters and location](./protocol.md#parameters-and-location) defines.
+This is the problem a method in a chain writes when it declares several inputs, among them a required input named `analysis`, and the [full envelope](#full-envelope) it reads holds no stuff of that name. `code` says what happened. `domain` says who must act, here the caller, by changing the inputs. `retry` says whether running the method again with the same inputs can succeed, here `no`. `next_step` says what to do next, as a `kind` from the protocol's closed list and a sentence. `params` holds the facts the sentences were written from, and `location` says where the error happened, here the input it concerns. When an error happens inside a pipe, `location.pipe` names the pipe that failed rather than a controller around it, and `location.path` lists the pipe codes from the method's main pipe down to it, as [Parameters and location](./protocol.md#parameters-and-location) defines.
 
 The other members appear under the protocol's own conditions: `retry_after` when the wait is known, beside a `retry` of `yes`; `errors`, one item per fault, when the problem has several, such as a method that does not validate; and `pipeline_run_id` when a run exists. An implementation MAY add members of its own, and a reader ignores the members it does not know, by the protocol's [rules for readers and emitters](./protocol.md#readers-and-emitters).
 
