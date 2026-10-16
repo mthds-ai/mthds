@@ -235,10 +235,16 @@ components:
       description: Token semantics are implementation-defined.
   responses:
     Problem:
-      description: An RFC 9457 problem document carrying the MTHDS core members.
+      description: >
+        An RFC 9457 problem document carrying the MTHDS core members. As the body of
+        an HTTP response it always carries status, which the shared Problem schema
+        leaves optional for a problem kept elsewhere, such as in a run's record.
       content:
         application/problem+json:
-          schema: { $ref: '#/components/schemas/Problem' }
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Problem'
+              - required: [status]
     ValidationProblem:
       description: >
         A 422 problem document. On /execute and /start a method that does not
@@ -247,10 +253,14 @@ components:
         A request whose files map is not a tree is a 422 naming the offending path,
         and a request naming a hash entry the runner does not hold, or any hash entry
         when it keeps no blob store, is a 422 coded request.blobs_missing whose
-        params.missing_blobs lists each such hash.
+        params.missing_blobs lists each such hash. Like every problem response, it
+        always carries status.
       content:
         application/problem+json:
-          schema: { $ref: '#/components/schemas/Problem' }
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Problem'
+              - required: [status]
   schemas:
     RunRequest:
       type: object
@@ -637,8 +647,8 @@ components:
           maximum: 599
           description: >
             The HTTP status of the response this problem is the body of. A runner sets
-            it on every response; a problem kept elsewhere, such as in a run's record,
-            leaves it out.
+            it on every response, so the problem responses of this document require it;
+            a problem kept elsewhere, such as in a run's record, leaves it out.
         detail:
           type: string
           description: >
