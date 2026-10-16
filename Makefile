@@ -67,6 +67,8 @@ make update                           - Upgrade dependencies via uv
 make docs                             - Serve documentation locally with mkdocs
 make docs-check                       - Check documentation build with mkdocs
 make version-check                    - Check the standard and protocol versions agree everywhere
+make spec-check                       - Validate the OpenAPI document and check the error registry
+make errors                           - Write the error registry's JSON snapshot from its YAML source
 make schema-lag                       - Report the documentation's examples the schema copy rejects
 make docs-serve-versioned             - Serve versioned docs locally with mike
 make docs-list                        - List deployed documentation versions
@@ -95,7 +97,7 @@ export HELP
 .PHONY: \
 	all help env env-verbose lock install update \
 	cleanderived cleanenv cleanall reinstall ri \
-	docs docs-check spec-check version-check schema-lag docs-serve-versioned docs-list \
+	docs docs-check spec-check errors version-check schema-lag docs-serve-versioned docs-list \
 	docs-deploy docs-build-versioned docs-assemble-site docs-build-site docs-retention docs-prune docs-delete \
 	lighthouse lighthouse-baseline lighthouse-compare \
 	li check-uv check-uv-verbose
@@ -195,6 +197,14 @@ docs-check: spec-check version-check
 spec-check: install
 	$(call PRINT_TITLE,Validating the MTHDS Protocol OpenAPI document)
 	$(VIRTUAL_ENV)/bin/openapi-spec-validator "$(CURDIR)/docs/spec/openapi/mthds-protocol.openapi.yaml"
+	$(call PRINT_TITLE,Checking the MTHDS core error registry)
+	@$(VENV_PYTHON) "$(CURDIR)/scripts/error_registry.py" check
+
+# The registry is authored in docs/spec/openapi/mthds-error-registry.yaml; its JSON snapshot,
+# which clients vendor, is derived from it and committed, and spec-check fails when they differ.
+errors: install
+	$(call PRINT_TITLE,Writing the JSON snapshot of the error registry)
+	@$(VENV_PYTHON) "$(CURDIR)/scripts/error_registry.py" write
 
 version-check:
 	$(call PRINT_TITLE,Checking the standard and protocol versions agree everywhere)
