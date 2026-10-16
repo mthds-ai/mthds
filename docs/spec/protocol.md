@@ -390,17 +390,17 @@ Every operation names a table by `table_path`, the table's key path from the doc
 
 | Kind | Members | Effect |
 |---|---|---|
-| `set_key` | `table_path`, `key`, `value` | Writes `key = value` in the table, replacing any value the key holds. The value is a TOML scalar or an inline table of scalars. |
+| `set_key` | `table_path`, `key`, `value` | Writes `key = value` in the table, replacing a scalar or array value the key holds; when the key holds a table, the operation is a conflict and changes nothing. The value is a TOML scalar or an inline table of scalars. |
 | `ensure_table` | `table_path` | Creates the table at `table_path` when it is absent, and leaves an existing one untouched. |
 | `delete_key` | `table_path`, `key` | Removes `key` from the table. |
 | `delete_table` | `table_path` | Removes the table at `table_path`, every part of it included. |
 | `rename_table_key` | `table_path`, `key`, `new_key` | Renames `key` to `new_key` within the table, keeping its value and its position. |
 | `move_key` | `table_path`, `key`, `new_table_path`, `new_key` | Moves `key`, with its whole value, into the table at `new_table_path` under `new_key`, creating the destination tables that do not exist. |
-| `remap_value` | `table_path`, `key`, `mapping` | Rewrites the string value of `key` through `mapping`, from an old value to its new one, and does nothing when the value is not a key of the mapping. |
+| `remap_value` | `table_path`, `key`, `mapping` | Rewrites the string value of `key` through `mapping`, from an old value to its new one, and does nothing when the value is not a key of the mapping. It rewrites its own target by design, which is never a conflict. |
 
 For `ensure_table` and `delete_table`, `table_path` names the table acted on rather than the table holding a key, so it is never empty, and the root table is never removed.
 
-The operations apply in order, each to the document the previous one left. An operation whose target is absent, such as a key to delete or the table holding it, or already in the state the operation would produce, is skipped. One that could only proceed by overwriting something the document holds, such as a rename onto a key the table already has, is a conflict and changes nothing. An applier reports skips and conflicts rather than forcing the change. The operations are the contract, and any diff an applier shows from them is presentation.
+The operations apply in order, each to the document the previous one left. An operation whose target is absent, such as a key to delete or the table holding it, or already in the state the operation would produce, is skipped. One that could only proceed by overwriting a key or a table other than its own target, such as a rename or a move onto a key its destination table already holds, is a conflict and changes nothing. Rewriting its own target is no conflict: `set_key` replaces a scalar or array value its key holds, and `remap_value` rewrites its value by design. A `set_key` whose key holds a table is a conflict all the same, and changes nothing. An applier reports skips and conflicts rather than forcing the change. The operations are the contract, and any diff an applier shows from them is presentation.
 
 ### Readers and emitters
 

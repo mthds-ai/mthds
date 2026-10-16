@@ -827,9 +827,12 @@ components:
         diff. The operations are the contract; any diff an applier renders from them is
         presentation. They apply in order, each to the document the previous one left.
         An operation whose target is absent, or already in the state it would produce,
-        is skipped; one that could only proceed by overwriting something the document
-        holds, such as a rename onto a key the table already has, is a conflict and
-        changes nothing. An applier reports both rather than forcing the change, and
+        is skipped; one that could only proceed by overwriting a key or a table other
+        than its own target, such as a rename or a move onto a key its destination
+        table already holds, is a conflict and changes nothing. Rewriting its own target
+        is no conflict, so set_key replaces a scalar or array value its key holds and
+        remap_value rewrites its value by design, but a set_key whose key holds a table
+        is a conflict. An applier reports both rather than forcing the change, and
         one that meets an operation kind it does not know applies none of the fix.
         Extension-open.
       required: [fix_code, description, safety, ops]
@@ -906,7 +909,10 @@ components:
               - type: boolean
     SetKeyOp:
       type: object
-      description: Write key = value in the table at table_path, replacing any value the key holds.
+      description: >
+        Write key = value in the table at table_path, replacing a scalar or array value
+        the key holds. When the key holds a table, the operation is a conflict and
+        changes nothing.
       required: [kind, table_path, key, value]
       additionalProperties: true
       properties:
@@ -980,7 +986,7 @@ components:
       description: >
         Rewrite the string value of key in the table at table_path through mapping,
         from an old value to its new one, doing nothing when the value is not a key of
-        the mapping.
+        the mapping. It rewrites its own target by design, which is never a conflict.
       required: [kind, table_path, key, mapping]
       additionalProperties: true
       properties:
