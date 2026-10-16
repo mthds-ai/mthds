@@ -45,6 +45,9 @@ SNAPSHOT_PATH = SPEC_DIR / "mthds-error-registry.json"
 OPENAPI_PATH = SPEC_DIR / "mthds-protocol.openapi.yaml"
 
 CATCH_ALL = "runtime.unexpected"
+# The members of a problem its code decides, which an item never carries: the problem or the
+# verdict holding the item does.
+ITEM_EXCLUDED_MEMBERS = ("type", "title", "status", "domain", "retry", "retry_after", "next_step")
 SHA256_PATTERN = "^[0-9a-f]{64}$"
 
 # The generated pages, as paths from the documentation's root (see scripts/error_registry_pages.py).
@@ -372,6 +375,12 @@ def example_errors(registry: dict) -> list[str]:
                 ]
             return [f"{where}: the example uses {code}, which the registry does not declare"]
         found = []
+        if is_item:
+            # An item of a problem's errors or of a verdict's errors or warnings carries its code,
+            # detail, params and location, and no member its code decides.
+            for member in ITEM_EXCLUDED_MEMBERS:
+                if member in node:
+                    found.append(f"{where}: {code} is an item, which carries no {member} of its own")
         expected = {"title": entry["title"], "domain": entry["domain"], "retry": entry["retry"]}
         expected["type"] = type_uri(registry, code)
         if "status" in entry:

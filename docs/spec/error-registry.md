@@ -99,7 +99,7 @@ A problem carries the step aimed at whoever reads it. A runtime that knows its r
 - `warning`: only as an item of a validate verdict's `warnings`, which never makes a method invalid, so the entry has no `status`.
 - `client`: detected by a client itself, such as a runner it cannot reach, and never received as a response body, so the entry has no `status`. A client builds the problem for such an error itself, so that its own callers read every error alike.
 
-An entry raised as a problem may also be met as an [item](protocol.md#itemized-errors) of another problem's `errors` or of a validate verdict, where it carries only its code, its detail, its parameters and its location.
+An entry raised as a problem may also be met as an [item](protocol.md#itemized-errors) of another problem's `errors` or of a validate verdict, where it carries its code, its detail, its parameters and its location, and may carry suggestions and a suggested fix, but no member its code decides: no `type`, `title`, `status`, `domain`, `retry`, `retry_after` or `next_step`, which the problem or the verdict holding it carries.
 
 ## Parameters
 
