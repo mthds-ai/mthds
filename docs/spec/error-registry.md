@@ -143,7 +143,7 @@ A prefix is registered through the [contribution process](../about/contributing.
 
 ## The Type URI and the Pages
 
-A code's `type` is its registry's base URL, a slash, then the whole code, so the core code `input.missing` has the type `https://mthds.ai/errors/input.missing`. That address resolves to the page of the code in the current standard, served under `https://mthds.ai/latest/errors/<code>/`, and each version the site serves keeps its own copy under its directory. A code's page gives every member of its entry: what it means, what to do, who acts, its verdict and status, its steps, its parameters and its templates.
+A code's `type` is its registry's base URL, a slash, then the whole code, so the core code `input.missing` has the type `https://mthds.ai/errors/input.missing`. That address resolves to the page of the code in the current standard, served under a directory for its family, `https://mthds.ai/latest/errors/<family>/<name>/`, such as `https://mthds.ai/latest/errors/input/missing/`, and each version the site serves keeps its own copy under its directory. A code's page gives every member of its entry: what it means, what to do, who acts, its verdict and status, its steps, its parameters and its templates.
 
 The pages are generated from the registry when the site is built, so they never differ from it. The [Error Codes](../errors/index.md) page lists every core code by family.
 

@@ -2,9 +2,10 @@
 
 The registry is data, authored in docs/spec/openapi/mthds-error-registry.yaml, so its pages are
 generated at build time rather than written by hand: `errors/index.md`, which the navigation
-lists, and `errors/<code>.md` for each code, which it does not. Under the site's directory URLs
-a code's page is served at `/<version>/errors/<code>/`, and vercel.json redirects the type URI,
-`https://mthds.ai/errors/<code>`, to its `/latest/` copy.
+lists, and `errors/<family>/<name>.md` for each code, which it does not. Under the site's
+directory URLs a code's page is served at `/<version>/errors/<family>/<name>/`, and vercel.json
+redirects the type URI, `https://mthds.ai/errors/<family>.<name>`, to its `/latest/` copy.
+`error_registry.page_path` says why a page is not named after the whole code.
 
 The hook refuses to build from a registry that `scripts/error_registry.py` would refuse, and
 warns, which `--strict` turns into a failure, when the committed JSON snapshot has drifted.
@@ -15,6 +16,7 @@ from __future__ import annotations
 
 import json
 import logging
+import posixpath
 import re
 
 from mkdocs.config.defaults import MkDocsConfig
@@ -26,10 +28,10 @@ import error_registry as registry_module
 
 log = logging.getLogger("mkdocs.hooks.error_registry_pages")
 
-PAGES_DIR = "errors"
-SPEC_PAGE = "../spec/error-registry.md"
-PROTOCOL_PAGE = "../spec/protocol.md"
-SNAPSHOT_LINK = "../spec/openapi/mthds-error-registry.json"
+# The pages the generated ones link to, from the documentation's root.
+SPEC_PAGE = "spec/error-registry.md"
+PROTOCOL_PAGE = "spec/protocol.md"
+SNAPSHOT = "spec/openapi/mthds-error-registry.json"
 
 # Who acts, per domain, in the words of the protocol's domain table.
 DOMAIN_ACTORS = {
@@ -64,12 +66,12 @@ def on_files(files: Files, *, config: MkDocsConfig) -> Files:
     for drift in registry_module.snapshot_errors(registry):
         log.warning(drift)
 
-    files.append(File.generated(config, f"{PAGES_DIR}/index.md", content=index_page(registry)))
+    files.append(File.generated(config, registry_module.INDEX_PAGE, content=index_page(registry)))
     for entry in registry["codes"]:
         files.append(
             File.generated(
                 config,
-                f"{PAGES_DIR}/{entry['code']}.md",
+                registry_module.page_path(entry["code"]),
                 content=code_page(registry, entry),
                 inclusion=InclusionLevel.NOT_IN_NAV,
             )
@@ -78,6 +80,13 @@ def on_files(files: Files, *, config: MkDocsConfig) -> Files:
 
 
 # --- rendering ------------------------------------------------------------------------
+
+
+def link(page: str, target: str) -> str:
+    """The relative link from the generated page `page` to `target`, both from the documentation's root."""
+    path, _, anchor = target.partition("#")
+    relative = posixpath.relpath(path, posixpath.dirname(page))
+    return f"{relative}#{anchor}" if anchor else relative
 
 
 def front_matter(title: str, description: str) -> str:
@@ -111,11 +120,8 @@ def status_cell(entry: dict) -> str:
     return f"none ({entry['raised_as']})"
 
 
-def page_link(code: str) -> str:
-    return f"[`{code}`]({code}.md)"
-
-
 def index_page(registry: dict) -> str:
+    page = registry_module.INDEX_PAGE
     entries = registry["codes"]
     lines = [
         front_matter(
@@ -126,10 +132,10 @@ def index_page(registry: dict) -> str:
         "Every code of the MTHDS core error registry has a page here, at the URL a problem's `type` names: "
         f"`{registry['base_url']}/<code>`. Each page says what its code means, who must act and what to do, "
         "and gives the code's steps, parameters and templates. "
-        f"The [Error Registry]({SPEC_PAGE}) page describes the registry itself, and the "
-        f"[HTTP Runner Protocol]({PROTOCOL_PAGE}#errors) how a problem document carries a code.\n",
+        f"The [Error Registry]({link(page, SPEC_PAGE)}) page describes the registry itself, and the "
+        f"[HTTP Runner Protocol]({link(page, PROTOCOL_PAGE)}#errors) how a problem document carries a code.\n",
         f"These pages are generated from the registry's data, which is published with every release of the standard as "
-        f"[`mthds-error-registry.json`]({SNAPSHOT_LINK}). This is version `{registry['version']}` of the registry.\n",
+        f"[`mthds-error-registry.json`]({link(page, SNAPSHOT)}). This is version `{registry['version']}` of the registry.\n",
         "## Extension prefixes\n",
         "A code that is not a core code starts with a registered prefix, and its page is published by the prefix's owner, "
         "under the base URL the prefix is registered with.\n",
@@ -148,7 +154,8 @@ def index_page(registry: dict) -> str:
         lines.append("|---|---|---|---|---|")
         for entry in members:
             lines.append(
-                f"| {page_link(entry['code'])} | {cell(entry['title'])} | `{entry['domain']}` "
+                f"| [`{entry['code']}`]({link(page, registry_module.page_path(entry['code']))}) "
+                f"| {cell(entry['title'])} | `{entry['domain']}` "
                 f"| `{entry['retry']}` | {status_cell(entry)} |"
             )
         lines.append("")
@@ -157,6 +164,9 @@ def index_page(registry: dict) -> str:
 
 def code_page(registry: dict, entry: dict) -> str:
     code = entry["code"]
+    page = registry_module.page_path(code)
+    index = link(page, registry_module.INDEX_PAGE)
+    protocol = link(page, PROTOCOL_PAGE)
     family = registry_module.family_of(code)
     family_description = next(item["description"] for item in registry["families"] if item["family"] == family)
     domain = entry["domain"]
@@ -167,9 +177,9 @@ def code_page(registry: dict, entry: dict) -> str:
         "| | |",
         "|---|---|",
         f"| Type | `{registry_module.type_uri(registry, code)}` |",
-        f"| Family | [`{family}`](index.md#{family}): {cell(family_description)} |",
-        f"| [Domain]({PROTOCOL_PAGE}#domain-who-must-act) | `{domain}`: {DOMAIN_ACTORS[domain]} acts |",
-        f"| [Retry]({PROTOCOL_PAGE}#retry) | `{entry['retry']}`: {RETRY_MEANINGS[entry['retry']]} |",
+        f"| Family | [`{family}`]({index}#{family}): {cell(family_description)} |",
+        f"| [Domain]({protocol}#domain-who-must-act) | `{domain}`: {DOMAIN_ACTORS[domain]} acts |",
+        f"| [Retry]({protocol}#retry) | `{entry['retry']}`: {RETRY_MEANINGS[entry['retry']]} |",
         f"| HTTP status | {status_cell(entry)} |",
         f"| Raised as | {RAISED_AS[entry['raised_as']]} |",
         "",
@@ -178,7 +188,7 @@ def code_page(registry: dict, entry: dict) -> str:
         "## What to do\n",
         f"{entry['what_to_do']}\n",
         "## Next steps\n",
-        f"A problem carries the [step]({PROTOCOL_PAGE}#next-steps) aimed at whoever reads it: the first when its reader is "
+        f"A problem carries the [step]({protocol}#next-steps) aimed at whoever reads it: the first when its reader is "
         f"the domain's actor, {DOMAIN_ACTORS[domain]}, and the second for any other reader.\n",
         "| Reader | Kind | Detail |",
         "|---|---|---|",
@@ -215,8 +225,8 @@ def code_page(registry: dict, entry: dict) -> str:
         lines.append("")
     lines.append("## See also\n")
     for reference in entry.get("see", []):
-        lines.append(f"- [{reference['title']}](../{reference['href']})")
-    lines.append(f"- [Error Registry]({SPEC_PAGE}), which describes the members of this page")
-    lines.append("- [Error Codes](index.md), every code of the core registry")
+        lines.append(f"- [{reference['title']}]({link(page, reference['href'])})")
+    lines.append(f"- [Error Registry]({link(page, SPEC_PAGE)}), which describes the members of this page")
+    lines.append(f"- [Error Codes]({index}), every code of the core registry")
     lines.append("")
     return "\n".join(lines)

@@ -47,6 +47,10 @@ OPENAPI_PATH = SPEC_DIR / "mthds-protocol.openapi.yaml"
 CATCH_ALL = "runtime.unexpected"
 SHA256_PATTERN = "^[0-9a-f]{64}$"
 
+# The generated pages, as paths from the documentation's root (see scripts/error_registry_pages.py).
+PAGES_DIR = "errors"
+INDEX_PAGE = f"{PAGES_DIR}/index.md"
+
 
 def rel(path: Path) -> str:
     return str(path.relative_to(ROOT))
@@ -94,6 +98,18 @@ def type_uri(registry: dict, code: str) -> str:
 def family_of(code: str) -> str:
     """A code's family is the code without its last segment."""
     return code.rsplit(".", 1)[0]
+
+
+def page_path(code: str) -> str:
+    """The page of a core code, from the documentation's root: one directory per segment but the last.
+
+    `input.missing` is `errors/input/missing.md`, served at `/<version>/errors/input/missing/`. A
+    page is never named after the whole code, because the site's host answers a URL whose last
+    segment has a dot, such as `errors/input.missing/`, by redirecting it to the same URL without
+    its trailing slash, where the page's relative links no longer resolve. vercel.json redirects
+    the type URI, `https://mthds.ai/errors/<family>.<name>`, to `/latest/errors/<family>/<name>/`.
+    """
+    return f"{PAGES_DIR}/{code.replace('.', '/')}.md"
 
 
 def entries_by_code(registry: dict) -> dict[str, dict]:

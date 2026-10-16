@@ -32,13 +32,13 @@
       "statusCode": 301
     },
     {
-      "source": "/errors/:code",
-      "destination": "/latest/errors/:code/",
+      "source": "/errors/:family([a-z][a-z0-9_]*)\\.:name([a-z][a-z0-9_]*)",
+      "destination": "/latest/errors/:family/:name/",
       "statusCode": 301
     },
     {
-      "source": "/errors/:code/",
-      "destination": "/latest/errors/:code/",
+      "source": "/errors/:family([a-z][a-z0-9_]*)\\.:name([a-z][a-z0-9_]*)/",
+      "destination": "/latest/errors/:family/:name/",
       "statusCode": 301
     }
   ],
