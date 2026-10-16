@@ -77,7 +77,7 @@ The map must form a tree. A runner refuses with a `422` naming the offending pat
 - two paths [collide](./method-tree.md#tree-paths), or one collides with a directory of another, under the Unicode full case folding the method tree defines, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`;
 - an entry is malformed, such as Base64 whose pad bits are not zero, or a `size` written `13.0`.
 
-A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem coded `request.blobs_missing`, whose `params.missing_blobs` lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer what to upload:
+A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem coded `request.blobs_missing`, whose `params.missing_blobs` lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer which files to supply:
 
 ```json
 {
@@ -90,7 +90,7 @@ A hash entry resolves only in the runner's own blob store, and only when the run
   "retry": "no",
   "next_step": {
     "kind": "change_input",
-    "detail": "Upload each listed blob, then send the request again."
+    "detail": "Upload each listed blob, or send its file inline if this runner keeps no blob store, then send the request again."
   },
   "params": {
     "missing_blobs": ["3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0"]
@@ -98,7 +98,7 @@ A hash entry resolves only in the runner's own blob store, and only when the run
 }
 ```
 
-Uploading the listed blobs and sending the request again is a change to the request, so the step is `change_input`. The tree's files are the method's own: a file a caller supplies for one run is an input, never an entry of `files`.
+Supplying the listed files and sending the request again is a change to the request, so the step is `change_input`. A sender uploads each listed blob to a runner that keeps a blob store, as [Sending files by hash](#sending-files-by-hash) describes, and sends each listed file inline to a runner whose `GET /version` does not declare `blob_store: true`, since such a runner serves no upload route. The tree's files are the method's own: a file a caller supplies for one run is an input, never an entry of `files`.
 
 A runner reads a method only from the files it is sent. A [file reference](./method-tree.md#file-references) resolves in the tree's set of paths and a hash in the blob store, so no request names a path on the runner's own disk. Each implementation bounds a file's size, the tree's file count and its total size, and the total of the inline entries, and refuses a tree past one of them with a problem naming the limit.
 
@@ -315,7 +315,7 @@ On a run's own problem the operation is the run, so `yes` means that a new run w
 | `wait` | Waits, then checks again later. |
 | `read_run` | Reads the run to learn its outcome. |
 | `refresh` | Fetches the latest state, such as a fresh credential, and applies the change again. |
-| `change_input` | Changes the request or its inputs, which includes uploading the blobs a runner lacks and sending the request again. |
+| `change_input` | Changes the request or its inputs, which includes supplying the files a runner lacks, by uploading them or by sending them inline, and sending the request again. |
 | `change_method` | Changes the method. |
 | `change_model` | Chooses another model. |
 | `check_credentials` | Checks the credential the request sent. |

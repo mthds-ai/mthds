@@ -480,7 +480,8 @@ components:
             True when the runner keeps a blob store: it serves POST /blobs/missing and
             resolves hash entries in a files map. False or absent when it does not, in
             which case it answers any hash entry with a 422 coded request.blobs_missing,
-            listing the hashes in params.missing_blobs.
+            listing the hashes in params.missing_blobs, and serves no upload route, so a
+            sender sends those files inline instead.
     MethodFiles:
       type: object
       description: >
@@ -532,7 +533,9 @@ components:
         Bytes the runner already holds in its blob store, named by their SHA-256 and
         their length. A runner that does not hold them, holds them with another size,
         or keeps no blob store answers with a 422 coded request.blobs_missing, listing
-        the hashes in params.missing_blobs.
+        the hashes in params.missing_blobs. The sender then uploads each listed blob to
+        a runner that keeps a blob store, and sends each listed file inline to one that
+        keeps none.
       required: [sha256, size]
       additionalProperties: false
       properties:
@@ -746,7 +749,8 @@ components:
         page defines them: retry the operation; wait and check again later; read_run,
         read the run to learn its outcome; refresh, fetch the latest state, such as a
         fresh credential, and apply the change again; change_input, change the request
-        or its inputs, supplying missing blobs included; change_method; change_model;
+        or its inputs, supplying the files a runner lacks, uploaded or inline, included;
+        change_method; change_model;
         check_credentials; request_access; check_account, its credit, plan or quotas;
         fix_configuration, the runtime's; upgrade, the client or the runtime;
         contact_owner, the owner of the method or of the account; report, with the
