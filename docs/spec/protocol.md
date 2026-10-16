@@ -390,8 +390,8 @@ Every operation names a table by `table_path`, the table's key path from the doc
 
 | Kind | Members | Effect |
 |---|---|---|
-| `set_key` | `table_path`, `key`, `value` | Writes `key = value` in the table, replacing a scalar or array value the key holds; when the key holds a table, the operation is a conflict and changes nothing. The value is a TOML scalar or an inline table of scalars. |
-| `ensure_table` | `table_path` | Creates the table at `table_path` when it is absent, and leaves an existing one untouched. |
+| `set_key` | `table_path`, `key`, `value` | Writes `key = value` in the table, creating the key when the table does not hold it and replacing a scalar or array value it holds; when the key holds a table, the operation is a conflict and changes nothing. The value is a TOML scalar or an inline table of scalars. |
+| `ensure_table` | `table_path` | Creates the table at `table_path` when it is absent and the table above it exists, and leaves an existing one untouched. |
 | `delete_key` | `table_path`, `key` | Removes `key` from the table. |
 | `delete_table` | `table_path` | Removes the table at `table_path`, every part of it included. |
 | `rename_table_key` | `table_path`, `key`, `new_key` | Renames `key` to `new_key` within the table, keeping its value and its position. |
@@ -400,7 +400,7 @@ Every operation names a table by `table_path`, the table's key path from the doc
 
 For `ensure_table` and `delete_table`, `table_path` names the table acted on rather than the table holding a key, so it is never empty, and the root table is never removed.
 
-The operations apply in order, each to the document the previous one left. An operation whose target is absent, such as a key to delete or the table holding it, or already in the state the operation would produce, is skipped. One that could only proceed by overwriting a key or a table other than its own target, such as a rename or a move onto a key its destination table already holds, is a conflict and changes nothing. Rewriting its own target is no conflict: `set_key` replaces a scalar or array value its key holds, and `remap_value` rewrites its value by design. A `set_key` whose key holds a table is a conflict all the same, and changes nothing. An applier reports skips and conflicts rather than forcing the change. The operations are the contract, and any diff an applier shows from them is presentation.
+The operations apply in order, each to the document the previous one left. What an operation does with an absent target depends on its kind. A deletion, a rename, a move or a remap whose target is absent, such as a key to delete or the table holding it, is skipped. `ensure_table` creates its table when it is absent, and `set_key` creates its key when the table does not hold it. Each needs the table that would hold its target: a `set_key` whose table is absent, or an `ensure_table` whose parent table is absent, is skipped, so a fix that writes into a table that may be missing puts an `ensure_table` before the operations that need it, one for each level that may be missing, the outermost first. An operation already in the state it would produce, such as an `ensure_table` whose table exists or a `set_key` whose key already holds its value, is skipped too. One that could only proceed by overwriting a key or a table other than its own target, such as a rename or a move onto a key its destination table already holds, is a conflict and changes nothing. Rewriting its own target is no conflict: `set_key` replaces a scalar or array value its key holds, and `remap_value` rewrites its value by design. A `set_key` whose key holds a table is a conflict all the same, and so is an `ensure_table` whose `table_path` names a value other than a table; neither changes anything. An applier reports skips and conflicts rather than forcing the change. The operations are the contract, and any diff an applier shows from them is presentation.
 
 ### Readers and emitters
 
