@@ -1068,8 +1068,8 @@ codes:
     params:
       pipe: {type: identifier, description: "The pipe at fault."}
       input: {type: identifier, description: "The maybe-absent input or output."}
-      site: {type: enum, values: [sequence_step, condition, condition_output, template, parallel_branch], description: "Where the value escapes: a sequence's step or its output, a condition's input, a condition's own output, a template, or a PipeParallel branch feeding a required field."}
-    meaning: "A maybe-absent input or output is used where a value is required: it escapes through a step or a sequence whose output is not `?`, a `PipeCondition` can continue without producing its output while that output is not `?`, a template reads it without a guard, or a maybe-absent PipeParallel branch feeds a required structured field."
+      site: {type: enum, values: [sequence_step, condition, condition_output, template, parallel_branch], description: "Where the value escapes: `sequence_step` when it escapes through a step or a sequence whose boundary is not optional, `condition` when it escapes through a condition whose boundary is not optional, `condition_output` when a `PipeCondition` can continue without producing its output while that output is not `?`, `template` when a template reads it without a guard, and `parallel_branch` when a maybe-absent PipeParallel branch feeds a required structured field."}
+    meaning: "A maybe-absent input or output is used where a value is required: it escapes through a step, a sequence or a condition whose boundary is not optional, a `PipeCondition` can continue without producing its output while that output is not `?`, a template reads it without a guard, or a maybe-absent PipeParallel branch feeds a required structured field."
     what_to_do: "Guard the read, declare the receiving output or field optional with `?`, or force the input with `!` when it is always present at that point."
     see:
       - {title: "Optionality", href: "language/optionality.md#validation-surface"}
