@@ -1295,16 +1295,15 @@ codes:
     retry: "no"
     raised_as: problem
     status: 422
-    detail: "The function '{function}' of pipe '{pipe}' raised an error: {message}"
+    detail: "The function '{function}' of pipe '{pipe}' raised an error."
     steps:
       actor: {kind: change_method, detail: "Fix the function '{function}' so that it does not raise on these inputs, then run the method again."}
       other: {kind: contact_owner, detail: "Ask the method's owner to fix the function '{function}' of pipe '{pipe}'."}
     params:
       pipe: {type: identifier, description: "The PipeFunc whose function raised."}
       function: {type: identifier, description: "The function's import path."}
-      message: {type: caller_text, description: "The message the function raised, which is the method's own text."}
-    meaning: "A PipeFunc's own code raised an error. The message is the method's own text, which the runtime passes on, capped, without reading it."
-    what_to_do: "Run the function locally on the same inputs to reproduce the error, fix it, and run the method again."
+    meaning: "A PipeFunc's own code raised an error. The problem does not carry the error's message, which the runtime cannot inspect and which can quote the run's inputs or outputs; an implementation keeps it for whoever runs the runtime, in its logs for instance."
+    what_to_do: "Run the function locally on the same inputs to reproduce the error and read its message, or read the message where whoever runs the runtime keeps it, then fix the function and run the method again."
     see:
       - {title: "Operator: PipeFunc", href: "spec/mthds-format.md#operator-pipefunc"}
 

@@ -113,7 +113,7 @@ A parameter is a typed fact that the code's sentences are written from, so that 
 | `bytes` | A size in bytes, never negative. | `{"type": "integer", "minimum": 0}` |
 | `sha256` | A SHA-256 hash in lowercase hexadecimal. | `{"type": "string", "pattern": "^[0-9a-f]{64}$"}` |
 | `enum` | One of the values the parameter lists in `values`. | `{"type": "string", "enum": [...]}` |
-| `caller_text` | The caller's own text, capped, such as a parser's finding about the caller's method or the message a method's function raised. | `{"type": "string"}` |
+| `caller_text` | The caller's own text, capped, such as a parser's finding about the caller's method. Text that can quote a run's inputs or outputs, such as the message of an exception a method's function raised, is never one. | `{"type": "string"}` |
 | `list` | A list of values of the scalar type `items` declares. | `{"type": "array", "items": ...}` |
 
 No parameter holds the content of a run's inputs or outputs. The OpenAPI document's `ProblemParams` types the parameters a client relies on by shape, such as `missing_blobs`, and those types are the registry's.
