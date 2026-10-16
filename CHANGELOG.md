@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-**Next release: v7.0.1 · MTHDS standard 7.0.1 · MTHDS Protocol 2.0.0**
+**Next release: v7.1.0 · MTHDS standard 7.1.0 · MTHDS Protocol 2.0.0**
 
 ### Added
 
