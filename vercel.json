@@ -20,6 +20,26 @@
       "source": "/know-how-graph/",
       "destination": "/latest/know-how-graph/",
       "statusCode": 301
+    },
+    {
+      "source": "/errors",
+      "destination": "/latest/errors/",
+      "statusCode": 301
+    },
+    {
+      "source": "/errors/",
+      "destination": "/latest/errors/",
+      "statusCode": 301
+    },
+    {
+      "source": "/errors/:code",
+      "destination": "/latest/errors/:code/",
+      "statusCode": 301
+    },
+    {
+      "source": "/errors/:code/",
+      "destination": "/latest/errors/:code/",
+      "statusCode": 301
     }
   ],
 
