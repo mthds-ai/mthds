@@ -863,15 +863,21 @@ components:
           items: { $ref: '#/components/schemas/FixOp' }
     FixOp:
       description: >
-        One operation of a suggested fix, discriminated on kind. table_path addresses a
-        table of the bundle as its key path from the document root, each segment one
-        key as written, and is empty for the root table. A runner emits only the kinds
-        of the discriminator mapping. The union is open for readers: an operation whose
-        kind is none of them matches UnknownFixOp, the reader-side catch-all that no
-        runner emits, so the fix, its item and the problem or verdict holding them
-        still validate, and an applier applies none of that fix. A client that derives
-        its types or its validation from this document keeps that catch-all rather than
-        closing the union on the kinds it lists.
+        One operation of a suggested fix, whose kind selects its variant. table_path
+        addresses a table of the bundle as its key path from the document root, each
+        segment one key as written, and is empty for the root table. Each known
+        operation fixes kind to a one-value enum, as ValidationResult's arms fix
+        is_valid, and UnknownFixOp takes every other string, so an operation's kind
+        leaves exactly one variant it can match. A runner emits only the kinds
+        UnknownFixOp's kind excludes, which is the one list of the known kinds. The
+        union is open for readers: an operation whose kind is none of them matches
+        UnknownFixOp, the reader-side catch-all that no runner emits, so the fix, its
+        item and the problem or verdict holding them still validate, and an applier
+        applies none of that fix. The union carries no discriminator object, because a
+        discriminator rejects a kind its mapping does not name and so would defeat that
+        catch-all. A client that derives its types or its validation from this document
+        matches the variants on kind as this oneOf does and keeps that catch-all, rather
+        than closing the union on the kinds it lists.
       oneOf:
         - $ref: '#/components/schemas/SetKeyOp'
         - $ref: '#/components/schemas/EnsureTableOp'
@@ -881,16 +887,6 @@ components:
         - $ref: '#/components/schemas/MoveKeyOp'
         - $ref: '#/components/schemas/RemapValueOp'
         - $ref: '#/components/schemas/UnknownFixOp'
-      discriminator:
-        propertyName: kind
-        mapping:
-          set_key: '#/components/schemas/SetKeyOp'
-          ensure_table: '#/components/schemas/EnsureTableOp'
-          delete_key: '#/components/schemas/DeleteKeyOp'
-          delete_table: '#/components/schemas/DeleteTableOp'
-          rename_table_key: '#/components/schemas/RenameTableKeyOp'
-          move_key: '#/components/schemas/MoveKeyOp'
-          remap_value: '#/components/schemas/RemapValueOp'
     TablePath:
       type: array
       items: { type: string }
@@ -916,7 +912,7 @@ components:
       required: [kind, table_path, key, value]
       additionalProperties: true
       properties:
-        kind: { type: string, const: set_key }
+        kind: { type: string, enum: [set_key] }
         table_path: { $ref: '#/components/schemas/TablePath' }
         key: { type: string }
         value: { $ref: '#/components/schemas/TomlValue' }
@@ -928,7 +924,7 @@ components:
       required: [kind, table_path]
       additionalProperties: true
       properties:
-        kind: { type: string, const: ensure_table }
+        kind: { type: string, enum: [ensure_table] }
         table_path:
           type: array
           minItems: 1
@@ -940,7 +936,7 @@ components:
       required: [kind, table_path, key]
       additionalProperties: true
       properties:
-        kind: { type: string, const: delete_key }
+        kind: { type: string, enum: [delete_key] }
         table_path: { $ref: '#/components/schemas/TablePath' }
         key: { type: string }
     DeleteTableOp:
@@ -951,7 +947,7 @@ components:
       required: [kind, table_path]
       additionalProperties: true
       properties:
-        kind: { type: string, const: delete_table }
+        kind: { type: string, enum: [delete_table] }
         table_path:
           type: array
           minItems: 1
@@ -963,7 +959,7 @@ components:
       required: [kind, table_path, key, new_key]
       additionalProperties: true
       properties:
-        kind: { type: string, const: rename_table_key }
+        kind: { type: string, enum: [rename_table_key] }
         table_path: { $ref: '#/components/schemas/TablePath' }
         key: { type: string }
         new_key: { type: string }
@@ -976,7 +972,7 @@ components:
       required: [kind, table_path, key, new_table_path, new_key]
       additionalProperties: true
       properties:
-        kind: { type: string, const: move_key }
+        kind: { type: string, enum: [move_key] }
         table_path: { $ref: '#/components/schemas/TablePath' }
         key: { type: string }
         new_table_path: { $ref: '#/components/schemas/TablePath' }
@@ -990,7 +986,7 @@ components:
       required: [kind, table_path, key, mapping]
       additionalProperties: true
       properties:
-        kind: { type: string, const: remap_value }
+        kind: { type: string, enum: [remap_value] }
         table_path: { $ref: '#/components/schemas/TablePath' }
         key: { type: string }
         mapping:
@@ -1004,8 +1000,9 @@ components:
         the kinds this document lists, such as one a later protocol version adds. No
         runner emits it. It lets a reader validate a fix holding an operation of a kind
         it does not know, and an applier that meets it applies none of the fix. Its kind
-        excludes exactly the kinds of FixOp's discriminator mapping, so a kind the
-        protocol adds joins both lists.
+        excludes exactly the kinds FixOp's other variants fix, and this enum is the
+        only list of them in the document: a kind the protocol adds takes a new variant
+        of FixOp and joins this enum, the one place its name must be added.
       required: [kind]
       additionalProperties: true
       properties:
