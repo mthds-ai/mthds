@@ -315,6 +315,15 @@ def param_json_schema(param: dict) -> dict:
     }[kind]
 
 
+def type_name(param: dict) -> str:
+    """A parameter's declared type in words, such as `list of sha256` or `one of a, b`."""
+    if param["type"] == "list":
+        return f"list of {type_name(param['items'])}"
+    if param["type"] == "enum":
+        return "one of " + ", ".join(param["values"])
+    return param["type"]
+
+
 def json_examples(path: Path) -> Iterator[tuple[int, Any]]:
     """Each ```json block of a page that parses, with the line its fence opens on."""
     lines = path.read_text(encoding="utf-8").splitlines()
@@ -370,16 +379,40 @@ def example_errors(registry: dict) -> list[str]:
         for member, value in expected.items():
             if member in node and node[member] != value:
                 found.append(f"{where}: {code}'s {member} is {node[member]!r}, but its entry says {value!r}")
+        if "status" in node and "status" not in entry:
+            found.append(
+                f"{where}: {code} carries the status {node['status']!r}, but its entry, raised as "
+                f"{entry['raised_as']}, has none"
+            )
         step = node.get("next_step")
         if isinstance(step, dict) and "kind" in step:
             kinds = {entry["steps"]["actor"]["kind"], entry["steps"]["other"]["kind"]}
             if step["kind"] not in kinds:
                 found.append(f"{where}: {code}'s next_step.kind is {step['kind']!r}, not one its entry declares")
-        params = node.get("params")
-        if isinstance(params, dict):
-            for name in params:
-                if name not in entry["params"]:
-                    found.append(f"{where}: {code}'s params carry {name}, which its entry does not declare")
+        found.extend(params_errors(node, code, entry, where))
+        return found
+
+    def params_errors(node: dict, code: str, entry: dict, where: str) -> list[str]:
+        """The example's params are the entry's: each declared, typed as declared, none required missing.
+
+        An operator-only parameter never reaches a caller, so an example need not show it.
+        """
+        params = node.get("params", {})
+        if not isinstance(params, dict):
+            return [f"{where}: {code}'s params is {params!r}, which is not an object"]
+        found = []
+        declared = entry["params"]
+        for name, value in params.items():
+            if name not in declared:
+                found.append(f"{where}: {code}'s params carry {name}, which its entry does not declare")
+            elif not Draft202012Validator(param_json_schema(declared[name])).is_valid(value):
+                found.append(
+                    f"{where}: {code}'s params.{name} is {value!r}, but its entry types it as "
+                    f"{type_name(declared[name])}"
+                )
+        for name, param in declared.items():
+            if name not in params and not param.get("optional") and not param.get("operator_only"):
+                found.append(f"{where}: {code}'s params lack {name}, which its entry declares present on every occurrence")
         return found
 
     for path in sorted(DOCS.rglob("*.md")):

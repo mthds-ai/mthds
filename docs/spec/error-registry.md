@@ -149,7 +149,7 @@ The pages are generated from the registry when the site is built, so they never 
 
 ## Checks
 
-The standard's repository checks the core registry on every change. It refuses a registry that the schema refuses or that holds a key twice, a code given twice, a family that is undeclared or unused, a prefix given twice or named like a core family, a template naming a parameter its reader may not see, and a `see` reference to a page the documentation does not hold. It also refuses closed lists that differ from the OpenAPI document's, a parameter that `ProblemParams` types otherwise, a problem example in the documentation that uses a core code the registry does not declare or disagrees with its code's entry, and a snapshot that is not the registry's.
+The standard's repository checks the core registry on every change. It refuses a registry that the schema refuses or that holds a key twice, a code given twice, a family that is undeclared or unused, a prefix given twice or named like a core family, a template naming a parameter its reader may not see, and a `see` reference to a page the documentation does not hold. It also refuses closed lists that differ from the OpenAPI document's, a parameter that `ProblemParams` types otherwise, a problem example in the documentation that uses a core code the registry does not declare or disagrees with its code's entry, in a member the code decides, a status its entry does not have, its step's kind, or a parameter undeclared, mistyped or missing, and a snapshot that is not the registry's.
 
 ## Versioning
 
