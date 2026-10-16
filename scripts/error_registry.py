@@ -133,15 +133,6 @@ def placeholders(template: str) -> list[str]:
     return names
 
 
-def render(template: str, params: dict[str, Any]) -> str:
-    """Render a template: a list is written as its items joined by a comma and a space."""
-    values = {
-        name: ", ".join(str(item) for item in value) if isinstance(value, list) else value
-        for name, value in params.items()
-    }
-    return template.format(**values)
-
-
 # --- the checks -----------------------------------------------------------------------
 
 
@@ -183,6 +174,8 @@ def semantic_errors(registry: dict, where: str) -> list[str]:
             if not family.startswith(f"{prefix}."):
                 errors.append(f"{where}: the family {family} does not start with the prefix {prefix}")
 
+    # A reference may name a page the hook generates, which is not on disk, as well as a written one.
+    generated = {INDEX_PAGE, *(page_path(entry["code"]) for entry in registry["codes"])} if prefix is None else set()
     seen_codes: set[str] = set()
     for entry in registry["codes"]:
         code = entry["code"]
@@ -199,7 +192,7 @@ def semantic_errors(registry: dict, where: str) -> list[str]:
         errors.extend(template_errors(entry, here))
         for reference in entry.get("see", []):
             page = reference["href"].split("#", 1)[0]
-            if not (DOCS / page).is_file():
+            if page not in generated and not (DOCS / page).is_file():
                 errors.append(f"{here}: see names {page}, which the documentation does not hold")
 
     for family in families:

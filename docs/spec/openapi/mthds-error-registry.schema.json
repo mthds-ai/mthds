@@ -74,10 +74,10 @@
       "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
     },
     "baseUrl": {
-      "description": "An https URL with no trailing slash, query or fragment.",
+      "description": "An https URL: a lowercase host name, an optional port and a path of non-empty segments, with no trailing slash, query or fragment.",
       "type": "string",
       "format": "uri",
-      "pattern": "^https://[^\\s?#]*[^\\s?#/]$"
+      "pattern": "^https://[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*(?::[0-9]{1,5})?(?:/[A-Za-z0-9._~%!$&'()*+,;=:@-]+)*$"
     },
     "text": {
       "description": "Prose for a person: a word, a phrase or sentences, never empty.",
