@@ -96,6 +96,12 @@ The `mkdocs.yml` configures specific plugins and markdown extensions. Use these 
 | `llmstxt-md` | Generates `llms.txt` for LLM-friendly content — nav sections must be updated when adding pages |
 | `neoteroi.mkdocsoad` | Renders OpenAPI documents into pages via `OAD` include tags (the protocol page's route reference; styles in `docs/stylesheets/neoteroi-oad.css`, template overrides in `docs/templates/oad/`) |
 
+### Hooks
+
+| Hook | What it does |
+|------|-------------|
+| `scripts/error_registry_pages.py` | Generates `errors/index.md` and one page per code of the core error registry from `docs/spec/openapi/mthds-error-registry.yaml` (see `docs/CLAUDE.md`, "The Error Registry and Its Generated Pages") |
+
 ### Theme Features (from `mkdocs.yml` theme config)
 
 - `navigation.tabs` + `navigation.tabs.sticky` — top-level nav sections render as tabs
