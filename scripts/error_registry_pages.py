@@ -33,13 +33,21 @@ SPEC_PAGE = "spec/error-registry.md"
 PROTOCOL_PAGE = "spec/protocol.md"
 SNAPSHOT = "spec/openapi/mthds-error-registry.json"
 
-# Who acts, per domain, in the words of the protocol's domain table.
+# Who acts, per domain, after the protocol's domain table: the clause the Domain row states, and the
+# reader the actor step is aimed at, which the Next steps paragraph names.
+DOMAIN_ACTIONS = {
+    "input": "the caller acts, by changing the request or its inputs",
+    "method": "the method's author acts, by changing the method",
+    "account": "the account's owner acts",
+    "operator": "whoever runs the runtime acts",
+    "runtime": "nobody could have acted beforehand, so whoever made the call waits, retries or reports the problem",
+}
 DOMAIN_ACTORS = {
-    "input": "the caller, by changing the request or its inputs",
-    "method": "the method's author, by changing the method",
+    "input": "the caller",
+    "method": "the method's author",
     "account": "the account's owner",
     "operator": "whoever runs the runtime",
-    "runtime": "nobody beforehand: wait, retry or report",
+    "runtime": "whoever made the call",
 }
 
 RETRY_MEANINGS = {
@@ -49,7 +57,7 @@ RETRY_MEANINGS = {
 }
 
 RAISED_AS = {
-    "problem": "a problem document, the body of an HTTP response or kept in a run's record",
+    "problem": "a problem document, sent as the body of an HTTP response or kept in a run's record",
     "warning": "an item of a validate verdict's `warnings`, which never makes a method invalid",
     "client": "an error a client detects itself, never received from a runner",
 }
@@ -162,6 +170,22 @@ def index_page(registry: dict) -> str:
     return "\n".join(lines)
 
 
+def next_steps_intro(entry: dict, protocol: str) -> str:
+    """The sentence above a code's steps, which says who each one is for."""
+    actor = DOMAIN_ACTORS[entry["domain"]]
+    step = f"[step]({protocol}#next-steps)"
+    if entry["raised_as"] == "warning":
+        return (
+            f"A warning carries no {step} of its own, since it is an item of a validate verdict, so its reader "
+            f"takes one of the code's steps: the first when the reader is the domain's actor, {actor}, and the "
+            "second for any other reader.\n"
+        )
+    return (
+        f"A problem carries the {step} aimed at whoever reads it: the first when its reader is the domain's actor, "
+        f"{actor}, and the second for any other reader.\n"
+    )
+
+
 def code_page(registry: dict, entry: dict) -> str:
     code = entry["code"]
     page = registry_module.page_path(code)
@@ -178,7 +202,7 @@ def code_page(registry: dict, entry: dict) -> str:
         "|---|---|",
         f"| Type | `{registry_module.type_uri(registry, code)}` |",
         f"| Family | [`{family}`]({index}#{family}): {cell(family_description)} |",
-        f"| [Domain]({protocol}#domain-who-must-act) | `{domain}`: {DOMAIN_ACTORS[domain]} acts |",
+        f"| [Domain]({protocol}#domain-who-must-act) | `{domain}`: {DOMAIN_ACTIONS[domain]} |",
         f"| [Retry]({protocol}#retry) | `{entry['retry']}`: {RETRY_MEANINGS[entry['retry']]} |",
         f"| HTTP status | {status_cell(entry)} |",
         f"| Raised as | {RAISED_AS[entry['raised_as']]} |",
@@ -188,8 +212,7 @@ def code_page(registry: dict, entry: dict) -> str:
         "## What to do\n",
         f"{entry['what_to_do']}\n",
         "## Next steps\n",
-        f"A problem carries the [step]({protocol}#next-steps) aimed at whoever reads it: the first when its reader is "
-        f"the domain's actor, {DOMAIN_ACTORS[domain]}, and the second for any other reader.\n",
+        next_steps_intro(entry, protocol),
         "| Reader | Kind | Detail |",
         "|---|---|---|",
         f"| The domain's actor | `{entry['steps']['actor']['kind']}` | {cell(show_template(entry['steps']['actor']['detail']))} |",
