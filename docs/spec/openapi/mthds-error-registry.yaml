@@ -1860,17 +1860,17 @@ codes:
   - code: run.lost
     title: "The run's outcome is lost"
     domain: runtime
-    retry: "yes"
+    retry: "outcome_unknown"
     raised_as: problem
     status: 500
     detail: "The runtime lost track of the run '{pipeline_run_id}', and its outcome is unknown."
     steps:
-      actor: {kind: retry, detail: "Start the run again."}
-      other: {kind: retry, detail: "Start the run again."}
+      actor: {kind: read_run, detail: "Read the run '{pipeline_run_id}' again later in case it reports how it ended, and start a new run only if repeating its work is acceptable."}
+      other: {kind: read_run, detail: "Read the run '{pipeline_run_id}' again later in case it reports how it ended, and start a new run only if repeating its work is acceptable."}
     params:
       pipeline_run_id: {type: identifier, description: "The run."}
-    meaning: "The run's execution can no longer be found, or never reported back, so the runtime holds no outcome for it. A new run may succeed."
-    what_to_do: "Start a new run. If runs keep being lost, report it to whoever runs the runtime."
+    meaning: "The run's execution can no longer be found, or never reported back, so the runtime holds no outcome for it. The run may have done its work, billed calls included, or may still be running, so a new run may repeat that work and is never started automatically."
+    what_to_do: "Read the run again later, since an execution that has not reported may still end, and check what the run would have produced and the account's usage. Start a new run only once a repeat of the run's work is acceptable. If runs keep being lost, report it to whoever runs the runtime."
     see:
       - {title: "HTTP Runner Protocol", href: "spec/protocol.md"}
 
