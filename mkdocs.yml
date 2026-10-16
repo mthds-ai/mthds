@@ -65,6 +65,11 @@ extra:
 validation:
   anchors: warn
 
+# Generates one page per code of the core error registry, and their index, from
+# docs/spec/openapi/mthds-error-registry.yaml (see docs/spec/error-registry.md).
+hooks:
+  - scripts/error_registry_pages.py
+
 plugins:
   - mike:
       alias_type: copy
@@ -137,6 +142,8 @@ plugins:
         - spec/namespace-resolution.md: "Namespace Resolution Rules"
         - spec/cli-io-contract.md: "CLI I/O Contract"
         - spec/protocol.md: "HTTP Runner Protocol"
+        - spec/error-registry.md: "Error Registry"
+        - errors/index.md: "Error Codes"
         - cli/index.md: "CLI Reference"
         - tooling/editor-support.md: "Editor Support"
         - tooling/formatting-linting.md: "Formatting & Linting"
@@ -236,6 +243,8 @@ nav:
       - Namespace Resolution Rules: spec/namespace-resolution.md
       - CLI I/O Contract: spec/cli-io-contract.md
       - HTTP Runner Protocol: spec/protocol.md
+      - Error Registry: spec/error-registry.md
+    - Error Codes: errors/index.md
     - CLI Reference: cli/index.md
     - Tooling:
       - Editor Support: tooling/editor-support.md

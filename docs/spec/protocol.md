@@ -266,20 +266,20 @@ The RFC's optional `instance` member is not part of the core: a runner may send 
 
 ### Codes
 
-A code is lowercase and dotted, each segment matching `[a-z][a-z0-9_]*`. A core code is bare, exactly a family and a name, such as `input.missing` or `request.blobs_missing`. A code belongs to the core when any conforming runner or client could raise it, independently of hosting, billing or a vendor's components. The MTHDS core registry lists the core codes and gives each its title, domain, retry verdict, steps, parameters and HTTP status. A code's **family** is the code without its last segment, so `request.blobs_missing` belongs to the family `request`.
+A code is lowercase and dotted, each segment matching `[a-z][a-z0-9_]*`. A core code is bare, exactly a family and a name, such as `input.missing` or `request.blobs_missing`. A code belongs to the core when any conforming runner or client could raise it, independently of hosting, billing or a vendor's components. The [MTHDS core registry](error-registry.md) lists the core codes and gives each its title, domain, retry verdict, steps, parameters and HTTP status. A code's **family** is the code without its last segment, so `request.blobs_missing` belongs to the family `request`.
 
 **Extension codes.** Every other code starts with a prefix its owner registers, followed by a family and a name: `<prefix>.<family>.<name>`, such as `acme.billing.credit_exhausted`. A prefix is one segment of the same form, it is never the name of a core family, and it belongs to one owner, who alone adds codes under it. What the protocol leaves to implementations, such as billing or a catalog of saved methods, is coded under the implementation's own prefix.
 
 **Declaring a prefix.** An owner declares an extension prefix in two steps:
 
-1. It publishes a registry of its own codes, in the format of the core registry, that names the prefix and the base URL its codes' pages are published under, and declares for each code everything the core registry declares for a core code.
-2. It registers the prefix with the standard, through the [contribution process](../about/contributing.md), as an entry of the core registry's list of extension prefixes naming the prefix, its owner and that base URL. A registered prefix is never reassigned to another owner.
+1. It publishes a registry of its own codes, in the [format of the core registry](error-registry.md), that names the prefix and the base URL its codes' pages are published under, and declares for each code everything the core registry declares for a core code.
+2. It registers the prefix with the standard, through the [contribution process](../about/contributing.md#register-an-error-code-prefix), as an entry of the core registry's list of extension prefixes naming the prefix, its owner and that base URL. A registered prefix is never reassigned to another owner.
 
 A runner emits a code under a prefix only once the prefix is registered and the code is in its owner's registry.
 
 ### The `type` URI
 
-`type` is derived from the code and its owner's base URL: the base URL, a slash, then the whole code. The core's base URL is `https://mthds.ai/errors`, so the core code `input.missing` has the type `https://mthds.ai/errors/input.missing`. An extension code is joined, its prefix included, to the base URL its prefix is registered with: under a prefix registered with `https://errors.acme.example`, the code `acme.billing.credit_exhausted` has the type `https://errors.acme.example/acme.billing.credit_exhausted`. The page at a type URI says what the code means and what to do about it. Because `type` and `code` name the same thing one to one, a client branches on `code` and never takes a code apart from `type`.
+`type` is derived from the code and its owner's base URL: the base URL, a slash, then the whole code. The core's base URL is `https://mthds.ai/errors`, so the core code `input.missing` has the type `https://mthds.ai/errors/input.missing`. An extension code is joined, its prefix included, to the base URL its prefix is registered with: under a prefix registered with `https://errors.acme.example`, the code `acme.billing.credit_exhausted` has the type `https://errors.acme.example/acme.billing.credit_exhausted`. The page at a type URI says what the code means and what to do about it, and the [Error Codes](../errors/index.md) page lists every core code's. Because `type` and `code` name the same thing one to one, a client branches on `code` and never takes a code apart from `type`.
 
 ### Domain: who must act
 
