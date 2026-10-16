@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v7.0.1 · MTHDS standard 7.0.1 · MTHDS Protocol 2.0.0**
+
+### Added
+
+- **Suggested fixes** (`spec/protocol.md`, `spec/openapi/mthds-protocol.openapi.yaml`): an error item may carry `suggested_fix`, a semantic patch over a bundle rather than a text diff: a `fix_code`, a `description`, a `safety` of `safe` or `unsafe`, an optional `file`, and a list of `ops` discriminated on `kind` (`set_key`, `ensure_table`, `delete_key`, `delete_table`, `rename_table_key`, `move_key`, `remap_value`), each addressing a table by its TOML key path. A deletion, a rename, a move or a remap whose target is absent is skipped, while `ensure_table` creates its absent table and `set_key` its absent key, each skipped when the table that would hold its target is absent, so a fix that needs a missing table puts an `ensure_table` before it. An operation that would overwrite a key or a table other than its own target, such as a rename or a move onto a key its destination table already holds, is a conflict that changes nothing, as is a `set_key` whose key holds a table or an `ensure_table` whose path names a value other than a table, while `set_key` replaces a scalar or array value and `remap_value` rewrites its value by design. An applier that meets an operation kind it does not know applies none of the fix, which still validates against the reader-side catch-all `UnknownFixOp`.
+
+### Changed
+
+- **Errors are RFC 9457 problem documents carrying the MTHDS core members (Breaking)** (`spec/protocol.md`, `spec/openapi/mthds-protocol.openapi.yaml`, `spec/versioning.md`): every error a runner answers is an RFC 9457 `application/problem+json` document, where the protocol named RFC 7807, and carries beside `type`, `title`, `status` and `detail` a registry `code`, the `domain` of who must act (`input`, `method`, `account`, `operator`, `runtime`), a `retry` verdict (`no`, `yes`, `outcome_unknown`) with an optional `retry_after`, a `next_step` whose `kind` is one of a closed list of steps and whose `detail` is a sentence, the code's typed `params`, a `location`, one item per fault in `errors`, and the `pipeline_run_id` when a run exists, while the protocol no longer declares `instance`. Core codes are bare, every other code starts with a prefix its owner registers with the standard, `type` is derived from the code (`https://mthds.ai/errors/<code>` for the core), and a reader that meets a code, a domain or a step kind it does not know falls back on the code's family, then on `runtime` and `report`. A runner now emits these members on every error and a client branches on `code`, and the protocol moves to `2.0.0`.
+- **`/validate` reports its faults as problem items (Breaking)** (`spec/protocol.md`, `spec/openapi/mthds-protocol.openapi.yaml`): the invalid verdict's `validation_errors`, whose items carried a `category` and a `message`, is now `errors`, a non-empty list of problem items each carrying its own `code`, `detail`, `params` and `location` and optionally `suggestions` and `suggested_fix`, and either arm may carry `warnings` in the same item schema. The verdict is still a `200` discriminated on `is_valid`, and an unset member is left out rather than written as `null` on every arm, warnings included. A client reads `errors` and each item's `code` where it read `validation_errors` and `category`.
+- **`missing_blobs` moves into `params` (Breaking)** (`spec/protocol.md`, `spec/openapi/mthds-protocol.openapi.yaml`): a `422` refusing hash entries the runner does not hold is coded `request.blobs_missing` and lists the hashes in `params.missing_blobs` rather than in a top-level `missing_blobs` member. A sender reads `params.missing_blobs`, uploads each blob listed to a runner that keeps a blob store or sends those files inline to one that keeps none, and sends the request again.
+
 ## [v7.0.0] - 2026-10-15
 
 **MTHDS standard 7.0.0 · MTHDS Protocol 1.0.0**
