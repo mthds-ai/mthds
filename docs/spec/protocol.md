@@ -304,7 +304,7 @@ The protocol defines no route that changes a run. A runner that offers one, such
 
 ### The codes of the run reads and idempotency keys
 
-Every code this section names is a core code. Each code's title, parameters and documentation are the core registry's, and each code declares the same step for its actor and for any other reader.
+Every code in the table below is a core code that the run reads and idempotency keys introduce. Each code's title, parameters and documentation are the core registry's, and each code in the table declares the same step for its actor and for any other reader. The other codes this section names, such as `request.invalid`, `run.cancelled` and `run.timed_out`, are core codes it does not introduce, whose values are the core registry's.
 
 | Code | Answered | Status | Domain | Retry | Step |
 |---|---|---|---|---|---|
