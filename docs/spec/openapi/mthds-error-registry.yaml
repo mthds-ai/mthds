@@ -2214,7 +2214,7 @@ codes:
       other: {kind: read_run, detail: "Read the run if its id is known, or repeat the request with the same idempotency key."}
     params:
       pipeline_run_id: {type: identifier, optional: true, description: "The run, when the client learned its id before the connection was lost."}
-    meaning: "The connection dropped, or the call timed out, after a request that creates a run had left, so the run may exist."
+    meaning: "The connection dropped, the call timed out, or the caller stopped it, after a request that creates a run had left, so the run may exist."
     what_to_do: "Read the run by its id when the client knows it, or repeat the request with the same idempotency key, which never starts the run twice."
 
   - code: client.follow_failed
@@ -2366,12 +2366,12 @@ codes:
     domain: input
     retry: "yes"
     raised_as: client
-    detail: "The caller stopped the call before it finished."
+    detail: "The caller stopped the call before it finished, and the call created nothing."
     steps:
       actor: {kind: retry, detail: "Make the call again if its result is still wanted."}
       other: {kind: retry, detail: "Make the call again if its result is still wanted."}
     params: {}
-    meaning: "The caller's abort signal stopped the call before it finished."
+    meaning: "The caller's abort signal stopped a call before it finished, where the call creates nothing, such as a read, or its request had not left yet. A call that creates a run and was stopped after its request left may have created the run, so it is `client.outcome_unknown` instead."
     what_to_do: "Make the call again if its result is still wanted."
 
   - code: client.tool_missing
