@@ -1,10 +1,10 @@
 ---
-description: "The MTHDS Protocol — the minimal HTTP contract every MTHDS runner implements: execute, start, validate, models, version, the optional blob routes, and the problem document every error is."
+description: "The MTHDS Protocol — the minimal HTTP contract every MTHDS runner implements: execute, start, validate, models, version, the optional blob routes, the optional run reads and idempotency keys, and the problem document every error is."
 ---
 
 # HTTP Runner Protocol
 
-The MTHDS Protocol is the minimal HTTP contract every MTHDS runner implements. Any server that serves its five required routes with the shapes defined here is an MTHDS-compliant runner, and a runner that keeps a blob store also serves the optional blob routes. A runner is just a runner: it executes methods, validates bundles, and reports what models it can route to and what version it is. It keeps no run store and owns no user, billing, or catalog concepts.
+The MTHDS Protocol is the minimal HTTP contract every MTHDS runner implements. Any server that serves its five required routes with the shapes defined here is an MTHDS-compliant runner. A runner that keeps a blob store also serves the optional blob routes, and one that keeps a run store also serves the optional run reads and honours idempotency keys. A runner is just a runner: it executes methods, validates bundles, and reports what models it can route to and what version it is. The protocol requires no run store of it, and it owns no user, billing, or catalog concepts.
 
 The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml). This page walks through it in prose, then renders it route by route — every parameter, request body, and response schema — in the [route reference](#route-reference) below. Where prose and YAML disagree, the YAML wins.
 
@@ -19,8 +19,10 @@ The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](
 | `GET` | `/version` | Always public. Protocol and runner versions — the handshake clients use for feature detection. |
 | `POST` | `/blobs/missing` | Optional, served by a runner that keeps a [blob store](#sending-files-by-hash). Which of the listed blobs the runner lacks, and where to upload each. |
 | `PUT` | `/blobs/{sha256}` | Optional. Uploads one blob's bytes to a runner that stores them itself. |
+| `GET` | `/runs/{pipeline_run_id}/status` | Optional, served by a runner that keeps a [run store](#reading-a-run-and-idempotency-keys). A run's status, and its problem once it has failed. |
+| `GET` | `/runs/{pipeline_run_id}/results` | Optional. A completed run's output, as `/execute` answers it. |
 
-The first five routes are required of every runner. The last two are served by a runner whose `/version` declares `blob_store: true`, and `PUT /blobs/{sha256}` only by one that stores uploaded bytes itself rather than pointing its senders at another upload target.
+The first five routes are required of every runner. The blob routes are served by a runner whose `/version` declares `blob_store: true`, and `PUT /blobs/{sha256}` only by one that stores uploaded bytes itself rather than pointing its senders at another upload target. The run reads are served by a runner whose `/version` declares `run_store: true`, which also honours an `Idempotency-Key` header on `/execute` and `/start`.
 
 Every error is a problem document of [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457), served as `application/problem+json`, that carries the MTHDS core members described under [Errors](#errors). Auth is implementation-defined: a bearer-token slot is reserved, and anonymous access is allowed for self-hosted runners.
 
@@ -60,7 +62,7 @@ The 200 response is a `RunResultExecute` — the completed run, holding two base
 
 `pipe_output` is a working memory of stuffs in the same wire form as the inputs, and it carries references only: a concept's definition never travels in a working memory. A client that needs the structure behind a `concept` resolves the key against the library crate, or reads it from the `pipe_io_contracts` a validating runner reports. The stuff's shape is the standard's, not the protocol's: the OpenAPI document types an input's `concept` as a string and leaves `pipe_output` an open object, the CLI I/O Contract fixes what its entries look like, and a change to that shape moves the [standard version](./versioning.md#the-protocol-version) and no protocol number — the way the recommended extension fields of the validate report are shaped by their own pages.
 
-The protocol sets no time limit on `/execute`; deployments cap it at their proxy layer. For long-running methods prefer `/start`. Implementations **MAY** answer `202 + RunResultStart` (just the run id, no output yet) with a `Location` header pointing at an implementation-defined status resource when they cannot hold the connection open ([RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.3) asynchronous pattern). Simple runners never emit 202; clients that cannot handle it should use `/start`.
+The protocol sets no time limit on `/execute`; deployments cap it at their proxy layer. For long-running methods prefer `/start`. Implementations **MAY** answer `202 + RunResultStart` (just the run id, no output yet) with a `Location` header pointing at an implementation-defined status resource when they cannot hold the connection open ([RFC 9110](https://www.rfc-editor.org/rfc/rfc9110#section-15.3.3) asynchronous pattern). A runner that keeps a run store points it at the run's [status read](#get-runspipeline_run_idstatus) and keeps the run's output for its results read. Simple runners never emit 202; clients that cannot handle it should use `/start`.
 
 ### Method files
 
@@ -110,7 +112,7 @@ The response is `202 + RunResultStart` — just the authoritative server-generat
 
 ### No run store, no completion channel
 
-The protocol mandates no run store, and it defines **no completion channel for `/start`**: how a caller learns that an asynchronous run finished — webhooks, polling routes, anything else — is implementation-defined and outside the protocol (see [Extension policy](#extension-policy)). A bare runner is not required to answer "what happened to run X?" after the fact. Clients written against the protocol alone must rely on `/execute`'s response.
+The protocol mandates no run store, and it defines **no completion channel for `/start`**: nothing tells a caller that an asynchronous run has finished, and a channel that does, such as a webhook, is implementation-defined and outside the protocol (see [Extension policy](#extension-policy)). A bare runner is not required to answer "what happened to run X?" after the fact. A runner that keeps a run store answers it through the optional [run reads](#reading-a-run-and-idempotency-keys), which a caller polls, and declares so with `run_store: true` in `GET /version`. A client that must work against every runner relies on `/execute`'s response, and relies on `/start` only once `GET /version` has declared a run store or the implementation documents a channel of its own.
 
 ## Validating a bundle
 
@@ -180,21 +182,159 @@ A request naming one hash twice with different sizes is a `422`, and so is a blo
 
 The upload target of a runner that stores bytes itself. The body is the blob's bytes and nothing else. The runner computes their SHA-256 and refuses with a `422` a body whose hash differs from the one in the path. A blob is written once and never changed, so uploading bytes the runner already holds succeeds without changing anything; either way the answer is a `204`.
 
+## Reading a run and idempotency keys
+
+A runner MAY keep a **run store**: a record of the runs it has started, kept by their `pipeline_run_id`. A runner that keeps one declares `run_store: true` in `GET /version`, serves the two run reads below, and honours an idempotency key on `/execute` and `/start`. A runner that declares no run store serves neither read and ignores the key. Like the blob routes, this section is optional: the protocol requires no run store, and a runner without one is conformant.
+
+A caller starts a run under an idempotency key of its choosing:
+
+```http
+POST /start
+Idempotency-Key: 0b6e3c0e-5d0a-4f3e-8a57-9a1f4c2d7e11
+Content-Type: application/json
+
+{ "pipe_code": "analyze_contract", "files": { "contracts.mthds": "domain = \"legal\"\n..." }, "inputs": { "contract": { "concept": "native.Document", "content": { "url": "..." } } } }
+```
+
+If the `202` answer is lost, the caller sends the same request again under the same key, and the runner answers with the run the first request started rather than starting a second one. The caller then polls the run's status and reads its output once it has completed:
+
+```http
+GET /runs/8c1f6a52-3d1e-4b7a-9f0e-2a5c7d9e4b10/status
+GET /runs/8c1f6a52-3d1e-4b7a-9f0e-2a5c7d9e4b10/results
+```
+
+### The run store
+
+A runner that keeps a run store records every run it starts, through `/execute` and `/start` alike, under the `pipeline_run_id` it answered with, together with the run's status and, once the run has failed, its problem. It keeps the output of every completed run whose output did not travel in an answer, that is a run started by `/start` and one that `/execute` answered with a `202`, so that the results read can serve it. It may also keep the output of a run whose `/execute` answer carried it. How long it keeps a run is its own policy, and a run it no longer holds reads as one it never held.
+
+A run is read by the caller that started it, or by whoever else the runner's policy lets read it. A runner answers an id naming a run the caller may not read exactly as it answers an id naming no run, so that an id never tells a caller about a run it cannot read.
+
+### `GET /runs/{pipeline_run_id}/status`
+
+The status read answers `200` with the run's `pipeline_run_id`, its `status`, and its `error` once it has failed:
+
+```json
+{
+  "pipeline_run_id": "8c1f6a52-3d1e-4b7a-9f0e-2a5c7d9e4b10",
+  "status": "failed",
+  "error": {
+    "type": "https://mthds.ai/errors/pipe.output_multiplicity",
+    "title": "A pipe's output does not have the declared multiplicity",
+    "detail": "Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item.",
+    "code": "pipe.output_multiplicity",
+    "domain": "method",
+    "retry": "no",
+    "next_step": {
+      "kind": "change_method",
+      "detail": "Declare the output 'clause' as a list, or make pipe 'extract_clauses' produce a single item."
+    },
+    "params": { "pipe": "extract_clauses", "output": "clause", "declared": "single", "produced": "list" },
+    "location": { "pipe": "extract_clauses", "path": ["review_contract", "extract_clauses"] },
+    "pipeline_run_id": "8c1f6a52-3d1e-4b7a-9f0e-2a5c7d9e4b10"
+  }
+}
+```
+
+A run's `status` is one of:
+
+| Status | Ended | Meaning |
+|---|---|---|
+| `pending` | no | The runner accepted the run and has not begun executing it. |
+| `running` | no | The run is executing. |
+| `completed` | yes | The run ended with its output, which the results read serves. |
+| `failed` | yes | The run ended without output. `error` holds its problem, whose code says why, such as `run.cancelled` for a run its caller cancelled or `run.timed_out` for one that passed its time limit. |
+
+`error` is the run's own problem, as the run's record keeps it: a problem document without `status`, since it is not the body of a response. It is present exactly when `status` is `failed`. The status read does not fail because the run failed: its `200` answers a question about the run, and the run's problem rides inside it. A runner that can no longer learn how a run ended, such as when whatever executed it vanished without reporting, ends it `failed` with the problem `run.lost`, whose retry is `yes`, since a new run may succeed.
+
+A run ends `completed` or `failed`, and the statuses of a run that has ended are closed: a later protocol version may add a status only for a run that has not ended. So a runner MUST NOT emit a status this page does not list, and a client that meets a status it does not know reads the run as not ended and reads it again later. A runner may set a `Retry-After` header on the `200` of a run that has not ended, to say when to read it again.
+
+### `GET /runs/{pipeline_run_id}/results`
+
+The results read answers a completed run with a `200` whose body is the one `/execute` answers with, a `RunResultExecute` holding the run's `pipeline_run_id` and its `pipe_output`, so a client that started a run with `/start` reads the same output it would have read from `/execute`. Any other run is answered with a problem: `run.not_finished` before the run has ended, `run.failed` once it has ended without output, and `run.results_not_stored` for a completed run whose output travelled in `/execute`'s answer and was not kept. A read of a failed run's results carries the run's own problem as its `run_error` member, beside the read's own code:
+
+```json
+{
+  "type": "https://mthds.ai/errors/run.failed",
+  "title": "The run did not succeed",
+  "status": 409,
+  "detail": "Run '8c1f6a52-3d1e-4b7a-9f0e-2a5c7d9e4b10' ended without output, so it has no results.",
+  "code": "run.failed",
+  "domain": "runtime",
+  "retry": "no",
+  "next_step": {
+    "kind": "read_run",
+    "detail": "Read the run's own problem in run_error to learn why it failed."
+  },
+  "params": { "pipeline_run_id": "8c1f6a52-3d1e-4b7a-9f0e-2a5c7d9e4b10", "run_status": "failed" },
+  "pipeline_run_id": "8c1f6a52-3d1e-4b7a-9f0e-2a5c7d9e4b10",
+  "run_error": {
+    "type": "https://mthds.ai/errors/run.timed_out",
+    "title": "The run passed its time limit",
+    "detail": "The run did not end within this runner's run time limit.",
+    "code": "run.timed_out",
+    "domain": "method",
+    "retry": "no",
+    "next_step": { "kind": "change_method", "detail": "Make the method do less work in one run." },
+    "params": { "timeout": 3600 },
+    "pipeline_run_id": "8c1f6a52-3d1e-4b7a-9f0e-2a5c7d9e4b10"
+  }
+}
+```
+
+A problem about a run is not the problem of the read that returned it. Reading the results again changes nothing, so the read's `retry` is `no`, and the run's own problem, in `run_error`, says who must act and whether a new run may succeed.
+
+### Idempotency keys
+
+A client sending `/execute` or `/start` may name the request with an `Idempotency-Key` header: a string of 1 to 255 visible ASCII characters, from `!` to `~`, that the client chooses and never uses for another request, such as a UUID. A runner that declares `run_store: true` then runs the request at most once: a repeat of it under the same key, from the same caller, is answered from that one execution. A client whose answer was lost, or whose request may or may not have reached the runner, sends the request again under its key and learns the outcome without starting a second run. A client SHOULD send a key on every request that starts a run, since only a request that carried one can be repeated safely. A runner that honours keys refuses a key outside that form with a `422` coded `request.invalid`.
+
+A runner keeps each key per caller, so that two callers' keys never meet, and for at least 24 hours after the first request under it, with what it needs to answer a repeat: a fingerprint of the request, the run the request started, and the answer it gave when it keeps that answer. A request under a key the runner no longer holds is a first request.
+
+A repeat is the **same request** when it goes to the same route with a body of the same JSON value, whatever the order of its members and its whitespace. A request under a held key that is not the same request is refused with `request.idempotency_conflict`, whether the first request is still running or has ended: a key names one request, and a different request takes a new key. The same request under a held key is answered as follows:
+
+- **While the first request is still being handled and has started no run**, with `request.idempotency_key_in_use`, carrying `retry_after` when the runner knows how long to wait. The client sends the same request again, unchanged, after waiting.
+- **On `/start`, once the first request has started its run**, with the first answer, a `202 + RunResultStart` naming that run. Nothing starts again.
+- **On `/execute`, once the first request has started its run**, with the first answer when the runner can give it again from what it kept of the answer or of the run: the same `200` and output, or the same problem. While the run has not ended, the runner answers with a `202 + RunResultStart` naming the run, with a `Location` header pointing at its status read, the asynchronous answer `/execute` may already give. Once the run has ended and the runner kept neither its answer nor its output, it answers with `run.answer_not_kept`, and the client reads the run's status to learn how it ended.
+- **When the first request was refused before it started a run**, as a first request: a refusal takes no effect, so it leaves the key free.
+
+The key changes nothing else about a request. A run's id is still the runner's, and a request without a key is never deduplicated. A runner that honours the key on a route of its own, beyond `/execute` and `/start`, answers a repeat whose answer it never gives twice, such as one that hands out a secret, with `request.already_executed`, and the client reads what the first request created rather than sending it again. A runner that keeps no run store ignores the header, so that a repeat under the key would start a second run: a client repeats a request under its key only against a runner whose `GET /version` declares `run_store: true`.
+
+This is what the next step of a problem whose `retry` is `outcome_unknown` rests on. Against a runner that keeps a run store, the client learns the outcome by reading the run whose `pipeline_run_id` the problem carries or, when no answer named the run, by sending the request again under the same idempotency key, which answers with the run the first request started and never starts a second.
+
+The protocol defines no route that changes a run. A runner that offers one, such as a route that cancels a run, answers a change asked of a run that has already ended with `run.already_ended`.
+
+### The codes of the run reads and idempotency keys
+
+Every code this section names is a core code. Each code's title, parameters and documentation are the core registry's, and each code declares the same step for its actor and for any other reader.
+
+| Code | Answered | Status | Domain | Retry | Step |
+|---|---|---|---|---|---|
+| `run.not_found` | By either read, when the id names no run the caller can read. | 404 | `input` | `no` | `change_input` |
+| `run.not_finished` | By the results read, before the run has ended, with `retry_after` when known. | 409 | `runtime` | `yes` | `wait` |
+| `run.failed` | By the results read, once the run has ended without output, with the run's problem in `run_error`. | 409 | `runtime` | `no` | `read_run` |
+| `run.results_not_stored` | By the results read, for a completed run whose output travelled in `/execute`'s answer and was not kept. | 404 | `input` | `no` | `read_run` |
+| `run.lost` | As a failed run's own problem, when the runner can no longer learn how the run ended. Its status is the one `/execute` answers it with. | 500 | `runtime` | `yes` | `retry` |
+| `run.answer_not_kept` | By `/execute`, to the same request under a held key, once the run has ended and the runner kept neither its answer nor its output. | 409 | `input` | `no` | `read_run` |
+| `run.already_ended` | By a runner's own route that changes a run, such as a cancellation, once the run has ended. | 409 | `input` | `no` | `read_run` |
+| `request.idempotency_conflict` | To a request under a held key that is not the same request. | 409 | `input` | `no` | `change_input` |
+| `request.idempotency_key_in_use` | To the same request under a held key, while the first request is still being handled and has started no run, with `retry_after` when known. | 409 | `runtime` | `yes` | `wait` |
+| `request.already_executed` | To a repeat under a held key, on a runner's own route whose answer is never given twice. | 409 | `input` | `no` | `read_run` |
+
 ## Discovery
 
 `GET /models` returns the runner's model deck — the models it can route to (`{name, type}` entries), optionally filtered by category. Implementations may add their own routing metadata (aliases, fallback chains, anything else) as additional properties.
 
-`GET /version` is always public (no auth). It returns `protocol_version` (required), an optional `runner_version`, and an optional `blob_store` flag, which is `true` for a runner that keeps a blob store and serves the [blob routes](#sending-files-by-hash), and `false` or absent for one that does not — implementations may add their own identification on top:
+`GET /version` is always public (no auth). It returns `protocol_version` (required), an optional `runner_version`, an optional `blob_store` flag, which is `true` for a runner that keeps a blob store and serves the [blob routes](#sending-files-by-hash), and `false` or absent for one that does not, and an optional `run_store` flag, which is `true` for a runner that keeps a run store, serves the [run reads](#reading-a-run-and-idempotency-keys) and honours idempotency keys, and `false` or absent for one that does not — implementations may add their own identification on top:
 
 ```json
 {
   "protocol_version": "2.0.0",
   "runner_version": "2.3.0",
-  "blob_store": true
+  "blob_store": true,
+  "run_store": true
 }
 ```
 
-Clients use `/version` as the handshake: it reports the protocol and runner versions and whether the runner takes files by hash, and any additional properties let clients detect vendor extensions before relying on them.
+Clients use `/version` as the handshake: it reports the protocol and runner versions, whether the runner takes files by hash and whether it can be asked about a run after the fact, and any additional properties let clients detect vendor extensions before relying on them.
 
 ### Model categories
 
@@ -259,6 +399,7 @@ The first four members are the RFC's, and the rest are the MTHDS core's:
 | `location` | when the error has a place | Where in the method, the request or the run. |
 | `errors` | when the problem has several faults | One [item](#itemized-errors) per fault. |
 | `pipeline_run_id` | when a run exists | The run the error belongs to, as `/execute` and `/start` name it. |
+| `run_error` | on a read of a failed run's results | The run's own problem, nested, as the [results read](#get-runspipeline_run_idresults) describes. |
 
 The RFC's optional `instance` member is not part of the core: a runner may send it, and a client written against the protocol does not read it.
 
@@ -301,7 +442,7 @@ A case whose actor depends on where something came from is two codes: a URL the 
 
 - `no`: repeating it fails the same way.
 - `yes`: repeating it may succeed, after `retry_after` seconds when that member is given.
-- `outcome_unknown`: the operation may already have taken effect, such as a request whose connection dropped after the runner received it. A client never repeats such an operation automatically; it follows the next step to learn the outcome first.
+- `outcome_unknown`: the operation may already have taken effect, such as a request whose connection dropped after the runner received it. A client never repeats such an operation automatically; it follows the next step to learn the outcome first. Against a runner that keeps a run store, that step reads the run, or sends the request again under the same idempotency key, which never runs it twice ([Reading a run and idempotency keys](#reading-a-run-and-idempotency-keys)).
 
 On a run's own problem the operation is the run, so `yes` means that a new run with the same inputs may succeed.
 
@@ -313,7 +454,7 @@ On a run's own problem the operation is the run, so `yes` means that a new run w
 |---|---|
 | `retry` | Repeats the operation. |
 | `wait` | Waits, then checks again later. |
-| `read_run` | Reads the run to learn its outcome. |
+| `read_run` | Reads the run to learn its outcome, such as through the [status read](#get-runspipeline_run_idstatus) of a runner that keeps a run store. |
 | `refresh` | Fetches the latest state, such as a fresh credential, and applies the change again. |
 | `change_input` | Changes the request or its inputs, which includes supplying the files a runner lacks, by uploading them or by sending them inline, and sending the request again. |
 | `change_method` | Changes the method. |
@@ -419,7 +560,7 @@ Implementations may extend the surface — extra routes, extra optional request 
 
 ## Conformance
 
-An implementation claiming conformance states it as: *implements MTHDS Protocol v2.0*. Conformance means: the five required routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), every error is an RFC 9457 problem document carrying the core members, with a registered code, `/version` is public, and a runner that declares `blob_store: true` serves `POST /blobs/missing` and resolves hash entries from its blob store.
+An implementation claiming conformance states it as: *implements MTHDS Protocol v2.0*. Conformance means: the five required routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), every error is an RFC 9457 problem document carrying the core members, with a registered code, `/version` is public, a runner that declares `blob_store: true` serves `POST /blobs/missing` and resolves hash entries from its blob store, and a runner that declares `run_store: true` serves both run reads and honours an idempotency key on `/execute` and `/start` as [Reading a run and idempotency keys](#reading-a-run-and-idempotency-keys) describes.
 
 The protocol number moves under its own rule — a new route, a new optional field or a new [model category](#model-categories) is a minor bump, a changed shape or meaning is a major one — independently of the standard version. The recommended extension fields above are not such an addition: they are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number. See [Versioning](./versioning.md#the-protocol-version).
 
