@@ -72,7 +72,7 @@ A request's `files` map holds every file of the method's tree under its [tree pa
 
 The map must form a tree. A runner refuses with a `422` naming the offending path a map in which:
 
-- a key is not a tree path, such as a key not already in NFC, which a runner refuses rather than normalize, or names a file the membership rule could never admit, such as a dotfile;
+- a key is not a tree path, such as a key not already in NFC, which a runner refuses rather than normalize, or names a file the membership rule could never admit, such as a dotfile or a run's inputs file at the root, `inputs.json` or `inputs.toml`;
 - one path is given twice, as written or once its JSON escapes are decoded, or an entry object gives one of its own keys twice;
 - two paths [collide](./method-tree.md#tree-paths), or one collides with a directory of another, under the Unicode full case folding the method tree defines, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`;
 - an entry is malformed, such as Base64 whose pad bits are not zero, or a `size` written `13.0`.

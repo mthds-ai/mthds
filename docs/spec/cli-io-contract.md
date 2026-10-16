@@ -135,7 +135,7 @@ When stdin is a TTY (interactive terminal), no stdin reading occurs and the meth
 
 ### 3. Auto-detected `inputs.json`
 
-In directory mode, `inputs.json` in the target directory is auto-detected and used as a fallback when no explicit inputs are provided.
+In directory mode, `inputs.json` in the target directory is auto-detected and used as a fallback when no explicit inputs are provided. When the target directory is the method's root, as it is for a directory holding `METHODS.toml` or one with no manifest above it, the [membership rule](./method-tree.md#run-inputs-at-the-root) keeps that file out of the method tree, so reading it as the run's inputs never carries it into the method's files. Below the root, a file of that name is a member of the tree like any other.
 
 ## Envelope Detection
 

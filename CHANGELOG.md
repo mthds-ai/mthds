@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v8.0.0 · MTHDS standard 8.0.0 · MTHDS Protocol 1.0.0**
+
+### Changed
+
+- **A run's inputs file at the root is out of the method tree (Breaking)** (`spec/method-tree.md`, `spec/protocol.md`, `spec/openapi/mthds-protocol.openapi.yaml`, `spec/cli-io-contract.md`, `packages/structure.md`, `implementers/validation-rules.md`): the membership rule gains a default that keeps a regular file or a symbolic link named `inputs.json` or `inputs.toml` directly under the root out of every tree, so the real data of a run started from a method's directory is never sent or stored as method content, and every program listing the directory leaves it out alike, so the tree a client sends and the tree a save records keep one digest. A tool may still read a root inputs file as a run's inputs, since it no longer travels with the tree. A file of either name below the root stays a member, so a method ships example inputs in a subdirectory such as `examples/inputs.json`, and a receiver refuses a map of file entries holding the key `inputs.json` or `inputs.toml` as it refuses any other file the membership rule never admits. A tree that held a root inputs file now has another digest, which is why the standard moves to `8.0.0`, while the protocol, whose `files` map follows the membership rule, keeps its number.
+
 ## [v7.0.1] - 2026-10-16
 
 **MTHDS standard 7.0.1 · MTHDS Protocol 1.0.0**

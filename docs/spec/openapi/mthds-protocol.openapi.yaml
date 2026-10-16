@@ -473,8 +473,9 @@ components:
         empty, '.' or '..' segment, no segment starting with a dot, no backslash, colon
         or control character, at most 255 UTF-8 bytes per segment and 1024 for the
         path; no segment names a __pycache__ or node_modules directory, no key names
-        a file called pyvenv.cfg, and no key names a file called METHODS.toml anywhere
-        but at the root, which the membership rule never admits. No key is given
+        a file called pyvenv.cfg, no key names a file called METHODS.toml anywhere
+        but at the root, and no key is inputs.json or inputs.toml, a run's inputs
+        file at the root, all of which the membership rule never admits. No key is given
         twice, as written or once its JSON escapes are decoded. No two keys collide,
         and no key collides with a directory of another, under Unicode full case
         folding (the entries of status C and F in the CaseFolding.txt of Unicode 14.0
