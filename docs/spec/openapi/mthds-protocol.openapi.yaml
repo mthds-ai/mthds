@@ -862,7 +862,13 @@ components:
       description: >
         One operation of a suggested fix, discriminated on kind. table_path addresses a
         table of the bundle as its key path from the document root, each segment one
-        key as written, and is empty for the root table.
+        key as written, and is empty for the root table. A runner emits only the kinds
+        of the discriminator mapping. The union is open for readers: an operation whose
+        kind is none of them matches UnknownFixOp, the reader-side catch-all that no
+        runner emits, so the fix, its item and the problem or verdict holding them
+        still validate, and an applier applies none of that fix. A client that derives
+        its types or its validation from this document keeps that catch-all rather than
+        closing the union on the kinds it lists.
       oneOf:
         - $ref: '#/components/schemas/SetKeyOp'
         - $ref: '#/components/schemas/EnsureTableOp'
@@ -871,6 +877,7 @@ components:
         - $ref: '#/components/schemas/RenameTableKeyOp'
         - $ref: '#/components/schemas/MoveKeyOp'
         - $ref: '#/components/schemas/RemapValueOp'
+        - $ref: '#/components/schemas/UnknownFixOp'
       discriminator:
         propertyName: kind
         mapping:
@@ -984,3 +991,19 @@ components:
           type: object
           minProperties: 1
           additionalProperties: { type: string }
+    UnknownFixOp:
+      type: object
+      description: >
+        The reader-side catch-all of FixOp: an operation whose kind is a string none of
+        the kinds this document lists, such as one a later protocol version adds. No
+        runner emits it. It lets a reader validate a fix holding an operation of a kind
+        it does not know, and an applier that meets it applies none of the fix. Its kind
+        excludes exactly the kinds of FixOp's discriminator mapping, so a kind the
+        protocol adds joins both lists.
+      required: [kind]
+      additionalProperties: true
+      properties:
+        kind:
+          type: string
+          not:
+            enum: [set_key, ensure_table, delete_key, delete_table, rename_table_key, move_key, remap_value]

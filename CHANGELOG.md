@@ -6,7 +6,7 @@
 
 ### Added
 
-- **Suggested fixes** (`spec/protocol.md`, `spec/openapi/mthds-protocol.openapi.yaml`): an error item may carry `suggested_fix`, a semantic patch over a bundle rather than a text diff: a `fix_code`, a `description`, a `safety` of `safe` or `unsafe`, an optional `file`, and a list of `ops` discriminated on `kind` (`set_key`, `ensure_table`, `delete_key`, `delete_table`, `rename_table_key`, `move_key`, `remap_value`), each addressing a table by its TOML key path. An operation whose target is absent is skipped, one that would overwrite what the document holds is a conflict that changes nothing, and an applier that meets an operation kind it does not know applies none of the fix.
+- **Suggested fixes** (`spec/protocol.md`, `spec/openapi/mthds-protocol.openapi.yaml`): an error item may carry `suggested_fix`, a semantic patch over a bundle rather than a text diff: a `fix_code`, a `description`, a `safety` of `safe` or `unsafe`, an optional `file`, and a list of `ops` discriminated on `kind` (`set_key`, `ensure_table`, `delete_key`, `delete_table`, `rename_table_key`, `move_key`, `remap_value`), each addressing a table by its TOML key path. An operation whose target is absent is skipped, one that would overwrite what the document holds is a conflict that changes nothing, and an applier that meets an operation kind it does not know applies none of the fix, which still validates against the reader-side catch-all `UnknownFixOp`.
 
 ### Changed
 
