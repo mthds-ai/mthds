@@ -2216,7 +2216,7 @@ codes:
   - code: client.follow_failed
     title: "Following a started run stopped"
     domain: runtime
-    retry: "yes"
+    retry: "outcome_unknown"
     raised_as: client
     detail: "The client stopped following the run '{pipeline_run_id}', which may still be going."
     steps:
@@ -2224,7 +2224,7 @@ codes:
       other: {kind: read_run, detail: "Read the run '{pipeline_run_id}' by its id rather than start it again."}
     params:
       pipeline_run_id: {type: identifier, description: "The run."}
-    meaning: "The runtime acknowledged the run, and following it then failed, so the run may still be going."
+    meaning: "The runtime acknowledged the run, and following it then failed, so the run has started and may still be going or may have ended. The call that started it has taken effect, so it is never repeated automatically."
     what_to_do: "Read the run by its id until it ends. Starting it again would run it twice."
 
   - code: client.not_configured
