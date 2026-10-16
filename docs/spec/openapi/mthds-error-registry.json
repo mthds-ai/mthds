@@ -3888,11 +3888,11 @@
       "steps": {
         "actor": {
           "kind": "read_run",
-          "detail": "Read the run '{pipeline_run_id}' to learn its outcome, or, if the runner honours idempotency keys, send the request again under the same key within 24 hours of the first."
+          "detail": "Read the run '{pipeline_run_id}' to learn its outcome, and never send the request again automatically."
         },
         "other": {
           "kind": "read_run",
-          "detail": "Read the run '{pipeline_run_id}' to learn its outcome, or, if the runner honours idempotency keys, send the request again under the same key within 24 hours of the first."
+          "detail": "Read the run '{pipeline_run_id}' to learn its outcome, and never send the request again automatically."
         }
       },
       "params": {
@@ -3902,7 +3902,7 @@
         }
       },
       "meaning": "The runtime sent the run on to be executed and lost the answer, so the run may have started, may have finished, or may never have begun.",
-      "what_to_do": "Read the run by its id to learn its outcome. A runner that keeps a run store and honours idempotency keys also answers the same request, sent again under the same key within 24 hours of the first request under it, with this run rather than a second one. Past that period, or on a runner that honours no key, a repeat may start a second run, so it is never made automatically.",
+      "what_to_do": "Read the run by its id to learn its outcome. A repeat of the request may start a second run, so it is never made automatically.",
       "see": [
         {
           "title": "HTTP Runner Protocol",
@@ -4533,11 +4533,11 @@
       "steps": {
         "actor": {
           "kind": "read_run",
-          "detail": "Read the run if its id is known, or else, if the runner honours idempotency keys, send the request again under the same key within 24 hours of the first."
+          "detail": "Read the run if its id is known, and otherwise leave the outcome unknown rather than send the request again automatically."
         },
         "other": {
           "kind": "read_run",
-          "detail": "Read the run if its id is known, or else, if the runner honours idempotency keys, send the request again under the same key within 24 hours of the first."
+          "detail": "Read the run if its id is known, and otherwise leave the outcome unknown rather than send the request again automatically."
         }
       },
       "params": {
@@ -4548,7 +4548,7 @@
         }
       },
       "meaning": "The connection dropped, the call timed out, or the caller stopped it, after a request that creates a run had left, so the run may exist.",
-      "what_to_do": "Read the run by its id when the client knows it. When it does not, and the runner keeps a run store and honours idempotency keys, send the request again under the same idempotency key within 24 hours of the first request under it, which answers with the run the first request started and never starts a second. Past that period, or on a runner that honours no key, a repeat may start a second run, so a client that knows no run to read leaves the outcome unknown and never repeats the request automatically."
+      "what_to_do": "Read the run by its id when the client knows it. A client that knows no run to read leaves the outcome unknown and never repeats the request automatically, since a repeat may start a second run."
     },
     {
       "code": "client.follow_failed",
