@@ -168,7 +168,7 @@ The input resolution rules when receiving a full envelope:
     extract-terms --with-memory | assess-risk
     ```
 
-3. **Error on failure**: If the downstream method's declared inputs cannot be satisfied from the upstream's working memory, the downstream method fails with an `input.missing` problem naming the input it cannot satisfy, as [Error Propagation](#error-propagation) shows. When it cannot satisfy several, the problem's own `params` and `location` name the first of them, and its `errors` carries one item per input it cannot satisfy, each naming its input in its own `params` and `location`.
+3. **Error on failure**: If the downstream method's declared inputs cannot be satisfied from the upstream's working memory, the downstream method fails with an `input.missing` problem naming the input it cannot satisfy, as [Error Propagation](#error-propagation) shows. When it cannot satisfy several, it takes them in authored input order, the order in which the method declares its inputs and in which the [input-form descriptor](./input-form-descriptor.md#the-per-pipe-descriptor) lists them: the problem's own `params` and `location` name the first of them, and its `errors` carries one item per input it cannot satisfy, in that same order, each naming its input in its own `params` and `location`.
 
 ## Error Propagation
 
