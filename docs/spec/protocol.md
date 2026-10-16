@@ -411,7 +411,7 @@ The problem document is closed for emitters and open for readers:
 - **A reader falls back on the family.** A reader that meets a code, a domain or a step kind it does not know reads it by the code's family, as it reads the codes of that family it knows, and when it knows nothing of the family either, it reads the domain as `runtime` and the step as `report`. A `retry` it does not know reads as `no`, so that nothing is repeated on a guess. An applier that meets an operation kind it does not know applies none of that fix, and a `safety` it does not know reads as `unsafe`.
 - **An unset member is absent.** A member with no value is left out, never written as `null`, in a problem, in its items and locations, and in a validate verdict's errors and warnings alike.
 
-Because every problem carries its own domain, verdict and step, a client whose registry lags a runner's still reads a new code correctly by these rules. A tool that checks a runner, such as a conformance harness, checks the emitter rules and stays free to reject an unknown value.
+Because every problem carries its own domain, verdict and step, a client whose registry lags a runner's still reads a problem with a new code correctly by these rules. An item carries only its code, so that guarantee does not reach an item whose code the client does not know, such as an item of a validate verdict, which no problem holds: the client reads such an item by the code's family, and when it knows nothing of the family either, as `runtime` and `report`, which need not be the domain and step its code declares. A tool that checks a runner, such as a conformance harness, checks the emitter rules and stays free to reject an unknown value.
 
 ## Extension policy
 
