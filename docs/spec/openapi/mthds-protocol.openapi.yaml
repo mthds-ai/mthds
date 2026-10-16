@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: MTHDS Protocol
-  version: 1.0.0
+  version: 2.0.0
   summary: The minimal HTTP contract every MTHDS runner implements.
   description: >
     Five required routes, and two optional blob routes for a runner that keeps a blob
@@ -10,8 +10,9 @@ info:
     tree, a map of file entries; it keeps no run store and owns no user, billing, or
     catalog concepts. Paths are relative to an implementation-chosen base URL.
     Implementations may extend the surface (extra routes, extra request properties)
-    but must not change the meaning or shape of the protocol routes. All errors are
-    RFC 7807 application/problem+json.
+    but must not change the meaning or shape of the protocol routes. Every error is an
+    RFC 9457 application/problem+json problem document carrying the MTHDS core
+    members (the Problem schema).
   license:
     name: MIT
     identifier: MIT
@@ -234,18 +235,19 @@ components:
       description: Token semantics are implementation-defined.
   responses:
     Problem:
-      description: RFC 7807 problem document.
+      description: An RFC 9457 problem document carrying the MTHDS core members.
       content:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
     ValidationProblem:
       description: >
-        The request failed validation (RFC 7807). On /execute and /start a bad
-        bundle also lands here; on /validate an invalid bundle is a 200 verdict,
-        so there a 422 is request-shape only. A request whose files map is not a
-        tree is a 422 naming the offending path, and a request naming a hash entry
-        the runner does not hold, or any hash entry when it keeps no blob store, is
-        a 422 whose missing_blobs member lists each such hash.
+        A 422 problem document. On /execute and /start a method that does not
+        validate also lands here, one item per fault in errors; on /validate an
+        invalid method is a 200 verdict, so there a 422 is about the request alone.
+        A request whose files map is not a tree is a 422 naming the offending path,
+        and a request naming a hash entry the runner does not hold, or any hash entry
+        when it keeps no blob store, is a 422 coded request.blobs_missing whose
+        params.missing_blobs lists each such hash.
       content:
         application/problem+json:
           schema: { $ref: '#/components/schemas/Problem' }
@@ -351,9 +353,9 @@ components:
       type: object
       description: >
         The is_valid:true arm of the validate response — the bundle is valid. The
-        protocol declares only the is_valid discriminant and the runnability facts;
-        implementations MAY include their own artifacts (parsed structures, graphs,
-        anything else) as additional properties.
+        protocol declares only the is_valid discriminant, the runnability facts and
+        the advisory warnings; implementations MAY include their own artifacts
+        (parsed structures, graphs, anything else) as additional properties.
       required: [is_valid, is_runnable, pending_signatures]
       additionalProperties: true
       properties:
@@ -370,18 +372,13 @@ components:
           type: array
           items: { type: string }
           description: Refs of pipes still declared as unimplemented signatures.
-    ValidationError:
-      type: object
-      description: >
-        One structured diagnostic on an invalid verdict. The protocol fixes only
-        the neutral category + message; an implementation narrows category to its
-        own vocabulary and adds locators (the owning source, a pipe/concept code,
-        a field name) as additional properties.
-      required: [category, message]
-      additionalProperties: true
-      properties:
-        category: { type: string, description: Implementation-defined diagnostic category. }
-        message: { type: string }
+        warnings:
+          type: array
+          items: { $ref: '#/components/schemas/ProblemItem' }
+          description: >
+            Advisory findings, one problem item each, which never make the bundle
+            invalid. Absent or empty when there are none. An unset member of an item is
+            left out, never written as null, as in errors.
     InvalidValidationReport:
       type: object
       description: >
@@ -389,19 +386,28 @@ components:
         invalid bundle is the successful product of a diagnostic call, not a
         transport failure, so it rides a 200. The structural artifacts of a valid
         report do not exist when load/parse/wiring failed, so this arm carries the
-        per-error diagnostics and the runnability facts only.
-      required: [is_valid, validation_errors, is_runnable]
+        faults, the advisory warnings and the runnability facts only.
+      required: [is_valid, errors, is_runnable]
       additionalProperties: true
       properties:
         is_valid:
           type: boolean
           enum: [false]
           description: Discriminant — the bundle is invalid.
-        validation_errors:
+        errors:
           type: array
           minItems: 1
-          items: { $ref: '#/components/schemas/ValidationError' }
-          description: Per-error diagnostics — non-empty on every invalid verdict.
+          items: { $ref: '#/components/schemas/ProblemItem' }
+          description: >
+            One problem item per fault, each with its own code, detail, params and
+            location — non-empty on every invalid verdict. An unset member of an item
+            is left out, never written as null.
+        warnings:
+          type: array
+          items: { $ref: '#/components/schemas/ProblemItem' }
+          description: >
+            Advisory findings in the same item schema, which do not make the verdict
+            invalid. Absent or empty when there are none.
         pending_signatures:
           type: array
           items: { type: string }
@@ -463,7 +469,8 @@ components:
           description: >
             True when the runner keeps a blob store: it serves POST /blobs/missing and
             resolves hash entries in a files map. False or absent when it does not, in
-            which case it answers any hash entry with a 422 listing missing_blobs.
+            which case it answers any hash entry with a 422 coded request.blobs_missing,
+            listing the hashes in params.missing_blobs.
     MethodFiles:
       type: object
       description: >
@@ -514,7 +521,8 @@ components:
       description: >
         Bytes the runner already holds in its blob store, named by their SHA-256 and
         their length. A runner that does not hold them, holds them with another size,
-        or keeps no blob store answers with a 422 listing missing_blobs.
+        or keeps no blob store answers with a 422 coded request.blobs_missing, listing
+        the hashes in params.missing_blobs.
       required: [sha256, size]
       additionalProperties: false
       properties:
@@ -596,17 +604,383 @@ components:
           description: The headers to send, exactly.
     Problem:
       type: object
-      description: RFC 7807.
+      description: >
+        An RFC 9457 problem document carrying the MTHDS core members. type, title,
+        status and detail are the RFC's; code, domain, retry, retry_after, next_step,
+        params, location, errors and pipeline_run_id are the core's. The code decides:
+        its domain, its retry verdict, its next step, its title and its HTTP status are
+        properties of the code, carried on the wire so that a reader needs no lookup,
+        and two cases that need different verdicts are two codes. Closed for emitters,
+        open for readers: a runner emits only registered codes and the listed values,
+        every schema of the document accepts members it does not know, and a reader
+        ignores them, as RFC 9457 requires. A reader that meets a code, a domain or a
+        step kind it does not know reads it by the code's family, then as the domain
+        runtime and the step report. A member with no value is left out, never written
+        as null, and no member carries the content of a run's inputs or outputs.
+      required: [type, title, detail, code, domain, retry, next_step]
+      additionalProperties: true
       properties:
-        type: { type: string, format: uri }
-        title: { type: string }
-        status: { type: integer }
-        detail: { type: string }
-        instance: { type: string }
-        missing_blobs:
-          type: array
-          items: { type: string, pattern: '^[0-9a-f]{64}$' }
+        type:
+          type: string
+          format: uri
           description: >
-            On a 422 refusing hash entries, every hash of the request the runner does
-            not hold, in lowercase hexadecimal, so a sender learns in one answer what to
-            upload.
+            The code's documentation page, derived from the code and its owner's base
+            URL: https://mthds.ai/errors/<code> for a core code, and for an extension
+            code the base URL its prefix is registered with, a slash and the whole code.
+            It names what code names, one to one; a client branches on code.
+        title:
+          type: string
+          description: The code's short title, the same for every occurrence of the code.
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+          description: >
+            The HTTP status of the response this problem is the body of. A runner sets
+            it on every response; a problem kept elsewhere, such as in a run's record,
+            leaves it out.
+        detail:
+          type: string
+          description: >
+            This occurrence, in one or two sentences a person can read. A client never
+            parses it: every fact it states is in params or location.
+        code: { $ref: '#/components/schemas/ProblemCode' }
+        domain: { $ref: '#/components/schemas/ProblemDomain' }
+        retry: { $ref: '#/components/schemas/RetryVerdict' }
+        retry_after:
+          type: number
+          minimum: 0
+          description: >
+            Seconds to wait before repeating the operation, when known. Set only beside
+            a retry of yes.
+        next_step: { $ref: '#/components/schemas/NextStep' }
+        params: { $ref: '#/components/schemas/ProblemParams' }
+        location: { $ref: '#/components/schemas/ProblemLocation' }
+        errors:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/ProblemItem' }
+          description: >
+            One item per fault, for a problem with several, such as a method that does
+            not validate. Absent when the problem has a single fault.
+        pipeline_run_id:
+          type: string
+          description: >
+            The run the error belongs to, as /execute and /start name it. Present when a
+            run exists.
+    ProblemCode:
+      type: string
+      pattern: '^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,2}$'
+      description: >
+        A registry code, lowercase and dotted, each segment matching [a-z][a-z0-9_]*. A
+        core code is bare, exactly a family and a name, such as input.missing. Every
+        other code starts with the prefix its owner registers, then a family and a name,
+        such as acme.billing.credit_exhausted. A code's family is the code without its
+        last segment. The pattern is the code's shape; which codes exist is the
+        registries', so a new code moves no protocol number.
+    ProblemDomain:
+      type: string
+      enum: [input, method, account, operator, runtime]
+      description: >
+        Who must act: input, the caller, by changing the request or its inputs;
+        method, the method's author, by changing the method; account, the account's
+        owner; operator, whoever runs the runtime; runtime, nobody beforehand, so wait,
+        retry or report. A runner MUST NOT emit a value outside this enum. A reader
+        that meets one it does not know reads the domain of the code's family, then
+        runtime; a client that derives its types from this document widens the field
+        to any string.
+    RetryVerdict:
+      type: string
+      enum: ['no', 'yes', outcome_unknown]
+      description: >
+        Whether repeating the operation that produced the problem can succeed. no:
+        repeating it fails the same way. yes: repeating it may succeed, after
+        retry_after when it is given. outcome_unknown: the operation may already have
+        taken effect, so a client never repeats it automatically and follows the next
+        step to learn its outcome first. On a run's own problem the operation is the
+        run, so yes means that a new run with the same inputs may succeed. A runner
+        MUST NOT emit a value outside this enum; a reader that meets one it does not
+        know reads it as no and repeats nothing on a guess.
+    NextStep:
+      type: object
+      description: >
+        What the reader should do next, aimed at whoever reads the problem: each code
+        declares a step for its domain's actor and one for any other reader.
+        Extension-open.
+      required: [kind, detail]
+      additionalProperties: true
+      properties:
+        kind: { $ref: '#/components/schemas/StepKind' }
+        detail:
+          type: string
+          description: The step, in one sentence a person can read.
+    StepKind:
+      type: string
+      enum:
+        - retry
+        - wait
+        - read_run
+        - refresh
+        - change_input
+        - change_method
+        - change_model
+        - check_credentials
+        - request_access
+        - check_account
+        - fix_configuration
+        - upgrade
+        - contact_owner
+        - report
+      description: >
+        The closed list of next steps, as the table under "Next steps" on the protocol
+        page defines them: retry the operation; wait and check again later; read_run,
+        read the run to learn its outcome; refresh, fetch the latest state, such as a
+        fresh credential, and apply the change again; change_input, change the request
+        or its inputs, supplying missing blobs included; change_method; change_model;
+        check_credentials; request_access; check_account, its credit, plan or quotas;
+        fix_configuration, the runtime's; upgrade, the client or the runtime;
+        contact_owner, the owner of the method or of the account; report, with the
+        identifiers the problem carries. A runner MUST NOT emit a value outside this
+        enum. A reader that meets one it does not know reads the step of the code's
+        family, then report; a client that derives its types from this document widens
+        the field to any string.
+    ProblemParams:
+      type: object
+      additionalProperties: true
+      description: >
+        The typed facts the problem's sentences were written from, so that a client
+        acts on data rather than on prose. Each code declares its parameters and their
+        types in its registry; the member is present when the code declares any. A
+        parameter holds an identifier, a number or an enumerated value, or, where its
+        code declares so, the caller's own text, never the content of a run's inputs or
+        outputs. The protocol's own refusal of hash entries, request.blobs_missing,
+        carries missing_blobs: every hash of the request the runner does not hold, in
+        lowercase hexadecimal.
+    ProblemLocation:
+      type: object
+      additionalProperties: true
+      description: >
+        Where the error happened, in the method, the request or the run. Every member
+        is optional, and the member is present when the error has a place. The location
+        of a run's problem is its root fault's, so it names the pipe that failed rather
+        than the controller around it.
+      properties:
+        pipe:
+          type: string
+          description: The failing pipe's code.
+        path:
+          type: array
+          items: { type: string }
+          description: The pipe codes from the run's main pipe down to the failing one.
+        input:
+          type: string
+          description: The name of the input the error concerns.
+        field:
+          type: string
+          description: A dotted path inside an input or a request body.
+        item:
+          type: integer
+          minimum: 0
+          description: The index of the batch item that failed, counted from 0.
+        attempt:
+          type: integer
+          minimum: 1
+          description: The attempt that failed, counted from 1.
+        file:
+          type: string
+          description: The tree path of the method's file the error is in.
+        line:
+          type: integer
+          minimum: 1
+          description: The line in file, counted from 1.
+        column:
+          type: integer
+          minimum: 1
+          description: The column in line, counted from 1.
+    ProblemItem:
+      type: object
+      description: >
+        One fault of a problem with several, as an item of a problem's errors, and the
+        schema of a validate verdict's errors and warnings. An item carries its own
+        code but no verdict: the problem or the verdict holding it does, and a reader
+        that needs an item's domain reads it from the item's code. Extension-open; an
+        unset member is left out, never written as null.
+      required: [code, detail]
+      additionalProperties: true
+      properties:
+        code: { $ref: '#/components/schemas/ProblemCode' }
+        detail:
+          type: string
+          description: This fault, in one or two sentences a person can read.
+        params: { $ref: '#/components/schemas/ProblemParams' }
+        location: { $ref: '#/components/schemas/ProblemLocation' }
+        suggestions:
+          type: array
+          items: { type: string }
+          description: The names a near miss most likely meant, the likeliest first.
+        suggested_fix: { $ref: '#/components/schemas/SuggestedFix' }
+    SuggestedFix:
+      type: object
+      description: >
+        A deterministic fix for one fault: a semantic patch over a bundle of the
+        method, a list of operations addressed by TOML key path rather than a text
+        diff. The operations are the contract; any diff an applier renders from them is
+        presentation. They apply in order, each to the document the previous one left.
+        An operation whose target is absent, or already in the state it would produce,
+        is skipped; one that could only proceed by overwriting something the document
+        holds, such as a rename onto a key the table already has, is a conflict and
+        changes nothing. An applier reports both rather than forcing the change, and
+        one that meets an operation kind it does not know applies none of the fix.
+        Extension-open.
+      required: [fix_code, description, safety, ops]
+      additionalProperties: true
+      properties:
+        fix_code:
+          type: string
+          pattern: '^[a-z0-9]+(-[a-z0-9]+)*$'
+          description: The implementation's kebab-case name for the rule that produced the fix, such as match-sequence-output.
+        description:
+          type: string
+          description: What the fix does, in one sentence a person can read.
+        safety:
+          type: string
+          enum: [safe, unsafe]
+          description: >
+            safe: the fix may be applied without asking anyone. unsafe: a likely
+            correction that a person or an agent confirms before it is applied. A
+            reader that meets a value it does not know reads it as unsafe.
+        file:
+          type: string
+          description: >
+            The tree path of the bundle the operations patch. When absent, they patch
+            the file the item's location names.
+        ops:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/FixOp' }
+    FixOp:
+      description: >
+        One operation of a suggested fix, discriminated on kind. table_path addresses a
+        table of the bundle as its key path from the document root, each segment one
+        key as written, and is empty for the root table.
+      oneOf:
+        - $ref: '#/components/schemas/SetKeyOp'
+        - $ref: '#/components/schemas/EnsureTableOp'
+        - $ref: '#/components/schemas/DeleteKeyOp'
+        - $ref: '#/components/schemas/DeleteTableOp'
+        - $ref: '#/components/schemas/RenameTableKeyOp'
+        - $ref: '#/components/schemas/MoveKeyOp'
+        - $ref: '#/components/schemas/RemapValueOp'
+      discriminator:
+        propertyName: kind
+        mapping:
+          set_key: '#/components/schemas/SetKeyOp'
+          ensure_table: '#/components/schemas/EnsureTableOp'
+          delete_key: '#/components/schemas/DeleteKeyOp'
+          delete_table: '#/components/schemas/DeleteTableOp'
+          rename_table_key: '#/components/schemas/RenameTableKeyOp'
+          move_key: '#/components/schemas/MoveKeyOp'
+          remap_value: '#/components/schemas/RemapValueOp'
+    TablePath:
+      type: array
+      items: { type: string }
+      description: A table's key path from the document root, each segment one key as written.
+    TomlValue:
+      description: A value set_key writes, a TOML scalar or an inline table of scalars.
+      anyOf:
+        - type: string
+        - type: number
+        - type: boolean
+        - type: object
+          additionalProperties:
+            anyOf:
+              - type: string
+              - type: number
+              - type: boolean
+    SetKeyOp:
+      type: object
+      description: Write key = value in the table at table_path, replacing any value the key holds.
+      required: [kind, table_path, key, value]
+      additionalProperties: true
+      properties:
+        kind: { type: string, const: set_key }
+        table_path: { $ref: '#/components/schemas/TablePath' }
+        key: { type: string }
+        value: { $ref: '#/components/schemas/TomlValue' }
+    EnsureTableOp:
+      type: object
+      description: >
+        Create the table at table_path when it is absent, leaving an existing one
+        untouched. table_path names the table itself, so it is never empty.
+      required: [kind, table_path]
+      additionalProperties: true
+      properties:
+        kind: { type: string, const: ensure_table }
+        table_path:
+          type: array
+          minItems: 1
+          items: { type: string }
+          description: The key path of the table itself, from the document root.
+    DeleteKeyOp:
+      type: object
+      description: Remove key from the table at table_path.
+      required: [kind, table_path, key]
+      additionalProperties: true
+      properties:
+        kind: { type: string, const: delete_key }
+        table_path: { $ref: '#/components/schemas/TablePath' }
+        key: { type: string }
+    DeleteTableOp:
+      type: object
+      description: >
+        Remove the table at table_path, every part of it included. table_path names the
+        table itself, so it is never empty: the root table is never removed.
+      required: [kind, table_path]
+      additionalProperties: true
+      properties:
+        kind: { type: string, const: delete_table }
+        table_path:
+          type: array
+          minItems: 1
+          items: { type: string }
+          description: The key path of the table itself, from the document root.
+    RenameTableKeyOp:
+      type: object
+      description: Rename key to new_key within the table at table_path, keeping its value and its position.
+      required: [kind, table_path, key, new_key]
+      additionalProperties: true
+      properties:
+        kind: { type: string, const: rename_table_key }
+        table_path: { $ref: '#/components/schemas/TablePath' }
+        key: { type: string }
+        new_key: { type: string }
+    MoveKeyOp:
+      type: object
+      description: >
+        Move key, with its whole value, from the table at table_path into the table at
+        new_table_path under new_key, creating the destination tables that do not
+        exist.
+      required: [kind, table_path, key, new_table_path, new_key]
+      additionalProperties: true
+      properties:
+        kind: { type: string, const: move_key }
+        table_path: { $ref: '#/components/schemas/TablePath' }
+        key: { type: string }
+        new_table_path: { $ref: '#/components/schemas/TablePath' }
+        new_key: { type: string }
+    RemapValueOp:
+      type: object
+      description: >
+        Rewrite the string value of key in the table at table_path through mapping,
+        from an old value to its new one, doing nothing when the value is not a key of
+        the mapping.
+      required: [kind, table_path, key, mapping]
+      additionalProperties: true
+      properties:
+        kind: { type: string, const: remap_value }
+        table_path: { $ref: '#/components/schemas/TablePath' }
+        key: { type: string }
+        mapping:
+          type: object
+          minProperties: 1
+          additionalProperties: { type: string }

@@ -8,8 +8,8 @@ MTHDS carries **two version numbers**, and they move independently:
 
 | Number | Governs | Current |
 |---|---|---|
-| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff | `7.0.0` |
-| **Protocol version** | The HTTP runner contract — its routes and their request and response shapes | `1.0.0` |
+| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff | `7.0.1` |
+| **Protocol version** | The HTTP runner contract — its routes, their request and response shapes, and the problem document every error is | `2.0.0` |
 
 Both are [Semantic Versioning 2.0.0](https://semver.org/) numbers. Everything else that carries a version — a package's own `version`, a runner's `runner_version`, an implementation's release number — belongs to that package, runner, or implementation and is governed by whoever publishes it.
 
@@ -61,7 +61,9 @@ The [HTTP runner protocol](./protocol.md) is versioned separately, on its own ca
 - **MINOR** — an addition. A new route, a new optional request field, a new response field, a new value of an enumerated response field. A client written against the previous version keeps working unmodified.
 - **PATCH** — a clarification of the document that changes no shape.
 
-A new value of an enumerated response field is a **MINOR** change because the protocol requires a client to accept a value it does not recognize. The [reader rule](./protocol.md#model-categories) states that requirement for a deck entry's model category, the only response enum that can grow, since the others are the `true` and `false` verdict flags of the validate report; a response enum the protocol adds later states a reader rule of its own. A client written to the rule keeps working. A client that rejected unknown values breaks all the same, so the changelog marks such a change breaking, the way it marks a minor standard change that a runtime has to follow.
+A new value of an enumerated response field is a **MINOR** change because the protocol requires a client to accept a value it does not recognize. The reader rules state that requirement for every response enum that can grow: a deck entry's [model category](./protocol.md#model-categories), and a problem document's `domain`, `retry` and `next_step.kind`, a suggested fix's `safety` and its operations' `kind` ([Readers and emitters](./protocol.md#readers-and-emitters)). The validate report's `true` and `false` verdict flags cannot grow, and a response enum the protocol adds later states a reader rule of its own. A client written to the rules keeps working. A client that rejected unknown values breaks all the same, so the changelog marks such a change breaking, the way it marks a minor standard change that a runtime has to follow.
+
+A problem's `code` is not an enumerated field. The protocol fixes a code's shape and leaves which codes exist to the registries, so a new code, in the core registry or under a registered prefix, moves no protocol number; a reader that does not know it reads it by its family.
 
 A [recommended extension field](./protocol.md#validating-a-bundle) is none of those additions. What the protocol version numbers is the base surface — the routes and the response fields of the normative OpenAPI document. The artifacts the standard names on the validate report's extension surface are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number: a runner may report or omit any of them at the same protocol version, and a client learns which it got from the report itself rather than from the handshake.
 

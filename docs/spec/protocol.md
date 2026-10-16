@@ -1,5 +1,5 @@
 ---
-description: "The MTHDS Protocol — the minimal HTTP contract every MTHDS runner implements: execute, start, validate, models, version, and the optional blob routes."
+description: "The MTHDS Protocol — the minimal HTTP contract every MTHDS runner implements: execute, start, validate, models, version, the optional blob routes, and the problem document every error is."
 ---
 
 # HTTP Runner Protocol
@@ -22,7 +22,7 @@ The normative artifact is the OpenAPI document: [`mthds-protocol.openapi.yaml`](
 
 The first five routes are required of every runner. The last two are served by a runner whose `/version` declares `blob_store: true`, and `PUT /blobs/{sha256}` only by one that stores uploaded bytes itself rather than pointing its senders at another upload target.
 
-All errors are [RFC 7807](https://www.rfc-editor.org/rfc/rfc7807) `application/problem+json` documents. Auth is implementation-defined: a bearer-token slot is reserved, and anonymous access is allowed for self-hosted runners.
+Every error is a problem document of [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457), served as `application/problem+json`, that carries the MTHDS core members described under [Errors](#errors). Auth is implementation-defined: a bearer-token slot is reserved, and anonymous access is allowed for self-hosted runners.
 
 ## Base URL and versioning
 
@@ -77,7 +77,28 @@ The map must form a tree. A runner refuses with a `422` naming the offending pat
 - two paths [collide](./method-tree.md#tree-paths), or one collides with a directory of another, under the Unicode full case folding the method tree defines, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`;
 - an entry is malformed, such as Base64 whose pad bits are not zero, or a `size` written `13.0`.
 
-A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem whose `missing_blobs` member lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer what to upload. The tree's files are the method's own: a file a caller supplies for one run is an input, never an entry of `files`.
+A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem coded `request.blobs_missing`, whose `params.missing_blobs` lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer what to upload:
+
+```json
+{
+  "type": "https://mthds.ai/errors/request.blobs_missing",
+  "title": "The runner does not hold some files sent by hash",
+  "status": 422,
+  "detail": "This runner does not hold a file the request sends by hash.",
+  "code": "request.blobs_missing",
+  "domain": "input",
+  "retry": "no",
+  "next_step": {
+    "kind": "change_input",
+    "detail": "Upload each listed blob, then send the request again."
+  },
+  "params": {
+    "missing_blobs": ["3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0"]
+  }
+}
+```
+
+Uploading the listed blobs and sending the request again is a change to the request, so the step is `change_input`. The tree's files are the method's own: a file a caller supplies for one run is an input, never an entry of `files`.
 
 A runner reads a method only from the files it is sent. A [file reference](./method-tree.md#file-references) resolves in the tree's set of paths and a hash in the blob store, so no request names a path on the runner's own disk. Each implementation bounds a file's size, the tree's file count and its total size, and the total of the inline entries, and refuses a tree past one of them with a problem naming the limit.
 
@@ -98,7 +119,9 @@ The protocol mandates no run store, and it defines **no completion channel for `
 `/validate` is a **diagnostic endpoint**: its job is to return a *verdict* about the submitted bundle, and every verdict it can produce — valid or invalid — rides a **200**, discriminated in the body on the mandatory `is_valid` field.
 
 - **`is_valid: true`** — the bundle is valid. The protocol declares the `is_valid` discriminant plus the runnability facts (`is_runnable`, and `pending_signatures` — refs of pipes still declared as unimplemented signatures); implementations MAY include their own artifacts (parsed structures, graphs, anything else) as additional properties.
-- **`is_valid: false`** — the bundle is invalid. The body carries `validation_errors[]` (a non-empty list of structured diagnostics, each at least a `category` and a `message`) plus `is_runnable: false` and an optional `message`. The structural artifacts of a valid report are absent.
+- **`is_valid: false`** — the bundle is invalid. The body carries `errors[]`, a non-empty list of [problem items](#itemized-errors), one per fault, each with its own `code`, `detail`, `params` and `location` and optionally `suggestions` and a [`suggested_fix`](#suggested-fixes), plus `is_runnable: false` and an optional `message`. The structural artifacts of a valid report are absent.
+
+Either arm may carry `warnings[]`: advisory findings in the same item schema, which never make a bundle invalid. On every arm a member with no value is left out rather than written as `null`, in the items of `warnings` as in those of `errors`. An item carries no verdict of its own: `is_valid` is the verdict, and a reader that needs an item's domain reads it from the item's code.
 
 **Three recommended extension fields.** The protocol's base fields stay exactly as listed above, but three artifacts are common enough — and useful enough to a client that has just learned a bundle is valid — that the standard names them and fixes their shapes rather than letting each implementation invent its own. On the `is_valid: true` arm, an implementation SHOULD report them under these names: **`pipe_io_contracts`**, the per-pipe input and output contracts, whose shape is defined by [Pipe I/O Contracts](./pipe-io-contracts.md); **`input_form`**, the per-pipe ordered presentation view of a method's inputs, whose shape is defined by [Input-Form Descriptor](./input-form-descriptor.md); and **`output_form`**, the per-pipe presentation view of what each pipe resolves to, whose shape is defined by [Output-Form Descriptor](./output-form-descriptor.md). All three derive from the validated library, so none can appear on the `is_valid: false` arm — there is no library to derive from when loading or wiring failed. They remain *extension* fields in the sense of the [extension policy](#extension-policy): a conformant runner may omit them, and a client written against the base fields alone is unaffected. What the standard fixes is that a runner reporting them reports **these shapes** under **these names**. How a caller *asks* for them — always on, an opt-in request token, a separate route — is implementation-defined; all three artifacts are equally derivable offline from a resolved library, and the protocol carriage is one way to obtain them, not what they are.
 
@@ -165,7 +188,7 @@ The upload target of a runner that stores bytes itself. The body is the blob's b
 
 ```json
 {
-  "protocol_version": "1.0.0",
+  "protocol_version": "2.0.0",
   "runner_version": "2.3.0",
   "blob_store": true
 }
@@ -196,13 +219,207 @@ The `enum` on a deck entry's `type` in the OpenAPI document is the emitter's con
 
 The reader rule is what makes a new category a minor change: a client written against one protocol version keeps working when a runner of a later minor version reports a category the client has never heard of. It governs a client *reading* a list on purpose. A tool that checks a runner, such as a conformance harness, is checking the emitter rule and stays free to reject an unknown value. In the other direction, a client that filters on a category its runner's protocol version does not define gets a `422`, and learns from `GET /version` which protocol version the runner implements.
 
+## Errors
+
+Every error a runner answers is a problem document of [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457), served as `application/problem+json`, carrying the MTHDS core members beside the RFC's own. A run that failed, as the caller of `/execute` reads it:
+
+```json
+{
+  "type": "https://mthds.ai/errors/pipe.output_multiplicity",
+  "title": "A pipe's output does not have the declared multiplicity",
+  "status": 422,
+  "detail": "Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item.",
+  "code": "pipe.output_multiplicity",
+  "domain": "method",
+  "retry": "no",
+  "next_step": {
+    "kind": "change_method",
+    "detail": "Declare the output 'clause' as a list, or make pipe 'extract_clauses' produce a single item."
+  },
+  "params": { "pipe": "extract_clauses", "output": "clause", "declared": "single", "produced": "list" },
+  "location": { "pipe": "extract_clauses", "path": ["review_contract", "extract_clauses"] },
+  "pipeline_run_id": "8c1f6a52-3d1e-4b7a-9f0e-2a5c7d9e4b10"
+}
+```
+
+The first four members are the RFC's, and the rest are the MTHDS core's:
+
+| Member | Present | Meaning |
+|---|---|---|
+| `type` | always | The code's documentation page, derived from the code (see [The `type` URI](#the-type-uri)). |
+| `title` | always | The code's short title, the same for every occurrence of the code. |
+| `status` | on an HTTP response | The HTTP status of the response the problem is the body of. A runner sets it on every response; a problem kept elsewhere, such as in a run's record, leaves it out. |
+| `detail` | always | This occurrence, in one or two sentences a person can read. |
+| `code` | always | The registry [code](#codes): what happened. |
+| `domain` | always | [Who must act](#domain-who-must-act). |
+| `retry` | always | Whether [repeating the operation](#retry) that produced the problem can succeed. |
+| `retry_after` | when known | Seconds to wait before repeating it, beside a `retry` of `yes`. |
+| `next_step` | always | What the reader should do [next](#next-steps): a `kind` from a closed list and a `detail` sentence. |
+| `params` | when the code declares parameters | The typed facts the problem's sentences were written from. |
+| `location` | when the error has a place | Where in the method, the request or the run. |
+| `errors` | when the problem has several faults | One [item](#itemized-errors) per fault. |
+| `pipeline_run_id` | when a run exists | The run the error belongs to, as `/execute` and `/start` name it. |
+
+The RFC's optional `instance` member is not part of the core: a runner may send it, and a client written against the protocol does not read it.
+
+**The code decides.** Every problem carries exactly one code from a registry, and its domain, its retry verdict, its next step, its title and its HTTP status are properties of that code. The wire carries them so that a reader needs no lookup, but a runner never sets them independently of the code: two cases that need different verdicts are two codes. A client branches on `code`, and on `domain`, `retry` and `next_step.kind` when it handles several codes alike. It never parses `title`, `detail` or `next_step.detail`, which are written for a person, so every fact they state is also a member: the typed facts in `params`, the place in `location`. No member of a problem carries the content of a run's inputs or outputs.
+
+### Codes
+
+A code is lowercase and dotted, each segment matching `[a-z][a-z0-9_]*`. A core code is bare, exactly a family and a name, such as `input.missing` or `request.blobs_missing`. A code belongs to the core when any conforming runner or client could raise it, independently of hosting, billing or a vendor's components. The MTHDS core registry lists the core codes and gives each its title, domain, retry verdict, steps, parameters and HTTP status. A code's **family** is the code without its last segment, so `request.blobs_missing` belongs to the family `request`.
+
+**Extension codes.** Every other code starts with a prefix its owner registers, followed by a family and a name: `<prefix>.<family>.<name>`, such as `acme.billing.credit_exhausted`. A prefix is one segment of the same form, it is never the name of a core family, and it belongs to one owner, who alone adds codes under it. What the protocol leaves to implementations, such as billing or a catalog of saved methods, is coded under the implementation's own prefix.
+
+**Declaring a prefix.** An owner declares an extension prefix in two steps:
+
+1. It publishes a registry of its own codes, in the format of the core registry, that names the prefix and the base URL its codes' pages are published under, and declares for each code everything the core registry declares for a core code.
+2. It registers the prefix with the standard, through the [contribution process](../about/contributing.md), as an entry of the core registry's list of extension prefixes naming the prefix, its owner and that base URL. A registered prefix is never reassigned to another owner.
+
+A runner emits a code under a prefix only once the prefix is registered and the code is in its owner's registry.
+
+### The `type` URI
+
+`type` is derived from the code and its owner's base URL: the base URL, a slash, then the whole code. The core's base URL is `https://mthds.ai/errors`, so the core code `input.missing` has the type `https://mthds.ai/errors/input.missing`. An extension code is joined, its prefix included, to the base URL its prefix is registered with: under a prefix registered with `https://errors.acme.example`, the code `acme.billing.credit_exhausted` has the type `https://errors.acme.example/acme.billing.credit_exhausted`. The page at a type URI says what the code means and what to do about it. Because `type` and `code` name the same thing one to one, a client branches on `code` and never takes a code apart from `type`.
+
+### Domain: who must act
+
+The domain answers the first question a reader has: can I fix this myself, and if not, who can. Its list is closed:
+
+| Domain | Who acts | Examples |
+|---|---|---|
+| `input` | The caller, by changing the request or its inputs | A required input is missing; an input is not the declared concept; a request body is malformed; the runner does not hold a file sent by hash. |
+| `method` | The method's author, by changing the method | The method does not validate; a pipe's output has the wrong multiplicity at run time; the method names a model that exists nowhere. |
+| `account` | The account's owner | A refused credential; a missing permission; an exhausted quota. |
+| `operator` | Whoever runs the runtime | The method names a model that exists, but this runner serves no backend for it; a misconfigured server. |
+| `runtime` | Nobody beforehand: wait, retry or report | A provider outage; a timeout; a model's structured output that did not match its schema; a fault of the runtime itself. |
+
+A case whose actor depends on where something came from is two codes: a URL the runner refuses to fetch is the caller's when an input named it and the method's author's when the method did.
+
+### Retry
+
+`retry` says whether repeating the operation that produced the problem can succeed, and its list is closed:
+
+- `no`: repeating it fails the same way.
+- `yes`: repeating it may succeed, after `retry_after` seconds when that member is given.
+- `outcome_unknown`: the operation may already have taken effect, such as a request whose connection dropped after the runner received it. A client never repeats such an operation automatically; it follows the next step to learn the outcome first.
+
+On a run's own problem the operation is the run, so `yes` means that a new run with the same inputs may succeed.
+
+### Next steps
+
+`next_step` tells the reader what to do next, as a `kind` from a closed list and a `detail` sentence:
+
+| Kind | What the reader does |
+|---|---|
+| `retry` | Repeats the operation. |
+| `wait` | Waits, then checks again later. |
+| `read_run` | Reads the run to learn its outcome. |
+| `refresh` | Fetches the latest state, such as a fresh credential, and applies the change again. |
+| `change_input` | Changes the request or its inputs, which includes uploading the blobs a runner lacks and sending the request again. |
+| `change_method` | Changes the method. |
+| `change_model` | Chooses another model. |
+| `check_credentials` | Checks the credential the request sent. |
+| `request_access` | Asks for the permission the operation needs. |
+| `check_account` | Checks the account's credit, plan or quotas. |
+| `fix_configuration` | Fixes the runtime's configuration. |
+| `upgrade` | Upgrades the client or the runtime. |
+| `contact_owner` | Contacts the owner of the method or of the account. |
+| `report` | Reports the problem, with the identifiers it carries. |
+
+A step is aimed at whoever reads the problem, not at the domain's actor. Each code declares a step for its actor and one for any other reader: a caller who runs a method someone else owns reads `contact_owner` where the method's author would read `change_method`, and a member of an account who cannot change it reads `contact_owner` where its owner would read `check_account`. There is no unknown step: every code declares its steps, and the catch-all code, for a fault no other code describes, says `report`.
+
+### Parameters and location
+
+`params` holds the typed facts the problem's sentences were written from, such as the pipe, the output and the two multiplicities in the example above, so that a client acts on data rather than on prose. Each code declares its parameters and their types in its registry, and `params` is present when the code declares any. A parameter holds an identifier, a number or an enumerated value, or, where its code declares so, the caller's own text, such as a parser's finding about the caller's method; it never holds the content of a run's inputs or outputs.
+
+`location` says where the error happened. Every member is optional:
+
+| Member | Meaning |
+|---|---|
+| `pipe` | The failing pipe's code. |
+| `path` | The pipe codes from the run's main pipe down to the failing one. |
+| `input` | The name of the input the error concerns. |
+| `field` | A dotted path inside an input or a request body. |
+| `item` | The index of the batch item that failed, counted from 0. |
+| `attempt` | The attempt that failed, counted from 1. |
+| `file` | The [tree path](./method-tree.md#tree-paths) of the method's file the error is in. |
+| `line` | The line in `file`, counted from 1. |
+| `column` | The column in `line`, counted from 1. |
+
+The location of a run's problem is its root fault's, so it names the pipe that failed rather than the controller around it.
+
+### Itemized errors
+
+A problem with several faults, such as a method that does not validate, carries one item per fault in `errors`, and the errors and warnings of a [validate verdict](#validating-a-bundle) are items of the same schema:
+
+```json
+{
+  "code": "method.input_unused",
+  "detail": "Pipe 'summarize' declares the input 'draft' but never reads it.",
+  "params": { "pipe": "summarize", "variables": ["draft"] },
+  "location": { "pipe": "summarize", "file": "contracts.mthds", "line": 12, "column": 1 },
+  "suggested_fix": {
+    "fix_code": "remove-unused-input",
+    "description": "Remove the input 'draft' from pipe 'summarize'.",
+    "safety": "unsafe",
+    "ops": [
+      { "kind": "delete_key", "table_path": ["pipe", "summarize", "inputs"], "key": "draft" }
+    ]
+  }
+}
+```
+
+| Member | Present | Meaning |
+|---|---|---|
+| `code` | always | The fault's code. |
+| `detail` | always | This fault, in one or two sentences a person can read. |
+| `params` | when the code declares parameters | The fault's typed facts. |
+| `location` | when the fault has a place | Where the fault is. |
+| `suggestions` | optional | The names a near miss most likely meant, the likeliest first. |
+| `suggested_fix` | optional | A [semantic patch](#suggested-fixes) that fixes the fault. |
+
+An item carries no verdict of its own: the problem or the verdict that holds it does, and a reader that needs an item's domain reads it from the item's code.
+
+### Suggested fixes
+
+A `suggested_fix` is a semantic patch over a bundle: a list of operations addressed by TOML key path, never a text diff. Its members are `fix_code`, the implementation's kebab-case name for the rule that produced it; `description`, one sentence saying what it does; `safety`; `file`, the tree path of the bundle it patches, which defaults to the file the item's `location` names; and `ops`, a non-empty list of operations discriminated on `kind`.
+
+`safety` is `safe` for a fix that may be applied without asking anyone, and `unsafe` for a likely correction that a person or an agent confirms before it is applied.
+
+Every operation names a table by `table_path`, the table's key path from the document root, each segment one key as written, and empty for the root table:
+
+| Kind | Members | Effect |
+|---|---|---|
+| `set_key` | `table_path`, `key`, `value` | Writes `key = value` in the table, replacing any value the key holds. The value is a TOML scalar or an inline table of scalars. |
+| `ensure_table` | `table_path` | Creates the table at `table_path` when it is absent, and leaves an existing one untouched. |
+| `delete_key` | `table_path`, `key` | Removes `key` from the table. |
+| `delete_table` | `table_path` | Removes the table at `table_path`, every part of it included. |
+| `rename_table_key` | `table_path`, `key`, `new_key` | Renames `key` to `new_key` within the table, keeping its value and its position. |
+| `move_key` | `table_path`, `key`, `new_table_path`, `new_key` | Moves `key`, with its whole value, into the table at `new_table_path` under `new_key`, creating the destination tables that do not exist. |
+| `remap_value` | `table_path`, `key`, `mapping` | Rewrites the string value of `key` through `mapping`, from an old value to its new one, and does nothing when the value is not a key of the mapping. |
+
+For `ensure_table` and `delete_table`, `table_path` names the table acted on rather than the table holding a key, so it is never empty, and the root table is never removed.
+
+The operations apply in order, each to the document the previous one left. An operation whose target is absent, such as a key to delete or the table holding it, or already in the state the operation would produce, is skipped. One that could only proceed by overwriting something the document holds, such as a rename onto a key the table already has, is a conflict and changes nothing. An applier reports skips and conflicts rather than forcing the change. The operations are the contract, and any diff an applier shows from them is presentation.
+
+### Readers and emitters
+
+The problem document is closed for emitters and open for readers:
+
+- **A runner emits only what is registered.** Every code it emits is in a registry, the core's or that of a registered prefix, and every value it puts in `domain`, `retry`, `next_step.kind`, a fix's `safety` or an operation's `kind` is one this page lists. The enums of the OpenAPI document are the emitter's contract.
+- **A reader accepts what it does not know.** Every schema of the problem document, its items, locations, steps, fixes and operations included, accepts members it does not declare, and a reader ignores a member it does not know, as RFC 9457 requires. A client that derives its types or its validation from the OpenAPI document widens each of these enums to any string, as it does for [model categories](#model-categories).
+- **A reader falls back on the family.** A reader that meets a code, a domain or a step kind it does not know reads it by the code's family, as it reads the codes of that family it knows, and when it knows nothing of the family either, it reads the domain as `runtime` and the step as `report`. A `retry` it does not know reads as `no`, so that nothing is repeated on a guess. An applier that meets an operation kind it does not know applies none of that fix, and a `safety` it does not know reads as `unsafe`.
+- **An unset member is absent.** A member with no value is left out, never written as `null`, in a problem, in its items and locations, and in a validate verdict's errors and warnings alike.
+
+Because every problem carries its own domain, verdict and step, a client whose registry lags a runner's still reads a new code correctly by these rules. A tool that checks a runner, such as a conformance harness, checks the emitter rules and stays free to reject an unknown value.
+
 ## Extension policy
 
 Implementations may extend the surface — extra routes, extra optional request properties, extra response properties — but **must not change the meaning or shape of the protocol routes**. Both sides of the wire are extension-open: request bodies accept implementation-defined args, and the protocol's response schemas declare only the base fields (`additionalProperties` allowed). A client written against the MTHDS Protocol runs unmodified against any compliant runner; a vendor's superset may accept and return more, but never diverges on the surface defined here.
 
 ## Conformance
 
-An implementation claiming conformance states it as: *implements MTHDS Protocol v1.0*. Conformance means: the five required routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), errors are RFC 7807 problems, `/version` is public, and a runner that declares `blob_store: true` serves `POST /blobs/missing` and resolves hash entries from its blob store.
+An implementation claiming conformance states it as: *implements MTHDS Protocol v2.0*. Conformance means: the five required routes exist with the request/response shapes of [`mthds-protocol.openapi.yaml`](openapi/mthds-protocol.openapi.yaml), every error is an RFC 9457 problem document carrying the core members, with a registered code, `/version` is public, and a runner that declares `blob_store: true` serves `POST /blobs/missing` and resolves hash entries from its blob store.
 
 The protocol number moves under its own rule — a new route, a new optional field or a new [model category](#model-categories) is a minor bump, a changed shape or meaning is a major one — independently of the standard version. The recommended extension fields above are not such an addition: they are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number. See [Versioning](./versioning.md#the-protocol-version).
 
