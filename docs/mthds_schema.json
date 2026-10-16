@@ -1335,7 +1335,7 @@
     },
     "PipeDocGenBlueprint": {
       "additionalProperties": false,
-      "description": "Generate a document file from a method's structured result: a PDF, an Excel workbook, a Word document or a PowerPoint deck.\n\nIt calls no AI model: it lays out or fills what its inputs already hold. With no template, the pipe lays its inputs\nout by itself (the auto-layout), for every format but `pptx`. `template` is an inline HTML and Jinja2 template, for\n`pdf` only; `template_file` is a path relative to the bundle's file: an `.html` for `pdf`, an `.xlsx` for `xlsx`, a\n`.docx` for `docx` and a `.pptx` for `pptx`, which `pptx` requires. `filename` is a Jinja expression over the\ninputs; the suffix is added. The output must be a single `Document`, or a concept refining it. `model` names the\ndocument engine that prints it, a model of the `doc_gen` family such as `reportlab-pdf` or, with the Pipelex\ndocument generation plugin, `pipelex-pdf`; without it, the model deck's default for the format and source prints\nit. Which engines a runtime has depends on its plugins: open Pipelex prints a `pdf` without a template on\n`reportlab-pdf`, and a runtime without the engine a step needs refuses the method when it loads.",
+      "description": "Generate a document file from a method's structured result: a PDF, an Excel workbook, a Word document or a PowerPoint deck.\n\nIt calls no AI model: it lays out or fills what its inputs already hold. With no template, the pipe lays its inputs\nout by itself (the auto-layout), for every format but `pptx`. `template` is an inline HTML and Jinja2 template, for\n`pdf` only; `template_file` is a path relative to the bundle's file, inside its bundle and written with forward\nslashes: an `.html` for `pdf`, an `.xlsx` for `xlsx`, a\n`.docx` for `docx` and a `.pptx` for `pptx`, which `pptx` requires. `filename` is a Jinja expression over the\ninputs; the suffix is added. The output must be a single `Document`, or a concept refining it. `model` names the\ndocument engine that prints it, a model of the `doc_gen` family such as `reportlab-pdf` or, with the Pipelex\ndocument generation plugin, `pipelex-pdf`; without it, the model deck's default for the format and source prints\nit. Which engines a runtime has depends on its plugins: open Pipelex prints a `pdf` without a template on\n`reportlab-pdf`, and a runtime without the engine a step needs refuses the method when it loads.",
       "properties": {
         "type": {
           "default": "PipeDocGen",
@@ -1633,7 +1633,8 @@
           "type": "string"
         },
         "function_name": {
-          "description": "The name of the function to call.",
+          "description": "The import path of the function to call, from the root of the method tree: the module's dotted path, then the function's name, such as 'funcs.totals.compute_totals' for the function compute_totals of funcs/totals.py. The function must be a top-level def or async def of that module, decorated with @pipe_func().",
+          "pattern": "^[^.]+(\\.[^.]+)+$",
           "title": "Function Name",
           "type": "string"
         }
@@ -2995,7 +2996,7 @@
     }
   },
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$comment": "Generated from PipelexBundleBlueprint v0.82.0. Do not edit manually.",
+  "$comment": "Generated from PipelexBundleBlueprint v0.87.0. Do not edit manually.",
   "x-taplo": {
     "initKeys": [
       "domain"
