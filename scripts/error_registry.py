@@ -348,14 +348,19 @@ def example_errors(registry: dict) -> list[str]:
         if not isinstance(node, dict):
             return
         code = node.get("code")
+        # A code of exactly two segments is a core code by its shape, so one whose family the
+        # registry does not declare is refused rather than skipped, as a misspelt family would be.
         if isinstance(code, str) and re.fullmatch(r"[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*", code):
-            if family_of(code) in families:
-                errors.extend(problem_errors(node, code, entries.get(code), where, is_item))
+            errors.extend(problem_errors(node, code, entries.get(code), where, is_item))
         for key, value in node.items():
             check(value, where, is_item or key in ("errors", "warnings"))
 
     def problem_errors(node: dict, code: str, entry: dict | None, where: str, is_item: bool) -> list[str]:
         if entry is None:
+            if family_of(code) not in families:
+                return [
+                    f"{where}: the example uses {code}, whose family {family_of(code)} the registry does not declare"
+                ]
             return [f"{where}: the example uses {code}, which the registry does not declare"]
         found = []
         expected = {"title": entry["title"], "domain": entry["domain"], "retry": entry["retry"]}
