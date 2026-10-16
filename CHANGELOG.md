@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v8.0.0 · MTHDS standard 8.0.0 · MTHDS Protocol 1.0.0**
+
+### Changed
+
+- **Run inputs files are out of the method tree (Breaking)** (`spec/method-tree.md`, `spec/protocol.md`, `spec/openapi/mthds-protocol.openapi.yaml`, `spec/cli-io-contract.md`): the membership rule keeps a file named `inputs.json` or `inputs.toml` out of every tree at any depth, so a run's inputs written into a method's folder never travel with the method, and a receiver refuses a map of file entries holding such a key. A method ships example inputs under any other name, and a tree that held such a file has a new digest.
+
 ## [v7.0.1] - 2026-10-16
 
 **MTHDS standard 7.0.1 · MTHDS Protocol 1.0.0**
