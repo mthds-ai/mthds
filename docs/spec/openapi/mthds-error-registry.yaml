@@ -1006,7 +1006,7 @@ codes:
     retry: "no"
     raised_as: problem
     status: 422
-    detail: "In pipe '{pipe}', the path '{path}' cannot follow '{segment}'. The structure there holds: {available_fields}."
+    detail: "In pipe '{pipe}', the path '{path}' cannot follow '{segment}', which is not a field of the value before it."
     steps:
       actor: {kind: change_method, detail: "Correct the path '{path}' so that it names fields its concepts hold, then validate the method again."}
       other: {kind: contact_owner, detail: "Ask the method's owner to correct the path '{path}' in pipe '{pipe}'."}
@@ -1014,7 +1014,7 @@ codes:
       pipe: {type: identifier, description: "The pipe holding the path."}
       path: {type: identifier, description: "The path."}
       segment: {type: identifier, description: "The segment the walk cannot follow."}
-      available_fields: {type: list, items: {type: identifier}, description: "The fields the structure holds where the walk stops."}
+      available_fields: {type: list, items: {type: identifier}, description: "The fields the structure holds where the walk stops, empty when the walk stops at a leaf."}
     meaning: "A binding's `from`, a construct's `from` or a template's field read walks past what the declared structures hold, such as a segment naming no field, or one following a native that holds its value in a single field."
     what_to_do: "Compare the path with the concepts' structures, using `params.available_fields` at the failing segment, and correct it, or bind the field first and walk on from the bound value."
     see:

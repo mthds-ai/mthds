@@ -2071,7 +2071,7 @@
       "retry": "no",
       "raised_as": "problem",
       "status": 422,
-      "detail": "In pipe '{pipe}', the path '{path}' cannot follow '{segment}'. The structure there holds: {available_fields}.",
+      "detail": "In pipe '{pipe}', the path '{path}' cannot follow '{segment}', which is not a field of the value before it.",
       "steps": {
         "actor": {
           "kind": "change_method",
@@ -2100,7 +2100,7 @@
           "items": {
             "type": "identifier"
           },
-          "description": "The fields the structure holds where the walk stops."
+          "description": "The fields the structure holds where the walk stops, empty when the walk stops at a leaf."
         }
       },
       "meaning": "A binding's `from`, a construct's `from` or a template's field read walks past what the declared structures hold, such as a segment naming no field, or one following a native that holds its value in a single field.",
