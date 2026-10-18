@@ -77,6 +77,8 @@ A [recommended extension field](./protocol.md#validating-a-bundle) is none of th
 
 The shape of a stuff — the `{concept, content}` entries of a request's inputs and of `pipe_output` — is the standard's for the same reason: the protocol names the fields and the [CLI I/O contract](./cli-io-contract.md#stuffs-on-the-wire) fixes their entries, so a change to that shape moves the standard version and leaves the protocol number where it was.
 
+The problem document crosses the same boundary the other way. It is the protocol's, and the CLI I/O contract has a CLI [write it on stderr](./cli-io-contract.md#error-propagation), without its `status` member, when a method fails. A CLI implementing a standard version writes the problem document of the protocol version that the same release names on its [changelog heading](#the-changelog-contract), and a reader learns which protocol version that is from the standard version the CLI implements. A release that changes the problem document therefore changes what a CLI writes as well, and its standard version moves by the rules above for a change to what a runtime emits.
+
 The protocol version is **not** derived from the standard version and never tracks it. A release of the standard that does not touch the protocol leaves the protocol version exactly where it was.
 
 ## The Changelog Contract
