@@ -4,11 +4,13 @@ info:
   version: 2.0.0
   summary: The minimal HTTP contract every MTHDS runner implements.
   description: >
-    Five required routes, and two optional blob routes for a runner that keeps a blob
-    store. Any server implementing the five required routes is an MTHDS-compliant
-    runner. A runner executes and validates methods, each sent as its whole method
-    tree, a map of file entries; it keeps no run store and owns no user, billing, or
-    catalog concepts. Paths are relative to an implementation-chosen base URL.
+    Five required routes, two optional blob routes for a runner that keeps a blob
+    store, and two optional run reads for a runner that keeps a run store, which also
+    honours an Idempotency-Key header on /execute and /start. Any server implementing
+    the five required routes is an MTHDS-compliant runner. A runner executes and
+    validates methods, each sent as its whole method tree, a map of file entries; the
+    protocol requires no run store of it, and it owns no user, billing, or catalog
+    concepts. Paths are relative to an implementation-chosen base URL.
     Implementations may extend the surface (extra routes, extra request properties)
     but must not change the meaning or shape of the protocol routes. Every error is an
     RFC 9457 application/problem+json problem document carrying the MTHDS core
@@ -36,6 +38,13 @@ tags:
       Optional. A runner whose /version declares blob_store true keeps a blob store
       (bytes keyed by their SHA-256, written once, never changed), so a sender uploads
       a file at most once and then sends it by hash.
+  - name: runs
+    description: >
+      Optional. A runner whose /version declares run_store true keeps a run store (a
+      record of the runs it has started, by their pipeline_run_id), so a caller reads a
+      run's status and its results after the fact, and it honours an Idempotency-Key
+      header on /execute and /start, so a request repeated under its key within 24
+      hours of the first request under it runs at most once.
 paths:
   /execute:
     post:
@@ -48,7 +57,15 @@ paths:
         202 + RunResultStart (id only) with a Location header pointing at an
         implementation-defined status resource when they cannot hold the connection
         open for the full execution (RFC 9110 asynchronous pattern); clients that
-        cannot handle 202 should use /start instead.
+        cannot handle 202 should use /start instead. A runner whose /version declares
+        run_store true points Location at the run's status read, keeps the run's
+        output for its results read, and honours the Idempotency-Key header: the same
+        request repeated under a held key is answered with the first answer when the
+        runner can give it again, with a 202 naming the run while the run has not
+        ended, and with a 409 coded run.answer_not_kept once it has ended and the
+        runner kept neither its answer nor its output.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -64,14 +81,18 @@ paths:
           description: >
             OPTIONAL (implementations MAY emit this; simple runners never do):
             execution continues in the background. The Location header points at an
-            implementation-defined status resource.
+            implementation-defined status resource, the run's status read on a runner
+            that keeps a run store, which also answers a 202 to the same request
+            repeated under a held idempotency key while its run has not ended.
           headers:
             Location:
               schema: { type: string }
-              description: Implementation-defined status resource for this run.
+              description: Implementation-defined status resource for this run, or its status read on a runner that keeps a run store.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/RunResultStart' }
+        '409':
+          $ref: '#/components/responses/IdempotencyProblem'
         '422':
           $ref: '#/components/responses/ValidationProblem'
         default:
@@ -82,10 +103,17 @@ paths:
       tags: [run]
       summary: Start a method asynchronously; returns its pipeline_run_id immediately.
       description: >
-        Asynchronous. Returns 202 + RunResultStart immediately (pipeline_run_id only); the
-        runner keeps no run store, and how completion is later delivered (callbacks,
-        polling, anything else) is implementation-defined and outside the protocol.
-        The returned pipeline_run_id is always authoritative (server-generated).
+        Asynchronous. Returns 202 + RunResultStart immediately (pipeline_run_id only).
+        The protocol defines no completion channel: a runner whose /version declares
+        run_store true serves the run reads, which a caller polls, and any channel that
+        tells a caller a run has finished (callbacks, anything else) is
+        implementation-defined and outside the protocol. The returned pipeline_run_id
+        is always authoritative (server-generated). A runner that keeps a run store
+        honours the Idempotency-Key header: the same request repeated under a held key
+        is answered with the first 202, naming the run the first request started, and
+        starts nothing.
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -93,10 +121,12 @@ paths:
             schema: { $ref: '#/components/schemas/RunRequest' }
       responses:
         '202':
-          description: Accepted; execution proceeds in the background.
+          description: Accepted; execution proceeds in the background. Also the answer to the same request repeated under a held idempotency key once the first request has started its run.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/RunResultStart' }
+        '409':
+          $ref: '#/components/responses/IdempotencyProblem'
         '422':
           $ref: '#/components/responses/ValidationProblem'
         default:
@@ -227,12 +257,123 @@ paths:
           $ref: '#/components/responses/ValidationProblem'
         default:
           $ref: '#/components/responses/Problem'
+  /runs/{pipeline_run_id}/status:
+    get:
+      operationId: getRunStatus
+      tags: [runs]
+      summary: A run's status, and its problem once it has failed.
+      description: >
+        OPTIONAL — served by a runner whose /version declares run_store true. Answers
+        200 for every run the caller can read, whatever became of it: a failed run's
+        problem rides inside the answer as error rather than failing the read. A
+        runner may set Retry-After on the 200 of a run that has not ended, to say when
+        to read it again. An id naming no run the caller can read, a run the caller
+        may not read included, is a 404 coded run.not_found.
+      parameters:
+        - $ref: '#/components/parameters/PipelineRunId'
+      responses:
+        '200':
+          description: The run's status, and its problem once it has failed.
+          headers:
+            Retry-After:
+              schema: { type: integer, minimum: 0 }
+              description: Seconds to wait before reading a run that has not ended again (optional).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RunRead' }
+        '404':
+          $ref: '#/components/responses/RunNotFoundProblem'
+        default:
+          $ref: '#/components/responses/Problem'
+  /runs/{pipeline_run_id}/results:
+    get:
+      operationId: getRunResults
+      tags: [runs]
+      summary: A completed run's output, as /execute answers it.
+      description: >
+        OPTIONAL — served by a runner whose /version declares run_store true. A
+        completed run is answered with a 200 whose body is the one /execute answers
+        with, its pipeline_run_id and its pipe_output. Any other run is a problem: a
+        409 coded run.not_finished before the run has ended, a 409 coded run.failed,
+        carrying the run's own problem as run_error, once it has ended without output,
+        and a 404 coded run.results_not_stored for a completed run whose output
+        travelled in /execute's answer and was not kept. An id naming no run the
+        caller can read is a 404 coded run.not_found.
+      parameters:
+        - $ref: '#/components/parameters/PipelineRunId'
+      responses:
+        '200':
+          description: The completed run's output.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RunResultExecute' }
+        '404':
+          description: >
+            A problem coded run.not_found, for an id naming no run the caller can read,
+            or run.results_not_stored, for a completed run whose output travelled in
+            /execute's answer and was not kept. Like every problem response, it always
+            carries status.
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Problem'
+                  - required: [status]
+        '409':
+          description: >
+            A problem coded run.not_finished, before the run has ended, with
+            retry_after when the runner knows how long to wait, or run.failed, once the
+            run has ended without output, carrying the run's own problem as run_error.
+            Like every problem response, it always carries status.
+          content:
+            application/problem+json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Problem'
+                  - required: [status]
+        default:
+          $ref: '#/components/responses/Problem'
 components:
   securitySchemes:
     bearer:
       type: http
       scheme: bearer
       description: Token semantics are implementation-defined.
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 255
+        pattern: '^[!-~]+$'
+      description: >
+        Names the request, so that a runner whose /version declares run_store true runs
+        it at most once while it holds the key: a string of visible ASCII characters the
+        client chooses and never uses for another request, such as a UUID. The runner
+        keeps each key per caller, for at least 24 hours after the first request under
+        it, and takes a request under a key it no longer holds as a first request, so
+        the protocol promises nothing about a repeat past those 24 hours: a client that
+        cannot repeat within them reads the run when it knows its pipeline_run_id, and
+        otherwise treats the outcome as unknown and never repeats automatically. The same
+        request, the same route with a body of the same JSON value whatever the order
+        of its members and its whitespace, repeated under a held key is answered from
+        the first execution: a 409 coded request.idempotency_key_in_use while the
+        first request is still being handled and has started no run, the first answer
+        once it has started its run, and as a first request when the first was refused
+        before it started a run, which leaves the key free. A different request under a
+        held key is a 409 coded request.idempotency_conflict. A key outside this form
+        is a 422 coded request.invalid. A runner that keeps no run store ignores the
+        header, so a client repeats a request under its key only against a runner that
+        declares run_store true.
+    PipelineRunId:
+      name: pipeline_run_id
+      in: path
+      required: true
+      schema: { type: string, minLength: 1 }
+      description: The run's identifier, as /execute or /start answered it.
   responses:
     Problem:
       description: >
@@ -255,6 +396,34 @@ components:
         when it keeps no blob store, is a 422 coded request.blobs_missing whose
         params.missing_blobs lists each such hash. Like every problem response, it
         always carries status.
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Problem'
+              - required: [status]
+    IdempotencyProblem:
+      description: >
+        A 409 problem about the request's Idempotency-Key, answered only by a runner
+        whose /version declares run_store true: request.idempotency_conflict for a
+        different request under a held key; request.idempotency_key_in_use for the same
+        request while the first one is still being handled and has started no run,
+        with retry_after when the runner knows how long to wait; and, on /execute,
+        run.answer_not_kept for the same request once its run has ended and the runner
+        kept neither its answer nor its output. Like every problem response, it always
+        carries status.
+      content:
+        application/problem+json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/Problem'
+              - required: [status]
+    RunNotFoundProblem:
+      description: >
+        A 404 problem coded run.not_found: the id names no run the caller can read. A
+        runner answers an id naming a run the caller may not read exactly as one naming
+        no run, so an id never tells a caller about a run it cannot read. Like every
+        problem response, it always carries status.
       content:
         application/problem+json:
           schema:
@@ -310,7 +479,9 @@ components:
     RunResultExecute:
       type: object
       description: >
-        POST /execute 200 — the completed run. Two base fields: the
+        POST /execute 200 — the completed run, and the 200 of the results read of a
+        runner that keeps a run store, which answers a completed run with the body
+        /execute answers with. Two base fields: the
         server-generated authoritative pipeline_run_id and the method's
         pipe_output (always present — a completed run has output, either a value
         or an explicit absence document). Extension-open:
@@ -330,14 +501,48 @@ components:
       description: >
         POST /start 202 (and the optional /execute 202 degrade) — the started
         run's authoritative pipeline_run_id, nothing else. A started run has no
-        output yet; how it is delivered later (polling, callbacks, anything else)
-        is implementation-defined and outside the protocol. Extension-open.
+        output yet. A runner that keeps a run store serves it through the results
+        read once the run has completed; any other way it is delivered (callbacks,
+        anything else) is implementation-defined and outside the protocol.
+        Extension-open.
       additionalProperties: true
       required: [pipeline_run_id]
       properties:
         pipeline_run_id:
           type: string
           description: The run identifier — server-generated and authoritative.
+    RunRead:
+      type: object
+      description: >
+        The 200 of the status read of a runner that keeps a run store: the run's id,
+        its status, and its problem once it has failed. Extension-open; an unset member
+        is left out, never written as null.
+      required: [pipeline_run_id, status]
+      additionalProperties: true
+      properties:
+        pipeline_run_id:
+          type: string
+          description: The run identifier, as /execute or /start answered it.
+        status: { $ref: '#/components/schemas/RunStatus' }
+        error:
+          $ref: '#/components/schemas/Problem'
+          description: >
+            The run's own problem, as the run's record keeps it, without status since it
+            is not the body of a response. Present exactly when status is failed; its
+            code says why the run ended without output, such as run.cancelled,
+            run.timed_out or run.lost.
+    RunStatus:
+      type: string
+      enum: [pending, running, completed, failed]
+      description: >
+        Where a run is in its life. pending: accepted, not yet executing. running:
+        executing. completed: ended with its output, which the results read serves.
+        failed: ended without output, its problem in the read's error. The statuses of
+        a run that has ended are closed, completed and failed, and a later protocol
+        version may add a status only for a run that has not ended. A runner MUST NOT
+        emit a value outside this enum; a reader that meets one it does not know reads
+        the run as not ended and reads it again later, and a client that derives its
+        types from this document widens the field to any string.
     ValidateRequest:
       type: object
       required: [files]
@@ -465,9 +670,9 @@ components:
       type: object
       description: >
         The handshake. The protocol defines protocol_version (required) plus an
-        optional runner_version and an optional blob_store flag; implementations MAY
-        add their own identification (a name, an underlying runtime version, anything
-        else) as additional properties.
+        optional runner_version and the optional blob_store and run_store flags;
+        implementations MAY add their own identification (a name, an underlying
+        runtime version, anything else) as additional properties.
       required: [protocol_version]
       additionalProperties: true
       properties:
@@ -482,6 +687,16 @@ components:
             which case it answers any hash entry with a 422 coded request.blobs_missing,
             listing the hashes in params.missing_blobs, and serves no upload route, so a
             sender sends those files inline instead.
+        run_store:
+          type: boolean
+          default: false
+          description: >
+            True when the runner keeps a run store: it records every run it starts,
+            serves GET /runs/{pipeline_run_id}/status and GET
+            /runs/{pipeline_run_id}/results, and honours the Idempotency-Key header on
+            /execute and /start. False or absent when it does not, in which case it
+            serves neither read and ignores the header, so a client neither reads a run
+            after the fact nor repeats a request under its key.
     MethodFiles:
       type: object
       description: >
@@ -621,7 +836,7 @@ components:
       description: >
         An RFC 9457 problem document carrying the MTHDS core members. type, title,
         status and detail are the RFC's; code, domain, retry, retry_after, next_step,
-        params, location, errors and pipeline_run_id are the core's. The code decides:
+        params, location, errors, pipeline_run_id and run_error are the core's. The code decides:
         its domain, its retry verdict, its next step, its title and its HTTP status are
         properties of the code, carried on the wire so that a reader needs no lookup,
         and two cases that need different verdicts are two codes. Closed for emitters,
@@ -682,6 +897,14 @@ components:
           description: >
             The run the error belongs to, as /execute and /start name it. Present when a
             run exists.
+        run_error:
+          $ref: '#/components/schemas/Problem'
+          description: >
+            The run's own problem, nested, on the problem coded run.failed that the
+            results read of a runner keeping a run store answers for a run that ended
+            without output. It is the problem the run's record keeps, without status,
+            and it says why the run failed, while the problem holding it is about the
+            read. Absent on every other problem.
     ProblemCode:
       type: string
       pattern: '^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*){1,2}$'
