@@ -80,6 +80,19 @@ STANDARD_READINGS = [
         "docs/guides/create-package.md",
         rf'^mthds_version = ">=({SEMVER})"',
     ),
+    # The core error registry is part of the standard and is published with it, so the version
+    # it declares is the standard version. `make spec-check` checks that the snapshot is the
+    # registry's, but reading both here names the snapshot when only it was left behind.
+    (
+        "the core error registry's version",
+        "docs/spec/openapi/mthds-error-registry.yaml",
+        rf'^version: "({SEMVER})"',
+    ),
+    (
+        "the core error registry snapshot's version",
+        "docs/spec/openapi/mthds-error-registry.json",
+        rf'^  "version": "({SEMVER})"',
+    ),
 ]
 
 # Deliberately NOT readings: the versions `docs/spec/native-concepts.md` and

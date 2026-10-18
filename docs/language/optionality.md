@@ -102,16 +102,13 @@ From there the usual rules apply: a plain consumer lifts, an optional consumer r
 
 ## Validation Surface
 
-Compliant runtimes should surface optionality problems with structured diagnostics:
+Compliant runtimes should surface optionality problems with these codes of the [core error registry](../spec/error-registry.md):
 
-| Error | Meaning |
-|-------|---------|
-| `optional_marker_invalid` | Invalid marker grammar, such as a marker on a plural reference or `!` on output. |
-| `optional_not_handled` | A maybe-absent value escapes through a non-optional boundary. |
-| `optional_output_required` | A `PipeCondition` can continue without producing a value but its output is not `?`. |
-| `optional_input_unguarded` | A template reads an optional input without a guard. |
-| `optional_branch_required_field` | A maybe-absent `PipeParallel` branch feeds a required structured field. |
+| Code | Meaning |
+|------|---------|
+| [`method.optional_marker_invalid`](../errors/method/optional_marker_invalid.md) | Invalid marker grammar, such as a marker on a plural reference or `!` on output. |
+| [`method.optional_unhandled`](../errors/method/optional_unhandled.md) | A maybe-absent value reaches a place that needs a value, and its `site` parameter says where: `sequence_step` or `condition` when the value escapes through a step, a sequence or a condition whose boundary is not optional, `condition_output` when a `PipeCondition` can continue without producing a value but its output is not `?`, `template` when a template reads an optional input without a guard, and `parallel_branch` when a maybe-absent `PipeParallel` branch feeds a required structured field. |
 
-Valid reports may also include `liftable_pipes`, listing pipes that may be skipped at run time, and advisory `warnings` such as redundant force markers.
+Valid reports may also include `liftable_pipes`, listing pipes that may be skipped at run time, and advisory `warnings`, such as [`method.optional_force_redundant`](../errors/method/optional_force_redundant.md) for a redundant force marker and [`method.input_presence_vacuous`](../errors/method/input_presence_vacuous.md) for a presence check that always holds.
 
-A binding step's absences are reported with the diagnostics above. Its own faults are `binding_step_invalid`, for a malformed binding step or one placed in a `PipeParallel` branch, and `binding_path_unresolved`, for a path the declared structures cannot walk; both are specified in [Binding Steps](../spec/mthds-format.md#validation-surface).
+A binding step's absences are reported with the diagnostics above. Its own faults are `method.binding_step_invalid`, for a malformed binding step or one placed in a `PipeParallel` branch, and `method.field_path_unresolved`, for a path the declared structures cannot walk; both are specified in [Binding Steps](../spec/mthds-format.md#validation-surface).
