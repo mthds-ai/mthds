@@ -1,8 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [v8.0.0] - 2026-10-18
 
-**Next release: v8.0.0 · MTHDS standard 8.0.0 · MTHDS Protocol 2.0.0**
+**MTHDS standard 8.0.0 · MTHDS Protocol 2.0.0**
+
+### Highlights
+
+**Every error is a problem document a program can act on.** A runner answers every error, and a CLI writes every failure, as an RFC 9457 problem document carrying a registry `code`, the `domain` of who must act, a `retry` verdict and a `next_step`, so a client branches on `code` rather than on a status or a message, and the protocol moves to `2.0.0`. **The core error registry is part of the standard.** It declares every core code with its meaning, parameters and steps, is published as a JSON snapshot with each release, and gives each code a page at `https://mthds.ai/errors/<code>`. **A lost answer can be recovered.** A runner that keeps a run store serves reads of a run's status and results and honours an `Idempotency-Key`, so a client repeats a request instead of starting a second run.
 
 ### Added
 
@@ -20,6 +24,7 @@
 - **The validation names are registry codes (Breaking)** (`spec/mthds-format.md`, `language/optionality.md`, `implementers/validation-rules.md`, `spec/namespace-resolution.md`): `binding_step_invalid` is now `method.binding_step_invalid`, `binding_path_unresolved` is `method.field_path_unresolved`, `invalid_input_name` is `method.identifier_invalid` and `optional_marker_invalid` is `method.optional_marker_invalid`. The optionality diagnostics `optional_not_handled`, `optional_output_required`, `optional_input_unguarded` and `optional_branch_required_field` are one code, `method.optional_unhandled`, whose `site` parameter says where the absent value escapes, and a step carrying neither `pipe` nor `from` is `method.schema_violation`.
 - **A CLI's error is the protocol's problem document (Breaking)** (`spec/cli-io-contract.md`, `spec/versioning.md`): a method that fails on the command line writes on stderr the problem document of the protocol version that its release of the standard names, without its `status` member, in place of the envelope of `error: true`, `error_type`, `message`, `hint`, `error_domain` and `retryable`, so a program reads `code`, `domain`, `retry`, `next_step` and `location` where it read `error_type`, `error_domain`, `retryable` and `hint`, and never branches on the exit code. A CLI read by a person or an agent may write a rendering of the problem, such as Markdown, while every CLI that runs a method writes the JSON form under `--error-format json`. A downstream method whose declared inputs the upstream's working memory cannot satisfy fails with an `input.missing` problem naming the input, where it raised an error listing what the upstream held and what the downstream expected, and when it cannot satisfy several inputs, the problem names the first in authored input order and its `errors` lists every one in that order.
 - **A failed output validation is a `pipe.output_invalid` problem (Breaking)** (`implementers/runtime.md`): a runtime whose validation of a pipe's output against its declared concept fails reports a `pipe.output_invalid` problem whose `location.pipe` is the failing pipe's code and whose `location.path` lists the pipe codes from the run's main pipe down to it, where it reported the pipe code and the step index in a form of its own.
+- **Documentation versions served on mthds.ai**: this release stops serving `7.0.0`, so links into that version no longer resolve and should point at `/latest/`. The site serves `8.0.0`, which `/latest/` also serves, and `7.0.1`, and keeps both numbered directories out of search indexes, so that only `/latest/` is indexed.
 
 ## [v7.0.1] - 2026-10-16
 
