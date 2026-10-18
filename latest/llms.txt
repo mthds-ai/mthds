@@ -54,6 +54,8 @@
 - [Namespace Resolution Rules](https://mthds.ai/latest/spec/namespace-resolution/index.md): Namespace Resolution Rules
 - [CLI I/O Contract](https://mthds.ai/latest/spec/cli-io-contract/index.md): CLI I/O Contract
 - [HTTP Runner Protocol](https://mthds.ai/latest/spec/protocol/index.md): HTTP Runner Protocol
+- [Error Registry](https://mthds.ai/latest/spec/error-registry/index.md): Error Registry
+- [Error Codes](https://mthds.ai/latest/errors/index.md): Error Codes
 - [CLI Reference](https://mthds.ai/latest/cli/index.md): CLI Reference
 - [Editor Support](https://mthds.ai/latest/tooling/editor-support/index.md): Editor Support
 - [Formatting & Linting](https://mthds.ai/latest/tooling/formatting-linting/index.md): Formatting & Linting

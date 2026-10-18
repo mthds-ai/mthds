@@ -1861,6 +1861,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#run-inputs-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Inputs Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#checking-the-rule-against-git" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2326,9 +2337,65 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2385,10 +2452,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
             
   
   
@@ -2406,8 +2473,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3184,6 +3251,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#run-inputs-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Inputs Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#checking-the-rule-against-git" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3359,6 +3437,9 @@
 ├── README.md
 ├── main.mthds
 ├── requirements.txt
+├── inputs.json           (the inputs of the last run)
+├── examples/
+│   └── invoice-inputs.json
 ├── funcs/
 │   ├── __init__.py
 │   ├── totals.py
@@ -3375,6 +3456,7 @@
 <p>The method tree of this directory is:</p>
 <div class="highlight"><pre><span></span><code>METHODS.toml
 README.md
+examples/invoice-inputs.json
 funcs/__init__.py
 funcs/totals.py
 main.mthds
@@ -3382,7 +3464,7 @@ requirements.txt
 templates/letter.html
 templates/logo.png
 </code></pre></div>
-<p><code>.gitignore</code> and <code>.venv/</code> are out because their names start with a dot, <code>funcs/__pycache__/</code> is out by default, and <code>results/run-1.json</code> is out because the <code>.gitignore</code> file in its directory ignores every file there. Every other file belongs to the tree and travels with the method, whether a step reads it or it is carried for people and agents to read.</p>
+<p><code>.gitignore</code> and <code>.venv/</code> are out because their names start with a dot, <code>funcs/__pycache__/</code> and <code>inputs.json</code> are out by default, and <code>results/run-1.json</code> is out because the <code>.gitignore</code> file in its directory ignores every file there. Every other file belongs to the tree and travels with the method, whether a step reads it or it is carried for people and agents to read, <code>examples/invoice-inputs.json</code> included, since only a file named <code>inputs.json</code> or <code>inputs.toml</code> is kept out.</p>
 <div class="admonition note">
 <p class="admonition-title">Implementation status</p>
 <p>The method tree is committed design. This page is the contract implementations are brought into conformance with — the same forward-contract convention the <a href="../library-crate/#specification-status">Library Crate Format</a> uses for its unrealized sections. Conformance is asserted against this document as each piece lands.</p>
@@ -3401,7 +3483,7 @@ templates/logo.png
 <p>A regular file under the root belongs to the tree unless one of the following excludes it, and a directory that one of them excludes is excluded with everything under it:</p>
 <ol>
 <li><strong>A path segment starting with a dot.</strong> This keeps out <code>.git/</code>, <code>.venv/</code>, <code>.env</code>, <code>.gitignore</code>, the <code>.mthds/</code> directory where a project keeps its installed packages, and every other dotfile and dot directory, the state of editors and tools included. It is the rule that keeps the commonest secret files out by construction.</li>
-<li><strong>The defaults.</strong> A directory named <code>__pycache__</code> or <code>node_modules</code>; any directory holding an entry named <code>pyvenv.cfg</code> that is a regular file or a symbolic link, the link never followed, since <a href="https://peps.python.org/pep-0405/" target="_blank" rel="noopener">PEP 405</a> places a <code>pyvenv.cfg</code> file at the top of every Python virtual environment, so a virtual environment stays out whatever its name, while a directory named <code>pyvenv.cfg</code> marks nothing; any directory below the root holding an entry named <code>.git</code> of any kind, a directory, a file such as the one a submodule or a worktree holds, or a symbolic link, never followed, whatever that entry holds and whether or not git would take it for a repository, so a nested repository stays out, as git leaves it out of every commit; and any directory below the root holding a file named <code>METHODS.toml</code>, so a nested package stays out, since it is another package and travels as a tree of its own (see <a href="#dependencies-are-trees-of-their-own">Dependencies Are Trees of Their Own</a>). The <code>pyvenv.cfg</code> default applies to the root too, so a root that is itself a virtual environment holds an empty tree, which no surface accepts. The root's own <code>METHODS.toml</code> is the manifest that makes it the root, and it excludes nothing.</li>
+<li><strong>The defaults.</strong> A directory named <code>__pycache__</code> or <code>node_modules</code>; any directory holding an entry named <code>pyvenv.cfg</code> that is a regular file or a symbolic link, the link never followed, since <a href="https://peps.python.org/pep-0405/" target="_blank" rel="noopener">PEP 405</a> places a <code>pyvenv.cfg</code> file at the top of every Python virtual environment, so a virtual environment stays out whatever its name, while a directory named <code>pyvenv.cfg</code> marks nothing; any directory below the root holding an entry named <code>.git</code> of any kind, a directory, a file such as the one a submodule or a worktree holds, or a symbolic link, never followed, whatever that entry holds and whether or not git would take it for a repository, so a nested repository stays out, as git leaves it out of every commit; and any directory below the root holding a file named <code>METHODS.toml</code>, so a nested package stays out, since it is another package and travels as a tree of its own (see <a href="#dependencies-are-trees-of-their-own">Dependencies Are Trees of Their Own</a>). The <code>pyvenv.cfg</code> default applies to the root too, so a root that is itself a virtual environment holds an empty tree, which no surface accepts. The root's own <code>METHODS.toml</code> is the manifest that makes it the root, and it excludes nothing. One default excludes a file rather than a directory: an entry named <code>inputs.json</code> or <code>inputs.toml</code>, at any depth, that is a regular file or a symbolic link, the link never followed, is a run's inputs file and stays out (see <a href="#run-inputs-files">Run Inputs Files</a>), while a directory of either name excludes nothing.</li>
 <li><strong>The tree's own <code>.gitignore</code> files.</strong> The patterns of every <code>.gitignore</code> file inside the root, at any depth, read with git's own semantics as <a href="https://git-scm.com/docs/gitignore" target="_blank" rel="noopener">gitignore</a> documents them: a pattern applies relative to the directory of the file that holds it, a deeper file's patterns take precedence over a shallower one's, git never descends into an excluded directory, and so a negation cannot re-include a file under an excluded directory. A <code>.gitignore</code> file is read as UTF-8, skipping a leading byte order mark as git skips it, and one whose bytes are not UTF-8 is an error naming its path, never skipped silently, as a symbolic link is. A <code>.gitignore</code> file inside an excluded directory is never read, so it is never an error. A pattern is normalized to NFC before it is matched, so a pattern an editor wrote in decomposed form matches the same names as one written composed, and it then matches tree paths byte for byte, letter case included, as git matches with <code>core.ignoreCase</code> off, whatever the file system. Only these files count: neither a user's global excludes, nor a repository's <code>info/exclude</code>, nor a <code>.gitignore</code> file above the root, so the same directory yields the same tree on every machine.</li>
 <li><strong>The manifest's <code>exclude</code> patterns.</strong> The patterns of <a href="../manifest-format/#exclude"><code>[package] exclude</code></a>, in the same syntax and normalized to NFC in the same way, read as git reads <code>core.excludesFile</code>: relative to the root, and below every <code>.gitignore</code> file in precedence, so a negation in a <code>.gitignore</code> file can re-include a file they exclude. They keep out of the tree what a method wants kept out of the tree but not out of git.</li>
 </ol>
@@ -3411,8 +3493,12 @@ templates/logo.png
 <p>A symbolic link that the membership rule does not exclude is an error naming its path: it is never followed and never skipped silently, since a link is either a mistake or a reach outside the root, and both deserve to be seen. Exclusion prunes first, so a link inside an excluded directory is never visited, and a link the rule excludes is no error. An entry that is neither a regular file, nor a directory, nor a symbolic link, such as a named pipe or a device, is an error naming its path in the same way.</p>
 <h3 id="run-artifacts-beside-a-method">Run Artifacts Beside a Method</h3>
 <p>A tool that creates a directory under a method's root to write its own files into, such as the results of a run, SHOULD make that directory self-excluding by writing into it a <code>.gitignore</code> file holding the single pattern <code>*</code>. The directory then stays out of the tree and out of git, and neither this rule nor its defaults need to know the directory's name.</p>
+<h3 id="run-inputs-files">Run Inputs Files</h3>
+<p>A tool that runs a method from a directory may read the run's inputs from a file in that directory, as a command line reads the <code>inputs.json</code> it <a href="../cli-io-contract/#3-auto-detected-inputsjson">auto-detects in directory mode</a>. That file holds one run's real data, which is never a file of the tree (see <a href="#the-root">The Root</a>), and if it were a member, sending or saving the method would carry that data along and store it as method content. The directory a tool runs need not be the root, since a <code>METHODS.toml</code> above it makes the root higher up, so the defaults keep a file named <code>inputs.json</code> or <code>inputs.toml</code> out of every tree at any depth. Because the exclusion belongs to the membership rule rather than to each client's own choice, every program that lists the tree leaves the file out alike, so the tree a client sends, the tree a runtime lists and the tree a save records keep one digest.</p>
+<p>Nothing in this standard reads <code>inputs.toml</code>. A runtime MAY auto-detect an inputs file written in TOML beside the JSON one, and the rule keeps both spellings out, so the format a tool reads never decides whether a run's data travels with the method.</p>
+<p>A tool MAY still read an inputs file as a run's inputs: the file never travels with the tree, so reading it carries nothing into the method. A method that ships example inputs for people and agents to read gives them any other name, such as <code>examples/invoice-inputs.json</code>, and they are then ordinary members of the tree.</p>
 <h3 id="checking-the-rule-against-git">Checking the Rule Against Git</h3>
-<p>Because the membership rule follows git, git itself can produce the expected listing of a test tree, which keeps an implementation from sharing a misreading of git's semantics with the person who wrote its tests. In a scratch repository holding the test tree, with global and system configuration turned off, <code>core.ignoreCase</code> set to <code>false</code>, and <code>core.excludesFile</code> holding the case's <code>exclude</code> patterns one per line, <code>git -c core.ignoreCase=false ls-files --others --exclude-standard -z</code> lists the files git would commit. Setting <code>core.ignoreCase</code> matters on a case-insensitive file system, where <code>git init</code> writes <code>core.ignoreCase = true</code> into the scratch repository's own configuration and git then matches every pattern regardless of case, so that <code>*.PY</code> would exclude <code>a.py</code>, whereas the membership rule matches tree paths byte for byte. Git also matches a pattern as it is written against a name as the file system holds it, so every pattern goes into the scratch repository, in its <code>.gitignore</code> files and in <code>core.excludesFile</code>, normalized to NFC, as the membership rule normalizes it before matching, and every file and directory of the scratch tree is written under its name in NFC, as the membership rule reads it. A test whose point is a name stored on disk in decomposed form is therefore checked without git as its oracle. Git applies the patterns and nothing else, so the dot-segment rule and the defaults are applied after its listing, which gives the same result because no pattern re-includes what they exclude and a <code>.gitignore</code> file inside an excluded directory reaches nothing outside it. Dropping from git's output every path holding a segment that starts with a dot, every path inside a <code>__pycache__</code> or <code>node_modules</code> directory, and every path at or inside a directory holding an entry named <code>pyvenv.cfg</code> that is a file or a symbolic link, a directory below the root holding an entry named <code>.git</code>, or a directory below the root holding <code>METHODS.toml</code> gives the tree's listing. These last three defaults are read from the test tree itself rather than from git's output, since git never lists a <code>.git</code> entry and a pattern may keep out of that output the very file that triggers the other two.</p>
+<p>Because the membership rule follows git, git itself can produce the expected listing of a test tree, which keeps an implementation from sharing a misreading of git's semantics with the person who wrote its tests. In a scratch repository holding the test tree, with global and system configuration turned off, <code>core.ignoreCase</code> set to <code>false</code>, and <code>core.excludesFile</code> holding the case's <code>exclude</code> patterns one per line, <code>git -c core.ignoreCase=false ls-files --others --exclude-standard -z</code> lists the files git would commit. Setting <code>core.ignoreCase</code> matters on a case-insensitive file system, where <code>git init</code> writes <code>core.ignoreCase = true</code> into the scratch repository's own configuration and git then matches every pattern regardless of case, so that <code>*.PY</code> would exclude <code>a.py</code>, whereas the membership rule matches tree paths byte for byte. Git also matches a pattern as it is written against a name as the file system holds it, so every pattern goes into the scratch repository, in its <code>.gitignore</code> files and in <code>core.excludesFile</code>, normalized to NFC, as the membership rule normalizes it before matching, and every file and directory of the scratch tree is written under its name in NFC, as the membership rule reads it. A test whose point is a name stored on disk in decomposed form is therefore checked without git as its oracle. Git applies the patterns and nothing else, so the dot-segment rule and the defaults are applied after its listing, which gives the same result because no pattern re-includes what they exclude and a <code>.gitignore</code> file inside an excluded directory reaches nothing outside it. Dropping from git's output every path holding a segment that starts with a dot, every path inside a <code>__pycache__</code> or <code>node_modules</code> directory, every path whose last segment is <code>inputs.json</code> or <code>inputs.toml</code>, which git lists alike for a regular file and for a symbolic link, and every path at or inside a directory holding an entry named <code>pyvenv.cfg</code> that is a file or a symbolic link, a directory below the root holding an entry named <code>.git</code>, or a directory below the root holding <code>METHODS.toml</code> gives the tree's listing. These last three defaults are read from the test tree itself rather than from git's output, since git never lists a <code>.git</code> entry and a pattern may keep out of that output the very file that triggers the other two.</p>
 <p>The nested repository default is where the membership rule and git part ways. Git leaves a directory out as a nested repository only when its <code>.git</code> entry leads to a repository, and lists as untracked the files under a directory whose <code>.git</code> entry is an empty directory, or a file that names no repository, such as one whose <code>gitdir:</code> line points nowhere. The membership rule excludes any directory below the root holding an entry named <code>.git</code> of any kind, whatever it holds, so the files git lists under such a directory are dropped with the rest.</p>
 <h2 id="tree-paths">Tree Paths</h2>
 <p>A <strong>tree path</strong> names a file of a tree from its root, such as <code>templates/letter.html</code>:</p>
@@ -3502,7 +3588,7 @@ d78fff51f2aea9cb634456d3c83925ae047d967798f28e8a4b3e7b232a1dc097  funcs/text_uti
 <p>An entry object holds no other key and no key twice, and no entry names a file by URL: a URL form would let a sender point the receiver at an address of its choosing, which is exactly what reading only the files it is sent prevents.</p>
 <p>A map of entries is refused, naming the offending path, when one of its keys:</p>
 <ul>
-<li>is not a <a href="#tree-paths">tree path</a>, which a key not already in NFC is not, since a receiver refuses such a key rather than normalize it, so two keys equal after normalization never both stand; or holds a segment that the membership rule's dot-segment rule or its name defaults exclude (a segment starting with a dot, a <code>__pycache__</code> or <code>node_modules</code> directory, or a file named <code>pyvenv.cfg</code>), or names a file <code>METHODS.toml</code> anywhere but at the root, since no tree has such a member;</li>
+<li>is not a <a href="#tree-paths">tree path</a>, which a key not already in NFC is not, since a receiver refuses such a key rather than normalize it, so two keys equal after normalization never both stand; or holds a segment that the membership rule's dot-segment rule or its name defaults exclude (a segment starting with a dot, a <code>__pycache__</code> or <code>node_modules</code> directory, or a file named <code>pyvenv.cfg</code>, <code>inputs.json</code> or <code>inputs.toml</code>), or names a file <code>METHODS.toml</code> anywhere but at the root, since no tree has such a member;</li>
 <li>is given twice in the document, as written or once its JSON escapes are decoded, which a receiver detects in the text it parses rather than keeping one of the values, or holds an entry object that gives one of its own keys twice, which is refused in the same way;</li>
 <li><a href="#tree-paths">collides</a> with another key, or with a directory of another key, such as <code>readme.md</code> beside <code>README.md</code>, <code>STRASSE.txt</code> beside <code>straße.txt</code>, or <code>Templates</code> beside <code>templates/letter.html</code>.</li>
 </ul>

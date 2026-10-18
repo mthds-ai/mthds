@@ -2776,9 +2776,65 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2835,10 +2891,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
             
   
   
@@ -2856,8 +2912,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -4737,7 +4793,7 @@
 <p id="input-names"><strong>Input names:</strong></p>
 <ul>
 <li>An input name MUST be a plain <code>snake_case</code> identifier, matching the pattern <code>[a-z][a-z0-9_]*</code>, on every pipe, operator or controller alike. It names one whole value, of the concept its slot declares.</li>
-<li>An input name MUST NOT contain a dot. A key such as <code>"invoice.total" = "Number"</code> does not declare a field of <code>invoice</code>: a compliant implementation MUST reject it, as it rejects any other name that is not a plain <code>snake_case</code> identifier (<code>InvoiceTotal</code>, <code>2nd_total</code>), and SHOULD report the refusal as <code>invalid_input_name</code>.</li>
+<li>An input name MUST NOT contain a dot. A key such as <code>"invoice.total" = "Number"</code> does not declare a field of <code>invoice</code>: a compliant implementation MUST reject it, as it rejects any other name that is not a plain <code>snake_case</code> identifier (<code>InvoiceTotal</code>, <code>2nd_total</code>), and SHOULD report the refusal as <code>method.identifier_invalid</code>.</li>
 <li>A pipe that needs one field of a value receives it in one of two ways. Either it declares the root with its whole concept and reads the field through the root in its template (<code>invoice = "Invoice"</code>, read as <code>$invoice.total</code>, see <a href="#inputs-read-through-templates">Inputs Read Through Templates</a>), or the calling sequence hands it the field under a plain name with a binding step (<code>{ from = "invoice.total", result = "total_amount" }</code>, see <a href="#binding-steps">Binding Steps</a>) and the pipe declares <code>total_amount = "Number"</code>. The message refusing a dotted name SHOULD name both remedies.</li>
 <li>The names under which a step stores a value in working memory, such as a pipe step's <code>result</code>, take the same form, so that an input can read whatever a step stores (see <a href="#stored-names">Stored Names</a>).</li>
 </ul>
@@ -6416,7 +6472,7 @@
 <td><code>result</code></td>
 <td>string</td>
 <td>Yes</td>
-<td>Name under which the bound value is stored in working memory. It MUST take the form of a plain <a href="#input-names">input name</a>, as every <a href="#stored-names">stored name</a> does, so it is never dotted. A binding step whose <code>result</code> breaks the form is rejected as <code>binding_step_invalid</code>.</td>
+<td>Name under which the bound value is stored in working memory. It MUST take the form of a plain <a href="#input-names">input name</a>, as every <a href="#stored-names">stored name</a> does, so it is never dotted. A binding step whose <code>result</code> breaks the form is rejected as <code>method.binding_step_invalid</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -6426,13 +6482,13 @@
 <li><code>nb_output</code> and <code>multiple_output</code> MUST NOT both be set on the same step.</li>
 <li><code>batch_over</code> and <code>batch_as</code> MUST either both be present or both be absent.</li>
 <li><code>batch_over</code> and <code>batch_as</code> MUST NOT be the same value.</li>
-<li>A dotted <code>batch_over</code> MUST follow the <a href="#path-grammar">path grammar</a>, or the step is rejected as <code>binding_step_invalid</code>, and its walk MUST derive a list (see <a href="#dotted-batch_over">Dotted <code>batch_over</code></a>).</li>
-<li>A step MUST carry exactly one of <code>pipe</code> and <code>from</code>. A step carrying both is rejected as <code>binding_step_invalid</code>. A step carrying neither, such as <code>{ result = "x" }</code>, is neither a pipe step nor a binding step, and the schema rejects it with no error name of its own.</li>
-<li>A binding step MUST carry <code>result</code>, and MUST NOT carry <code>nb_output</code>, <code>multiple_output</code>, <code>batch_over</code> or <code>batch_as</code>, or the step is rejected as <code>binding_step_invalid</code>.</li>
-<li>A binding step's <code>result</code> MUST take the form of a plain <a href="#input-names">input name</a>, or the step is rejected as <code>binding_step_invalid</code>.</li>
-<li>A binding step's <code>from</code> MUST follow the <a href="#path-grammar">path grammar</a>, or the step is rejected as <code>binding_step_invalid</code>, and its path MUST be walkable through the declared structures, or the step is rejected as <code>binding_path_unresolved</code> (see <a href="#the-concept-of-the-result">The Concept of the Result</a>).</li>
-<li>A pipe step's <code>result</code> and <code>batch_as</code> MUST take the form of a plain <a href="#input-names">input name</a>, or the step is rejected as <code>invalid_input_name</code> (see <a href="#stored-names">Stored Names</a>).</li>
-<li>A pipe step's plain <code>batch_over</code> MUST NOT start with the reserved prefix <code>_bound_</code>, or the step is rejected as <code>invalid_input_name</code> (see <a href="#stored-names">Stored Names</a>).</li>
+<li>A dotted <code>batch_over</code> MUST follow the <a href="#path-grammar">path grammar</a>, or the step is rejected as <code>method.binding_step_invalid</code>, and its walk MUST derive a list (see <a href="#dotted-batch_over">Dotted <code>batch_over</code></a>).</li>
+<li>A step MUST carry exactly one of <code>pipe</code> and <code>from</code>. A step carrying both is rejected as <code>method.binding_step_invalid</code>. A step carrying neither, such as <code>{ result = "x" }</code>, is neither a pipe step nor a binding step, and the schema rejects it as <code>method.schema_violation</code>, since no sharper code names it.</li>
+<li>A binding step MUST carry <code>result</code>, and MUST NOT carry <code>nb_output</code>, <code>multiple_output</code>, <code>batch_over</code> or <code>batch_as</code>, or the step is rejected as <code>method.binding_step_invalid</code>.</li>
+<li>A binding step's <code>result</code> MUST take the form of a plain <a href="#input-names">input name</a>, or the step is rejected as <code>method.binding_step_invalid</code>.</li>
+<li>A binding step's <code>from</code> MUST follow the <a href="#path-grammar">path grammar</a>, or the step is rejected as <code>method.binding_step_invalid</code>, and its path MUST be walkable through the declared structures, or the step is rejected as <code>method.field_path_unresolved</code> (see <a href="#the-concept-of-the-result">The Concept of the Result</a>).</li>
+<li>A pipe step's <code>result</code> and <code>batch_as</code> MUST take the form of a plain <a href="#input-names">input name</a>, or the step is rejected as <code>method.identifier_invalid</code> (see <a href="#stored-names">Stored Names</a>).</li>
+<li>A pipe step's plain <code>batch_over</code> MUST NOT start with the reserved prefix <code>_bound_</code>, or the step is rejected as <code>method.identifier_invalid</code> (see <a href="#stored-names">Stored Names</a>).</li>
 </ul>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">[pipe.process_document]</span>
@@ -6476,7 +6532,7 @@
 <p>The first step binds the invoice's <code>total</code> field under the name <code>total_amount</code>, as a <code>Number</code>, and the judge declares exactly that input. The judge's signature names a whole concept, a <code>Number</code>, so it can judge any amount, and the sequence, which knows the invoice's concept, picks the field at the call site. The judge's prompt presents the amount, and the judging model sees nothing else of the invoice.</p>
 <p>Binding steps live in a PipeSequence's <code>steps</code> only. A binding orders a value before the steps that read it, and only a sequence has an order: a <a href="#controller-pipeparallel">PipeParallel</a> branch is always a pipe step, and a value its branches need is bound by a sequence step before the parallel. PipeCondition and PipeBatch have no steps.</p>
 <h4 id="path-grammar">Path Grammar</h4>
-<p><code>from</code> is a path. Its first segment, the root, names a value in working memory: an input of the sequence or the <code>result</code> of an earlier step. Each following segment, zero or more, names a field of the value the path has reached. Segments are separated by single dots, and each segment MUST be an identifier: a letter followed by letters, digits and underscores, matching <code>[A-Za-z][A-Za-z0-9_]*</code>. A segment therefore never starts with an underscore, which marks private names. Subscripts (<code>lines[0]</code>), expressions and whitespace are not part of the grammar: a path names fields, and anything computed is a pipe's job. A <code>from</code> that breaks the grammar is rejected as <code>binding_step_invalid</code>.</p>
+<p><code>from</code> is a path. Its first segment, the root, names a value in working memory: an input of the sequence or the <code>result</code> of an earlier step. Each following segment, zero or more, names a field of the value the path has reached. Segments are separated by single dots, and each segment MUST be an identifier: a letter followed by letters, digits and underscores, matching <code>[A-Za-z][A-Za-z0-9_]*</code>. A segment therefore never starts with an underscore, which marks private names. Subscripts (<code>lines[0]</code>), expressions and whitespace are not part of the grammar: a path names fields, and anything computed is a pipe's job. A <code>from</code> that breaks the grammar is rejected as <code>method.binding_step_invalid</code>.</p>
 <p>A path with no dot is a bare name, which binds a renamed copy of the whole value (see <a href="#a-bare-name-binds-a-renamed-copy">A Bare Name Binds a Renamed Copy</a>).</p>
 <h4 id="the-concept-of-the-result">The Concept of the Result</h4>
 <p>The result's concept is derived statically, before any run, by walking the path through declared structures. The walk starts from the root's concept and multiplicity as the sequence knows them at the binding step, which are those of the latest value stored under the root's name before that step, in step order:</p>
@@ -6532,10 +6588,10 @@
 </tbody>
 </table>
 <p>The walk reads only the concept references the structures declare. A field the table above calls a leaf holds a plain value, which has no fields of its own, so the walk always ends on it, whatever native concept it derives. A native concept reached through a concept reference is walked through its <a href="../native-concepts/">pinned definition</a>, so <code>page.page_view</code> is a <code>native.Image</code> and <code>page.page_view.caption</code> is a <code>native.Text</code>. The exceptions are the natives whose pinned definition is a single field holding the value itself, which are leaves wherever the walk reaches them. A concept that <a href="#concept-refinement">refines</a> another is walked through the structure it inherits. The walk never infers a concept from the shape of a value: several concepts can share one structure, and only the declaration says which of them a field holds.</p>
-<p><strong>A native that holds its value in a single field is a leaf wherever it is reached.</strong> A native concept whose pinned definition is a single field holding the value itself, rather than a part of it, is a leaf for the walk, and so is any concept that refines one: a path never enters it. In the pinned set, these natives are <code>Text</code>, whose field is <code>text</code>, <code>Number</code>, whose field is <code>number</code>, <code>Time</code>, whose field is <code>time</code>, and <code>JSON</code>, whose field is <code>json_obj</code>. How the walk reached the concept makes no difference: a field declared <code>type = "number"</code> and a field declared <code>type = "concept"</code> with <code>concept_ref = "native.Number"</code> both derive <code>native.Number</code>, and both end the walk. A path may end on such a concept, but no segment may follow it: <code>from = "note.text"</code>, over a <code>note</code> holding a <code>Text</code>, is rejected as <code>binding_path_unresolved</code>, and so is <code>from = "invoice.total.number"</code> over the invoice above, whether <code>Invoice</code> declares <code>total</code> as a number field or as a reference to <code>native.Number</code>. Every other native that has a structure, such as <code>YesNo</code>, <code>Date</code>, <code>Image</code> or <code>Page</code>, carries several fields and is walked through its pinned definition when a concept reference leads to it.</p>
-<p><strong>A plain field stays a leaf even when its native has several fields.</strong> A <code>boolean</code> field derives <code>native.YesNo</code> and a <code>date</code> field derives <code>native.Date</code>, both natives with several fields, yet the walk ends on the field itself. This makes the walk asymmetric, and the asymmetry is intended. Over an invoice declaring a boolean field <code>paid</code>, the one-step path <code>from = "invoice.paid.probability"</code> is rejected as <code>binding_path_unresolved</code> before any run. Binding <code>invoice.paid</code> first, with <code>{ from = "invoice.paid", result = "paid" }</code>, stores a <code>YesNo</code> carrying only the field's value, and a later step's <code>from = "paid.probability"</code> then validates, because its walk starts from a <code>YesNo</code> and follows its pinned definition. A plain boolean carries no probability, so that later step records an absence at run time.</p>
+<p><strong>A native that holds its value in a single field is a leaf wherever it is reached.</strong> A native concept whose pinned definition is a single field holding the value itself, rather than a part of it, is a leaf for the walk, and so is any concept that refines one: a path never enters it. In the pinned set, these natives are <code>Text</code>, whose field is <code>text</code>, <code>Number</code>, whose field is <code>number</code>, <code>Time</code>, whose field is <code>time</code>, and <code>JSON</code>, whose field is <code>json_obj</code>. How the walk reached the concept makes no difference: a field declared <code>type = "number"</code> and a field declared <code>type = "concept"</code> with <code>concept_ref = "native.Number"</code> both derive <code>native.Number</code>, and both end the walk. A path may end on such a concept, but no segment may follow it: <code>from = "note.text"</code>, over a <code>note</code> holding a <code>Text</code>, is rejected as <code>method.field_path_unresolved</code>, and so is <code>from = "invoice.total.number"</code> over the invoice above, whether <code>Invoice</code> declares <code>total</code> as a number field or as a reference to <code>native.Number</code>. Every other native that has a structure, such as <code>YesNo</code>, <code>Date</code>, <code>Image</code> or <code>Page</code>, carries several fields and is walked through its pinned definition when a concept reference leads to it.</p>
+<p><strong>A plain field stays a leaf even when its native has several fields.</strong> A <code>boolean</code> field derives <code>native.YesNo</code> and a <code>date</code> field derives <code>native.Date</code>, both natives with several fields, yet the walk ends on the field itself. This makes the walk asymmetric, and the asymmetry is intended. Over an invoice declaring a boolean field <code>paid</code>, the one-step path <code>from = "invoice.paid.probability"</code> is rejected as <code>method.field_path_unresolved</code> before any run. Binding <code>invoice.paid</code> first, with <code>{ from = "invoice.paid", result = "paid" }</code>, stores a <code>YesNo</code> carrying only the field's value, and a later step's <code>from = "paid.probability"</code> then validates, because its walk starts from a <code>YesNo</code> and follows its pinned definition. A plain boolean carries no probability, so that later step records an absence at run time.</p>
 <p>When the walk crosses no list, the result is a single value of the concept the walk ends on. When it crosses at least one list, the result is a variable-length list of that concept, <code>X[]</code>. A bare name has no segment to walk, and its result takes the root's concept and multiplicity unchanged. A step that reads the result is checked against the derived concept and multiplicity exactly as it would be against a pipe's output, and a binding step that ends the sequence is checked against the sequence's <code>output</code> the same way.</p>
-<p>The walk refuses the path, and the step is rejected as <code>binding_path_unresolved</code>, when:</p>
+<p>The walk refuses the path, and the step is rejected as <code>method.field_path_unresolved</code>, when:</p>
 <ul>
 <li>a segment names no field of the structure it walks;</li>
 <li>a segment follows a leaf: a field the table above calls a leaf, or, however the walk reached it, a native whose pinned definition is a single field holding the value itself, such as <code>Text</code>, <code>Number</code>, <code>Time</code> or <code>JSON</code>, or any concept that refines one of them;</li>
@@ -6572,41 +6628,41 @@
 <p>Working memory matches a pipe's inputs by name, so this is how a sequence hands a value to a pipe whose input has another name: here <code>announce_delays</code> declares <code>board</code>, and the sequence holds the value as <code>departure_board</code>.</p>
 <h4 id="dotted-batch_over">Dotted <code>batch_over</code></h4>
 <p>A pipe step whose <code>batch_over</code> is a dotted path is a binding followed by a batch. <code>{ pipe = "describe_view", batch_over = "pages.page_view", batch_as = "page_view" }</code> behaves exactly as a binding step of <code>pages.page_view</code> under a private name starting with the <a href="#stored-names">reserved prefix</a> <code>_bound_</code>, which no other step can read, followed by the same pipe step with <code>batch_over</code> naming that private name. The path follows every rule of a binding step. Its root takes the concept and multiplicity of the latest value stored under its name before the step, in step order, and those the sequence's <code>inputs</code> declare only when no earlier step stored that name (see <a href="#the-concept-of-the-result">The Concept of the Result</a>). Its concept is derived by the same walk, it maps and flattens across lists, so a dotted path over a list of catalogs iterates over the pages of all of them, and it lifts and records absences the same way.</p>
-<p>A dotted <code>batch_over</code> MUST bind a list: its walk MUST cross at least one list, whether the root is a list, a field along the path is one, or the path ends on a list field. A dotted <code>batch_over</code> whose walk derives a single value, such as <code>batch_over = "invoice.supplier_name"</code> over the invoice above, is rejected before any run, and an implementation reports it the way it reports a <code>batch_over</code> naming a value that is not a list. A dotted <code>batch_over</code> that breaks the <a href="#path-grammar">path grammar</a>, such as <code>a..b</code> or <code>pages[0].x</code>, is rejected as <code>binding_step_invalid</code>, as a binding step's <code>from</code> would be.</p>
-<p>A dotted <code>batch_over</code> binds, and only a sequence's steps can bind, so a <a href="#controller-pipeparallel">PipeParallel</a> branch MUST NOT carry one: a branch whose <code>batch_over</code> is a dotted path is rejected as <code>binding_step_invalid</code>, which the schema catches, exactly as a binding step placed in a branch is. A plain <code>batch_over</code> on a branch is unaffected. A branch that needs to iterate over a list held in a field gets it from the calling sequence, which binds the field in a step before the PipeParallel step, so that the branch's plain <code>batch_over</code> names the bound list.</p>
+<p>A dotted <code>batch_over</code> MUST bind a list: its walk MUST cross at least one list, whether the root is a list, a field along the path is one, or the path ends on a list field. A dotted <code>batch_over</code> whose walk derives a single value, such as <code>batch_over = "invoice.supplier_name"</code> over the invoice above, is rejected before any run, and an implementation reports it the way it reports a <code>batch_over</code> naming a value that is not a list. A dotted <code>batch_over</code> that breaks the <a href="#path-grammar">path grammar</a>, such as <code>a..b</code> or <code>pages[0].x</code>, is rejected as <code>method.binding_step_invalid</code>, as a binding step's <code>from</code> would be.</p>
+<p>A dotted <code>batch_over</code> binds, and only a sequence's steps can bind, so a <a href="#controller-pipeparallel">PipeParallel</a> branch MUST NOT carry one: a branch whose <code>batch_over</code> is a dotted path is rejected as <code>method.binding_step_invalid</code>, which the schema catches, exactly as a binding step placed in a branch is. A plain <code>batch_over</code> on a branch is unaffected. A branch that needs to iterate over a list held in a field gets it from the calling sequence, which binds the field in a step before the PipeParallel step, so that the branch's plain <code>batch_over</code> names the bound list.</p>
 <h4 id="stored-names">Stored Names</h4>
 <p>A <strong>stored name</strong> is a name under which a step stores a value in working memory: a pipe step's <code>result</code>, the <code>result</code> of a <a href="#controller-pipeparallel">PipeParallel</a> branch, the <code>batch_as</code> of a pipe step or a branch, under which each item of the batch is stored for the pipe that the step or branch runs, a <a href="#controller-pipebatch">PipeBatch</a>'s <code>input_item_name</code>, under which each item is stored for its branch pipe, and a binding step's <code>result</code>.</p>
-<p><strong>Every stored name MUST take the form of a plain <a href="#input-names">input name</a></strong>, matching <code>[a-z][a-z0-9_]*</code>. A step stores a value for a later step to read, and an input reads a stored value only under a plain name, so a stored name takes the form of an input name and every value a step stores can be read by an input. A name in any other form, such as <code>Pages</code> or <code>a.b</code>, would store a value that no input can read. A step such as <code>{ pipe = "extract_pages", result = "Pages" }</code> is rejected, which the schema catches, and a compliant implementation SHOULD report the refusal as <code>invalid_input_name</code>, the error it reports for an input name that breaks the same form. A binding step's <code>result</code> is a stored name held to this rule like the others, and a binding step that breaks it is rejected as <code>binding_step_invalid</code> instead, since that error reports every fault of a binding step's own shape.</p>
-<p><strong>Names starting with <code>_bound_</code> are reserved</strong> for the private names under which an implementation binds a dotted <code>batch_over</code>. A plain input name starts with a letter, so no stored name can take the prefix: a step such as <code>{ pipe = "extract_pages", result = "_bound_pages" }</code> breaks the form above and is refused for it. A plain <code>batch_over</code> reads a name in working memory rather than storing one, and it MUST NOT start with <code>_bound_</code> either, so that no step reads a value an implementation bound under a private name: a step such as <code>{ pipe = "describe_page", batch_over = "_bound_pages", batch_as = "page" }</code> is rejected, which the schema catches, and a compliant implementation SHOULD report the refusal as <code>invalid_input_name</code>. The reservation keeps every name an author writes apart from the names an implementation binds, wherever in a run's working memory the two might meet.</p>
+<p><strong>Every stored name MUST take the form of a plain <a href="#input-names">input name</a></strong>, matching <code>[a-z][a-z0-9_]*</code>. A step stores a value for a later step to read, and an input reads a stored value only under a plain name, so a stored name takes the form of an input name and every value a step stores can be read by an input. A name in any other form, such as <code>Pages</code> or <code>a.b</code>, would store a value that no input can read. A step such as <code>{ pipe = "extract_pages", result = "Pages" }</code> is rejected, which the schema catches, and a compliant implementation SHOULD report the refusal as <code>method.identifier_invalid</code>, the code it reports for an input name that breaks the same form. A binding step's <code>result</code> is a stored name held to this rule like the others, and a binding step that breaks it is rejected as <code>method.binding_step_invalid</code> instead, since that code reports every fault of a binding step's own shape.</p>
+<p><strong>Names starting with <code>_bound_</code> are reserved</strong> for the private names under which an implementation binds a dotted <code>batch_over</code>. A plain input name starts with a letter, so no stored name can take the prefix: a step such as <code>{ pipe = "extract_pages", result = "_bound_pages" }</code> breaks the form above and is refused for it. A plain <code>batch_over</code> reads a name in working memory rather than storing one, and it MUST NOT start with <code>_bound_</code> either, so that no step reads a value an implementation bound under a private name: a step such as <code>{ pipe = "describe_page", batch_over = "_bound_pages", batch_as = "page" }</code> is rejected, which the schema catches, and a compliant implementation SHOULD report the refusal as <code>method.identifier_invalid</code>. The reservation keeps every name an author writes apart from the names an implementation binds, wherever in a run's working memory the two might meet.</p>
 <h4 id="validation-surface">Validation Surface</h4>
-<p>A compliant implementation SHOULD report a binding step's own faults, and a stored name or a plain <code>batch_over</code> that breaks the rules of <a href="#stored-names">Stored Names</a>, under these names:</p>
+<p>A compliant implementation SHOULD report a binding step's own faults, and a stored name or a plain <code>batch_over</code> that breaks the rules of <a href="#stored-names">Stored Names</a>, under these codes of the <a href="../error-registry/">core error registry</a>, each linked to its page:</p>
 <table>
 <thead>
 <tr>
-<th>Error</th>
+<th>Code</th>
 <th>Fault</th>
 <th>Caught by</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>binding_step_invalid</code></td>
+<td><a href="../../errors/method/binding_step_invalid/"><code>method.binding_step_invalid</code></a></td>
 <td>A step carrying both <code>pipe</code> and <code>from</code>; a binding step lacking <code>result</code> or carrying <code>nb_output</code>, <code>multiple_output</code>, <code>batch_over</code> or <code>batch_as</code>; a binding step whose <code>result</code> is not a plain <a href="#input-names">input name</a>; a <code>from</code> that breaks the <a href="#path-grammar">path grammar</a>; a dotted <code>batch_over</code> that breaks the path grammar; a binding step in a PipeParallel's <code>branches</code>; a dotted <code>batch_over</code> in a PipeParallel's <code>branches</code>.</td>
 <td>The schema.</td>
 </tr>
 <tr>
-<td><code>binding_path_unresolved</code></td>
+<td><a href="../../errors/method/field_path_unresolved/"><code>method.field_path_unresolved</code></a></td>
 <td>A path the declared structures cannot walk, under the refusals listed in <a href="#the-concept-of-the-result">The Concept of the Result</a>.</td>
 <td>Validation of the bundle, which reads the concepts' structures, before any run.</td>
 </tr>
 <tr>
-<td><code>invalid_input_name</code></td>
+<td><a href="../../errors/method/identifier_invalid/"><code>method.identifier_invalid</code></a></td>
 <td>A pipe step's or a PipeParallel branch's <code>result</code> or <code>batch_as</code>, or a PipeBatch's <code>input_item_name</code>, that does not take the form of a plain <a href="#input-names">input name</a>, such as <code>Pages</code>, <code>a.b</code> or <code>_bound_pages</code>; a pipe step's or a branch's plain <code>batch_over</code> starting with the reserved prefix <code>_bound_</code> (see <a href="#stored-names">Stored Names</a>).</td>
 <td>The schema.</td>
 </tr>
 </tbody>
 </table>
-<p>A binding step can also cause faults that are not its own, and an implementation reports each of them the way it reports the same fault caused by a pipe step: a root that is neither an input of the sequence nor stored by an earlier step, whose diagnostic asks for the concept whose structure holds the path; a step that reads the result through an input declaring a concept or multiplicity incompatible with the ones the binding derives; a binding step ending the sequence whose derived concept or multiplicity does not match the sequence's declared <code>output</code>; and a dotted <code>batch_over</code> whose walk derives a single value, which is reported as a <code>batch_over</code> naming a value that is not a list. A maybe-absent result escaping a sequence whose output is not <code>?</code> is <code>optional_not_handled</code>, as <a href="../../language/optionality/#validation-surface">Optionality</a> defines it.</p>
+<p>A binding step can also cause faults that are not its own, and an implementation reports each of them the way it reports the same fault caused by a pipe step: a root that is neither an input of the sequence nor stored by an earlier step, whose diagnostic asks for the concept whose structure holds the path; a step that reads the result through an input declaring a concept or multiplicity incompatible with the ones the binding derives; a binding step ending the sequence whose derived concept or multiplicity does not match the sequence's declared <code>output</code>; and a dotted <code>batch_over</code> whose walk derives a single value, which is reported as a <code>batch_over</code> naming a value that is not a list. A maybe-absent result escaping a sequence whose output is not <code>?</code> is <code>method.optional_unhandled</code>, as <a href="../../language/optionality/#validation-surface">Optionality</a> defines it.</p>
 <h2 id="controller-pipeparallel">Controller: PipeParallel</h2>
 <p>Executes multiple sub-pipes concurrently. Each branch operates independently, then the branch results are combined into the pipe's declared <code>output</code>.</p>
 <table>
@@ -6664,9 +6720,9 @@
 <li><code>output</code> MUST NOT use multiplicity brackets (<code>[]</code> or <code>[N]</code>).</li>
 <li>For structured output, required fields MUST be produced by matching branch <code>result</code> names and branch output concepts MUST be compatible with the corresponding fields.</li>
 <li><code>add_each_output</code> controls only whether branch results are also exposed individually in working memory. It does not control the main output.</li>
-<li>Each branch is a pipe step, in the format of a <a href="#controller-pipesequence">PipeSequence</a> pipe step. A branch MUST NOT be a binding step: a branch carrying <code>from</code> is rejected as <code>binding_step_invalid</code>, and a value the branches need is bound by a sequence step before the parallel.</li>
-<li>A branch MUST NOT carry a dotted <code>batch_over</code>, which is a binding followed by a batch (see <a href="#dotted-batch_over">Dotted <code>batch_over</code></a>): such a branch is rejected as <code>binding_step_invalid</code>, while a plain <code>batch_over</code> on a branch is unaffected.</li>
-<li>A branch's <code>result</code> and <code>batch_as</code> MUST take the form of a plain <a href="#input-names">input name</a>, and its plain <code>batch_over</code> MUST NOT start with the reserved prefix <code>_bound_</code>, or the branch is rejected as <code>invalid_input_name</code>, as a sequence's pipe step is (see <a href="#stored-names">Stored Names</a>).</li>
+<li>Each branch is a pipe step, in the format of a <a href="#controller-pipesequence">PipeSequence</a> pipe step. A branch MUST NOT be a binding step: a branch carrying <code>from</code> is rejected as <code>method.binding_step_invalid</code>, and a value the branches need is bound by a sequence step before the parallel.</li>
+<li>A branch MUST NOT carry a dotted <code>batch_over</code>, which is a binding followed by a batch (see <a href="#dotted-batch_over">Dotted <code>batch_over</code></a>): such a branch is rejected as <code>method.binding_step_invalid</code>, while a plain <code>batch_over</code> on a branch is unaffected.</li>
+<li>A branch's <code>result</code> and <code>batch_as</code> MUST take the form of a plain <a href="#input-names">input name</a>, and its plain <code>batch_over</code> MUST NOT start with the reserved prefix <code>_bound_</code>, or the branch is rejected as <code>method.identifier_invalid</code>, as a sequence's pipe step is (see <a href="#stored-names">Stored Names</a>).</li>
 </ul>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">[pipe.extract_documents]</span>
@@ -6840,12 +6896,12 @@
 </table>
 <p><strong>Validation rules:</strong></p>
 <ul>
-<li><code>input_list_name</code> MUST be a plain <a href="#input-names">input name</a>. A compliant implementation MUST reject a dotted name such as <code>catalog.pages</code>, as it rejects a dotted input name, and SHOULD report the refusal as <code>invalid_input_name</code>. To map a pipe over a list held in a field, the PipeBatch declares the list itself as its input (<code>pages = "Page[]"</code>, with <code>input_list_name = "pages"</code>), and the calling sequence hands the field to it under that name with a binding step (<code>{ from = "catalog.pages", result = "pages" }</code>, see <a href="#binding-steps">Binding Steps</a>).</li>
+<li><code>input_list_name</code> MUST be a plain <a href="#input-names">input name</a>. A compliant implementation MUST reject a dotted name such as <code>catalog.pages</code>, as it rejects a dotted input name, and SHOULD report the refusal as <code>method.identifier_invalid</code>. To map a pipe over a list held in a field, the PipeBatch declares the list itself as its input (<code>pages = "Page[]"</code>, with <code>input_list_name = "pages"</code>), and the calling sequence hands the field to it under that name with a binding step (<code>{ from = "catalog.pages", result = "pages" }</code>, see <a href="#binding-steps">Binding Steps</a>).</li>
 <li><code>input_list_name</code> MUST exist as a key in <code>inputs</code>.</li>
 <li><code>input_item_name</code> MUST NOT be empty.</li>
 <li><code>input_item_name</code> MUST NOT equal <code>input_list_name</code>.</li>
 <li><code>input_item_name</code> MUST NOT equal any key in <code>inputs</code>.</li>
-<li><code>input_item_name</code> MUST take the form of a plain <a href="#input-names">input name</a>, or the pipe is rejected as <code>invalid_input_name</code> (see <a href="#stored-names">Stored Names</a>).</li>
+<li><code>input_item_name</code> MUST take the form of a plain <a href="#input-names">input name</a>, or the pipe is rejected as <code>method.identifier_invalid</code> (see <a href="#stored-names">Stored Names</a>).</li>
 </ul>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">[pipe.batch_generate_jokes]</span>

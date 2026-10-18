@@ -52,7 +52,7 @@ Here the bundle, the Python module a `PipeFunc` step calls, the template and the
 A few files stay out on their own, so that a method never carries what it should not:
 
 - **Anything whose name starts with a dot**, at any depth: `.git/`, `.venv/`, `.env`, `.gitignore` and the `.mthds/` folder where installed dependencies live.
-- **The defaults**: `__pycache__/`, `node_modules/`, any Python virtual environment whatever its name, any repository nested inside the folder, and any other package nested inside it, meaning a subfolder holding its own `METHODS.toml`, which travels as a package of its own.
+- **The defaults**: `__pycache__/`, `node_modules/`, any Python virtual environment whatever its name, any repository nested inside the folder, any other package nested inside it, meaning a subfolder holding its own `METHODS.toml`, which travels as a package of its own, and a run's inputs file, meaning any file named `inputs.json` or `inputs.toml` wherever it sits in the folder, so the data of a run you start from the folder never travels as part of the method. Example inputs you want to ship take any other name, such as `examples/invoice-inputs.json`, and travel like any other file.
 - **Whatever the folder's own `.gitignore` files ignore**, read exactly as git reads them, so what travels is what git would publish.
 - **Whatever the manifest's [`exclude`](manifest.md#exclude) patterns name**, for files you want out of the method but still in git.
 

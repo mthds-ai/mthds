@@ -2073,9 +2073,65 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../spec/error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2129,10 +2185,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
             
   
   
@@ -2150,8 +2206,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3154,13 +3210,14 @@
 
 <h1 id="validation-rules">Validation Rules</h1>
 <p>This page consolidates all validation rules from the <a href="../../spec/mthds-format/">Specification</a> into an ordered checklist for implementers. Rules are grouped by the stage at which they should be enforced.</p>
+<p>A refusal is reported under a code of the <a href="../../spec/error-registry/">core error registry</a>: the rules below name the code where one is specific to them, and a fault of the method that no sharper code names is <code>method.schema_violation</code>. Each refusal is one item of the verdict's <code>errors</code>, and a run refused because its method does not validate is the problem <code>method.invalid</code>, carrying the same items (<a href="../../spec/protocol/#validating-a-bundle">Validating a bundle</a>). The <a href="../../errors/">Error Codes</a> page lists every <code>method.</code> code.</p>
 <h2 id="before-parsing-the-method-tree">Before Parsing: The Method Tree</h2>
 <p>Before any file is parsed, establish the <a href="../../spec/method-tree/">method tree</a> the files come from:</p>
 <ul>
 <li>Find the root from what the caller handed over: the nearest directory at or above it holding <code>METHODS.toml</code>, else the directory handed over, else, for a <code>.mthds</code> file named alone, a tree of that one file.</li>
-<li>List the tree under the <a href="../../spec/method-tree/#the-membership-rule">membership rule</a>, with every pattern normalized to NFC, pruning excluded directories first, among them a nested repository or a nested package, meaning a directory below the root holding an entry named <code>.git</code> of any kind, whatever it holds, or its own <code>METHODS.toml</code>. Refuse a symbolic link or any other entry that is neither a regular file nor a directory, naming its path, unless the rule excludes it, and refuse in the same way a <code>.gitignore</code> file the listing reads whose bytes are not UTF-8, once a leading byte order mark is skipped. A package read from a cache is not listed again: its files are its tree as written.</li>
+<li>List the tree under the <a href="../../spec/method-tree/#the-membership-rule">membership rule</a>, with every pattern normalized to NFC, pruning excluded directories first, among them a nested repository or a nested package, meaning a directory below the root holding an entry named <code>.git</code> of any kind, whatever it holds, or its own <code>METHODS.toml</code>, and leaving out a run's inputs file, a regular file or a symbolic link named <code>inputs.json</code> or <code>inputs.toml</code> at any depth, while a directory of either name excludes nothing. Refuse a symbolic link or any other entry that is neither a regular file nor a directory, naming its path, unless the rule excludes it, and refuse in the same way a <code>.gitignore</code> file the listing reads whose bytes are not UTF-8, once a leading byte order mark is skipped. A package read from a cache is not listed again: its files are its tree as written.</li>
 <li>Normalize every name to NFC, and refuse a path that breaks the <a href="../../spec/method-tree/#tree-paths">tree path</a> rules, two names equal after normalization, two paths that collide, or one colliding with a directory of another, under the Unicode full case folding the tree path rules define, and a path past the length bound, naming each path. A name the membership rule excludes is never checked, so an invalid one is excluded silently.</li>
-<li>When the tree arrives as a map of <a href="../../spec/method-tree/#the-file-entry">file entries</a> rather than from a directory, refuse a key that is not a tree path, such as one not already in NFC, or that the membership rule could not admit; a key given twice in the map or inside an entry object; two keys that collide, or one colliding with a directory of another; a malformed entry, such as non-canonical Base64 or a <code>size</code> written with a fraction or an exponent; and a hash entry whose bytes the receiver does not hold.</li>
+<li>When the tree arrives as a map of <a href="../../spec/method-tree/#the-file-entry">file entries</a> rather than from a directory, refuse a key that is not a tree path, such as one not already in NFC, or that the membership rule could not admit, such as one whose last segment is <code>inputs.json</code> or <code>inputs.toml</code>; a key given twice in the map or inside an entry object; two keys that collide, or one colliding with a directory of another; a malformed entry, such as non-canonical Base64 or a <code>size</code> written with a fraction or an exponent; and a hash entry whose bytes the receiver does not hold.</li>
 </ul>
 <h2 id="stage-1-toml-parsing">Stage 1: TOML Parsing</h2>
 <p>Before any MTHDS-specific validation, the file must be valid TOML.</p>
@@ -3179,7 +3236,7 @@
 <li>Concept codes MUST be <code>PascalCase</code> (<code>[A-Z][a-zA-Z0-9]*</code>).</li>
 <li>Concept codes MUST NOT match any native concept code (<code>Dynamic</code>, <code>Text</code>, <code>Image</code>, <code>Document</code>, <code>Html</code>, <code>TextAndImages</code>, <code>Number</code>, <code>YesNo</code>, <code>Choice</code>, <code>Rating</code>, <code>Date</code>, <code>Time</code>, <code>Page</code>, <code>JSON</code>, <code>SearchResult</code>, <code>Anything</code>, <code>Composite</code>).</li>
 <li>Pipe codes MUST be <code>snake_case</code> (<code>[a-z][a-z0-9_]*</code>).</li>
-<li>Input names MUST be plain <code>snake_case</code> identifiers (<code>[a-z][a-z0-9_]*</code>), never dotted. Any other input name MUST be rejected, and the refusal SHOULD be reported as <code>invalid_input_name</code>.</li>
+<li>Input names MUST be plain <code>snake_case</code> identifiers (<code>[a-z][a-z0-9_]*</code>), never dotted. Any other input name MUST be rejected, and the refusal SHOULD be reported as <code>method.identifier_invalid</code>.</li>
 <li><code>refines</code> and <code>structure</code> MUST NOT both be set on the same concept.</li>
 </ol>
 <h2 id="stage-3-concept-field-validation">Stage 3: Concept Field Validation</h2>
@@ -3259,19 +3316,19 @@
 <li><code>nb_output</code> and <code>multiple_output</code> MUST NOT both be set on the same step.</li>
 <li><code>batch_over</code> and <code>batch_as</code> MUST either both be present or both be absent.</li>
 <li><code>batch_over</code> and <code>batch_as</code> MUST NOT be the same value.</li>
-<li>A dotted <code>batch_over</code> MUST follow the <a href="../../spec/mthds-format/#path-grammar">path grammar</a>, or the step is rejected as <code>binding_step_invalid</code>. Its walk MUST derive a list, and one deriving a single value is reported as a <code>batch_over</code> naming a value that is not a list (see <a href="../../spec/mthds-format/#dotted-batch_over">Dotted <code>batch_over</code></a>).</li>
-<li>A step MUST carry exactly one of <code>pipe</code> and <code>from</code>. A step carrying both is rejected as <code>binding_step_invalid</code>, and a step carrying neither, such as <code>{ result = "x" }</code>, is rejected by the schema with no error name of its own.</li>
-<li>A binding step (one carrying <code>from</code>) MUST carry <code>result</code> and MUST NOT carry <code>nb_output</code>, <code>multiple_output</code>, <code>batch_over</code> or <code>batch_as</code>. Its <code>result</code> MUST take the form of a plain input name (<a href="#stage-2-bundle-structural-validation">Stage 2</a>, rule 7), and its <code>from</code> MUST follow the <a href="../../spec/mthds-format/#path-grammar">path grammar</a>. Each of these faults is <code>binding_step_invalid</code>.</li>
-<li>A binding step's path MUST be walkable through the declared structures, or the step is rejected as <code>binding_path_unresolved</code>. The walk starts from the concept and multiplicity of the latest value stored under the root's name before the step, in step order, and from those the sequence's <code>inputs</code> declare only when no earlier step stored that name (see <a href="../../spec/mthds-format/#the-concept-of-the-result">The Concept of the Result</a>).</li>
-<li>A pipe step's <code>result</code> and <code>batch_as</code> are stored names, and each MUST take the form of a plain input name (<a href="#stage-2-bundle-structural-validation">Stage 2</a>, rule 7), as a binding step's <code>result</code> does. The schema rejects a name in any other form, such as <code>Pages</code> or <code>a.b</code>, and the refusal SHOULD be reported as <code>invalid_input_name</code> (see <a href="../../spec/mthds-format/#stored-names">Stored Names</a>).</li>
-<li>A pipe step's plain <code>batch_over</code> MUST NOT start with <code>_bound_</code>, a prefix reserved for the private names under which an implementation binds a dotted <code>batch_over</code>. The schema rejects such a name, and the refusal SHOULD be reported as <code>invalid_input_name</code>.</li>
+<li>A dotted <code>batch_over</code> MUST follow the <a href="../../spec/mthds-format/#path-grammar">path grammar</a>, or the step is rejected as <code>method.binding_step_invalid</code>. Its walk MUST derive a list, and one deriving a single value is reported as a <code>batch_over</code> naming a value that is not a list (see <a href="../../spec/mthds-format/#dotted-batch_over">Dotted <code>batch_over</code></a>).</li>
+<li>A step MUST carry exactly one of <code>pipe</code> and <code>from</code>. A step carrying both is rejected as <code>method.binding_step_invalid</code>, and a step carrying neither, such as <code>{ result = "x" }</code>, is rejected by the schema as <code>method.schema_violation</code>, since no sharper code names it.</li>
+<li>A binding step (one carrying <code>from</code>) MUST carry <code>result</code> and MUST NOT carry <code>nb_output</code>, <code>multiple_output</code>, <code>batch_over</code> or <code>batch_as</code>. Its <code>result</code> MUST take the form of a plain input name (<a href="#stage-2-bundle-structural-validation">Stage 2</a>, rule 7), and its <code>from</code> MUST follow the <a href="../../spec/mthds-format/#path-grammar">path grammar</a>. Each of these faults is <code>method.binding_step_invalid</code>.</li>
+<li>A binding step's path MUST be walkable through the declared structures, or the step is rejected as <code>method.field_path_unresolved</code>. The walk starts from the concept and multiplicity of the latest value stored under the root's name before the step, in step order, and from those the sequence's <code>inputs</code> declare only when no earlier step stored that name (see <a href="../../spec/mthds-format/#the-concept-of-the-result">The Concept of the Result</a>).</li>
+<li>A pipe step's <code>result</code> and <code>batch_as</code> are stored names, and each MUST take the form of a plain input name (<a href="#stage-2-bundle-structural-validation">Stage 2</a>, rule 7), as a binding step's <code>result</code> does. The schema rejects a name in any other form, such as <code>Pages</code> or <code>a.b</code>, and the refusal SHOULD be reported as <code>method.identifier_invalid</code> (see <a href="../../spec/mthds-format/#stored-names">Stored Names</a>).</li>
+<li>A pipe step's plain <code>batch_over</code> MUST NOT start with <code>_bound_</code>, a prefix reserved for the private names under which an implementation binds a dotted <code>batch_over</code>. The schema rejects such a name, and the refusal SHOULD be reported as <code>method.identifier_invalid</code>.</li>
 </ul>
 <p><strong>PipeParallel:</strong></p>
 <ul>
 <li><code>branches</code> MUST have at least one entry.</li>
-<li>Every branch MUST be a pipe step. A binding step in <code>branches</code> is rejected as <code>binding_step_invalid</code>.</li>
-<li>A branch MUST NOT carry a dotted <code>batch_over</code>, which is a binding followed by a batch, and one that does is rejected as <code>binding_step_invalid</code>. A plain <code>batch_over</code> on a branch is allowed (see <a href="../../spec/mthds-format/#dotted-batch_over">Dotted <code>batch_over</code></a>).</li>
-<li>A branch's <code>result</code> and <code>batch_as</code> MUST take the form of a plain input name, and its plain <code>batch_over</code> MUST NOT start with the reserved prefix <code>_bound_</code>. A branch that breaks either rule is rejected as <code>invalid_input_name</code>, as on a sequence step.</li>
+<li>Every branch MUST be a pipe step. A binding step in <code>branches</code> is rejected as <code>method.binding_step_invalid</code>.</li>
+<li>A branch MUST NOT carry a dotted <code>batch_over</code>, which is a binding followed by a batch, and one that does is rejected as <code>method.binding_step_invalid</code>. A plain <code>batch_over</code> on a branch is allowed (see <a href="../../spec/mthds-format/#dotted-batch_over">Dotted <code>batch_over</code></a>).</li>
+<li>A branch's <code>result</code> and <code>batch_as</code> MUST take the form of a plain input name, and its plain <code>batch_over</code> MUST NOT start with the reserved prefix <code>_bound_</code>. A branch that breaks either rule is rejected as <code>method.identifier_invalid</code>, as on a sequence step.</li>
 <li><code>output</code> MUST be <code>Composite</code> or a structured concept.</li>
 <li><code>output</code> MUST NOT use multiplicity brackets (<code>[]</code> or <code>[N]</code>).</li>
 <li>For structured output, required fields MUST be produced by matching branch <code>result</code> names and branch output concepts MUST be compatible with the corresponding fields.</li>
@@ -3297,7 +3354,7 @@
 <li><code>input_item_name</code> MUST NOT be empty.</li>
 <li><code>input_item_name</code> MUST NOT equal <code>input_list_name</code>.</li>
 <li><code>input_item_name</code> MUST NOT equal any key in <code>inputs</code>.</li>
-<li><code>input_item_name</code> MUST take the form of a plain input name, and one that does not is rejected as <code>invalid_input_name</code>, which the schema catches (see <a href="../../spec/mthds-format/#stored-names">Stored Names</a>).</li>
+<li><code>input_item_name</code> MUST take the form of a plain input name, and one that does not is rejected as <code>method.identifier_invalid</code>, which the schema catches (see <a href="../../spec/mthds-format/#stored-names">Stored Names</a>).</li>
 </ul>
 <h2 id="stage-5-reference-validation-bundle-level">Stage 5: Reference Validation (Bundle-Level)</h2>
 <p>Within a single bundle:</p>

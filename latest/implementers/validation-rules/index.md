@@ -2,14 +2,16 @@
 
 This page consolidates all validation rules from the [Specification](../spec/mthds-format.md) into an ordered checklist for implementers. Rules are grouped by the stage at which they should be enforced.
 
+A refusal is reported under a code of the [core error registry](../spec/error-registry.md): the rules below name the code where one is specific to them, and a fault of the method that no sharper code names is `method.schema_violation`. Each refusal is one item of the verdict's `errors`, and a run refused because its method does not validate is the problem `method.invalid`, carrying the same items ([Validating a bundle](../spec/protocol.md#validating-a-bundle)). The [Error Codes](../errors/index.md) page lists every `method.` code.
+
 ## Before Parsing: The Method Tree
 
 Before any file is parsed, establish the [method tree](../spec/method-tree.md) the files come from:
 
 - Find the root from what the caller handed over: the nearest directory at or above it holding `METHODS.toml`, else the directory handed over, else, for a `.mthds` file named alone, a tree of that one file.
-- List the tree under the [membership rule](../spec/method-tree.md#the-membership-rule), with every pattern normalized to NFC, pruning excluded directories first, among them a nested repository or a nested package, meaning a directory below the root holding an entry named `.git` of any kind, whatever it holds, or its own `METHODS.toml`. Refuse a symbolic link or any other entry that is neither a regular file nor a directory, naming its path, unless the rule excludes it, and refuse in the same way a `.gitignore` file the listing reads whose bytes are not UTF-8, once a leading byte order mark is skipped. A package read from a cache is not listed again: its files are its tree as written.
+- List the tree under the [membership rule](../spec/method-tree.md#the-membership-rule), with every pattern normalized to NFC, pruning excluded directories first, among them a nested repository or a nested package, meaning a directory below the root holding an entry named `.git` of any kind, whatever it holds, or its own `METHODS.toml`, and leaving out a run's inputs file, a regular file or a symbolic link named `inputs.json` or `inputs.toml` at any depth, while a directory of either name excludes nothing. Refuse a symbolic link or any other entry that is neither a regular file nor a directory, naming its path, unless the rule excludes it, and refuse in the same way a `.gitignore` file the listing reads whose bytes are not UTF-8, once a leading byte order mark is skipped. A package read from a cache is not listed again: its files are its tree as written.
 - Normalize every name to NFC, and refuse a path that breaks the [tree path](../spec/method-tree.md#tree-paths) rules, two names equal after normalization, two paths that collide, or one colliding with a directory of another, under the Unicode full case folding the tree path rules define, and a path past the length bound, naming each path. A name the membership rule excludes is never checked, so an invalid one is excluded silently.
-- When the tree arrives as a map of [file entries](../spec/method-tree.md#the-file-entry) rather than from a directory, refuse a key that is not a tree path, such as one not already in NFC, or that the membership rule could not admit; a key given twice in the map or inside an entry object; two keys that collide, or one colliding with a directory of another; a malformed entry, such as non-canonical Base64 or a `size` written with a fraction or an exponent; and a hash entry whose bytes the receiver does not hold.
+- When the tree arrives as a map of [file entries](../spec/method-tree.md#the-file-entry) rather than from a directory, refuse a key that is not a tree path, such as one not already in NFC, or that the membership rule could not admit, such as one whose last segment is `inputs.json` or `inputs.toml`; a key given twice in the map or inside an entry object; two keys that collide, or one colliding with a directory of another; a malformed entry, such as non-canonical Base64 or a `size` written with a fraction or an exponent; and a hash entry whose bytes the receiver does not hold.
 
 ## Stage 1: TOML Parsing
 
@@ -30,7 +32,7 @@ After parsing TOML into a dictionary, validate the bundle structure:
 4. Concept codes MUST be `PascalCase` (`[A-Z][a-zA-Z0-9]*`).
 5. Concept codes MUST NOT match any native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Choice`, `Rating`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`).
 6. Pipe codes MUST be `snake_case` (`[a-z][a-z0-9_]*`).
-7. Input names MUST be plain `snake_case` identifiers (`[a-z][a-z0-9_]*`), never dotted. Any other input name MUST be rejected, and the refusal SHOULD be reported as `invalid_input_name`.
+7. Input names MUST be plain `snake_case` identifiers (`[a-z][a-z0-9_]*`), never dotted. Any other input name MUST be rejected, and the refusal SHOULD be reported as `method.identifier_invalid`.
 8. `refines` and `structure` MUST NOT both be set on the same concept.
 
 ## Stage 3: Concept Field Validation
@@ -113,19 +115,19 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 - `nb_output` and `multiple_output` MUST NOT both be set on the same step.
 - `batch_over` and `batch_as` MUST either both be present or both be absent.
 - `batch_over` and `batch_as` MUST NOT be the same value.
-- A dotted `batch_over` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar), or the step is rejected as `binding_step_invalid`. Its walk MUST derive a list, and one deriving a single value is reported as a `batch_over` naming a value that is not a list (see [Dotted `batch_over`](../spec/mthds-format.md#dotted-batch_over)).
-- A step MUST carry exactly one of `pipe` and `from`. A step carrying both is rejected as `binding_step_invalid`, and a step carrying neither, such as `{ result = "x" }`, is rejected by the schema with no error name of its own.
-- A binding step (one carrying `from`) MUST carry `result` and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. Its `result` MUST take the form of a plain input name ([Stage 2](#stage-2-bundle-structural-validation), rule 7), and its `from` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar). Each of these faults is `binding_step_invalid`.
-- A binding step's path MUST be walkable through the declared structures, or the step is rejected as `binding_path_unresolved`. The walk starts from the concept and multiplicity of the latest value stored under the root's name before the step, in step order, and from those the sequence's `inputs` declare only when no earlier step stored that name (see [The Concept of the Result](../spec/mthds-format.md#the-concept-of-the-result)).
-- A pipe step's `result` and `batch_as` are stored names, and each MUST take the form of a plain input name ([Stage 2](#stage-2-bundle-structural-validation), rule 7), as a binding step's `result` does. The schema rejects a name in any other form, such as `Pages` or `a.b`, and the refusal SHOULD be reported as `invalid_input_name` (see [Stored Names](../spec/mthds-format.md#stored-names)).
-- A pipe step's plain `batch_over` MUST NOT start with `_bound_`, a prefix reserved for the private names under which an implementation binds a dotted `batch_over`. The schema rejects such a name, and the refusal SHOULD be reported as `invalid_input_name`.
+- A dotted `batch_over` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar), or the step is rejected as `method.binding_step_invalid`. Its walk MUST derive a list, and one deriving a single value is reported as a `batch_over` naming a value that is not a list (see [Dotted `batch_over`](../spec/mthds-format.md#dotted-batch_over)).
+- A step MUST carry exactly one of `pipe` and `from`. A step carrying both is rejected as `method.binding_step_invalid`, and a step carrying neither, such as `{ result = "x" }`, is rejected by the schema as `method.schema_violation`, since no sharper code names it.
+- A binding step (one carrying `from`) MUST carry `result` and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. Its `result` MUST take the form of a plain input name ([Stage 2](#stage-2-bundle-structural-validation), rule 7), and its `from` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar). Each of these faults is `method.binding_step_invalid`.
+- A binding step's path MUST be walkable through the declared structures, or the step is rejected as `method.field_path_unresolved`. The walk starts from the concept and multiplicity of the latest value stored under the root's name before the step, in step order, and from those the sequence's `inputs` declare only when no earlier step stored that name (see [The Concept of the Result](../spec/mthds-format.md#the-concept-of-the-result)).
+- A pipe step's `result` and `batch_as` are stored names, and each MUST take the form of a plain input name ([Stage 2](#stage-2-bundle-structural-validation), rule 7), as a binding step's `result` does. The schema rejects a name in any other form, such as `Pages` or `a.b`, and the refusal SHOULD be reported as `method.identifier_invalid` (see [Stored Names](../spec/mthds-format.md#stored-names)).
+- A pipe step's plain `batch_over` MUST NOT start with `_bound_`, a prefix reserved for the private names under which an implementation binds a dotted `batch_over`. The schema rejects such a name, and the refusal SHOULD be reported as `method.identifier_invalid`.
 
 **PipeParallel:**
 
 - `branches` MUST have at least one entry.
-- Every branch MUST be a pipe step. A binding step in `branches` is rejected as `binding_step_invalid`.
-- A branch MUST NOT carry a dotted `batch_over`, which is a binding followed by a batch, and one that does is rejected as `binding_step_invalid`. A plain `batch_over` on a branch is allowed (see [Dotted `batch_over`](../spec/mthds-format.md#dotted-batch_over)).
-- A branch's `result` and `batch_as` MUST take the form of a plain input name, and its plain `batch_over` MUST NOT start with the reserved prefix `_bound_`. A branch that breaks either rule is rejected as `invalid_input_name`, as on a sequence step.
+- Every branch MUST be a pipe step. A binding step in `branches` is rejected as `method.binding_step_invalid`.
+- A branch MUST NOT carry a dotted `batch_over`, which is a binding followed by a batch, and one that does is rejected as `method.binding_step_invalid`. A plain `batch_over` on a branch is allowed (see [Dotted `batch_over`](../spec/mthds-format.md#dotted-batch_over)).
+- A branch's `result` and `batch_as` MUST take the form of a plain input name, and its plain `batch_over` MUST NOT start with the reserved prefix `_bound_`. A branch that breaks either rule is rejected as `method.identifier_invalid`, as on a sequence step.
 - `output` MUST be `Composite` or a structured concept.
 - `output` MUST NOT use multiplicity brackets (`[]` or `[N]`).
 - For structured output, required fields MUST be produced by matching branch `result` names and branch output concepts MUST be compatible with the corresponding fields.
@@ -151,7 +153,7 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 - `input_item_name` MUST NOT be empty.
 - `input_item_name` MUST NOT equal `input_list_name`.
 - `input_item_name` MUST NOT equal any key in `inputs`.
-- `input_item_name` MUST take the form of a plain input name, and one that does not is rejected as `invalid_input_name`, which the schema catches (see [Stored Names](../spec/mthds-format.md#stored-names)).
+- `input_item_name` MUST take the form of a plain input name, and one that does not is rejected as `method.identifier_invalid`, which the schema catches (see [Stored Names](../spec/mthds-format.md#stored-names)).
 
 ## Stage 5: Reference Validation (Bundle-Level)
 

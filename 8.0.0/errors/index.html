@@ -1,0 +1,4722 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  
+    <meta name="description" content="Every code of the MTHDS core error registry, with its title, domain, retry verdict and HTTP status, each linking to its page.">
+  
+  
+  
+  <link rel="canonical" href="https://mthds.ai/latest/errors/">
+  
+    <link rel="prev" href="../spec/error-registry/">
+  
+  
+    <link rel="next" href="../cli/">
+  
+  
+    
+  
+
+    
+      
+        <title>Error Codes - MTHDS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../assets/external/fonts.googleapis.com/css.49ea35f2.css">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/mermaid.css">
+    
+      <link rel="stylesheet" href="../stylesheets/general.css">
+    
+      <link rel="stylesheet" href="../stylesheets/neoteroi-oad.css">
+    
+    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+<script>
+  function __md_analytics() {
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing identify alias people.set people.set_once set_config reset get_distinct_id getFeatureFlag getFeatureFlagPayload isFeatureEnabled onFeatureFlags reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init("phc_LRwe2lybfPTNCzAT1ScpnsWznrxAvmc1pmCaXEr1hwJ", {
+      api_host: "https://eu.i.posthog.com",
+      person_profiles: "identified_only",
+      // The privacy policy describes page-view analytics on this site, never recordings,
+      // so replay stays off even if the PostHog project turns it on remotely.
+      disable_session_recording: true
+    });
+  }
+
+  (function () {
+    var consent = __md_get("__consent");
+
+    if (!(consent && consent.analytics)) {
+      var cookie = "ph_phc_LRwe2lybfPTNCzAT1ScpnsWznrxAvmc1pmCaXEr1hwJ_posthog";
+      var expired = "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; path=/";
+      document.cookie = cookie + expired;
+      // PostHog sets its cookie on the widest domain it may, so try the host and each
+      // parent domain. A host name that is an IP address has no parent domain.
+      var labels = location.hostname.split(".");
+      if (!/^[\d.]+$/.test(location.hostname)) {
+        for (var i = 0; i < labels.length - 1; i++) {
+          document.cookie = cookie + expired + "; domain=" + labels.slice(i).join(".");
+        }
+      }
+      // PostHog keeps its persistence in localStorage beside the cookie, and its window
+      // and tab identifiers in sessionStorage, all under the `ph_<key>_` prefix.
+      var prefixes = ["ph_phc_LRwe2lybfPTNCzAT1ScpnsWznrxAvmc1pmCaXEr1hwJ_", "ph_debug"];
+      try {
+        [localStorage, sessionStorage].forEach(function (storage) {
+          Object.keys(storage).forEach(function (key) {
+            if (prefixes.some(function (prefix) { return key.indexOf(prefix) === 0; })) {
+              storage.removeItem(key);
+            }
+          });
+        });
+      } catch (error) {
+        // Storage can be disabled or blocked; nothing was stored there either.
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      var form = document.forms.consent;
+      if (form && !__md_get("__consent")) {
+        setPurposes(form, false);
+      }
+    });
+    // Capturing on the document runs before the listener Material puts on the form.
+    document.addEventListener("submit", function (event) {
+      var form = document.forms.consent;
+      if (event.target === form && !form.elements.__settings.checked) {
+        setPurposes(form, true);
+      }
+    }, true);
+
+    function setPurposes(form, checked) {
+      for (var input of form.elements) {
+        if (input.name) {
+          input.checked = checked;
+        }
+      }
+    }
+  })();
+</script>
+  
+    <script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script>
+  
+
+    
+    
+
+<link rel="icon" type="image/png" sizes="32x32" href="../images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="128x128" href="../images/favicon-128.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../images/favicon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../images/favicon-192.png">
+
+
+
+
+
+
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTHDS">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Error Codes">
+<meta property="og:description" content="Every code of the MTHDS core error registry, with its title, domain, retry verdict and HTTP status, each linking to its page.">
+<meta property="og:image" content="https://mthds.ai/latest/images/og-banner.jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://mthds.ai/latest/errors/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Error Codes">
+<meta name="twitter:description" content="Every code of the MTHDS core error registry, with its title, domain, retry verdict and HTTP status, each linking to its page.">
+<meta name="twitter:image" content="https://mthds.ai/latest/images/og-banner.jpeg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "MTHDS",
+  "url": "https://mthds.ai",
+  "logo": "https://mthds.ai/images/mthds-black_on_transparent.png",
+  "description": "Official documentation for the MTHDS open standard: to give AI methods to AI agents."
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Error Codes",
+  "description": "Every code of the MTHDS core error registry, with its title, domain, retry verdict and HTTP status, each linking to its page.",
+  "url": "https://mthds.ai/latest/errors/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "MTHDS",
+    "url": "https://mthds.ai"
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "MTHDS",
+    "url": "https://mthds.ai"
+  }
+}
+</script>
+
+
+<!-- Vercel Web Analytics — script served by Vercel's edge when Web Analytics
+     is enabled for the project; 404s harmlessly under `mkdocs serve`. It stores
+     nothing in the browser, so it needs no consent. PostHog does, and lives in
+     partials/integrations/analytics/posthog.html behind Material's consent banner. -->
+<script defer src="/_vercel/insights/script.js"></script>
+
+
+  <link href="../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#error-codes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MTHDS" class="md-header__button md-logo" aria-label="MTHDS" data-md-component="logo">
+      
+  <img src="../images/mthds-black_on_transparent.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MTHDS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Error Codes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mthds-ai/mthds" title="Go to repository" class="md-source" data-md-component="source" target="_blank" rel="noopener">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    MTHDS on GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href=".." class="md-tabs__link">
+          
+  
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../language/bundles/" class="md-tabs__link">
+          
+  
+  
+  The Language
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../packages/structure/" class="md-tabs__link">
+          
+  
+  
+  The Package System
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../spec/versioning/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../getting-started/first-method/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../implementers/runtime/" class="md-tabs__link">
+          
+  
+  
+  For Implementers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../about/roadmap/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://mthds.sh" class="md-tabs__link" target="_blank" rel="noopener">
+        
+  
+  
+    
+  
+  Hub ↗
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MTHDS" class="md-nav__button md-logo" aria-label="MTHDS" data-md-component="logo">
+      
+  <img src="../images/mthds-black_on_transparent.png" alt="logo">
+
+    </a>
+    MTHDS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mthds-ai/mthds" title="Go to repository" class="md-source" data-md-component="source" target="_blank" rel="noopener">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    MTHDS on GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Home
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../what-is-mthds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What is MTHDS?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/philosophy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Philosophy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/comparison-agent-skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparison with Agent Skills
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../know-how-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Know-How Graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Language
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Language
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/pipes-operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipes — Operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/pipes-controllers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipes — Controllers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/optionality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optionality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/working-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/multiplicity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiplicity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/model-references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/putting-it-all-together/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Putting It All Together
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/domains/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domains
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../language/namespace-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespace Resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Package System
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Package System
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/manifest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/exports-visibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exports &amp; Visibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/cross-package-references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Package References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/lock-file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Lock File
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/distribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/version-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_9">
+        
+          
+          <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Registry
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Registry
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/registry-indexing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Indexing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../packages/future-directions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Future Directions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1">
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specification
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specification
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/mthds-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    .mthds File Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/method-tree/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/native-concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Native Concept Definitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/intent-hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intent Hints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/manifest-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    METHODS.toml Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/lock-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    methods.lock Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/library-crate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library Crate Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/pipe-io-contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipe I/O Contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/input-form-descriptor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input-Form Descriptor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/output-form-descriptor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output-Form Descriptor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/namespace-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespace Resolution Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/cli-io-contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI I/O Contract
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP Runner Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../spec/error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#extension-prefixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extension prefixes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        request
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        auth
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        account
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        input
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pipe
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        provider
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        security
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        runtime
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        client
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tooling
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tooling
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tooling/editor-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tooling/formatting-linting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatting &amp; Linting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tooling/json-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MTHDS JSON Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/first-method/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Write Your First Method
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/create-package/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Create a Package
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/use-dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/discover-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discover Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Implementers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For Implementers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementers/runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building a Runtime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementers/validation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementers/package-loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementers/editor-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building Editor Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to MTHDS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CODE_OF_CONDUCT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://mthds.sh" class="md-nav__link" target="_blank" rel="noopener">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hub ↗
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#extension-prefixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extension prefixes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        request
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#auth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        auth
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        account
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#input" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        input
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        method
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipe" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        pipe
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#provider" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        provider
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        security
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        runtime
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        client
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="error-codes">Error Codes</h1>
+<p>Every code of the MTHDS core error registry has a page here, at the URL a problem's <code>type</code> names: <code>https://mthds.ai/errors/&lt;code&gt;</code>. Each page says what its code means, who must act and what to do, and gives the code's steps, parameters and templates. The <a href="../spec/error-registry/">Error Registry</a> page describes the registry itself, and the <a href="../spec/protocol/#errors">HTTP Runner Protocol</a> how a problem document carries a code.</p>
+<p>These pages are generated from the registry's data, which is published with every release of the standard as <a href="../spec/openapi/mthds-error-registry.json"><code>mthds-error-registry.json</code></a>. This is version <code>8.0.0</code> of the registry.</p>
+<h2 id="extension-prefixes">Extension prefixes</h2>
+<p>A code that is not a core code starts with a registered prefix, and its page is published by the prefix's owner, under the base URL the prefix is registered with.</p>
+<table>
+<thead>
+<tr>
+<th>Prefix</th>
+<th>Owner</th>
+<th>Base URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pipelex.</code></td>
+<td>Pipelex</td>
+<td><a href="https://docs.pipelex.com/errors" target="_blank" rel="noopener">https://docs.pipelex.com/errors</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="request">request</h2>
+<p>The HTTP request itself, before any run.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="request/malformed/"><code>request.malformed</code></a></td>
+<td>The request body cannot be parsed</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="request/invalid/"><code>request.invalid</code></a></td>
+<td>The request does not match the route's schema</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="request/too_large/"><code>request.too_large</code></a></td>
+<td>The request exceeds a size limit</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>413</code></td>
+</tr>
+<tr>
+<td><a href="request/not_found/"><code>request.not_found</code></a></td>
+<td>No such route</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>404</code></td>
+</tr>
+<tr>
+<td><a href="request/method_not_allowed/"><code>request.method_not_allowed</code></a></td>
+<td>The route does not accept this HTTP method</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>405</code></td>
+</tr>
+<tr>
+<td><a href="request/unsupported/"><code>request.unsupported</code></a></td>
+<td>The request uses a form this runtime does not accept</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="request/idempotency_conflict/"><code>request.idempotency_conflict</code></a></td>
+<td>The idempotency key was used for a different request</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>409</code></td>
+</tr>
+<tr>
+<td><a href="request/idempotency_key_in_use/"><code>request.idempotency_key_in_use</code></a></td>
+<td>A request under this idempotency key is still running</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>409</code></td>
+</tr>
+<tr>
+<td><a href="request/already_executed/"><code>request.already_executed</code></a></td>
+<td>The request already ran and its answer is not kept</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>409</code></td>
+</tr>
+<tr>
+<td><a href="request/pipe_not_found/"><code>request.pipe_not_found</code></a></td>
+<td>The selected pipe is not in the method</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="request/pipe_ambiguous/"><code>request.pipe_ambiguous</code></a></td>
+<td>The pipe selection matches several pipes</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="request/pipe_unspecified/"><code>request.pipe_unspecified</code></a></td>
+<td>No pipe is selected</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="request/blobs_missing/"><code>request.blobs_missing</code></a></td>
+<td>The runner does not hold some files sent by hash</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="auth">auth</h2>
+<p>Credentials and permissions.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="auth/missing_credential/"><code>auth.missing_credential</code></a></td>
+<td>No credential was sent</td>
+<td><code>account</code></td>
+<td><code>no</code></td>
+<td><code>401</code></td>
+</tr>
+<tr>
+<td><a href="auth/invalid_credential/"><code>auth.invalid_credential</code></a></td>
+<td>The credential was refused</td>
+<td><code>account</code></td>
+<td><code>no</code></td>
+<td><code>401</code></td>
+</tr>
+<tr>
+<td><a href="auth/credential_expired/"><code>auth.credential_expired</code></a></td>
+<td>The credential has expired</td>
+<td><code>account</code></td>
+<td><code>no</code></td>
+<td><code>401</code></td>
+</tr>
+<tr>
+<td><a href="auth/forbidden/"><code>auth.forbidden</code></a></td>
+<td>The credential does not permit this</td>
+<td><code>account</code></td>
+<td><code>no</code></td>
+<td><code>403</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="account">account</h2>
+<p>The account's limits.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="account/rate_limited/"><code>account.rate_limited</code></a></td>
+<td>The account is over its request rate</td>
+<td><code>account</code></td>
+<td><code>yes</code></td>
+<td><code>429</code></td>
+</tr>
+<tr>
+<td><a href="account/quota_exhausted/"><code>account.quota_exhausted</code></a></td>
+<td>The account's quota is used up</td>
+<td><code>account</code></td>
+<td><code>no</code></td>
+<td><code>429</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="input">input</h2>
+<p>A run's inputs.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="input/missing/"><code>input.missing</code></a></td>
+<td>A required input is missing</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="input/unexpected/"><code>input.unexpected</code></a></td>
+<td>An input the method does not declare</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="input/wrong_concept/"><code>input.wrong_concept</code></a></td>
+<td>An input is not the declared concept</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="input/wrong_multiplicity/"><code>input.wrong_multiplicity</code></a></td>
+<td>An input has the wrong number of items</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="input/invalid/"><code>input.invalid</code></a></td>
+<td>An input does not fit its concept's structure</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="input/file_unreadable/"><code>input.file_unreadable</code></a></td>
+<td>An input file cannot be read</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="input/file_type_unsupported/"><code>input.file_type_unsupported</code></a></td>
+<td>An input file's type is not supported here</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="input/too_large/"><code>input.too_large</code></a></td>
+<td>An input exceeds a size limit</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="input/reference_not_found/"><code>input.reference_not_found</code></a></td>
+<td>An input refers to something that does not exist</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="input/url_unreachable/"><code>input.url_unreachable</code></a></td>
+<td>An input's URL could not be fetched</td>
+<td><code>input</code></td>
+<td><code>yes</code></td>
+<td><code>422</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="method">method</h2>
+<p>The method as written, the validation vocabulary included.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="method/invalid/"><code>method.invalid</code></a></td>
+<td>The method does not validate</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/syntax/"><code>method.syntax</code></a></td>
+<td>The method does not parse</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/schema_violation/"><code>method.schema_violation</code></a></td>
+<td>The method breaks a rule of the language</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/not_found/"><code>method.not_found</code></a></td>
+<td>No method at this address</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>404</code></td>
+</tr>
+<tr>
+<td><a href="method/ambiguous/"><code>method.ambiguous</code></a></td>
+<td>The method address matches several methods</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/fetch_failed/"><code>method.fetch_failed</code></a></td>
+<td>The method could not be fetched</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>502</code></td>
+</tr>
+<tr>
+<td><a href="method/package_invalid/"><code>method.package_invalid</code></a></td>
+<td>The method's package breaks a package rule</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/dependency_missing/"><code>method.dependency_missing</code></a></td>
+<td>A dependency of the method is not available</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/dependency_invalid/"><code>method.dependency_invalid</code></a></td>
+<td>A dependency of the method does not load</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/resource_missing/"><code>method.resource_missing</code></a></td>
+<td>A file the method refers to is not in its tree</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/concept_unresolved/"><code>method.concept_unresolved</code></a></td>
+<td>The method names a concept no library declares</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/pipe_unresolved/"><code>method.pipe_unresolved</code></a></td>
+<td>The method names a pipe that does not exist</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/pipe_not_exported/"><code>method.pipe_not_exported</code></a></td>
+<td>The method calls a pipe its dependency does not export</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/ref_ambiguous/"><code>method.ref_ambiguous</code></a></td>
+<td>A reference matches several declarations</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/name_conflict/"><code>method.name_conflict</code></a></td>
+<td>A name is declared twice or collides with a reserved one</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/cycle/"><code>method.cycle</code></a></td>
+<td>Declarations form a cycle</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/identifier_invalid/"><code>method.identifier_invalid</code></a></td>
+<td>A name is not a valid identifier</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/pipe_type_invalid/"><code>method.pipe_type_invalid</code></a></td>
+<td>A pipe's type is missing, unknown or retired</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/signature_mismatch/"><code>method.signature_mismatch</code></a></td>
+<td>A pipe differs from its signature</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/not_runnable/"><code>method.not_runnable</code></a></td>
+<td>The method still holds pipe signatures</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/input_undeclared/"><code>method.input_undeclared</code></a></td>
+<td>A pipe reads an input it does not declare</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/input_unused/"><code>method.input_unused</code></a></td>
+<td>A pipe declares an input it never reads</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/input_concept_mismatch/"><code>method.input_concept_mismatch</code></a></td>
+<td>A pipe's input concept does not fit its use</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/output_concept_mismatch/"><code>method.output_concept_mismatch</code></a></td>
+<td>A pipe's output concept does not fit</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/output_multiplicity_mismatch/"><code>method.output_multiplicity_mismatch</code></a></td>
+<td>A pipe's declared multiplicity does not fit its use</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/wiring_invalid/"><code>method.wiring_invalid</code></a></td>
+<td>A pipe's wiring does not give it what it reads</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/field_path_unresolved/"><code>method.field_path_unresolved</code></a></td>
+<td>A path names a field its concept does not have</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/binding_step_invalid/"><code>method.binding_step_invalid</code></a></td>
+<td>A binding step is malformed</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/optional_marker_invalid/"><code>method.optional_marker_invalid</code></a></td>
+<td>An optional marker is misplaced</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/optional_unhandled/"><code>method.optional_unhandled</code></a></td>
+<td>An optional value reaches a place that needs a required one</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/template_invalid/"><code>method.template_invalid</code></a></td>
+<td>A template in the method is invalid</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/template_private_name/"><code>method.template_private_name</code></a></td>
+<td>A template reads a name reserved to the runtime</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/function_invalid/"><code>method.function_invalid</code></a></td>
+<td>A function the method declares cannot be used</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/concept_invalid/"><code>method.concept_invalid</code></a></td>
+<td>A concept's structure cannot be built or described</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/model_setting_invalid/"><code>method.model_setting_invalid</code></a></td>
+<td>A model setting in the method is invalid</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/mock_unsatisfiable/"><code>method.mock_unsatisfiable</code></a></td>
+<td>The dry run cannot mock an output concept</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="method/changed_concurrently/"><code>method.changed_concurrently</code></a></td>
+<td>A method file changed while it was being fixed</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>409</code></td>
+</tr>
+<tr>
+<td><a href="method/hint_invalid/"><code>method.hint_invalid</code></a></td>
+<td>A hint is not understood</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td>none (warning)</td>
+</tr>
+<tr>
+<td><a href="method/input_presence_vacuous/"><code>method.input_presence_vacuous</code></a></td>
+<td>A presence check always holds</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td>none (warning)</td>
+</tr>
+<tr>
+<td><a href="method/optional_force_redundant/"><code>method.optional_force_redundant</code></a></td>
+<td>An optional force is redundant</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td>none (warning)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pipe">pipe</h2>
+<p>A pipe failing at run time because of what the method does.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="pipe/output_multiplicity/"><code>pipe.output_multiplicity</code></a></td>
+<td>A pipe's output does not have the declared multiplicity</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/output_invalid/"><code>pipe.output_invalid</code></a></td>
+<td>A pipe's output does not fit its concept</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/function_raised/"><code>pipe.function_raised</code></a></td>
+<td>The method's function raised</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/function_timed_out/"><code>pipe.function_timed_out</code></a></td>
+<td>The method's function ran past its time limit</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/template_render_failed/"><code>pipe.template_render_failed</code></a></td>
+<td>A template failed to render</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/template_budget_exceeded/"><code>pipe.template_budget_exceeded</code></a></td>
+<td>A template exceeded its render budget</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/condition_unmatched/"><code>pipe.condition_unmatched</code></a></td>
+<td>A condition matched no outcome</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/condition_refused/"><code>pipe.condition_refused</code></a></td>
+<td>The method refused these inputs</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/binding_failed/"><code>pipe.binding_failed</code></a></td>
+<td>A binding step could not bind its value</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/input_unresolved/"><code>pipe.input_unresolved</code></a></td>
+<td>A pipe could not read a value it needs</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/forced_input_absent/"><code>pipe.forced_input_absent</code></a></td>
+<td>A forced input was absent</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/prompt_empty/"><code>pipe.prompt_empty</code></a></td>
+<td>A pipe's prompt is empty</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="pipe/stack_overflow/"><code>pipe.stack_overflow</code></a></td>
+<td>The run nested pipes deeper than the limit</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="model">model</h2>
+<p>The model a step names.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="model/unknown/"><code>model.unknown</code></a></td>
+<td>The method names a model that does not exist</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="model/unavailable/"><code>model.unavailable</code></a></td>
+<td>This deployment serves no backend for the model</td>
+<td><code>operator</code></td>
+<td><code>no</code></td>
+<td><code>501</code></td>
+</tr>
+<tr>
+<td><a href="model/unspecified/"><code>model.unspecified</code></a></td>
+<td>No model is named for this step</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="model/capability_unsupported/"><code>model.capability_unsupported</code></a></td>
+<td>The model cannot do what the step asks</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="model/context_exceeded/"><code>model.context_exceeded</code></a></td>
+<td>The inputs exceed what the model can read</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="model/output_truncated/"><code>model.output_truncated</code></a></td>
+<td>The answer was cut at the method's token cap</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="model/output_schema_mismatch/"><code>model.output_schema_mismatch</code></a></td>
+<td>The model's structured output did not match its schema</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>502</code></td>
+</tr>
+<tr>
+<td><a href="model/content_refused/"><code>model.content_refused</code></a></td>
+<td>The provider refused the content</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="model/no_result/"><code>model.no_result</code></a></td>
+<td>The model found nothing for this request</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="provider">provider</h2>
+<p>The inference provider behind a model.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="provider/rate_limited/"><code>provider.rate_limited</code></a></td>
+<td>The provider is rate limiting this deployment</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>429</code></td>
+</tr>
+<tr>
+<td><a href="provider/unavailable/"><code>provider.unavailable</code></a></td>
+<td>The provider is unavailable</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>502</code></td>
+</tr>
+<tr>
+<td><a href="provider/timeout/"><code>provider.timeout</code></a></td>
+<td>The provider did not answer in time</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>504</code></td>
+</tr>
+<tr>
+<td><a href="provider/failed/"><code>provider.failed</code></a></td>
+<td>The provider failed</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>502</code></td>
+</tr>
+<tr>
+<td><a href="provider/response_invalid/"><code>provider.response_invalid</code></a></td>
+<td>The provider's answer could not be used</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>502</code></td>
+</tr>
+<tr>
+<td><a href="provider/credential_refused/"><code>provider.credential_refused</code></a></td>
+<td>The provider refused this deployment's credential</td>
+<td><code>operator</code></td>
+<td><code>no</code></td>
+<td><code>502</code></td>
+</tr>
+<tr>
+<td><a href="provider/quota_exhausted/"><code>provider.quota_exhausted</code></a></td>
+<td>This deployment's provider account is out of quota</td>
+<td><code>operator</code></td>
+<td><code>no</code></td>
+<td><code>502</code></td>
+</tr>
+<tr>
+<td><a href="provider/outcome_unknown/"><code>provider.outcome_unknown</code></a></td>
+<td>The provider call may have taken effect</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>502</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="run">run</h2>
+<p>A run's lifecycle and its reads.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="run/not_found/"><code>run.not_found</code></a></td>
+<td>No such run</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>404</code></td>
+</tr>
+<tr>
+<td><a href="run/failed/"><code>run.failed</code></a></td>
+<td>The run did not succeed</td>
+<td><code>runtime</code></td>
+<td><code>no</code></td>
+<td><code>409</code></td>
+</tr>
+<tr>
+<td><a href="run/not_finished/"><code>run.not_finished</code></a></td>
+<td>The run has not finished</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>409</code></td>
+</tr>
+<tr>
+<td><a href="run/cancelled/"><code>run.cancelled</code></a></td>
+<td>The run was cancelled by its caller</td>
+<td><code>input</code></td>
+<td><code>yes</code></td>
+<td><code>409</code></td>
+</tr>
+<tr>
+<td><a href="run/timed_out/"><code>run.timed_out</code></a></td>
+<td>The run passed its time limit</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="run/lost/"><code>run.lost</code></a></td>
+<td>The run's outcome is lost</td>
+<td><code>runtime</code></td>
+<td><code>outcome_unknown</code></td>
+<td><code>500</code></td>
+</tr>
+<tr>
+<td><a href="run/outcome_unknown/"><code>run.outcome_unknown</code></a></td>
+<td>The runtime cannot tell whether the run started or finished</td>
+<td><code>runtime</code></td>
+<td><code>outcome_unknown</code></td>
+<td><code>502</code></td>
+</tr>
+<tr>
+<td><a href="run/already_ended/"><code>run.already_ended</code></a></td>
+<td>The run has already ended</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>409</code></td>
+</tr>
+<tr>
+<td><a href="run/answer_not_kept/"><code>run.answer_not_kept</code></a></td>
+<td>The run's answer was not kept</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>409</code></td>
+</tr>
+<tr>
+<td><a href="run/results_not_stored/"><code>run.results_not_stored</code></a></td>
+<td>The run's results were not stored</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>404</code></td>
+</tr>
+<tr>
+<td><a href="run/terminated/"><code>run.terminated</code></a></td>
+<td>The run was stopped by an operator or an erasure</td>
+<td><code>operator</code></td>
+<td><code>no</code></td>
+<td><code>409</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="security">security</h2>
+<p>Refusals made for safety. An implementation may also record each one as a security event.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="security/input_url_refused/"><code>security.input_url_refused</code></a></td>
+<td>A URL in the request was refused</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="security/method_url_refused/"><code>security.method_url_refused</code></a></td>
+<td>A URL the method names was refused</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="security/provider_url_refused/"><code>security.provider_url_refused</code></a></td>
+<td>A URL a provider returned was refused</td>
+<td><code>runtime</code></td>
+<td><code>no</code></td>
+<td><code>502</code></td>
+</tr>
+<tr>
+<td><a href="security/input_path_refused/"><code>security.input_path_refused</code></a></td>
+<td>A path the caller supplied was refused</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="security/method_path_refused/"><code>security.method_path_refused</code></a></td>
+<td>A path the method names was refused</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="security/template_refused/"><code>security.template_refused</code></a></td>
+<td>A template was refused by the template sandbox</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="security/schema_refused/"><code>security.schema_refused</code></a></td>
+<td>An output schema was refused</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+<tr>
+<td><a href="security/integrity_mismatch/"><code>security.integrity_mismatch</code></a></td>
+<td>A dependency's content differs from its lock</td>
+<td><code>method</code></td>
+<td><code>no</code></td>
+<td><code>422</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="runtime">runtime</h2>
+<p>The runtime itself.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="runtime/unexpected/"><code>runtime.unexpected</code></a></td>
+<td>An unexpected error occurred</td>
+<td><code>runtime</code></td>
+<td><code>no</code></td>
+<td><code>500</code></td>
+</tr>
+<tr>
+<td><a href="runtime/misconfigured/"><code>runtime.misconfigured</code></a></td>
+<td>The runtime is misconfigured</td>
+<td><code>operator</code></td>
+<td><code>no</code></td>
+<td><code>500</code></td>
+</tr>
+<tr>
+<td><a href="runtime/unavailable/"><code>runtime.unavailable</code></a></td>
+<td>The runtime or a service it depends on is unavailable</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td><code>503</code></td>
+</tr>
+<tr>
+<td><a href="runtime/unsupported/"><code>runtime.unsupported</code></a></td>
+<td>This runtime cannot do what was asked</td>
+<td><code>operator</code></td>
+<td><code>no</code></td>
+<td><code>501</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="client">client</h2>
+<p>What a client detects itself, and never receives as a response body.</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Title</th>
+<th>Domain</th>
+<th>Retry</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="client/unreachable/"><code>client.unreachable</code></a></td>
+<td>The runtime could not be reached</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/timeout/"><code>client.timeout</code></a></td>
+<td>The runtime did not answer in time</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/response_unreadable/"><code>client.response_unreadable</code></a></td>
+<td>The runtime's answer could not be read</td>
+<td><code>runtime</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/outcome_unknown/"><code>client.outcome_unknown</code></a></td>
+<td>The call may have created a run</td>
+<td><code>runtime</code></td>
+<td><code>outcome_unknown</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/follow_failed/"><code>client.follow_failed</code></a></td>
+<td>Following a started run stopped</td>
+<td><code>runtime</code></td>
+<td><code>outcome_unknown</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/not_configured/"><code>client.not_configured</code></a></td>
+<td>The client has no usable configuration</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/argument_invalid/"><code>client.argument_invalid</code></a></td>
+<td>An argument was refused before sending</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/file_unreadable/"><code>client.file_unreadable</code></a></td>
+<td>A local file cannot be read</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/write_failed/"><code>client.write_failed</code></a></td>
+<td>A local file could not be written</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/target_exists/"><code>client.target_exists</code></a></td>
+<td>The target already exists</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/workspace_busy/"><code>client.workspace_busy</code></a></td>
+<td>Local files changed underneath the client</td>
+<td><code>runtime</code></td>
+<td><code>yes</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/output_mismatch/"><code>client.output_mismatch</code></a></td>
+<td>An output does not match the generated types</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/link_refused/"><code>client.link_refused</code></a></td>
+<td>A download link was refused</td>
+<td><code>operator</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/download_limit_exceeded/"><code>client.download_limit_exceeded</code></a></td>
+<td>A download passed the client's limit</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/aborted/"><code>client.aborted</code></a></td>
+<td>The call was stopped by the caller</td>
+<td><code>input</code></td>
+<td><code>yes</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/tool_missing/"><code>client.tool_missing</code></a></td>
+<td>A local tool the client needs is missing</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+<tr>
+<td><a href="client/tool_outdated/"><code>client.tool_outdated</code></a></td>
+<td>A local tool is too old</td>
+<td><code>input</code></td>
+<td><code>no</code></td>
+<td>none (client)</td>
+</tr>
+</tbody>
+</table>
+        <div id="llms-copy-button" style="position: fixed; z-index: 1100; top: 80px; right: 20px;">
+            <button onclick="copyMarkdownToClipboard()" style="cursor: pointer; background: #007acc; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Copy Markdown</button>
+        </div>
+        <script>
+        async function copyMarkdownToClipboard() {
+            try {
+                const currentPath = window.location.pathname;
+                const mdPath = currentPath.endsWith('/') ? currentPath + 'index.md' : currentPath.replace(/\.html$/, '.md');
+
+                const response = await fetch(mdPath);
+                if (response.ok) {
+                    const markdown = await response.text();
+                    await navigator.clipboard.writeText(markdown);
+                    // Show feedback
+                    const button = document.querySelector('#llms-copy-button button');
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.style.background = '#28a745';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '#007acc';
+                    }, 2000);
+                } else {
+                    throw new Error('Markdown file not found');
+                }
+            } catch (err) {
+                console.error('Failed to copy markdown:', err);
+                alert('Failed to copy markdown content');
+            }
+        }
+        </script>
+        
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../spec/error-registry/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Error Registry">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Error Registry
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../cli/" class="md-footer__link md-footer__link--next" aria-label="Next: CLI Reference">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                CLI Reference
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Reference runtime: <a href="https://github.com/Pipelex/pipelex" target="_blank" rel="noopener">Pipelex</a> (MIT)<br>© 2025-2026 Evotis S.A.S. · <a href="https://www.pipelex.com/privacy-policy" target="_blank" rel="noopener">Privacy policy</a> · <a href="#__consent">Cookie settings</a>
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/mthds-ai/mthds" target="_blank" rel="noopener" title="MTHDS on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+
+
+<h4>Cookie consent</h4>
+<p>With your consent, mthds.ai uses PostHog, hosted in the European Union, to count visits and see which pages are read, and loads the repository's star and fork counts from GitHub. Nothing is stored until you accept. See the <a href="https://www.pipelex.com/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.</p>
+<input class="md-toggle" type="checkbox" id="__settings">
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="github" checked>
+      <span class="task-list-indicator"></span>
+      GitHub
+    </label>
+  </li>
+
+      
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="analytics" checked>
+      <span class="task-list-indicator"></span>
+      PostHog
+    </label>
+  </li>
+
+      
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+      <button type="reset" class="md-button md-button--primary">Reject</button>
+    
+    
+  
+    
+    
+    
+      <label class="md-button" for="__settings">Manage settings</label>
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.footer", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">document.querySelectorAll('.glightbox').forEach(function(element) {
+    try {
+        var img = element.querySelector('img');
+        if (img && img.src) {
+            element.setAttribute('href', img.src);
+        } else {
+            console.log('No img element with src attribute found');
+        }
+    } catch (error) {
+        console.log('Error:', error);
+    }
+});
+const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

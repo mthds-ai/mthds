@@ -2202,9 +2202,65 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../spec/error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2258,10 +2314,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
             
   
   
@@ -2279,8 +2335,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3207,39 +3263,27 @@
 </ul>
 <p>From there the usual rules apply: a plain consumer lifts, an optional consumer runs and guards the read, and a maybe-absent result reaching the sequence's output requires the output to be declared <code>?</code>.</p>
 <h2 id="validation-surface">Validation Surface</h2>
-<p>Compliant runtimes should surface optionality problems with structured diagnostics:</p>
+<p>Compliant runtimes should surface optionality problems with these codes of the <a href="../../spec/error-registry/">core error registry</a>:</p>
 <table>
 <thead>
 <tr>
-<th>Error</th>
+<th>Code</th>
 <th>Meaning</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>optional_marker_invalid</code></td>
+<td><a href="../../errors/method/optional_marker_invalid/"><code>method.optional_marker_invalid</code></a></td>
 <td>Invalid marker grammar, such as a marker on a plural reference or <code>!</code> on output.</td>
 </tr>
 <tr>
-<td><code>optional_not_handled</code></td>
-<td>A maybe-absent value escapes through a non-optional boundary.</td>
-</tr>
-<tr>
-<td><code>optional_output_required</code></td>
-<td>A <code>PipeCondition</code> can continue without producing a value but its output is not <code>?</code>.</td>
-</tr>
-<tr>
-<td><code>optional_input_unguarded</code></td>
-<td>A template reads an optional input without a guard.</td>
-</tr>
-<tr>
-<td><code>optional_branch_required_field</code></td>
-<td>A maybe-absent <code>PipeParallel</code> branch feeds a required structured field.</td>
+<td><a href="../../errors/method/optional_unhandled/"><code>method.optional_unhandled</code></a></td>
+<td>A maybe-absent value reaches a place that needs a value, and its <code>site</code> parameter says where: <code>sequence_step</code> or <code>condition</code> when the value escapes through a step, a sequence or a condition whose boundary is not optional, <code>condition_output</code> when a <code>PipeCondition</code> can continue without producing a value but its output is not <code>?</code>, <code>template</code> when a template reads an optional input without a guard, and <code>parallel_branch</code> when a maybe-absent <code>PipeParallel</code> branch feeds a required structured field.</td>
 </tr>
 </tbody>
 </table>
-<p>Valid reports may also include <code>liftable_pipes</code>, listing pipes that may be skipped at run time, and advisory <code>warnings</code> such as redundant force markers.</p>
-<p>A binding step's absences are reported with the diagnostics above. Its own faults are <code>binding_step_invalid</code>, for a malformed binding step or one placed in a <code>PipeParallel</code> branch, and <code>binding_path_unresolved</code>, for a path the declared structures cannot walk; both are specified in <a href="../../spec/mthds-format/#validation-surface">Binding Steps</a>.</p>
+<p>Valid reports may also include <code>liftable_pipes</code>, listing pipes that may be skipped at run time, and advisory <code>warnings</code>, such as <a href="../../errors/method/optional_force_redundant/"><code>method.optional_force_redundant</code></a> for a redundant force marker and <a href="../../errors/method/input_presence_vacuous/"><code>method.input_presence_vacuous</code></a> for a presence check that always holds.</p>
+<p>A binding step's absences are reported with the diagnostics above. Its own faults are <code>method.binding_step_invalid</code>, for a malformed binding step or one placed in a <code>PipeParallel</code> branch, and <code>method.field_path_unresolved</code>, for a path the declared structures cannot walk; both are specified in <a href="../../spec/mthds-format/#validation-surface">Binding Steps</a>.</p>
         <div id="llms-copy-button" style="position: fixed; z-index: 1100; top: 80px; right: 20px;">
             <button onclick="copyMarkdownToClipboard()" style="cursor: pointer; background: #007acc; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Copy Markdown</button>
         </div>

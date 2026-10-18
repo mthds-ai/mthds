@@ -2,242 +2,806 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://mthds.ai/latest/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/CLAUDE/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/CODE_OF_CONDUCT/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/changelog/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/contributing/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/license/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/about/comparison-agent-skills/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/about/contributing/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/about/philosophy/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/about/roadmap/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/cli/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/getting-started/first-method/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/guides/create-package/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/guides/discover-methods/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/guides/use-dependencies/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/implementers/editor-support/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/implementers/package-loading/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/implementers/runtime/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/implementers/validation-rules/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/know-how-graph/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/bundles/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/concepts/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/domains/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/model-references/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/multiplicity/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/namespace-resolution/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/optionality/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/pipes-controllers/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/pipes-operators/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/putting-it-all-together/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/language/working-memory/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/cross-package-references/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/dependencies/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/distribution/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/exports-visibility/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/future-directions/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/lock-file/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/manifest/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/registry-indexing/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/registry/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/structure/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/packages/version-resolution/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/cli-io-contract/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/spec/error-registry/</loc>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/input-form-descriptor/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/intent-hints/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/library-crate/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/lock-format/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/manifest-format/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/method-tree/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/mthds-format/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/namespace-resolution/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/native-concepts/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/output-form-descriptor/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/pipe-io-contracts/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/protocol/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/spec/versioning/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/tooling/editor-support/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/tooling/formatting-linting/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/tooling/json-schema/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
     </url>
     <url>
          <loc>https://mthds.ai/latest/what-is-mthds/</loc>
-         <lastmod>2026-10-16</lastmod>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/malformed/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/too_large/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/not_found/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/method_not_allowed/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/unsupported/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/idempotency_conflict/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/idempotency_key_in_use/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/already_executed/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/pipe_not_found/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/pipe_ambiguous/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/pipe_unspecified/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/request/blobs_missing/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/auth/missing_credential/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/auth/invalid_credential/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/auth/credential_expired/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/auth/forbidden/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/account/rate_limited/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/account/quota_exhausted/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/input/missing/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/input/unexpected/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/input/wrong_concept/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/input/wrong_multiplicity/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/input/invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/input/file_unreadable/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/input/file_type_unsupported/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/input/too_large/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/input/reference_not_found/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/input/url_unreachable/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/syntax/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/schema_violation/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/not_found/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/ambiguous/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/fetch_failed/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/package_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/dependency_missing/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/dependency_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/resource_missing/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/concept_unresolved/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/pipe_unresolved/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/pipe_not_exported/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/ref_ambiguous/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/name_conflict/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/cycle/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/identifier_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/pipe_type_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/signature_mismatch/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/not_runnable/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/input_undeclared/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/input_unused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/input_concept_mismatch/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/output_concept_mismatch/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/output_multiplicity_mismatch/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/wiring_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/field_path_unresolved/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/binding_step_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/optional_marker_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/optional_unhandled/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/template_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/template_private_name/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/function_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/concept_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/model_setting_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/mock_unsatisfiable/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/changed_concurrently/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/hint_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/input_presence_vacuous/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/method/optional_force_redundant/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/output_multiplicity/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/output_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/function_raised/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/function_timed_out/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/template_render_failed/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/template_budget_exceeded/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/condition_unmatched/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/condition_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/binding_failed/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/input_unresolved/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/forced_input_absent/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/prompt_empty/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/pipe/stack_overflow/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/model/unknown/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/model/unavailable/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/model/unspecified/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/model/capability_unsupported/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/model/context_exceeded/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/model/output_truncated/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/model/output_schema_mismatch/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/model/content_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/model/no_result/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/provider/rate_limited/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/provider/unavailable/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/provider/timeout/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/provider/failed/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/provider/response_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/provider/credential_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/provider/quota_exhausted/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/provider/outcome_unknown/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/not_found/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/failed/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/not_finished/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/cancelled/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/timed_out/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/lost/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/outcome_unknown/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/already_ended/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/answer_not_kept/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/results_not_stored/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/run/terminated/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/security/input_url_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/security/method_url_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/security/provider_url_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/security/input_path_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/security/method_path_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/security/template_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/security/schema_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/security/integrity_mismatch/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/runtime/unexpected/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/runtime/misconfigured/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/runtime/unavailable/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/runtime/unsupported/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/unreachable/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/timeout/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/response_unreadable/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/outcome_unknown/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/follow_failed/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/not_configured/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/argument_invalid/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/file_unreadable/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/write_failed/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/target_exists/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/workspace_busy/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/output_mismatch/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/link_refused/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/download_limit_exceeded/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/aborted/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/tool_missing/</loc>
+         <lastmod>2026-10-18</lastmod>
+    </url>
+    <url>
+         <loc>https://mthds.ai/latest/errors/client/tool_outdated/</loc>
+         <lastmod>2026-10-18</lastmod>
     </url>
 </urlset>

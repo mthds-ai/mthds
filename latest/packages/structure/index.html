@@ -2227,9 +2227,65 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../spec/error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2283,10 +2339,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
             
   
   
@@ -2304,8 +2360,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3194,7 +3250,7 @@
 <p>A few files stay out on their own, so that a method never carries what it should not:</p>
 <ul>
 <li><strong>Anything whose name starts with a dot</strong>, at any depth: <code>.git/</code>, <code>.venv/</code>, <code>.env</code>, <code>.gitignore</code> and the <code>.mthds/</code> folder where installed dependencies live.</li>
-<li><strong>The defaults</strong>: <code>__pycache__/</code>, <code>node_modules/</code>, any Python virtual environment whatever its name, any repository nested inside the folder, and any other package nested inside it, meaning a subfolder holding its own <code>METHODS.toml</code>, which travels as a package of its own.</li>
+<li><strong>The defaults</strong>: <code>__pycache__/</code>, <code>node_modules/</code>, any Python virtual environment whatever its name, any repository nested inside the folder, any other package nested inside it, meaning a subfolder holding its own <code>METHODS.toml</code>, which travels as a package of its own, and a run's inputs file, meaning any file named <code>inputs.json</code> or <code>inputs.toml</code> wherever it sits in the folder, so the data of a run you start from the folder never travels as part of the method. Example inputs you want to ship take any other name, such as <code>examples/invoice-inputs.json</code>, and travel like any other file.</li>
 <li><strong>Whatever the folder's own <code>.gitignore</code> files ignore</strong>, read exactly as git reads them, so what travels is what git would publish.</li>
 <li><strong>Whatever the manifest's <a href="../manifest/#exclude"><code>exclude</code></a> patterns name</strong>, for files you want out of the method but still in git.</li>
 </ul>

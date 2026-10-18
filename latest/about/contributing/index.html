@@ -2073,9 +2073,65 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../spec/error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2129,10 +2185,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
             
   
   
@@ -2150,8 +2206,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -2788,6 +2844,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#register-an-error-code-prefix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Register an Error-Code Prefix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#build-packages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3052,6 +3119,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#register-an-error-code-prefix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Register an Error-Code Prefix
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#build-packages" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3137,6 +3215,13 @@
 <li><strong>Draft the change</strong> as a pull request against the specification. Normative changes use RFC 2119 language (<code>MUST</code>, <code>SHOULD</code>, <code>MAY</code>).</li>
 <li><strong>Review</strong> by the maintainers and community. Changes to the specification require careful consideration of backward compatibility.</li>
 <li><strong>Merge and release</strong> as a new minor or major version of the standard.</li>
+</ol>
+<h3 id="register-an-error-code-prefix">Register an Error-Code Prefix</h3>
+<p>An implementation that raises errors the core does not describe, such as billing or a catalog of saved methods, codes them under an <a href="../../spec/error-registry/#extension-prefixes">extension prefix</a> of its own, and registers that prefix with the standard:</p>
+<ol>
+<li><strong>Publish your registry</strong> of the codes under the prefix, in the <a href="../../spec/error-registry/">error registry format</a>, with a page for each code at its type URI, under a base URL you control.</li>
+<li><strong>Open a pull request</strong> against the specification that adds an entry to <code>extension_prefixes</code> in the core registry, <code>docs/spec/openapi/mthds-error-registry.yaml</code>, naming the prefix, its owner and that base URL. Choose a prefix that is one lowercase segment and not the name of a core family.</li>
+<li><strong>Review</strong> checks that the prefix is free and that the registry and its pages are published. Once the entry is merged, the prefix is yours and is never reassigned, and your runtime may emit codes under it.</li>
 </ol>
 <h3 id="build-packages">Build Packages</h3>
 <p>The ecosystem grows through packages. Publish packages that solve real problems in your domain. Well-documented packages with clear concept hierarchies and typed pipe signatures make the Know-How Graph more useful for everyone.</p>

@@ -1794,6 +1794,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#the-core-error-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Core Error Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#mthds_version-and-the-crate-stamp" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2243,9 +2254,65 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2302,10 +2369,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
             
   
   
@@ -2323,8 +2390,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3090,6 +3157,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#the-core-error-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Core Error Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#mthds_version-and-the-crate-stamp" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3199,13 +3277,13 @@
 <tbody>
 <tr>
 <td><strong>Standard version</strong></td>
-<td>The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff</td>
-<td><code>7.0.1</code></td>
+<td>The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff, the core error registry</td>
+<td><code>8.0.0</code></td>
 </tr>
 <tr>
 <td><strong>Protocol version</strong></td>
-<td>The HTTP runner contract — its routes and their request and response shapes</td>
-<td><code>1.0.0</code></td>
+<td>The HTTP runner contract — its routes, their request and response shapes, and the problem document every error is</td>
+<td><code>2.0.0</code></td>
 </tr>
 </tbody>
 </table>
@@ -3220,6 +3298,7 @@
 <li>The <a href="../manifest-format/"><code>METHODS.toml</code> format</a> and the <a href="../lock-format/"><code>methods.lock</code> format</a>.</li>
 <li>The <a href="../library-crate/">library crate format</a> and the <a href="../namespace-resolution/">namespace resolution rules</a>.</li>
 <li>The <a href="../cli-io-contract/">CLI I/O contract</a> — the wire form of a stuff, and the envelopes a method reads and writes when it is invoked from a command line.</li>
+<li>The <a href="../error-registry/">core error registry</a> — the core codes and everything each declares, and the list of registered extension prefixes.</li>
 </ul>
 <h3 id="what-bumps-the-standard-version">What Bumps the Standard Version</h3>
 <ul>
@@ -3232,6 +3311,12 @@
 <h3 id="the-pinned-native-set-under-one-number">The Pinned Native Set Under One Number</h3>
 <p>Because a patch release moves the standard version without touching the native set, the <a href="../native-concepts/">pinned set</a> is <strong>identified by the standard version in which it last changed</strong>, not by the current standard version. <code>native-concepts.md</code> names that version.</p>
 <p>An implementation implementing standard version <code>V</code> materializes <strong>the pinned set of the greatest version less than or equal to <code>V</code></strong>. So an implementation of <code>2.3.0</code> uses the set pinned at <code>2.0.0</code> until a later version pins a new one, and two implementations of different patch or minor versions still byte-agree on materialized natives — which is what makes crate <a href="../library-crate/#fingerprint">fingerprints</a> comparable across them.</p>
+<h3 id="the-core-error-registry">The Core Error Registry</h3>
+<p>The <a href="../error-registry/">core error registry</a> declares the standard version it is published with as its own <code>version</code>, and it moves under the classes above. No change to it makes an authored document invalid, so it never moves the major number:</p>
+<ul>
+<li><strong>MINOR</strong> — a new code, family or extension prefix, a new parameter, or a change to what a runtime emits or a client acts on: a code removed or renamed, a parameter removed, or a code's domain, retry verdict, step kind, HTTP status or parameter type changed. Each of the latter is marked breaking in the changelog, because a runtime or a client following the previous registry may have to change.</li>
+<li><strong>PATCH</strong> — a reworded title, template, meaning, what to do or description, or a corrected reference. These are written for a person, and no reader parses them.</li>
+</ul>
 <h3 id="mthds_version-and-the-crate-stamp"><code>mthds_version</code> and the Crate Stamp</h3>
 <p>Two artifacts carry the standard version, and they mean different things:</p>
 <ul>
@@ -3247,9 +3332,11 @@
 <li><strong>MINOR</strong> — an addition. A new route, a new optional request field, a new response field, a new value of an enumerated response field. A client written against the previous version keeps working unmodified.</li>
 <li><strong>PATCH</strong> — a clarification of the document that changes no shape.</li>
 </ul>
-<p>A new value of an enumerated response field is a <strong>MINOR</strong> change because the protocol requires a client to accept a value it does not recognize. The <a href="../protocol/#model-categories">reader rule</a> states that requirement for a deck entry's model category, the only response enum that can grow, since the others are the <code>true</code> and <code>false</code> verdict flags of the validate report; a response enum the protocol adds later states a reader rule of its own. A client written to the rule keeps working. A client that rejected unknown values breaks all the same, so the changelog marks such a change breaking, the way it marks a minor standard change that a runtime has to follow.</p>
+<p>A new value of an enumerated response field is a <strong>MINOR</strong> change because the protocol requires a client to accept a value it does not recognize. The reader rules state that requirement for every response enum that can grow: a deck entry's <a href="../protocol/#model-categories">model category</a>, and a problem document's <code>domain</code>, <code>retry</code> and <code>next_step.kind</code>, a suggested fix's <code>safety</code> and its operations' <code>kind</code> (<a href="../protocol/#readers-and-emitters">Readers and emitters</a>), and a run's <a href="../protocol/#get-runspipeline_run_idstatus"><code>status</code></a>, which can grow only by a status of a run that has not ended. The validate report's <code>true</code> and <code>false</code> verdict flags cannot grow, and a response enum the protocol adds later states a reader rule of its own. A client written to the rules keeps working. A client that rejected unknown values breaks all the same, so the changelog marks such a change breaking, the way it marks a minor standard change that a runtime has to follow.</p>
+<p>A problem's <code>code</code> is not an enumerated field. The protocol fixes a code's shape and leaves which codes exist to the registries, so a new code, in the core registry or under a registered prefix, moves no protocol number; a reader that does not know it reads it by its family. A change to the core registry moves the <a href="#the-core-error-registry">standard version</a> instead.</p>
 <p>A <a href="../protocol/#validating-a-bundle">recommended extension field</a> is none of those additions. What the protocol version numbers is the base surface — the routes and the response fields of the normative OpenAPI document. The artifacts the standard names on the validate report's extension surface are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number: a runner may report or omit any of them at the same protocol version, and a client learns which it got from the report itself rather than from the handshake.</p>
 <p>The shape of a stuff — the <code>{concept, content}</code> entries of a request's inputs and of <code>pipe_output</code> — is the standard's for the same reason: the protocol names the fields and the <a href="../cli-io-contract/#stuffs-on-the-wire">CLI I/O contract</a> fixes their entries, so a change to that shape moves the standard version and leaves the protocol number where it was.</p>
+<p>The problem document crosses the same boundary the other way. It is the protocol's, and the CLI I/O contract has a CLI <a href="../cli-io-contract/#error-propagation">write it on stderr</a>, without its <code>status</code> member, when a method fails. A CLI implementing a standard version writes the problem document of the protocol version that the same release names on its <a href="#the-changelog-contract">changelog heading</a>, and a reader learns which protocol version that is from the standard version the CLI implements. A release that changes the problem document therefore changes what a CLI writes as well, and its standard version moves by the rules above for a change to what a runtime emits.</p>
 <p>The protocol version is <strong>not</strong> derived from the standard version and never tracks it. A release of the standard that does not touch the protocol leaves the protocol version exactly where it was.</p>
 <h2 id="the-changelog-contract">The Changelog Contract</h2>
 <p>Every released version heading in <a href="../../changelog/"><code>CHANGELOG.md</code></a> names the two versions it carries:</p>
@@ -3287,6 +3374,10 @@
 <tr>
 <td>Standard</td>
 <td>A library crate's <code>mthds_version</code> stamp</td>
+</tr>
+<tr>
+<td>Standard</td>
+<td>The <code>version</code> of the <a href="../error-registry/">core error registry</a> and of its snapshot</td>
 </tr>
 <tr>
 <td>Protocol</td>

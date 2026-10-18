@@ -4,8 +4,8 @@ MTHDS carries **two version numbers**, and they move independently:
 
 | Number | Governs | Current |
 |---|---|---|
-| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff | `7.0.1` |
-| **Protocol version** | The HTTP runner contract — its routes and their request and response shapes | `1.0.0` |
+| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff, the core error registry | `8.0.0` |
+| **Protocol version** | The HTTP runner contract — its routes, their request and response shapes, and the problem document every error is | `2.0.0` |
 
 Both are [Semantic Versioning 2.0.0](https://semver.org/) numbers. Everything else that carries a version — a package's own `version`, a runner's `runner_version`, an implementation's release number — belongs to that package, runner, or implementation and is governed by whoever publishes it.
 
@@ -21,6 +21,7 @@ It governs everything this specification defines other than the HTTP protocol:
 - The [`METHODS.toml` format](./manifest-format.md) and the [`methods.lock` format](./lock-format.md).
 - The [library crate format](./library-crate.md) and the [namespace resolution rules](./namespace-resolution.md).
 - The [CLI I/O contract](./cli-io-contract.md) — the wire form of a stuff, and the envelopes a method reads and writes when it is invoked from a command line.
+- The [core error registry](./error-registry.md) — the core codes and everything each declares, and the list of registered extension prefixes.
 
 ### What Bumps the Standard Version
 
@@ -37,6 +38,13 @@ A release that changes nothing normative is a **patch** of the standard. That is
 Because a patch release moves the standard version without touching the native set, the [pinned set](./native-concepts.md) is **identified by the standard version in which it last changed**, not by the current standard version. `native-concepts.md` names that version.
 
 An implementation implementing standard version `V` materializes **the pinned set of the greatest version less than or equal to `V`**. So an implementation of `2.3.0` uses the set pinned at `2.0.0` until a later version pins a new one, and two implementations of different patch or minor versions still byte-agree on materialized natives — which is what makes crate [fingerprints](./library-crate.md#fingerprint) comparable across them.
+
+### The Core Error Registry
+
+The [core error registry](./error-registry.md) declares the standard version it is published with as its own `version`, and it moves under the classes above. No change to it makes an authored document invalid, so it never moves the major number:
+
+- **MINOR** — a new code, family or extension prefix, a new parameter, or a change to what a runtime emits or a client acts on: a code removed or renamed, a parameter removed, or a code's domain, retry verdict, step kind, HTTP status or parameter type changed. Each of the latter is marked breaking in the changelog, because a runtime or a client following the previous registry may have to change.
+- **PATCH** — a reworded title, template, meaning, what to do or description, or a corrected reference. These are written for a person, and no reader parses them.
 
 ### `mthds_version` and the Crate Stamp
 
@@ -57,11 +65,15 @@ The [HTTP runner protocol](./protocol.md) is versioned separately, on its own ca
 - **MINOR** — an addition. A new route, a new optional request field, a new response field, a new value of an enumerated response field. A client written against the previous version keeps working unmodified.
 - **PATCH** — a clarification of the document that changes no shape.
 
-A new value of an enumerated response field is a **MINOR** change because the protocol requires a client to accept a value it does not recognize. The [reader rule](./protocol.md#model-categories) states that requirement for a deck entry's model category, the only response enum that can grow, since the others are the `true` and `false` verdict flags of the validate report; a response enum the protocol adds later states a reader rule of its own. A client written to the rule keeps working. A client that rejected unknown values breaks all the same, so the changelog marks such a change breaking, the way it marks a minor standard change that a runtime has to follow.
+A new value of an enumerated response field is a **MINOR** change because the protocol requires a client to accept a value it does not recognize. The reader rules state that requirement for every response enum that can grow: a deck entry's [model category](./protocol.md#model-categories), and a problem document's `domain`, `retry` and `next_step.kind`, a suggested fix's `safety` and its operations' `kind` ([Readers and emitters](./protocol.md#readers-and-emitters)), and a run's [`status`](./protocol.md#get-runspipeline_run_idstatus), which can grow only by a status of a run that has not ended. The validate report's `true` and `false` verdict flags cannot grow, and a response enum the protocol adds later states a reader rule of its own. A client written to the rules keeps working. A client that rejected unknown values breaks all the same, so the changelog marks such a change breaking, the way it marks a minor standard change that a runtime has to follow.
+
+A problem's `code` is not an enumerated field. The protocol fixes a code's shape and leaves which codes exist to the registries, so a new code, in the core registry or under a registered prefix, moves no protocol number; a reader that does not know it reads it by its family. A change to the core registry moves the [standard version](#the-core-error-registry) instead.
 
 A [recommended extension field](./protocol.md#validating-a-bundle) is none of those additions. What the protocol version numbers is the base surface — the routes and the response fields of the normative OpenAPI document. The artifacts the standard names on the validate report's extension surface are shaped by their own specification pages and ride a report that is extension-open by policy, so naming one moves no protocol number: a runner may report or omit any of them at the same protocol version, and a client learns which it got from the report itself rather than from the handshake.
 
 The shape of a stuff — the `{concept, content}` entries of a request's inputs and of `pipe_output` — is the standard's for the same reason: the protocol names the fields and the [CLI I/O contract](./cli-io-contract.md#stuffs-on-the-wire) fixes their entries, so a change to that shape moves the standard version and leaves the protocol number where it was.
+
+The problem document crosses the same boundary the other way. It is the protocol's, and the CLI I/O contract has a CLI [write it on stderr](./cli-io-contract.md#error-propagation), without its `status` member, when a method fails. A CLI implementing a standard version writes the problem document of the protocol version that the same release names on its [changelog heading](#the-changelog-contract), and a reader learns which protocol version that is from the standard version the CLI implements. A release that changes the problem document therefore changes what a CLI writes as well, and its standard version moves by the rules above for a change to what a runtime emits.
 
 The protocol version is **not** derived from the standard version and never tracks it. A release of the standard that does not touch the protocol leaves the protocol version exactly where it was.
 
@@ -88,6 +100,7 @@ While a release is being prepared, the entries accumulate under a single `## [Un
 | Standard | The version `native-concepts.md` pins its set at (the last version in which the set changed) |
 | Standard | A manifest's `mthds_version` constraint, evaluated against the runtime's standard version |
 | Standard | A library crate's `mthds_version` stamp |
+| Standard | The `version` of the [core error registry](./error-registry.md) and of its snapshot |
 | Protocol | `info.version` in `mthds-protocol.openapi.yaml` |
 | Protocol | `protocol_version` in every `GET /version` response |
 | Protocol | The conformance statement in [the protocol specification](./protocol.md#conformance) |

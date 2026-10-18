@@ -131,7 +131,7 @@ When stdin is a TTY (interactive terminal), no stdin reading occurs and the meth
 
 ### 3. Auto-detected `inputs.json`
 
-In directory mode, `inputs.json` in the target directory is auto-detected and used as a fallback when no explicit inputs are provided.
+In directory mode, `inputs.json` in the target directory is auto-detected and used as a fallback when no explicit inputs are provided. The [membership rule](./method-tree.md#run-inputs-files) keeps a file named `inputs.json` out of the method tree wherever it is, whether the target directory is the method's root or a directory below it, so reading it as the run's inputs never carries it into the method's files. Auto-detection matches the entry name `inputs.json` byte for byte, as the membership rule does, so a tool looks the name up among the directory's entries rather than opening it: on a case-insensitive file system, opening `inputs.json` would also find a case variant such as `Inputs.json`, which is a member of the tree and is never read as the run's inputs.
 
 ## Envelope Detection
 
@@ -164,22 +164,36 @@ The input resolution rules when receiving a full envelope:
     extract-terms --with-memory | assess-risk
     ```
 
-3. **Error on failure**: If the downstream method's declared inputs cannot be satisfied from the upstream's working memory, a clear error is raised listing what was available upstream vs. what was expected downstream.
+3. **Error on failure**: If the downstream method's declared inputs cannot be satisfied from the upstream's working memory, the downstream method fails with an `input.missing` problem naming the input it cannot satisfy, as [Error Propagation](#error-propagation) shows. When it cannot satisfy several, it takes them in authored input order, the order in which the method declares its inputs and in which the [input-form descriptor](./input-form-descriptor.md#the-per-pipe-descriptor) lists them: the problem's own `params` and `location` name the first of them, and its `errors` carries one item per input it cannot satisfy, in that same order, each naming its input in its own `params` and `location`.
 
 ## Error Propagation
 
-Errors are emitted as structured JSON on **stderr** with a non-zero exit code:
+When a method invoked from the command line fails, its CLI writes the error on **stderr** and exits with a non-zero exit code. The error is the problem document the HTTP protocol defines under [Errors](./protocol.md#errors), without its `status` member: otherwise the same members with the same meanings, codes from the same registries, and the same rules for whoever emits or reads it. It is the problem document of the protocol version that the release of the standard the CLI implements names, as [Versioning](./versioning.md#what-bumps-the-protocol-version) states. In its JSON form it is one object:
 
 ```json
 {
-  "error": true,
-  "error_type": "PipelineExecutionError",
-  "message": "Pipe 'assess_risk' failed: missing required input 'analysis'",
-  "hint": "Check 'pipe_stack' to identify which pipe failed",
-  "error_domain": "runtime",
-  "retryable": false
+  "type": "https://mthds.ai/errors/input.missing",
+  "title": "A required input is missing",
+  "detail": "The method requires the input 'analysis', and no stuff of that name was provided.",
+  "code": "input.missing",
+  "domain": "input",
+  "retry": "no",
+  "next_step": {
+    "kind": "change_input",
+    "detail": "Provide a stuff named 'analysis', with --inputs or on stdin, then run the method again."
+  },
+  "params": { "input": "analysis" },
+  "location": { "input": "analysis" }
 }
 ```
+
+This is the problem a method in a chain writes when it declares several inputs, among them an input named `analysis` that it cannot run without, and the [full envelope](#full-envelope) it reads holds no stuff of that name. `code` says what happened. `domain` says who must act, here the caller, by changing the inputs. `retry` says whether running the method again with the same inputs can succeed, here `no`. `next_step` says what to do next, as a `kind` from the protocol's closed list and a sentence. `params` holds the facts the sentences were written from, and `location` says where the error happened, here the input it concerns. When an error happens inside a pipe, `location.pipe` names the pipe that failed rather than a controller around it, and `location.path` lists the pipe codes from the method's main pipe down to it, as [Parameters and location](./protocol.md#parameters-and-location) defines.
+
+The other members appear under the protocol's own conditions: `retry_after` when the wait is known, beside a `retry` of `yes`; `errors`, one item per fault, when the problem has several, such as a method that does not validate; and `pipeline_run_id` when a run exists. An implementation MAY add members of its own, and a reader ignores the members it does not know, by the protocol's [rules for readers and emitters](./protocol.md#readers-and-emitters).
+
+**A CLI's problem carries no `status`.** That member is the HTTP status of the response a problem is the body of, and the protocol leaves it out of every problem kept anywhere else. A CLI MUST leave it out of the problems it writes, including a problem it relays from a runner it called over HTTP. The non-zero exit code says only that the method did not complete: a program reading the error branches on `code`, and on `domain`, `retry` and `next_step.kind` when it handles several codes alike, never on the exit code, and it never parses `title`, `detail` or `next_step.detail`, which are written for a person.
+
+**A rendering is presentation.** A CLI read by a person or an agent MAY write a rendering of the problem on stderr in place of its JSON form, such as Markdown, stating at least the problem's title, its detail, its next step and its code. The `--error-format` option chooses the form: `--error-format json` asks for the JSON form, and `--error-format markdown` asks a CLI that writes a Markdown rendering for that rendering. Every CLI that runs a method MUST accept `--error-format json` and answer it with the JSON form, a CLI that only ever writes the JSON form included, so that a program passes it to any CLI without knowing which kind it calls and never reads a rendering. The option governs what is written on stderr when the method fails and leaves what is written on stdout to [Output Modes](#output-modes).
 
 In a Unix pipe chain, errors stop execution at the failing step. Use `set -o pipefail` in shell scripts to ensure mid-chain failures propagate:
 

@@ -2073,9 +2073,65 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../spec/error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2129,10 +2185,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
             
   
   
@@ -2150,8 +2206,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3265,7 +3321,7 @@
 <ol>
 <li>After a pipe produces output, resolve the output concept's definition (including its <code>structure</code> fields if any).</li>
 <li>Validate the produced data against the concept's type and field constraints — required fields, field types (<code>text</code>, <code>integer</code>, <code>boolean</code>, <code>list</code>, <code>dict</code>, <code>number</code>, <code>date</code>, <code>datetime</code>, <code>time</code>, <code>concept</code>), and any <code>choices</code> enums.</li>
-<li>If validation fails, report the error with the pipe code and step index, and halt execution of the current pipeline.</li>
+<li>If validation fails, report the error as a <code>pipe.output_invalid</code> <a href="../../spec/protocol/#errors">problem</a> whose <code>location.pipe</code> is the failing pipe's code and whose <code>location.path</code> lists the pipe codes from the run's main pipe down to it, as <a href="../../spec/protocol/#parameters-and-location">Parameters and location</a> defines them, and halt execution of the current pipeline.</li>
 </ol>
 <p>Validation libraries such as Pydantic (Python) or Zod (TypeScript) are natural fits for implementing these checks. Beyond mapping MTHDS concept structures to schema definitions, these libraries also support custom validation logic — expressed in Python or TypeScript — that goes beyond what the MTHDS standard defines.</p>
 <h2 id="model-references">Model References</h2>
@@ -3360,10 +3416,10 @@
 <p>See <a href="../../language/pipes-operators/#template-mode">Pipes — Operators: Template Mode</a> for the user-facing reference on template categories, filters, and shorthand syntax.</p>
 <p>A compliant runtime must support the plain string form of <code>template</code>. The table form with <code>category</code>, <code>templating_style</code>, and <code>extra_context</code> is an advanced feature that implementations may support progressively.</p>
 <h2 id="exposing-a-runner-over-http">Exposing a Runner over HTTP</h2>
-<p>A runtime becomes a network-accessible <strong>runner</strong> by implementing the <a href="../../spec/protocol/">MTHDS Protocol</a> — the minimal HTTP contract of five required routes: <code>POST /execute</code>, <code>POST /start</code>, <code>POST /validate</code>, <code>GET /models</code>, <code>GET /version</code>, plus the optional <code>POST /blobs/missing</code> and <code>PUT /blobs/{sha256}</code> for a runner that keeps a blob store. A method reaches a runner as its whole <a href="../../spec/method-tree/">method tree</a>, a <code>files</code> map of file entries, so the runner reads a method only from the files it is sent. The normative artifact is the protocol's <a href="../../spec/openapi/mthds-protocol.openapi.yaml">OpenAPI document</a>.</p>
-<p>The protocol deliberately excludes everything that is not "run a method": no run store, no completion channel for async runs (webhooks or polling are implementation extensions), no users, no billing, no catalog. Implementations may extend the surface with extra routes or optional request properties, but must not change the protocol routes' shapes — see the <a href="../../spec/protocol/#extension-policy">extension policy</a>.</p>
+<p>A runtime becomes a network-accessible <strong>runner</strong> by implementing the <a href="../../spec/protocol/">MTHDS Protocol</a> — the minimal HTTP contract of five required routes: <code>POST /execute</code>, <code>POST /start</code>, <code>POST /validate</code>, <code>GET /models</code>, <code>GET /version</code>, plus the optional <code>POST /blobs/missing</code> and <code>PUT /blobs/{sha256}</code> for a runner that keeps a blob store, and the optional <code>GET /runs/{pipeline_run_id}/status</code> and <code>GET /runs/{pipeline_run_id}/results</code>, with an <code>Idempotency-Key</code> header on <code>/execute</code> and <code>/start</code>, for a runner that keeps a <a href="../../spec/protocol/#reading-a-run-and-idempotency-keys">run store</a>. A method reaches a runner as its whole <a href="../../spec/method-tree/">method tree</a>, a <code>files</code> map of file entries, so the runner reads a method only from the files it is sent. The normative artifact is the protocol's <a href="../../spec/openapi/mthds-protocol.openapi.yaml">OpenAPI document</a>.</p>
+<p>The protocol deliberately excludes everything that is not "run a method": it requires no run store, defines no completion channel for async runs (a runner that keeps a run store is polled through its run reads, and webhooks are implementation extensions), and has no users, no billing and no catalog. Implementations may extend the surface with extra routes or optional request properties, but must not change the protocol routes' shapes — see the <a href="../../spec/protocol/#extension-policy">extension policy</a>.</p>
 <p>The reference implementation is <code>pipelex-api</code> (source-available under the Elastic License 2.0, self-hostable Docker image), which implements the protocol and extends it with stateless <code>/build/*</code> authoring helpers. That license belongs to the implementation, not to the protocol: the standard and its OpenAPI document are published under the <a href="../../license/">MIT License</a>, and any runtime may implement the protocol under a license of its own choosing.</p>
-<p><code>/validate</code> is a diagnostic endpoint: a produced verdict — valid or invalid — always rides a 200, discriminated on <code>is_valid</code> (the protocol also declares the runnability facts <code>is_runnable</code> / <code>pending_signatures</code>; a non-2xx means <em>no verdict could be produced</em>, not an invalid bundle). Beyond those declared fields a runner returns its own verification artifacts as implementation-defined additional properties on the valid arm. The reference implementation (Pipelex) returns <code>pipe_io_contracts</code> — a map keyed by namespaced <code>pipe_ref</code> (<code>&lt;domain&gt;.&lt;pipe_code&gt;</code>) giving each pipe's resolved input and output contracts (the concept and multiplicity of every input and of the output). The map contains entries only for pipes defined in the validated package, not its transitive dependencies (whose pipes resolve under the package-qualified <code>alias-&gt;domain.pipe_code</code> form), so the <code>&lt;domain&gt;.&lt;pipe_code&gt;</code> keys cannot collide across packages. The name is documented here only to encourage convergence among implementations; it is not part of the protocol, and other runners may expose their own artifacts under their own keys. On the invalid arm (<code>is_valid: false</code>) the protocol requires a non-empty <code>validation_errors[]</code> (one diagnostic per failure); each item's <code>category</code> is implementation-defined — the reference implementation (Pipelex) narrows it to its own closed vocabulary.</p>
+<p><code>/validate</code> is a diagnostic endpoint: a produced verdict — valid or invalid — always rides a 200, discriminated on <code>is_valid</code> (the protocol also declares the runnability facts <code>is_runnable</code> / <code>pending_signatures</code>; a non-2xx means <em>no verdict could be produced</em>, not an invalid bundle). Beyond those declared fields a runner returns its own verification artifacts as implementation-defined additional properties on the valid arm. The reference implementation (Pipelex) returns <code>pipe_io_contracts</code> — a map keyed by namespaced <code>pipe_ref</code> (<code>&lt;domain&gt;.&lt;pipe_code&gt;</code>) giving each pipe's resolved input and output contracts (the concept and multiplicity of every input and of the output). The map contains entries only for pipes defined in the validated package, not its transitive dependencies (whose pipes resolve under the package-qualified <code>alias-&gt;domain.pipe_code</code> form), so the <code>&lt;domain&gt;.&lt;pipe_code&gt;</code> keys cannot collide across packages. The name is documented here only to encourage convergence among implementations; it is not part of the protocol, and other runners may expose their own artifacts under their own keys. On the invalid arm (<code>is_valid: false</code>) the protocol requires a non-empty <code>errors[]</code>, one <a href="../../spec/protocol/#itemized-errors">problem item</a> per fault, and either arm may carry <code>warnings[]</code> in the same item schema; each item carries a registry <a href="../../spec/protocol/#codes">code</a>, a core code or one under the implementation's own registered prefix.</p>
         <div id="llms-copy-button" style="position: fixed; z-index: 1100; top: 80px; right: 20px;">
             <button onclick="copyMarkdownToClipboard()" style="cursor: pointer; background: #007acc; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Copy Markdown</button>
         </div>

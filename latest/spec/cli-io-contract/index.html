@@ -2343,9 +2343,65 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2402,10 +2458,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3">
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
         
           
-          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
             
   
   
@@ -2423,8 +2479,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4_3">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -3476,7 +3532,7 @@ my_method<span class="w"> </span>--inputs<span class="w"> </span>data.json
 </code></pre></div>
 <p>When stdin is a TTY (interactive terminal), no stdin reading occurs and the method runs without inputs.</p>
 <h3 id="3-auto-detected-inputsjson">3. Auto-detected <code>inputs.json</code></h3>
-<p>In directory mode, <code>inputs.json</code> in the target directory is auto-detected and used as a fallback when no explicit inputs are provided.</p>
+<p>In directory mode, <code>inputs.json</code> in the target directory is auto-detected and used as a fallback when no explicit inputs are provided. The <a href="../method-tree/#run-inputs-files">membership rule</a> keeps a file named <code>inputs.json</code> out of the method tree wherever it is, whether the target directory is the method's root or a directory below it, so reading it as the run's inputs never carries it into the method's files. Auto-detection matches the entry name <code>inputs.json</code> byte for byte, as the membership rule does, so a tool looks the name up among the directory's entries rather than opening it: on a case-insensitive file system, opening <code>inputs.json</code> would also find a case variant such as <code>Inputs.json</code>, which is a member of the tree and is never read as the run's inputs.</p>
 <h2 id="envelope-detection">Envelope Detection</h2>
 <p>When JSON arrives via stdin, the runtime distinguishes between two formats based on the presence of a <code>working_memory</code> key at the top level:</p>
 <h3 id="flat-inputs">Flat Inputs</h3>
@@ -3501,20 +3557,30 @@ my_method<span class="w"> </span>--inputs<span class="w"> </span>data.json
 </code></pre></div>
 </li>
 <li>
-<p><strong>Error on failure</strong>: If the downstream method's declared inputs cannot be satisfied from the upstream's working memory, a clear error is raised listing what was available upstream vs. what was expected downstream.</p>
+<p><strong>Error on failure</strong>: If the downstream method's declared inputs cannot be satisfied from the upstream's working memory, the downstream method fails with an <code>input.missing</code> problem naming the input it cannot satisfy, as <a href="#error-propagation">Error Propagation</a> shows. When it cannot satisfy several, it takes them in authored input order, the order in which the method declares its inputs and in which the <a href="../input-form-descriptor/#the-per-pipe-descriptor">input-form descriptor</a> lists them: the problem's own <code>params</code> and <code>location</code> name the first of them, and its <code>errors</code> carries one item per input it cannot satisfy, in that same order, each naming its input in its own <code>params</code> and <code>location</code>.</p>
 </li>
 </ol>
 <h2 id="error-propagation">Error Propagation</h2>
-<p>Errors are emitted as structured JSON on <strong>stderr</strong> with a non-zero exit code:</p>
+<p>When a method invoked from the command line fails, its CLI writes the error on <strong>stderr</strong> and exits with a non-zero exit code. The error is the problem document the HTTP protocol defines under <a href="../protocol/#errors">Errors</a>, without its <code>status</code> member: otherwise the same members with the same meanings, codes from the same registries, and the same rules for whoever emits or reads it. It is the problem document of the protocol version that the release of the standard the CLI implements names, as <a href="../versioning/#what-bumps-the-protocol-version">Versioning</a> states. In its JSON form it is one object:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"error_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PipelineExecutionError"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Pipe 'assess_risk' failed: missing required input 'analysis'"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"hint"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Check 'pipe_stack' to identify which pipe failed"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"error_domain"</span><span class="p">:</span><span class="w"> </span><span class="s2">"runtime"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"retryable"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span>
+<span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://mthds.ai/errors/input.missing"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"A required input is missing"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The method requires the input 'analysis', and no stuff of that name was provided."</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"input.missing"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"domain"</span><span class="p">:</span><span class="w"> </span><span class="s2">"input"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"retry"</span><span class="p">:</span><span class="w"> </span><span class="s2">"no"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"next_step"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"change_input"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Provide a stuff named 'analysis', with --inputs or on stdin, then run the method again."</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analysis"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"location"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analysis"</span><span class="w"> </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
+<p>This is the problem a method in a chain writes when it declares several inputs, among them an input named <code>analysis</code> that it cannot run without, and the <a href="#full-envelope">full envelope</a> it reads holds no stuff of that name. <code>code</code> says what happened. <code>domain</code> says who must act, here the caller, by changing the inputs. <code>retry</code> says whether running the method again with the same inputs can succeed, here <code>no</code>. <code>next_step</code> says what to do next, as a <code>kind</code> from the protocol's closed list and a sentence. <code>params</code> holds the facts the sentences were written from, and <code>location</code> says where the error happened, here the input it concerns. When an error happens inside a pipe, <code>location.pipe</code> names the pipe that failed rather than a controller around it, and <code>location.path</code> lists the pipe codes from the method's main pipe down to it, as <a href="../protocol/#parameters-and-location">Parameters and location</a> defines.</p>
+<p>The other members appear under the protocol's own conditions: <code>retry_after</code> when the wait is known, beside a <code>retry</code> of <code>yes</code>; <code>errors</code>, one item per fault, when the problem has several, such as a method that does not validate; and <code>pipeline_run_id</code> when a run exists. An implementation MAY add members of its own, and a reader ignores the members it does not know, by the protocol's <a href="../protocol/#readers-and-emitters">rules for readers and emitters</a>.</p>
+<p><strong>A CLI's problem carries no <code>status</code>.</strong> That member is the HTTP status of the response a problem is the body of, and the protocol leaves it out of every problem kept anywhere else. A CLI MUST leave it out of the problems it writes, including a problem it relays from a runner it called over HTTP. The non-zero exit code says only that the method did not complete: a program reading the error branches on <code>code</code>, and on <code>domain</code>, <code>retry</code> and <code>next_step.kind</code> when it handles several codes alike, never on the exit code, and it never parses <code>title</code>, <code>detail</code> or <code>next_step.detail</code>, which are written for a person.</p>
+<p><strong>A rendering is presentation.</strong> A CLI read by a person or an agent MAY write a rendering of the problem on stderr in place of its JSON form, such as Markdown, stating at least the problem's title, its detail, its next step and its code. The <code>--error-format</code> option chooses the form: <code>--error-format json</code> asks for the JSON form, and <code>--error-format markdown</code> asks a CLI that writes a Markdown rendering for that rendering. Every CLI that runs a method MUST accept <code>--error-format json</code> and answer it with the JSON form, a CLI that only ever writes the JSON form included, so that a program passes it to any CLI without knowing which kind it calls and never reads a rendering. The option governs what is written on stderr when the method fails and leaves what is written on stdout to <a href="#output-modes">Output Modes</a>.</p>
 <p>In a Unix pipe chain, errors stop execution at the failing step. Use <code>set -o pipefail</code> in shell scripts to ensure mid-chain failures propagate:</p>
 <div class="highlight"><pre><span></span><code><span class="nb">set</span><span class="w"> </span>-o<span class="w"> </span>pipefail
 extract-terms<span class="w"> </span>--with-memory<span class="w"> </span><span class="se">\</span>
