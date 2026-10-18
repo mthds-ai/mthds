@@ -988,12 +988,21 @@ components:
       description: >
         The typed facts the problem's sentences were written from, so that a client
         acts on data rather than on prose. Each code declares its parameters and their
-        types in its registry; the member is present when the code declares any. A
-        parameter holds an identifier, a number or an enumerated value, or, where its
-        code declares so, the caller's own text, never the content of a run's inputs or
-        outputs. The protocol's own refusal of hash entries, request.blobs_missing,
-        carries missing_blobs: every hash of the request the runner does not hold, in
-        lowercase hexadecimal.
+        types in its registry, the core's being mthds-error-registry.yaml beside this
+        document; the member is present when the code declares any. A parameter holds
+        an identifier, a number or an enumerated value, or, where its code declares so,
+        the caller's own text, never the content of a run's inputs or outputs. The
+        parameters a client relies on by shape are typed here, as the core registry
+        types them.
+      properties:
+        missing_blobs:
+          type: array
+          items:
+            type: string
+            pattern: '^[0-9a-f]{64}$'
+          description: >
+            Carried by the protocol's own refusal of hash entries, request.blobs_missing:
+            every hash of the request the runner does not hold, in lowercase hexadecimal.
     ProblemLocation:
       type: object
       additionalProperties: true

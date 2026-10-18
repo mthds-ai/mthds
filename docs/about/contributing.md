@@ -25,6 +25,14 @@ Specification changes follow a structured process:
 3. **Review** by the maintainers and community. Changes to the specification require careful consideration of backward compatibility.
 4. **Merge and release** as a new minor or major version of the standard.
 
+### Register an Error-Code Prefix
+
+An implementation that raises errors the core does not describe, such as billing or a catalog of saved methods, codes them under an [extension prefix](../spec/error-registry.md#extension-prefixes) of its own, and registers that prefix with the standard:
+
+1. **Publish your registry** of the codes under the prefix, in the [error registry format](../spec/error-registry.md), with a page for each code at its type URI, under a base URL you control.
+2. **Open a pull request** against the specification that adds an entry to `extension_prefixes` in the core registry, `docs/spec/openapi/mthds-error-registry.yaml`, naming the prefix, its owner and that base URL. Choose a prefix that is one lowercase segment and not the name of a core family.
+3. **Review** checks that the prefix is free and that the registry and its pages are published. Once the entry is merged, the prefix is yours and is never reassigned, and your runtime may emit codes under it.
+
 ### Build Packages
 
 The ecosystem grows through packages. Publish packages that solve real problems in your domain. Well-documented packages with clear concept hierarchies and typed pipe signatures make the Know-How Graph more useful for everyone.

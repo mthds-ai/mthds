@@ -27,8 +27,9 @@ Pipelex is the maintainer and reference implementation. It appears ONLY in:
 - The About section (as maintainer and reference implementation)
 - "For Implementers" section (with "reference implementation" framing)
 - The Tooling section (the VS Code extension is named "Pipelex", `plxt` is distributed with Pipelex)
+- The core error registry's list of registered extension prefixes, `extension_prefixes` in `docs/spec/openapi/mthds-error-registry.yaml` and its JSON snapshot, and the table the generated Error Codes page (Reference) renders from it, which name the `pipelex` prefix and its owner as they name every registered prefix and its owner. Nothing else in the registry or its pages names Pipelex: no core entry, family or template names an implementation.
 
-Pipelex does NOT appear in: the landing page, the Language section, the Package System section, the Specification, the CLI Reference, or the Guides.
+Pipelex does NOT appear in: the landing page, the Language section, the Package System section, the Specification (beyond the registry's prefix list above), the CLI Reference, or the Guides.
 
 ### Terminology (must be consistent across all pages)
 
@@ -95,6 +96,12 @@ The `mkdocs.yml` configures specific plugins and markdown extensions. Use these 
 | `privacy` | Downloads external assets locally (GDPR) and applies `links_attr_map` (e.g., `target: _blank` on external links) |
 | `llmstxt-md` | Generates `llms.txt` for LLM-friendly content — nav sections must be updated when adding pages |
 | `neoteroi.mkdocsoad` | Renders OpenAPI documents into pages via `OAD` include tags (the protocol page's route reference; styles in `docs/stylesheets/neoteroi-oad.css`, template overrides in `docs/templates/oad/`) |
+
+### Hooks
+
+| Hook | What it does |
+|------|-------------|
+| `scripts/error_registry_pages.py` | Generates `errors/index.md` and one page per code of the core error registry from `docs/spec/openapi/mthds-error-registry.yaml` (see `docs/CLAUDE.md`, "The Error Registry and Its Generated Pages") |
 
 ### Theme Features (from `mkdocs.yml` theme config)
 

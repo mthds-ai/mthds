@@ -138,18 +138,23 @@ jobs:
           echo "$CHANGELOG_CONTENT" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
+      # The core error registry's JSON snapshot is attached to every release, so that
+      # https://github.com/<repo>/releases/download/v<version>/mthds-error-registry.json is a
+      # stable address of the registry each standard version was published with. The release
+      # fails rather than ship without it.
       - name: Create GitHub Release
         if: env.EXISTS == 'false'
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          ERROR_REGISTRY: docs/spec/openapi/mthds-error-registry.json
         run: |
           if [ -n "$CHANGELOG_NOTES" ]; then
-            gh release create "v$VERSION" \
+            gh release create "v$VERSION" "$ERROR_REGISTRY" \
               --repo "$GITHUB_REPOSITORY" \
               --title "v$VERSION" \
               --notes "$CHANGELOG_NOTES"
           else
-            gh release create "v$VERSION" \
+            gh release create "v$VERSION" "$ERROR_REGISTRY" \
               --repo "$GITHUB_REPOSITORY" \
               --title "v$VERSION" \
               --generate-notes \
