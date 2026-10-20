@@ -755,7 +755,10 @@ components:
         or keeps no blob store answers with a 422 coded request.blobs_missing, listing
         the hashes in params.missing_blobs. The sender then uploads each listed blob to
         a runner that keeps a blob store, and sends each listed file inline to one that
-        keeps none.
+        keeps none. A hash entry held by a key the runner refuses, one that is not a
+        tree path or names a file the membership rule could never admit, is never
+        checked, as the method tree's file entry rules state: the map is refused for
+        that key, and the hash is never listed on its account.
       required: [sha256, size]
       additionalProperties: false
       properties:
