@@ -479,10 +479,10 @@
           "items": {
             "type": "sha256"
           },
-          "description": "Each hash of the request that the runner does not hold, in lowercase hexadecimal."
+          "description": "Each hash the request's `files` names that the runner does not hold, in lowercase hexadecimal."
         }
       },
-      "meaning": "A hash entry of the request's `files` names bytes this runner does not hold, or the runner keeps no blob store at all, so it cannot assemble the method's tree. This is the protocol's own refusal of hash entries.",
+      "meaning": "A hash entry of the request's `files` names bytes this runner does not hold, or the runner keeps no blob store at all, so it cannot assemble the method's tree. This is the protocol's own refusal of hash entries, and the last check of a map: a runner answers it only for a `files` map that breaks no other rule of the method tree's file entries, and never checks the hash entry of a key it refuses.",
       "what_to_do": "Read `params.missing_blobs`. To a runner whose `GET /version` declares `blob_store: true`, upload each listed blob as `POST /blobs/missing` says; to any other runner, send each listed file inline. Then send the request again.",
       "see": [
         {
