@@ -392,9 +392,9 @@ components:
         validate also lands here, one item per fault in errors; on /validate an
         invalid method is a 200 verdict, so there a 422 is about the request alone.
         A request whose files map is not a tree is a 422 naming the offending path,
-        and a request naming a hash entry the runner does not hold, or any hash entry
-        when it keeps no blob store, is a 422 coded request.blobs_missing whose
-        params.missing_blobs lists each such hash. Like every problem response, it
+        and a request whose files map breaks no other rule but names a hash entry the
+        runner does not hold, or any hash entry when it keeps no blob store, is a 422
+        coded request.blobs_missing whose params.missing_blobs lists each such hash. Like every problem response, it
         always carries status.
       content:
         application/problem+json:
@@ -684,9 +684,10 @@ components:
           description: >
             True when the runner keeps a blob store: it serves POST /blobs/missing and
             resolves hash entries in a files map. False or absent when it does not, in
-            which case it answers any hash entry with a 422 coded request.blobs_missing,
-            listing the hashes in params.missing_blobs, and serves no upload route, so a
-            sender sends those files inline instead.
+            which case it answers a files map that breaks no other rule but holds hash
+            entries with a 422 coded request.blobs_missing, listing their hashes in
+            params.missing_blobs, and serves no upload route, so a sender sends those
+            files inline instead.
         run_store:
           type: boolean
           default: false
@@ -732,6 +733,10 @@ components:
         One file of a method tree: its text, its bytes in Base64, or the hash of bytes
         the runner already holds. There is no URL form, and an entry object that
         gives one of its keys twice is refused, as a key given twice in the map is.
+        A runner holds an entry to this schema, and to the other entry checks of the
+        method tree's file entry rules, only under a key that is a tree path the
+        membership rule could admit: a map holding any other key is refused for that
+        key, whatever its entry holds.
       oneOf:
         - type: string
           description: The file's text. Its bytes are the UTF-8 encoding of this string, exactly.
@@ -752,10 +757,14 @@ components:
       description: >
         Bytes the runner already holds in its blob store, named by their SHA-256 and
         their length. A runner that does not hold them, holds them with another size,
-        or keeps no blob store answers with a 422 coded request.blobs_missing, listing
-        the hashes in params.missing_blobs. The sender then uploads each listed blob to
-        a runner that keeps a blob store, and sends each listed file inline to one that
-        keeps none.
+        or keeps no blob store answers a files map that breaks no other rule with a
+        422 coded request.blobs_missing, listing the hashes in params.missing_blobs.
+        The sender then uploads each listed blob to a runner that keeps a blob store,
+        and sends each listed file inline to one that keeps none. As the method
+        tree's file entry rules state, the runner checks these bytes last and only
+        under a key that is a tree path the membership rule could admit, so a map it
+        refuses for any other fault is refused for that fault, and a sender never
+        uploads blobs for a map that would be refused anyway.
       required: [sha256, size]
       additionalProperties: false
       properties:
@@ -1006,7 +1015,8 @@ components:
             pattern: '^[0-9a-f]{64}$'
           description: >
             Carried by the protocol's own refusal of hash entries, request.blobs_missing:
-            every hash of the request the runner does not hold, in lowercase hexadecimal.
+            every hash the request's files map names that the runner does not hold, in
+            lowercase hexadecimal, for a map that breaks no other rule.
     ProblemLocation:
       type: object
       additionalProperties: true
