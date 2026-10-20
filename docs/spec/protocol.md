@@ -79,6 +79,8 @@ The map must form a tree. A runner refuses with a `422` naming the offending pat
 - two paths [collide](./method-tree.md#tree-paths), or one collides with a directory of another, under the Unicode full case folding the method tree defines, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`;
 - an entry is malformed, such as Base64 whose pad bits are not zero, or a `size` written `13.0`.
 
+As the method tree's [file entry](./method-tree.md#the-file-entry) rules state, the collision check reads only the keys that are tree paths the membership rule could admit, and reads a key given twice once, so a map holding `inputs.json` beside `Inputs.json` is refused naming `inputs.json` alone, never because the two collide.
+
 A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem coded `request.blobs_missing`, whose `params.missing_blobs` lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer which files to supply:
 
 ```json
@@ -327,7 +329,7 @@ Every code in the table below is a core code that the run reads and idempotency 
 
 ```json
 {
-  "protocol_version": "2.0.0",
+  "protocol_version": "2.0.1",
   "runner_version": "2.3.0",
   "blob_store": true,
   "run_store": true

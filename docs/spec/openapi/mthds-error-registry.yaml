@@ -13,7 +13,7 @@
 # Strings are double-quoted, and "no" and "yes" must be, since YAML would otherwise read them
 # as booleans. A template names a parameter as {name}.
 
-version: "8.0.0"
+version: "8.0.1"
 base_url: "https://mthds.ai/errors"
 
 extension_prefixes:

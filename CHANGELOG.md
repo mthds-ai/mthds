@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v8.0.1 · MTHDS standard 8.0.1 · MTHDS Protocol 2.0.1**
+
+### Changed
+
+- **A files map's collision check reads only the keys it has not refused** (`spec/method-tree.md`, `spec/protocol.md`, `spec/openapi/mthds-protocol.openapi.yaml`, `implementers/validation-rules.md`): the File Entry section, the protocol's method files section and its OpenAPI document now say that the collision check reads only the keys that are tree paths the membership rule could admit, and reads a key given twice once. A key refused as not a tree path, or as a name the membership rule could never admit, therefore collides with nothing, so a map holding `inputs.json` beside `Inputs.json` is refused naming `inputs.json` alone, while which maps are accepted and which are refused is unchanged. This clarification moves the protocol to `2.0.1`.
+
 ## [v8.0.0] - 2026-10-18
 
 **MTHDS standard 8.0.0 · MTHDS Protocol 2.0.0**
