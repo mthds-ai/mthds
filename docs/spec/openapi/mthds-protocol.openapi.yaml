@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: MTHDS Protocol
-  version: 2.0.0
+  version: 2.0.1
   summary: The minimal HTTP contract every MTHDS runner implements.
   description: >
     Five required routes, two optional blob routes for a runner that keeps a blob
@@ -715,7 +715,11 @@ components:
         or later, with no locale tailoring) of the key in NFC, normalized to NFC
         again, so neither README.md
         and readme.md, nor straße.txt and STRASSE.txt, nor Templates and
-        templates/letter.html share one map. The pattern below checks the
+        templates/letter.html share one map. As the method tree's file entry rules
+        state, the collision check reads only the keys that are tree paths the
+        membership rule could admit, and reads a key given twice once, so a map
+        holding inputs.json beside Inputs.json is refused naming inputs.json alone,
+        never because the two collide. The pattern below checks the
         characters and segments; the other rules are checked by the runner, which
         answers a map breaking any of them with a 422 naming the path.
       minProperties: 1
