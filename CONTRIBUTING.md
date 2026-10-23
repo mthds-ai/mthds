@@ -25,6 +25,8 @@ There are several ways to help improve this site:
 3. Run `make docs` to serve the site locally at `http://127.0.0.1:8000`
 4. Edit files in the `docs/` directory — changes will auto-reload in your browser
 
+The site is built on the Python version that `.python-version` names at the repository root, and the documentation workflows read the same file. `make install` builds `.venv` on that version, and the next `make install`, which `make docs-check` also runs, moves an environment built on another Python to it. To try another version, run `PYTHON_VERSION=3.12 make install`; the next plain `make install` returns the environment to the pinned version.
+
 ## Contribution process
 
 1. Fork the repository
