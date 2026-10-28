@@ -755,7 +755,7 @@
     },
     {
       "code": "input.wrong_multiplicity",
-      "title": "An input has the wrong number of items",
+      "title": "An input has the wrong form or the wrong number of items",
       "domain": "input",
       "retry": "no",
       "raised_as": "problem",
@@ -768,7 +768,7 @@
         },
         "other": {
           "kind": "change_input",
-          "detail": "Pass this to the caller, who must give the input '{input}' with the number of items the method declares."
+          "detail": "Pass this to the caller, who must give the input '{input}' as the method declares it: one item, a list, or a list of a set length."
         }
       },
       "params": {
@@ -2590,7 +2590,7 @@
     },
     {
       "code": "pipe.output_multiplicity",
-      "title": "A step produced the wrong number of results",
+      "title": "A step produced a list instead of one result, or the reverse",
       "domain": "method",
       "retry": "no",
       "raised_as": "problem",
@@ -2603,7 +2603,7 @@
         },
         "other": {
           "kind": "contact_owner",
-          "detail": "Ask the method's owner to make the step '{pipe}' produce as many results as its output '{output}' declares."
+          "detail": "Ask the method's owner to make the step '{pipe}' produce its output '{output}' as one item or as a list, as the method declares it."
         }
       },
       "params": {
@@ -2806,7 +2806,7 @@
     },
     {
       "code": "pipe.template_budget_exceeded",
-      "title": "A template in the method grew too large to fill in",
+      "title": "A template in the method tried to do more than it may",
       "domain": "method",
       "retry": "no",
       "raised_as": "problem",
@@ -2960,7 +2960,7 @@
     },
     {
       "code": "pipe.input_unresolved",
-      "title": "A step could not find a value it needs",
+      "title": "A step could not read a value it needs",
       "domain": "method",
       "retry": "no",
       "raised_as": "problem",

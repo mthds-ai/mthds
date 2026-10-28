@@ -406,7 +406,7 @@ codes:
       - {title: "Stuffs on the wire", href: "spec/cli-io-contract.md#stuffs-on-the-wire"}
 
   - code: input.wrong_multiplicity
-    title: "An input has the wrong number of items"
+    title: "An input has the wrong form or the wrong number of items"
     domain: input
     retry: "no"
     raised_as: problem
@@ -414,7 +414,7 @@ codes:
     detail: "The input '{input}' gives {provided_count} item or items, which does not fit the multiplicity the method declares ({expected})."
     steps:
       actor: {kind: change_input, detail: "Give the input '{input}' with the multiplicity the method declares, then send the request again."}
-      other: {kind: change_input, detail: "Pass this to the caller, who must give the input '{input}' with the number of items the method declares."}
+      other: {kind: change_input, detail: "Pass this to the caller, who must give the input '{input}' as the method declares it: one item, a list, or a list of a set length."}
     params:
       input: {type: identifier, description: "The input at fault."}
       expected: {type: enum, values: [single, list, count], description: "What the method expects: one item, a list of any length, or a list of a fixed length."}
@@ -1249,7 +1249,7 @@ codes:
   # --- pipe. ------------------------------------------------------------------------------
 
   - code: pipe.output_multiplicity
-    title: "A step produced the wrong number of results"
+    title: "A step produced a list instead of one result, or the reverse"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1257,7 +1257,7 @@ codes:
     detail: "Pipe '{pipe}' produced an output of the multiplicity '{produced}', but its output '{output}' is declared '{declared}'."
     steps:
       actor: {kind: change_method, detail: "Declare the output '{output}' as '{produced}', or make pipe '{pipe}' produce '{declared}'."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to make the step '{pipe}' produce as many results as its output '{output}' declares."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to make the step '{pipe}' produce its output '{output}' as one item or as a list, as the method declares it."}
     params:
       pipe: {type: identifier, description: "The pipe at fault."}
       output: {type: identifier, description: "The output whose multiplicity differs."}
@@ -1344,7 +1344,7 @@ codes:
       - {title: "Inputs read through templates", href: "spec/mthds-format.md#inputs-read-through-templates"}
 
   - code: pipe.template_budget_exceeded
-    title: "A template in the method grew too large to fill in"
+    title: "A template in the method tried to do more than it may"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1415,7 +1415,7 @@ codes:
       - {title: "Binding steps", href: "spec/mthds-format.md#binding-steps"}
 
   - code: pipe.input_unresolved
-    title: "A step could not find a value it needs"
+    title: "A step could not read a value it needs"
     domain: method
     retry: "no"
     raised_as: problem

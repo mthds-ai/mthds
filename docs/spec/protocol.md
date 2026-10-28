@@ -221,7 +221,7 @@ The status read answers `200` with the run's `pipeline_run_id`, its `status`, an
   "status": "failed",
   "error": {
     "type": "https://mthds.ai/errors/pipe.output_multiplicity",
-    "title": "A step produced the wrong number of results",
+    "title": "A step produced a list instead of one result, or the reverse",
     "detail": "Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item.",
     "code": "pipe.output_multiplicity",
     "domain": "method",
@@ -368,7 +368,7 @@ Every error a runner answers is a problem document of [RFC 9457](https://www.rfc
 ```json
 {
   "type": "https://mthds.ai/errors/pipe.output_multiplicity",
-  "title": "A step produced the wrong number of results",
+  "title": "A step produced a list instead of one result, or the reverse",
   "status": 422,
   "detail": "Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item.",
   "code": "pipe.output_multiplicity",
