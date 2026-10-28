@@ -221,7 +221,7 @@ The status read answers `200` with the run's `pipeline_run_id`, its `status`, an
   "status": "failed",
   "error": {
     "type": "https://mthds.ai/errors/pipe.output_multiplicity",
-    "title": "A pipe's output does not have the declared multiplicity",
+    "title": "A step produced a list instead of one result, or the reverse",
     "detail": "Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item.",
     "code": "pipe.output_multiplicity",
     "domain": "method",
@@ -368,7 +368,7 @@ Every error a runner answers is a problem document of [RFC 9457](https://www.rfc
 ```json
 {
   "type": "https://mthds.ai/errors/pipe.output_multiplicity",
-  "title": "A pipe's output does not have the declared multiplicity",
+  "title": "A step produced a list instead of one result, or the reverse",
   "status": 422,
   "detail": "Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item.",
   "code": "pipe.output_multiplicity",
@@ -430,7 +430,7 @@ The domain answers the first question a reader has: can I fix this myself, and i
 
 | Domain | Who acts | Examples |
 |---|---|---|
-| `input` | The caller, by changing the request or its inputs | A required input is missing; an input is not the declared concept; a request body is malformed; the runner does not hold a file sent by hash. |
+| `input` | The caller, by changing the request or its inputs | A required input is missing; an input is not of the kind the method declares; a request body is malformed; the runner does not hold a file sent by hash. |
 | `method` | The method's author, by changing the method | The method does not validate; a pipe's output has the wrong multiplicity at run time; the method names a model that exists nowhere. |
 | `account` | The account's owner | A refused credential; a missing permission; an exhausted quota. |
 | `operator` | Whoever runs the runtime | The method names a model that exists, but this runner serves no backend for it; a misconfigured server. |

@@ -75,7 +75,7 @@ Every entry declares every member below except `status`, which only some entries
 | Member | Meaning |
 |---|---|
 | `code` | The code, unique in the registry. |
-| `title` | The code's short title, the same for every occurrence of the code. |
+| `title` | The code's short title, the same for every occurrence of the code, and written for [any reader](#who-a-title-is-written-for). |
 | `domain` | [Who must act](protocol.md#domain-who-must-act): one of `input`, `method`, `account`, `operator` and `runtime`. |
 | `retry` | Whether [repeating the operation](protocol.md#retry) can succeed: one of `no`, `yes` and `outcome_unknown`. |
 | `raised_as` | How the code reaches a reader, described [below](#how-a-code-reaches-a-reader). |
@@ -90,6 +90,10 @@ Every entry declares every member below except `status`, which only some entries
 The closed lists of `domain`, `retry` and the step kinds are those of the protocol's OpenAPI document, and they change only with it.
 
 A problem carries the step aimed at whoever reads it. A runtime that knows its reader is the domain's actor, such as the method's author validating their own method, sends the `actor` step; one that does not, such as a runner serving a caller who runs someone else's method, sends the `other` step. The catch-all code, `runtime.unexpected`, which names a fault no other code describes, has the verdict `no` and the step `report` for both readers.
+
+### Who a Title Is Written For
+
+A title is the same for every reader of a code, so it is written for any of them. A problem a run fails with reaches whoever follows the run, who may be running a method they did not write, so the title of a code a run can raise says what happened in plain words, such as "a step" rather than "a pipe" and "the structure the method declares" rather than "its concept", and leaves the language's own terms to the `detail`, the `actor` step and the code's page. The `other` step is written for that same reader in the same words, and names a pipe as "the step" it is. The codes of the `method` family are the exception: most of them describe a fault in the method as written, which only its author can correct, so their titles and steps name the language's constructs, such as a pipe or a concept, for the author to find. Those about reaching a method rather than about what it says, such as `method.not_found`, name no construct and are written in plain words like the rest.
 
 ### How a Code Reaches a Reader
 
