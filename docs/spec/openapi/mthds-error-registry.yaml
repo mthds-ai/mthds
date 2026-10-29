@@ -13,7 +13,7 @@
 # Strings are double-quoted, and "no" and "yes" must be, since YAML would otherwise read them
 # as booleans. A template names a parameter as {name}.
 
-version: "8.0.0"
+version: "8.0.1"
 base_url: "https://mthds.ai/errors"
 
 extension_prefixes:
@@ -250,8 +250,8 @@ codes:
       actor: {kind: change_input, detail: "Upload each listed blob, or send its file inline if this runner keeps no blob store, then send the request again."}
       other: {kind: change_input, detail: "Pass this to the caller, who must upload each listed blob, or send its file inline if this runner keeps no blob store."}
     params:
-      missing_blobs: {type: list, items: {type: sha256}, description: "Each hash of the request that the runner does not hold, in lowercase hexadecimal."}
-    meaning: "A hash entry of the request's `files` names bytes this runner does not hold, or the runner keeps no blob store at all, so it cannot assemble the method's tree. This is the protocol's own refusal of hash entries."
+      missing_blobs: {type: list, items: {type: sha256}, description: "Each hash the request's `files` names that the runner does not hold, in lowercase hexadecimal."}
+    meaning: "A hash entry of the request's `files` names bytes this runner does not hold, or the runner keeps no blob store at all, so it cannot assemble the method's tree. This is the protocol's own refusal of hash entries, and the last check of a map: a runner answers it only for a `files` map that breaks no other rule of the method tree's file entries, and never checks the hash entry of a key it refuses."
     what_to_do: "Read `params.missing_blobs`. To a runner whose `GET /version` declares `blob_store: true`, upload each listed blob as `POST /blobs/missing` says; to any other runner, send each listed file inline. Then send the request again."
     see:
       - {title: "Method files", href: "spec/protocol.md#method-files"}
@@ -387,7 +387,7 @@ codes:
     what_to_do: "Check the input's name against the pipe's declared inputs, for a misspelling in particular, and send only those."
 
   - code: input.wrong_concept
-    title: "An input is not the declared concept"
+    title: "An input is not of the kind the method declares"
     domain: input
     retry: "no"
     raised_as: problem
@@ -406,7 +406,7 @@ codes:
       - {title: "Stuffs on the wire", href: "spec/cli-io-contract.md#stuffs-on-the-wire"}
 
   - code: input.wrong_multiplicity
-    title: "An input has the wrong number of items"
+    title: "An input has the wrong form or the wrong number of items"
     domain: input
     retry: "no"
     raised_as: problem
@@ -414,7 +414,7 @@ codes:
     detail: "The input '{input}' gives {provided_count} item or items, which does not fit the multiplicity the method declares ({expected})."
     steps:
       actor: {kind: change_input, detail: "Give the input '{input}' with the multiplicity the method declares, then send the request again."}
-      other: {kind: change_input, detail: "Pass this to the caller, who must give the input '{input}' with the multiplicity the method declares."}
+      other: {kind: change_input, detail: "Pass this to the caller, who must give the input '{input}' as the method declares it: one item, a list, or a list of a set length."}
     params:
       input: {type: identifier, description: "The input at fault."}
       expected: {type: enum, values: [single, list, count], description: "What the method expects: one item, a list of any length, or a list of a fixed length."}
@@ -426,7 +426,7 @@ codes:
       - {title: "Multiplicity", href: "language/multiplicity.md"}
 
   - code: input.invalid
-    title: "An input does not fit its concept's structure"
+    title: "An input does not have the structure the method declares"
     domain: input
     retry: "no"
     raised_as: problem
@@ -1249,7 +1249,7 @@ codes:
   # --- pipe. ------------------------------------------------------------------------------
 
   - code: pipe.output_multiplicity
-    title: "A pipe's output does not have the declared multiplicity"
+    title: "A step produced a list instead of one result, or the reverse"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1257,7 +1257,7 @@ codes:
     detail: "Pipe '{pipe}' produced an output of the multiplicity '{produced}', but its output '{output}' is declared '{declared}'."
     steps:
       actor: {kind: change_method, detail: "Declare the output '{output}' as '{produced}', or make pipe '{pipe}' produce '{declared}'."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to make the output '{output}' of pipe '{pipe}' match its declared multiplicity."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to make the step '{pipe}' produce its output '{output}' as one item or as a list, as the method declares it."}
     params:
       pipe: {type: identifier, description: "The pipe at fault."}
       output: {type: identifier, description: "The output whose multiplicity differs."}
@@ -1270,7 +1270,7 @@ codes:
       - {title: "Errors", href: "spec/protocol.md#errors"}
 
   - code: pipe.output_invalid
-    title: "A pipe's output does not fit its concept"
+    title: "A step's result does not have the structure the method declares"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1278,7 +1278,7 @@ codes:
     detail: "Pipe '{pipe}' produced an output that does not fit the concept '{output_concept}', at the fields {fields}."
     steps:
       actor: {kind: change_method, detail: "Make pipe '{pipe}' produce an output that fits '{output_concept}', or loosen the concept, then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to make pipe '{pipe}' produce an output that fits its concept."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to make the step '{pipe}' produce a result with the structure the method declares."}
     params:
       pipe: {type: identifier, description: "The pipe at fault."}
       output_concept: {type: identifier, description: "The concept the output is declared as."}
@@ -1289,7 +1289,7 @@ codes:
       - {title: "Concepts", href: "language/concepts.md"}
 
   - code: pipe.function_raised
-    title: "The method's function raised"
+    title: "The method's function failed"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1297,7 +1297,7 @@ codes:
     detail: "The function '{function}' of pipe '{pipe}' raised an error."
     steps:
       actor: {kind: change_method, detail: "Fix the function '{function}' so that it does not raise on these inputs, then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to fix the function '{function}' of pipe '{pipe}'."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to fix the function '{function}' of the step '{pipe}'."}
     params:
       pipe: {type: identifier, description: "The PipeFunc whose function raised."}
       function: {type: identifier, description: "The function's import path."}
@@ -1326,7 +1326,7 @@ codes:
       - {title: "Operator: PipeFunc", href: "spec/mthds-format.md#operator-pipefunc"}
 
   - code: pipe.template_render_failed
-    title: "A template failed to render"
+    title: "A template in the method could not be filled in"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1334,7 +1334,7 @@ codes:
     detail: "A template of pipe '{pipe}' failed to render at '{variable}'."
     steps:
       actor: {kind: change_method, detail: "Fix the template of pipe '{pipe}' where it reads '{variable}', then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to fix the template of pipe '{pipe}'."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to fix the template of the step '{pipe}'."}
     params:
       pipe: {type: identifier, description: "The pipe whose template failed."}
       variable: {type: identifier, description: "The variable the template was reading when it failed."}
@@ -1344,7 +1344,7 @@ codes:
       - {title: "Inputs read through templates", href: "spec/mthds-format.md#inputs-read-through-templates"}
 
   - code: pipe.template_budget_exceeded
-    title: "A template exceeded its render budget"
+    title: "A template in the method tried to do more than it may"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1352,7 +1352,7 @@ codes:
     detail: "A template of pipe '{pipe}' passed its render budget in a {operation} operation (limit {limit})."
     steps:
       actor: {kind: change_method, detail: "Make the template of pipe '{pipe}' do less in one render, then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to make the template of pipe '{pipe}' do less in one render."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to make the template of the step '{pipe}' do less."}
     params:
       pipe: {type: identifier, description: "The pipe whose template passed the budget."}
       operation: {type: enum, values: [repeat, pad, join, loop, recursion, output], description: "The kind of operation that passed the budget."}
@@ -1369,7 +1369,7 @@ codes:
     detail: "The condition of pipe '{pipe}' rendered a value that no outcome maps."
     steps:
       actor: {kind: change_method, detail: "Map every value the condition of pipe '{pipe}' can render to an outcome, or give it a default outcome."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to map every value of the condition of pipe '{pipe}'."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to give the condition of the step '{pipe}' an outcome for every value it can take."}
     params:
       pipe: {type: identifier, description: "The PipeCondition at fault."}
     meaning: "A PipeCondition's expression rendered a value that none of its outcomes maps, and the pipe gives no default."
@@ -1396,7 +1396,7 @@ codes:
       - {title: "Controller: PipeCondition", href: "spec/mthds-format.md#controller-pipecondition"}
 
   - code: pipe.binding_failed
-    title: "A binding step could not bind its value"
+    title: "A step could not find a field in the value it reads"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1404,7 +1404,7 @@ codes:
     detail: "The binding '{binding}' of pipe '{pipe}' could not follow '{segment}' in this run's value."
     steps:
       actor: {kind: change_method, detail: "Correct the binding '{binding}' of pipe '{pipe}', or the structure it reads, then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to fix the binding '{binding}' of pipe '{pipe}'."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to fix how the step '{pipe}' reads '{binding}'."}
     params:
       pipe: {type: identifier, description: "The controller holding the binding step."}
       binding: {type: identifier, description: "The name the step binds."}
@@ -1415,7 +1415,7 @@ codes:
       - {title: "Binding steps", href: "spec/mthds-format.md#binding-steps"}
 
   - code: pipe.input_unresolved
-    title: "A pipe could not read a value it needs"
+    title: "A step could not read a value it needs"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1433,7 +1433,7 @@ codes:
       - {title: "Working Memory", href: "language/working-memory.md"}
 
   - code: pipe.forced_input_absent
-    title: "A forced input was absent"
+    title: "A value the method counts on was missing"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1441,7 +1441,7 @@ codes:
     detail: "Pipe '{pipe}' forces '{variable}' with '!', and it was absent in this run."
     steps:
       actor: {kind: change_method, detail: "Remove the '!' on '{variable}' and handle its absence, then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to handle the absence of '{variable}' in pipe '{pipe}'."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to handle a missing '{variable}' in the step '{pipe}'."}
     params:
       pipe: {type: identifier, description: "The pipe forcing the input."}
       variable: {type: identifier, description: "The forced input."}
@@ -1451,7 +1451,7 @@ codes:
       - {title: "Optionality", href: "language/optionality.md"}
 
   - code: pipe.prompt_empty
-    title: "A pipe's prompt is empty"
+    title: "A step's prompt came out empty"
     domain: input
     retry: "no"
     raised_as: problem
@@ -1459,7 +1459,7 @@ codes:
     detail: "The {part} of pipe '{pipe}' rendered empty from these inputs."
     steps:
       actor: {kind: change_input, detail: "Give the inputs that the prompt of pipe '{pipe}' is written from, then send the request again."}
-      other: {kind: change_input, detail: "Pass this to the caller, whose inputs leave the prompt of pipe '{pipe}' empty."}
+      other: {kind: change_input, detail: "Pass this to the caller, whose inputs leave the prompt of the step '{pipe}' empty."}
     params:
       pipe: {type: identifier, description: "The pipe whose prompt is empty."}
       part: {type: enum, values: [user_text, system_text, image_prompt], description: "Which part of the prompt rendered empty."}
@@ -1467,7 +1467,7 @@ codes:
     what_to_do: "Check that the inputs the prompt reads hold text, and send them again."
 
   - code: pipe.stack_overflow
-    title: "The run nested pipes deeper than the limit"
+    title: "The run nested its steps deeper than the limit"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1475,7 +1475,7 @@ codes:
     detail: "The run nested pipes deeper than the limit of {limit}."
     steps:
       actor: {kind: change_method, detail: "Find the pipes that call each other without end, and break the loop, then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to stop the method's pipes from nesting without end."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to stop the method's steps from calling each other without end."}
     params:
       limit: {type: integer, description: "The depth the run passed."}
     meaning: "The pipe stack reached the runtime's limit, usually through pipes that call each other in a loop."
@@ -1575,7 +1575,7 @@ codes:
     what_to_do: "Shorten the inputs, split a long document into parts, or send fewer images. The method's author can instead pick a model with a larger window."
 
   - code: model.output_truncated
-    title: "The answer was cut at the method's token cap"
+    title: "The model's answer was cut off at the method's length limit"
     domain: method
     retry: "no"
     raised_as: problem
@@ -1583,7 +1583,7 @@ codes:
     detail: "The model '{model}' stopped at the step's cap of {max_tokens} tokens, after {output_tokens} tokens."
     steps:
       actor: {kind: change_method, detail: "Raise the step's max_tokens above {max_tokens}, or ask for a shorter answer, then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to raise the step's token cap."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to raise the step's length limit."}
     params:
       model: {type: identifier, description: "The model."}
       max_tokens: {type: integer, description: "The cap the step sets."}
@@ -1594,7 +1594,7 @@ codes:
       - {title: "Model References", href: "language/model-references.md"}
 
   - code: model.output_schema_mismatch
-    title: "The model's structured output did not match its schema"
+    title: "The model's answer did not have the expected structure"
     domain: runtime
     retry: "yes"
     raised_as: problem
@@ -1986,7 +1986,7 @@ codes:
     detail: "Pipe '{pipe}' names a URL that points at a {target_class} target, which a security rule forbids (reason: {reason})."
     steps:
       actor: {kind: change_method, detail: "Make pipe '{pipe}' name a URL on the public internet, then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to change the URL pipe '{pipe}' names."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to change the URL the step '{pipe}' names."}
     params:
       pipe: {type: identifier, description: "The pipe naming the URL."}
       target_class: {type: enum, values: [loopback, private, link_local, metadata, scheme], description: "Where the URL points."}
@@ -2035,7 +2035,7 @@ codes:
     detail: "Pipe '{pipe}' names the path '{file}', which would open a file outside the method on the runtime's disk."
     steps:
       actor: {kind: change_method, detail: "Make pipe '{pipe}' name a file inside the method's tree, then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to change the path pipe '{pipe}' names."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to change the path the step '{pipe}' names."}
     params:
       pipe: {type: identifier, description: "The pipe naming the path."}
       file: {type: identifier, description: "The path."}
@@ -2045,7 +2045,7 @@ codes:
       - {title: "File references", href: "spec/method-tree.md#file-references"}
 
   - code: security.template_refused
-    title: "A template was refused by the template sandbox"
+    title: "A template in the method reached for something it may not use"
     domain: method
     retry: "no"
     raised_as: problem
@@ -2053,7 +2053,7 @@ codes:
     detail: "A template of pipe '{pipe}' reached for '{name}', which the template sandbox forbids."
     steps:
       actor: {kind: change_method, detail: "Remove '{name}' from the templates of pipe '{pipe}', then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to remove '{name}' from the templates of pipe '{pipe}'."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to remove '{name}' from the templates of the step '{pipe}'."}
     params:
       pipe: {type: identifier, description: "The pipe whose template was refused."}
       name: {type: identifier, description: "The name or the call the template reached for."}
@@ -2061,7 +2061,7 @@ codes:
     what_to_do: "Use only the pipe's inputs and the filters the template language offers in its templates."
 
   - code: security.schema_refused
-    title: "An output schema was refused"
+    title: "The method declares an output structure the runtime refuses"
     domain: method
     retry: "no"
     raised_as: problem
@@ -2069,7 +2069,7 @@ codes:
     detail: "The schema of the concept '{concept}' carries extensions or imports the runtime refuses to execute."
     steps:
       actor: {kind: change_method, detail: "Remove the code-generation extensions and imports from the concept '{concept}', then run the method again."}
-      other: {kind: contact_owner, detail: "Ask the method's owner to remove the extensions from the concept '{concept}'."}
+      other: {kind: contact_owner, detail: "Ask the method's owner to remove the code that the output structure '{concept}' carries."}
     params:
       concept: {type: identifier, description: "The concept whose schema was refused."}
     meaning: "An output concept's schema carries code-generation extensions or imports that the runtime refuses to execute."

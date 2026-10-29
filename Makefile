@@ -6,8 +6,10 @@ VIRTUAL_ENV := $(CURDIR)/.venv
 export PATH := $(VIRTUAL_ENV)/bin:$(PATH)
 PROJECT_NAME := $(shell grep '^name = ' pyproject.toml | sed -E 's/name = "(.*)"/\1/')
 
-# The "?" is used to make the variable optional, so that it can be overridden by the user.
-PYTHON_VERSION ?= 3.13
+# The interpreter is the one .python-version names, unless PYTHON_VERSION or UV_PYTHON asks for another.
+# Exporting it hands the same version to every uv command, so `uv sync` never rebuilds .venv on the pin.
+PYTHON_VERSION ?= $(or $(UV_PYTHON),$(shell cat .python-version))
+export UV_PYTHON := $(PYTHON_VERSION)
 VENV_PYTHON := $(VIRTUAL_ENV)/bin/python
 VENV_MKDOCS := $(VIRTUAL_ENV)/bin/mkdocs
 VENV_MIKE := $(VIRTUAL_ENV)/bin/mike
@@ -46,7 +48,6 @@ Allow: /latest/
 Allow: /sitemap.xml
 Allow: /llms.txt
 Allow: /llms-full.txt
-Disallow: /7.
 Disallow: /8.
 Disallow: /pre-release/
 Disallow: /404.html

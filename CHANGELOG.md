@@ -1,5 +1,16 @@
 # Changelog
 
+## [v8.0.1] - 2026-10-29
+
+**MTHDS standard 8.0.1 · MTHDS Protocol 2.0.1**
+
+### Changed
+
+- **A files map's collision and entry checks read only the keys it has not refused** (`spec/method-tree.md`, `spec/protocol.md`, `spec/openapi/mthds-protocol.openapi.yaml`, `spec/openapi/mthds-error-registry.yaml`, `implementers/validation-rules.md`): the File Entry section, the protocol's method files section, its OpenAPI document and the core registry's `request.blobs_missing` entry now say that the collision check reads only the keys that are tree paths the membership rule could admit, reading a key given twice once, and that the entry checks, an entry's form, its validity within that form and whether the receiver holds the bytes a hash entry names, read the entries of those keys alone, the bytes being checked last, so `request.blobs_missing` answers only a map that breaks no other rule. A key refused as not a tree path, or as a name the membership rule could never admit, therefore collides with nothing and never has its entry checked, so a map holding `inputs.json` beside `Inputs.json`, or holding `inputs.json` with a malformed entry or a hash entry the runner lacks, is refused naming `inputs.json` for its name alone, never as a collision, for its entry or with `request.blobs_missing`, and a sender never uploads blobs for a map that would be refused anyway, while which maps are accepted and which are refused is unchanged. This clarification moves the protocol to `2.0.1`.
+- **The site's development Python is pinned in `.python-version`** (`.python-version`, `make install`, the documentation workflows): the repository names the interpreter it builds the site on, `3.13`, in a `.python-version` at its root, which the Makefile and the documentation workflows read instead of each naming a version, so the next `make install` moves an environment built on another Python to the pin, and `PYTHON_VERSION=<version> make install` builds it on another one.
+- **Problem titles in plain words** (`spec/error-registry.md`, `spec/openapi/mthds-error-registry.yaml`, `spec/protocol.md`): the core registry now says who a title is written for, any reader of the code, someone following a run of a method they did not write included, and the titles and `other` steps of the codes a run can raise say what happened in plain words rather than in the language's terms, so `pipe.output_invalid` is titled "A step's result does not have the structure the method declares" where it read "A pipe's output does not fit its concept". The codes of the `method` family that describe a fault in the method as written keep naming the language's constructs, and no code, domain, retry verdict, step kind or parameter changes.
+- **Documentation versions served on mthds.ai**: this release stops serving `7.0.1`, so links into that version no longer resolve and should point at `/latest/`. The site serves `8.0.1`, which `/latest/` also serves, and `8.0.0`, and keeps both numbered directories out of search indexes, so that only `/latest/` is indexed.
+
 ## [v8.0.0] - 2026-10-18
 
 **MTHDS standard 8.0.0 · MTHDS Protocol 2.0.0**
