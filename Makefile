@@ -48,7 +48,6 @@ Allow: /latest/
 Allow: /sitemap.xml
 Allow: /llms.txt
 Allow: /llms-full.txt
-Disallow: /7.
 Disallow: /8.
 Disallow: /pre-release/
 Disallow: /404.html
