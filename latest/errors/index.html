@@ -3303,7 +3303,7 @@
 
 <h1 id="error-codes">Error Codes</h1>
 <p>Every code of the MTHDS core error registry has a page here, at the URL a problem's <code>type</code> names: <code>https://mthds.ai/errors/&lt;code&gt;</code>. Each page says what its code means, who must act and what to do, and gives the code's steps, parameters and templates. The <a href="../spec/error-registry/">Error Registry</a> page describes the registry itself, and the <a href="../spec/protocol/#errors">HTTP Runner Protocol</a> how a problem document carries a code.</p>
-<p>These pages are generated from the registry's data, which is published with every release of the standard as <a href="../spec/openapi/mthds-error-registry.json"><code>mthds-error-registry.json</code></a>. This is version <code>8.0.0</code> of the registry.</p>
+<p>These pages are generated from the registry's data, which is published with every release of the standard as <a href="../spec/openapi/mthds-error-registry.json"><code>mthds-error-registry.json</code></a>. This is version <code>8.0.1</code> of the registry.</p>
 <h2 id="extension-prefixes">Extension prefixes</h2>
 <p>A code that is not a core code starts with a registered prefix, and its page is published by the prefix's owner, under the base URL the prefix is registered with.</p>
 <table>
@@ -3529,21 +3529,21 @@
 </tr>
 <tr>
 <td><a href="input/wrong_concept/"><code>input.wrong_concept</code></a></td>
-<td>An input is not the declared concept</td>
+<td>An input is not of the kind the method declares</td>
 <td><code>input</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="input/wrong_multiplicity/"><code>input.wrong_multiplicity</code></a></td>
-<td>An input has the wrong number of items</td>
+<td>An input has the wrong form or the wrong number of items</td>
 <td><code>input</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="input/invalid/"><code>input.invalid</code></a></td>
-<td>An input does not fit its concept's structure</td>
+<td>An input does not have the structure the method declares</td>
 <td><code>input</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
@@ -3895,21 +3895,21 @@
 <tbody>
 <tr>
 <td><a href="pipe/output_multiplicity/"><code>pipe.output_multiplicity</code></a></td>
-<td>A pipe's output does not have the declared multiplicity</td>
+<td>A step produced a list instead of one result, or the reverse</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="pipe/output_invalid/"><code>pipe.output_invalid</code></a></td>
-<td>A pipe's output does not fit its concept</td>
+<td>A step's result does not have the structure the method declares</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="pipe/function_raised/"><code>pipe.function_raised</code></a></td>
-<td>The method's function raised</td>
+<td>The method's function failed</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
@@ -3923,14 +3923,14 @@
 </tr>
 <tr>
 <td><a href="pipe/template_render_failed/"><code>pipe.template_render_failed</code></a></td>
-<td>A template failed to render</td>
+<td>A template in the method could not be filled in</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="pipe/template_budget_exceeded/"><code>pipe.template_budget_exceeded</code></a></td>
-<td>A template exceeded its render budget</td>
+<td>A template in the method tried to do more than it may</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
@@ -3951,35 +3951,35 @@
 </tr>
 <tr>
 <td><a href="pipe/binding_failed/"><code>pipe.binding_failed</code></a></td>
-<td>A binding step could not bind its value</td>
+<td>A step could not find a field in the value it reads</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="pipe/input_unresolved/"><code>pipe.input_unresolved</code></a></td>
-<td>A pipe could not read a value it needs</td>
+<td>A step could not read a value it needs</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="pipe/forced_input_absent/"><code>pipe.forced_input_absent</code></a></td>
-<td>A forced input was absent</td>
+<td>A value the method counts on was missing</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="pipe/prompt_empty/"><code>pipe.prompt_empty</code></a></td>
-<td>A pipe's prompt is empty</td>
+<td>A step's prompt came out empty</td>
 <td><code>input</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="pipe/stack_overflow/"><code>pipe.stack_overflow</code></a></td>
-<td>The run nested pipes deeper than the limit</td>
+<td>The run nested its steps deeper than the limit</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
@@ -4036,14 +4036,14 @@
 </tr>
 <tr>
 <td><a href="model/output_truncated/"><code>model.output_truncated</code></a></td>
-<td>The answer was cut at the method's token cap</td>
+<td>The model's answer was cut off at the method's length limit</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="model/output_schema_mismatch/"><code>model.output_schema_mismatch</code></a></td>
-<td>The model's structured output did not match its schema</td>
+<td>The model's answer did not have the expected structure</td>
 <td><code>runtime</code></td>
 <td><code>yes</code></td>
 <td><code>502</code></td>
@@ -4277,14 +4277,14 @@
 </tr>
 <tr>
 <td><a href="security/template_refused/"><code>security.template_refused</code></a></td>
-<td>A template was refused by the template sandbox</td>
+<td>A template in the method reached for something it may not use</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>
 </tr>
 <tr>
 <td><a href="security/schema_refused/"><code>security.schema_refused</code></a></td>
-<td>An output schema was refused</td>
+<td>The method declares an output structure the runtime refuses</td>
 <td><code>method</code></td>
 <td><code>no</code></td>
 <td><code>422</code></td>

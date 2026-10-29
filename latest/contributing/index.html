@@ -3121,6 +3121,7 @@
 <li>Run <code>make docs</code> to serve the site locally at <code>http://127.0.0.1:8000</code></li>
 <li>Edit files in the <code>docs/</code> directory — changes will auto-reload in your browser</li>
 </ol>
+<p>The site is built on the Python version that <code>.python-version</code> names at the repository root, and the documentation workflows read the same file. <code>make install</code> builds <code>.venv</code> on that version, and the next <code>make install</code>, which <code>make docs-check</code> also runs, moves an environment built on another Python to it. To try another version, run <code>PYTHON_VERSION=3.12 make install</code>; the next plain <code>make install</code> returns the environment to the pinned version.</p>
 <h2 id="contribution-process">Contribution process</h2>
 <ol>
 <li>Fork the repository</li>

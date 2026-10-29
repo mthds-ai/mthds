@@ -5445,7 +5445,8 @@ https://api.example.com/v1/execute
 <li>two paths <a href="../method-tree/#tree-paths">collide</a>, or one collides with a directory of another, under the Unicode full case folding the method tree defines, such as <code>readme.md</code> beside <code>README.md</code>, <code>STRASSE.txt</code> beside <code>straße.txt</code>, or <code>Templates</code> beside <code>templates/letter.html</code>;</li>
 <li>an entry is malformed, such as Base64 whose pad bits are not zero, or a <code>size</code> written <code>13.0</code>.</li>
 </ul>
-<p>A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a <code>422</code> problem coded <code>request.blobs_missing</code>, whose <code>params.missing_blobs</code> lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer which files to supply:</p>
+<p>As the method tree's <a href="../method-tree/#the-file-entry">file entry</a> rules state, the collision check reads only the keys that are tree paths the membership rule could admit, and reads a key given twice once, so a map holding <code>inputs.json</code> beside <code>Inputs.json</code> is refused naming <code>inputs.json</code> alone, never because the two collide. The <a href="../method-tree/#the-file-entry">entry checks</a>, an entry's form, its validity within that form and whether the runner holds the bytes a hash entry names, read the entries of those keys alone, so a map holding <code>inputs.json</code> with a malformed entry, or with a hash entry the runner lacks, is refused for its name, never for its entry. The check of a hash entry's bytes comes last, so a runner answers <code>request.blobs_missing</code> only for a map that breaks none of the rules above, and a sender never uploads blobs for a map that would be refused anyway.</p>
+<p>A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. For a map that breaks none of the rules above, a runner without a blob store, or one that does not hold every hash the map names, answers with a <code>422</code> problem coded <code>request.blobs_missing</code>, whose <code>params.missing_blobs</code> lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer which files to supply:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://mthds.ai/errors/request.blobs_missing"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The runner does not hold some files sent by hash"</span><span class="p">,</span>
@@ -5542,7 +5543,7 @@ https://api.example.com/v1/execute
 <span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"failed"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"error"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://mthds.ai/errors/pipe.output_multiplicity"</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"A pipe's output does not have the declared multiplicity"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"A step produced a list instead of one result, or the reverse"</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item."</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pipe.output_multiplicity"</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">"domain"</span><span class="p">:</span><span class="w"> </span><span class="s2">"method"</span><span class="p">,</span>
@@ -5734,7 +5735,7 @@ https://api.example.com/v1/execute
 <p><code>GET /models</code> returns the runner's model deck — the models it can route to (<code>{name, type}</code> entries), optionally filtered by category. Implementations may add their own routing metadata (aliases, fallback chains, anything else) as additional properties.</p>
 <p><code>GET /version</code> is always public (no auth). It returns <code>protocol_version</code> (required), an optional <code>runner_version</code>, an optional <code>blob_store</code> flag, which is <code>true</code> for a runner that keeps a blob store and serves the <a href="#sending-files-by-hash">blob routes</a>, and <code>false</code> or absent for one that does not, and an optional <code>run_store</code> flag, which is <code>true</code> for a runner that keeps a run store, serves the <a href="#reading-a-run-and-idempotency-keys">run reads</a> and honours idempotency keys, and <code>false</code> or absent for one that does not — implementations may add their own identification on top:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">"protocol_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0.0"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"protocol_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0.1"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"runner_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.3.0"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"blob_store"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"run_store"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
@@ -5791,7 +5792,7 @@ https://api.example.com/v1/execute
 <p>Every error a runner answers is a problem document of <a href="https://www.rfc-editor.org/rfc/rfc9457" target="_blank" rel="noopener">RFC 9457</a>, served as <code>application/problem+json</code>, carrying the MTHDS core members beside the RFC's own. A run that failed, as the caller of <code>/execute</code> reads it:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"https://mthds.ai/errors/pipe.output_multiplicity"</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"A pipe's output does not have the declared multiplicity"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"A step produced a list instead of one result, or the reverse"</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="mi">422</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item."</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pipe.output_multiplicity"</span><span class="p">,</span>
@@ -5915,7 +5916,7 @@ https://api.example.com/v1/execute
 <tr>
 <td><code>input</code></td>
 <td>The caller, by changing the request or its inputs</td>
-<td>A required input is missing; an input is not the declared concept; a request body is malformed; the runner does not hold a file sent by hash.</td>
+<td>A required input is missing; an input is not of the kind the method declares; a request body is malformed; the runner does not hold a file sent by hash.</td>
 </tr>
 <tr>
 <td><code>method</code></td>
@@ -6933,7 +6934,7 @@ Most likely, it is not desirable to edit this file by hand!
 <span class="w">        </span><span class="nt">"blob_store"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boolean"</span><span class="p">,</span>
 <span class="w">            </span><span class="nt">"default"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers any hash entry with a 422 coded request.blobs_missing, listing the hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.\n"</span>
+<span class="w">            </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers a files map that breaks no other rule but holds hash entries with a 422 coded request.blobs_missing, listing their hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.\n"</span>
 <span class="w">        </span><span class="p">},</span>
 <span class="w">        </span><span class="nt">"run_store"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boolean"</span><span class="p">,</span>
@@ -8001,7 +8002,7 @@ Most likely, it is not desirable to edit this file by hand!
         <tr>
             <td><code>missing_blobs</code></td>
             <td>Array&lt;<span class="string-type">string</span>&gt;</td>
-            <td>Carried by the protocol's own refusal of hash entries, request.blobs_missing: every hash of the request the runner does not hold, in lowercase hexadecimal.
+            <td>Carried by the protocol's own refusal of hash entries, request.blobs_missing: every hash the request's files map names that the runner does not hold, in lowercase hexadecimal, for a map that breaks no other rule.
 </td>
         </tr>
     </tbody>
@@ -8388,7 +8389,7 @@ Most likely, it is not desirable to edit this file by hand!
         <tr>
             <td><code>blob_store</code></td>
             <td><span class="boolean-type">boolean</span></td>
-            <td>True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers any hash entry with a 422 coded request.blobs_missing, listing the hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.
+            <td>True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers a files map that breaks no other rule but holds hash entries with a 422 coded request.blobs_missing, listing their hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.
 </td>
         </tr>
         <tr>
@@ -8439,7 +8440,7 @@ Most likely, it is not desirable to edit this file by hand!
 </div>
 </div>
 <h3 id="validationproblem">ValidationProblem</h3>
-<p>A 422 problem document. On /execute and /start a method that does not validate also lands here, one item per fault in errors; on /validate an invalid method is a 200 verdict, so there a 422 is about the request alone. A request whose files map is not a tree is a 422 naming the offending path, and a request naming a hash entry the runner does not hold, or any hash entry when it keeps no blob store, is a 422 coded request.blobs_missing whose params.missing_blobs lists each such hash. Like every problem response, it always carries status.</p>
+<p>A 422 problem document. On /execute and /start a method that does not validate also lands here, one item per fault in errors; on /validate an invalid method is a 200 verdict, so there a 422 is about the request alone. A request whose files map is not a tree is a 422 naming the offending path, and a request whose files map breaks no other rule but names a hash entry the runner does not hold, or any hash entry when it keeps no blob store, is a 422 coded request.blobs_missing whose params.missing_blobs lists each such hash. Like every problem response, it always carries status.</p>
 <p class="message-separator"></p>
 
 <div class="tabbed-set tabbed-alternate" data-tabs="27:1"><input checked="checked" id="__tabbed_27_1" name="__tabbed_27" type="radio"><div class="tabbed-labels"><label for="__tabbed_27_1">application/problem+json</label></div>

@@ -3052,7 +3052,7 @@
 </tbody>
 </table>
 <h2 id="what-it-means">What it means</h2>
-<p>A hash entry of the request's <code>files</code> names bytes this runner does not hold, or the runner keeps no blob store at all, so it cannot assemble the method's tree. This is the protocol's own refusal of hash entries.</p>
+<p>A hash entry of the request's <code>files</code> names bytes this runner does not hold, or the runner keeps no blob store at all, so it cannot assemble the method's tree. This is the protocol's own refusal of hash entries, and the last check of a map: a runner answers it only for a <code>files</code> map that breaks no other rule of the method tree's file entries, and never checks the hash entry of a key it refuses.</p>
 <h2 id="what-to-do">What to do</h2>
 <p>Read <code>params.missing_blobs</code>. To a runner whose <code>GET /version</code> declares <code>blob_store: true</code>, upload each listed blob as <code>POST /blobs/missing</code> says; to any other runner, send each listed file inline. Then send the request again.</p>
 <h2 id="next-steps">Next steps</h2>
@@ -3097,7 +3097,7 @@
 <tr>
 <td><code>missing_blobs</code></td>
 <td>list of <code>sha256</code></td>
-<td>Each hash of the request that the runner does not hold, in lowercase hexadecimal.</td>
+<td>Each hash the request's <code>files</code> names that the runner does not hold, in lowercase hexadecimal.</td>
 </tr>
 </tbody>
 </table>

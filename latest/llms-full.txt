@@ -2903,7 +2903,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=8.0.0"
+mthds_version = ">=8.0.1"
 main_pipe     = "analyze_nda"
 
 [exports.legal]
@@ -2931,7 +2931,7 @@ The `[package]` section defines the package's identity:
 | `description` | Yes | Human-readable summary of the package's purpose. Must not be empty. |
 | `authors` | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | No | [SPDX license identifier](https://spdx.org/licenses/) (e.g., `"MIT"`, `"Apache-2.0"`). |
-| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `8.0.0`. |
+| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `8.0.1`. |
 | `main_pipe` | No | The package's entry-point pipe. Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe) below. |
 | `exclude` | No | Patterns, in `.gitignore` syntax, naming files to keep out of the package's method tree. See [Exclude](#exclude) below. |
 
@@ -4076,8 +4076,8 @@ MTHDS carries **two version numbers**, and they move independently:
 
 | Number | Governs | Current |
 |---|---|---|
-| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff, the core error registry | `8.0.0` |
-| **Protocol version** | The HTTP runner contract — its routes, their request and response shapes, and the problem document every error is | `2.0.0` |
+| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff, the core error registry | `8.0.1` |
+| **Protocol version** | The HTTP runner contract — its routes, their request and response shapes, and the problem document every error is | `2.0.1` |
 
 Both are [Semantic Versioning 2.0.0](https://semver.org/) numbers. Everything else that carries a version — a package's own `version`, a runner's `runner_version`, an implementation's release number — belongs to that package, runner, or implementation and is governed by whoever publishes it.
 
@@ -5907,6 +5907,10 @@ A map of entries is refused, naming the offending path, when one of its keys:
 - is given twice in the document, as written or once its JSON escapes are decoded, which a receiver detects in the text it parses rather than keeping one of the values, or holds an entry object that gives one of its own keys twice, which is refused in the same way;
 - [collides](#tree-paths) with another key, or with a directory of another key, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`.
 
+The collision check reads only the keys that are tree paths the membership rule could admit, and reads a key given twice once, so a repeated key that collides with another breaks the second rule and the third. A key refused under the first rule, as not a tree path or as a name the membership rule could never admit, collides with nothing, just as a name the membership rule excludes from a tree listed from a directory is never checked against the [tree path rules](#tree-paths). So a map holding `inputs.json` beside `Inputs.json` is refused naming `inputs.json` alone, since `Inputs.json` is a member like any other, and never because the two collide; and a map holding `café.txt` beside the same name in decomposed form is refused naming the decomposed key alone, which is not a tree path.
+
+The **entry checks** are the checks an entry's value must pass: that it is a string or an object holding exactly the members of one of the two object forms; that it is valid within its form, a string UTF-8 can encode, Base64 that is padded, without line breaks and canonical, a `sha256` in lowercase hexadecimal and a `size` that is a JSON integer written without a fraction or an exponent; and, for a hash entry, that the receiver holds its bytes at the stated size. The entry checks read only the entries of the keys that are tree paths the membership rule could admit, as the collision check does, since a key refused under the first rule names no file a tree could hold. So a map holding `inputs.json` with the entry `{ "base64": "e30" }`, which is not padded, is refused naming `inputs.json` as a name the membership rule could never admit, and never because its entry is malformed; and a map holding `templates\card.html` as a hash entry whose bytes the receiver does not hold is refused naming that key, which is not a tree path, and never the hash. A key that collides is a tree path the membership rule could admit, so its entry is checked like any other, and a map whose colliding key also carries a malformed entry is refused on both counts. The check that the receiver holds a hash entry's bytes comes last: a receiver refuses a map for the hashes it lacks only when the map breaks no other rule of this section, so a sender never uploads blobs for a map that would be refused anyway.
+
 A map with no key is refused: a tree holds at least one file.
 
 The same map is the method source of a request under the [HTTP Runner Protocol](./protocol.md#method-files), where a runner that keeps a blob store also lets a sender upload once the files it lacks and send the rest by hash. A map has no order, so no file of it is "the first": a request that names no pipe starts at the method's `main_pipe`, as the protocol states.
@@ -6498,7 +6502,7 @@ MAJOR.MINOR.PATCH[-pre-release][+build-metadata]
 
 The `mthds_version` field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see [Version Constraint Syntax](#version-constraint-syntax)).
 
-The current MTHDS standard version is `8.0.0`. See [Versioning](./versioning.md) for what moves it.
+The current MTHDS standard version is `8.0.1`. See [Versioning](./versioning.md) for what moves it.
 
 ### Main Pipe
 
@@ -6718,7 +6722,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=8.0.0"
+mthds_version = ">=8.0.1"
 main_pipe     = "analyze_nda"
 exclude       = ["drafts/"]
 
@@ -8354,7 +8358,9 @@ The map must form a tree. A runner refuses with a `422` naming the offending pat
 - two paths [collide](./method-tree.md#tree-paths), or one collides with a directory of another, under the Unicode full case folding the method tree defines, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`;
 - an entry is malformed, such as Base64 whose pad bits are not zero, or a `size` written `13.0`.
 
-A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem coded `request.blobs_missing`, whose `params.missing_blobs` lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer which files to supply:
+As the method tree's [file entry](./method-tree.md#the-file-entry) rules state, the collision check reads only the keys that are tree paths the membership rule could admit, and reads a key given twice once, so a map holding `inputs.json` beside `Inputs.json` is refused naming `inputs.json` alone, never because the two collide. The [entry checks](./method-tree.md#the-file-entry), an entry's form, its validity within that form and whether the runner holds the bytes a hash entry names, read the entries of those keys alone, so a map holding `inputs.json` with a malformed entry, or with a hash entry the runner lacks, is refused for its name, never for its entry. The check of a hash entry's bytes comes last, so a runner answers `request.blobs_missing` only for a map that breaks none of the rules above, and a sender never uploads blobs for a map that would be refused anyway.
+
+A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. For a map that breaks none of the rules above, a runner without a blob store, or one that does not hold every hash the map names, answers with a `422` problem coded `request.blobs_missing`, whose `params.missing_blobs` lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer which files to supply:
 
 ```json
 {
@@ -8494,7 +8500,7 @@ The status read answers `200` with the run's `pipeline_run_id`, its `status`, an
   "status": "failed",
   "error": {
     "type": "https://mthds.ai/errors/pipe.output_multiplicity",
-    "title": "A pipe's output does not have the declared multiplicity",
+    "title": "A step produced a list instead of one result, or the reverse",
     "detail": "Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item.",
     "code": "pipe.output_multiplicity",
     "domain": "method",
@@ -8602,7 +8608,7 @@ Every code in the table below is a core code that the run reads and idempotency 
 
 ```json
 {
-  "protocol_version": "2.0.0",
+  "protocol_version": "2.0.1",
   "runner_version": "2.3.0",
   "blob_store": true,
   "run_store": true
@@ -8641,7 +8647,7 @@ Every error a runner answers is a problem document of [RFC 9457](https://www.rfc
 ```json
 {
   "type": "https://mthds.ai/errors/pipe.output_multiplicity",
-  "title": "A pipe's output does not have the declared multiplicity",
+  "title": "A step produced a list instead of one result, or the reverse",
   "status": 422,
   "detail": "Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item.",
   "code": "pipe.output_multiplicity",
@@ -8703,7 +8709,7 @@ The domain answers the first question a reader has: can I fix this myself, and i
 
 | Domain | Who acts | Examples |
 |---|---|---|
-| `input` | The caller, by changing the request or its inputs | A required input is missing; an input is not the declared concept; a request body is malformed; the runner does not hold a file sent by hash. |
+| `input` | The caller, by changing the request or its inputs | A required input is missing; an input is not of the kind the method declares; a request body is malformed; the runner does not hold a file sent by hash. |
 | `method` | The method's author, by changing the method | The method does not validate; a pipe's output has the wrong multiplicity at run time; the method names a model that exists nowhere. |
 | `account` | The account's owner | A refused credential; a missing permission; an exhausted quota. |
 | `operator` | Whoever runs the runtime | The method names a model that exists, but this runner serves no backend for it; a misconfigured server. |
@@ -9600,7 +9606,7 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
                     "blob_store": {
                         "type": "boolean",
                         "default": false,
-                        "description": "True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers any hash entry with a 422 coded request.blobs_missing, listing the hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.\n"
+                        "description": "True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers a files map that breaks no other rule but holds hash entries with a 422 coded request.blobs_missing, listing their hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.\n"
                     },
                     "run_store": {
                         "type": "boolean",
@@ -10739,7 +10745,7 @@ A completed run's output, as /execute answers it.
         <tr>
             <td><code>missing_blobs</code></td>
             <td>Array&lt;<span class="string-type">string</span>&gt;</td>
-            <td>Carried by the protocol's own refusal of hash entries, request.blobs_missing: every hash of the request the runner does not hold, in lowercase hexadecimal.
+            <td>Carried by the protocol's own refusal of hash entries, request.blobs_missing: every hash the request's files map names that the runner does not hold, in lowercase hexadecimal, for a map that breaks no other rule.
 </td>
         </tr>
     </tbody>
@@ -11183,7 +11189,7 @@ A completed run's output, as /execute answers it.
         <tr>
             <td><code>blob_store</code></td>
             <td><span class="boolean-type">boolean</span></td>
-            <td>True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers any hash entry with a 422 coded request.blobs_missing, listing the hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.
+            <td>True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers a files map that breaks no other rule but holds hash entries with a 422 coded request.blobs_missing, listing their hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.
 </td>
         </tr>
         <tr>
@@ -11245,7 +11251,7 @@ An RFC 9457 problem document carrying the MTHDS core members. As the body of an 
 
 
 ### ValidationProblem
-A 422 problem document. On /execute and /start a method that does not validate also lands here, one item per fault in errors; on /validate an invalid method is a 200 verdict, so there a 422 is about the request alone. A request whose files map is not a tree is a 422 naming the offending path, and a request naming a hash entry the runner does not hold, or any hash entry when it keeps no blob store, is a 422 coded request.blobs_missing whose params.missing_blobs lists each such hash. Like every problem response, it always carries status.
+A 422 problem document. On /execute and /start a method that does not validate also lands here, one item per fault in errors; on /validate an invalid method is a 200 verdict, so there a 422 is about the request alone. A request whose files map is not a tree is a 422 naming the offending path, and a request whose files map breaks no other rule but names a hash entry the runner does not hold, or any hash entry when it keeps no blob store, is a 422 coded request.blobs_missing whose params.missing_blobs lists each such hash. Like every problem response, it always carries status.
 
 
 <p class="message-separator"></p>
@@ -11510,7 +11516,7 @@ Every entry declares every member below except `status`, which only some entries
 | Member | Meaning |
 |---|---|
 | `code` | The code, unique in the registry. |
-| `title` | The code's short title, the same for every occurrence of the code. |
+| `title` | The code's short title, the same for every occurrence of the code, and written for [any reader](#who-a-title-is-written-for). |
 | `domain` | [Who must act](protocol.md#domain-who-must-act): one of `input`, `method`, `account`, `operator` and `runtime`. |
 | `retry` | Whether [repeating the operation](protocol.md#retry) can succeed: one of `no`, `yes` and `outcome_unknown`. |
 | `raised_as` | How the code reaches a reader, described [below](#how-a-code-reaches-a-reader). |
@@ -11525,6 +11531,10 @@ Every entry declares every member below except `status`, which only some entries
 The closed lists of `domain`, `retry` and the step kinds are those of the protocol's OpenAPI document, and they change only with it.
 
 A problem carries the step aimed at whoever reads it. A runtime that knows its reader is the domain's actor, such as the method's author validating their own method, sends the `actor` step; one that does not, such as a runner serving a caller who runs someone else's method, sends the `other` step. The catch-all code, `runtime.unexpected`, which names a fault no other code describes, has the verdict `no` and the step `report` for both readers.
+
+### Who a Title Is Written For
+
+A title is the same for every reader of a code, so it is written for any of them. A problem a run fails with reaches whoever follows the run, who may be running a method they did not write, so the title of a code a run can raise says what happened in plain words, such as "a step" rather than "a pipe" and "the structure the method declares" rather than "its concept", and leaves the language's own terms to the `detail`, the `actor` step and the code's page. The `other` step is written for that same reader in the same words, and names a pipe as "the step" it is. The codes of the `method` family are the exception: most of them describe a fault in the method as written, which only its author can correct, so their titles and steps name the language's constructs, such as a pipe or a concept, for the author to find. Those about reaching a method rather than about what it says, such as `method.not_found`, name no construct and are written in plain words like the rest.
 
 ### How a Code Reaches a Reader
 
@@ -11597,7 +11607,7 @@ The core registry is part of the standard, and its `version` is the standard ver
 
 Every code of the MTHDS core error registry has a page here, at the URL a problem's `type` names: `https://mthds.ai/errors/<code>`. Each page says what its code means, who must act and what to do, and gives the code's steps, parameters and templates. The [Error Registry](../spec/error-registry.md) page describes the registry itself, and the [HTTP Runner Protocol](../spec/protocol.md#errors) how a problem document carries a code.
 
-These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `8.0.0` of the registry.
+These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `8.0.1` of the registry.
 
 ## Extension prefixes
 
@@ -11655,9 +11665,9 @@ A run's inputs.
 |---|---|---|---|---|
 | [`input.missing`](input/missing.md) | A required input is missing | `input` | `no` | `422` |
 | [`input.unexpected`](input/unexpected.md) | An input the method does not declare | `input` | `no` | `422` |
-| [`input.wrong_concept`](input/wrong_concept.md) | An input is not the declared concept | `input` | `no` | `422` |
-| [`input.wrong_multiplicity`](input/wrong_multiplicity.md) | An input has the wrong number of items | `input` | `no` | `422` |
-| [`input.invalid`](input/invalid.md) | An input does not fit its concept's structure | `input` | `no` | `422` |
+| [`input.wrong_concept`](input/wrong_concept.md) | An input is not of the kind the method declares | `input` | `no` | `422` |
+| [`input.wrong_multiplicity`](input/wrong_multiplicity.md) | An input has the wrong form or the wrong number of items | `input` | `no` | `422` |
+| [`input.invalid`](input/invalid.md) | An input does not have the structure the method declares | `input` | `no` | `422` |
 | [`input.file_unreadable`](input/file_unreadable.md) | An input file cannot be read | `input` | `no` | `422` |
 | [`input.file_type_unsupported`](input/file_type_unsupported.md) | An input file's type is not supported here | `input` | `no` | `422` |
 | [`input.too_large`](input/too_large.md) | An input exceeds a size limit | `input` | `no` | `422` |
@@ -11717,19 +11727,19 @@ A pipe failing at run time because of what the method does.
 
 | Code | Title | Domain | Retry | Status |
 |---|---|---|---|---|
-| [`pipe.output_multiplicity`](pipe/output_multiplicity.md) | A pipe's output does not have the declared multiplicity | `method` | `no` | `422` |
-| [`pipe.output_invalid`](pipe/output_invalid.md) | A pipe's output does not fit its concept | `method` | `no` | `422` |
-| [`pipe.function_raised`](pipe/function_raised.md) | The method's function raised | `method` | `no` | `422` |
+| [`pipe.output_multiplicity`](pipe/output_multiplicity.md) | A step produced a list instead of one result, or the reverse | `method` | `no` | `422` |
+| [`pipe.output_invalid`](pipe/output_invalid.md) | A step's result does not have the structure the method declares | `method` | `no` | `422` |
+| [`pipe.function_raised`](pipe/function_raised.md) | The method's function failed | `method` | `no` | `422` |
 | [`pipe.function_timed_out`](pipe/function_timed_out.md) | The method's function ran past its time limit | `method` | `no` | `422` |
-| [`pipe.template_render_failed`](pipe/template_render_failed.md) | A template failed to render | `method` | `no` | `422` |
-| [`pipe.template_budget_exceeded`](pipe/template_budget_exceeded.md) | A template exceeded its render budget | `method` | `no` | `422` |
+| [`pipe.template_render_failed`](pipe/template_render_failed.md) | A template in the method could not be filled in | `method` | `no` | `422` |
+| [`pipe.template_budget_exceeded`](pipe/template_budget_exceeded.md) | A template in the method tried to do more than it may | `method` | `no` | `422` |
 | [`pipe.condition_unmatched`](pipe/condition_unmatched.md) | A condition matched no outcome | `method` | `no` | `422` |
 | [`pipe.condition_refused`](pipe/condition_refused.md) | The method refused these inputs | `input` | `no` | `422` |
-| [`pipe.binding_failed`](pipe/binding_failed.md) | A binding step could not bind its value | `method` | `no` | `422` |
-| [`pipe.input_unresolved`](pipe/input_unresolved.md) | A pipe could not read a value it needs | `method` | `no` | `422` |
-| [`pipe.forced_input_absent`](pipe/forced_input_absent.md) | A forced input was absent | `method` | `no` | `422` |
-| [`pipe.prompt_empty`](pipe/prompt_empty.md) | A pipe's prompt is empty | `input` | `no` | `422` |
-| [`pipe.stack_overflow`](pipe/stack_overflow.md) | The run nested pipes deeper than the limit | `method` | `no` | `422` |
+| [`pipe.binding_failed`](pipe/binding_failed.md) | A step could not find a field in the value it reads | `method` | `no` | `422` |
+| [`pipe.input_unresolved`](pipe/input_unresolved.md) | A step could not read a value it needs | `method` | `no` | `422` |
+| [`pipe.forced_input_absent`](pipe/forced_input_absent.md) | A value the method counts on was missing | `method` | `no` | `422` |
+| [`pipe.prompt_empty`](pipe/prompt_empty.md) | A step's prompt came out empty | `input` | `no` | `422` |
+| [`pipe.stack_overflow`](pipe/stack_overflow.md) | The run nested its steps deeper than the limit | `method` | `no` | `422` |
 
 ## model
 
@@ -11742,8 +11752,8 @@ The model a step names.
 | [`model.unspecified`](model/unspecified.md) | No model is named for this step | `method` | `no` | `422` |
 | [`model.capability_unsupported`](model/capability_unsupported.md) | The model cannot do what the step asks | `method` | `no` | `422` |
 | [`model.context_exceeded`](model/context_exceeded.md) | The inputs exceed what the model can read | `input` | `no` | `422` |
-| [`model.output_truncated`](model/output_truncated.md) | The answer was cut at the method's token cap | `method` | `no` | `422` |
-| [`model.output_schema_mismatch`](model/output_schema_mismatch.md) | The model's structured output did not match its schema | `runtime` | `yes` | `502` |
+| [`model.output_truncated`](model/output_truncated.md) | The model's answer was cut off at the method's length limit | `method` | `no` | `422` |
+| [`model.output_schema_mismatch`](model/output_schema_mismatch.md) | The model's answer did not have the expected structure | `runtime` | `yes` | `502` |
 | [`model.content_refused`](model/content_refused.md) | The provider refused the content | `input` | `no` | `422` |
 | [`model.no_result`](model/no_result.md) | The model found nothing for this request | `input` | `no` | `422` |
 
@@ -11791,8 +11801,8 @@ Refusals made for safety. An implementation may also record each one as a securi
 | [`security.provider_url_refused`](security/provider_url_refused.md) | A URL a provider returned was refused | `runtime` | `no` | `502` |
 | [`security.input_path_refused`](security/input_path_refused.md) | A path the caller supplied was refused | `input` | `no` | `422` |
 | [`security.method_path_refused`](security/method_path_refused.md) | A path the method names was refused | `method` | `no` | `422` |
-| [`security.template_refused`](security/template_refused.md) | A template was refused by the template sandbox | `method` | `no` | `422` |
-| [`security.schema_refused`](security/schema_refused.md) | An output schema was refused | `method` | `no` | `422` |
+| [`security.template_refused`](security/template_refused.md) | A template in the method reached for something it may not use | `method` | `no` | `422` |
+| [`security.schema_refused`](security/schema_refused.md) | The method declares an output structure the runtime refuses | `method` | `no` | `422` |
 | [`security.integrity_mismatch`](security/integrity_mismatch.md) | A dependency's content differs from its lock | `method` | `no` | `422` |
 
 ## runtime
@@ -12487,7 +12497,7 @@ version       = "0.1.0"
 description   = "Text summarization and document classification methods"
 authors       = ["Your Name <you@example.com>"]
 license       = "MIT"
-mthds_version = ">=8.0.0"
+mthds_version = ">=8.0.1"
 ```
 
 ## Step 5: Validate
@@ -12910,7 +12920,7 @@ Before any file is parsed, establish the [method tree](../spec/method-tree.md) t
 - Find the root from what the caller handed over: the nearest directory at or above it holding `METHODS.toml`, else the directory handed over, else, for a `.mthds` file named alone, a tree of that one file.
 - List the tree under the [membership rule](../spec/method-tree.md#the-membership-rule), with every pattern normalized to NFC, pruning excluded directories first, among them a nested repository or a nested package, meaning a directory below the root holding an entry named `.git` of any kind, whatever it holds, or its own `METHODS.toml`, and leaving out a run's inputs file, a regular file or a symbolic link named `inputs.json` or `inputs.toml` at any depth, while a directory of either name excludes nothing. Refuse a symbolic link or any other entry that is neither a regular file nor a directory, naming its path, unless the rule excludes it, and refuse in the same way a `.gitignore` file the listing reads whose bytes are not UTF-8, once a leading byte order mark is skipped. A package read from a cache is not listed again: its files are its tree as written.
 - Normalize every name to NFC, and refuse a path that breaks the [tree path](../spec/method-tree.md#tree-paths) rules, two names equal after normalization, two paths that collide, or one colliding with a directory of another, under the Unicode full case folding the tree path rules define, and a path past the length bound, naming each path. A name the membership rule excludes is never checked, so an invalid one is excluded silently.
-- When the tree arrives as a map of [file entries](../spec/method-tree.md#the-file-entry) rather than from a directory, refuse a key that is not a tree path, such as one not already in NFC, or that the membership rule could not admit, such as one whose last segment is `inputs.json` or `inputs.toml`; a key given twice in the map or inside an entry object; two keys that collide, or one colliding with a directory of another; a malformed entry, such as non-canonical Base64 or a `size` written with a fraction or an exponent; and a hash entry whose bytes the receiver does not hold.
+- When the tree arrives as a map of [file entries](../spec/method-tree.md#the-file-entry) rather than from a directory, refuse a key that is not a tree path, such as one not already in NFC, or that the membership rule could not admit, such as one whose last segment is `inputs.json` or `inputs.toml`; a key given twice in the map or inside an entry object; two keys that collide, or one colliding with a directory of another, judged only among the keys that are tree paths the membership rule could admit, reading a key given twice once, so a refused `inputs.json` never collides with `Inputs.json`; and, among those same keys alone, an entry failing the [entry checks](../spec/method-tree.md#the-file-entry), such as non-canonical Base64 or a `size` written with a fraction or an exponent, so a refused `inputs.json` is never refused for its entry as well, and, last and only for a map that breaks no other of these rules, a hash entry whose bytes the receiver does not hold.
 
 ## Stage 1: TOML Parsing
 
@@ -13370,7 +13380,7 @@ The following integration points describe the full scope of MTHDS-aware language
 
 # Roadmap
 
-The MTHDS standard is at version `8.0.0`. This page outlines planned and potential directions for future development.
+The MTHDS standard is at version `8.0.1`. This page outlines planned and potential directions for future development.
 
 ## Near-Term
 

@@ -1,0 +1,205 @@
+# Validation Rules
+
+This page consolidates all validation rules from the [Specification](../spec/mthds-format.md) into an ordered checklist for implementers. Rules are grouped by the stage at which they should be enforced.
+
+A refusal is reported under a code of the [core error registry](../spec/error-registry.md): the rules below name the code where one is specific to them, and a fault of the method that no sharper code names is `method.schema_violation`. Each refusal is one item of the verdict's `errors`, and a run refused because its method does not validate is the problem `method.invalid`, carrying the same items ([Validating a bundle](../spec/protocol.md#validating-a-bundle)). The [Error Codes](../errors/index.md) page lists every `method.` code.
+
+## Before Parsing: The Method Tree
+
+Before any file is parsed, establish the [method tree](../spec/method-tree.md) the files come from:
+
+- Find the root from what the caller handed over: the nearest directory at or above it holding `METHODS.toml`, else the directory handed over, else, for a `.mthds` file named alone, a tree of that one file.
+- List the tree under the [membership rule](../spec/method-tree.md#the-membership-rule), with every pattern normalized to NFC, pruning excluded directories first, among them a nested repository or a nested package, meaning a directory below the root holding an entry named `.git` of any kind, whatever it holds, or its own `METHODS.toml`, and leaving out a run's inputs file, a regular file or a symbolic link named `inputs.json` or `inputs.toml` at any depth, while a directory of either name excludes nothing. Refuse a symbolic link or any other entry that is neither a regular file nor a directory, naming its path, unless the rule excludes it, and refuse in the same way a `.gitignore` file the listing reads whose bytes are not UTF-8, once a leading byte order mark is skipped. A package read from a cache is not listed again: its files are its tree as written.
+- Normalize every name to NFC, and refuse a path that breaks the [tree path](../spec/method-tree.md#tree-paths) rules, two names equal after normalization, two paths that collide, or one colliding with a directory of another, under the Unicode full case folding the tree path rules define, and a path past the length bound, naming each path. A name the membership rule excludes is never checked, so an invalid one is excluded silently.
+- When the tree arrives as a map of [file entries](../spec/method-tree.md#the-file-entry) rather than from a directory, refuse a key that is not a tree path, such as one not already in NFC, or that the membership rule could not admit, such as one whose last segment is `inputs.json` or `inputs.toml`; a key given twice in the map or inside an entry object; two keys that collide, or one colliding with a directory of another, judged only among the keys that are tree paths the membership rule could admit, reading a key given twice once, so a refused `inputs.json` never collides with `Inputs.json`; and, among those same keys alone, an entry failing the [entry checks](../spec/method-tree.md#the-file-entry), such as non-canonical Base64 or a `size` written with a fraction or an exponent, so a refused `inputs.json` is never refused for its entry as well, and, last and only for a map that breaks no other of these rules, a hash entry whose bytes the receiver does not hold.
+
+## Stage 1: TOML Parsing
+
+Before any MTHDS-specific validation, the file must be valid TOML.
+
+- The file MUST be valid UTF-8-encoded TOML.
+- A `.mthds` file MUST have the `.mthds` extension.
+- `METHODS.toml` MUST be named exactly `METHODS.toml`.
+- `methods.lock` MUST be named exactly `methods.lock`.
+
+## Stage 2: Bundle Structural Validation
+
+After parsing TOML into a dictionary, validate the bundle structure:
+
+1. `domain` MUST be present.
+2. `domain` MUST be a valid domain code: one or more `snake_case` segments (`[a-z][a-z0-9_]*`) separated by `.`.
+3. `main_pipe`, if present, MUST be `snake_case` and MUST reference a pipe defined in the same bundle.
+4. Concept codes MUST be `PascalCase` (`[A-Z][a-zA-Z0-9]*`).
+5. Concept codes MUST NOT match any native concept code (`Dynamic`, `Text`, `Image`, `Document`, `Html`, `TextAndImages`, `Number`, `YesNo`, `Choice`, `Rating`, `Date`, `Time`, `Page`, `JSON`, `SearchResult`, `Anything`, `Composite`).
+6. Pipe codes MUST be `snake_case` (`[a-z][a-z0-9_]*`).
+7. Input names MUST be plain `snake_case` identifiers (`[a-z][a-z0-9_]*`), never dotted. Any other input name MUST be rejected, and the refusal SHOULD be reported as `method.identifier_invalid`.
+8. `refines` and `structure` MUST NOT both be set on the same concept.
+
+## Stage 3: Concept Field Validation
+
+For each field in a concept's `structure`:
+
+1. `description` MUST be present.
+2. If `type` is omitted, `choices` MUST be non-empty.
+3. `type = "dict"` requires both `key_type` and `value_type`.
+4. `type = "concept"` requires `concept_ref` and forbids `default_value`.
+5. `type = "list"` with `item_type = "concept"` requires `item_concept_ref`.
+6. `concept_ref` MUST NOT be set unless `type = "concept"`.
+7. `item_concept_ref` MUST NOT be set unless `item_type = "concept"`.
+8. `default_value` type MUST match the declared `type`.
+9. If `choices` is set and `default_value` is present, `default_value` MUST be in `choices`.
+10. Field names MUST NOT start with `_`.
+
+## Stage 4: Pipe Type-Specific Validation
+
+Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section is valid only when it is a contract-only signature containing `description`, optional `inputs`, required `output`, optional `signature_for` (when present, one of the concrete `PipeType` values), and no implementation fields.
+
+**PipeLLM:**
+
+- All prompt and system_prompt variables MUST have matching inputs.
+- All inputs MUST be referenced in prompt or system_prompt.
+
+**PipeStructure:**
+
+- `inputs` MUST contain exactly one entry.
+- The single input concept MUST be `Text` or a concept that refines `Text`.
+- `output` MUST NOT be `Text` and MUST NOT be a concept that refines `Text`.
+- `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`).
+
+**PipeFunc:**
+
+- `function_name` MUST be present and, once normalized to NFC, MUST be an import path holding at least one dot, each dot-separated segment a Python identifier that is not a keyword and that NFKC normalization leaves unchanged, so a segment holding a ligature such as `ﬁ` or a fullwidth letter is rejected.
+- Given the method tree, the module path, everything before the last dot, MUST name a module of the tree: `<module path>.py` or `<module path>/__init__.py`, each dot read as `/`, and not both. See [PipeFunc](../spec/mthds-format.md#operator-pipefunc).
+
+**PipeImgGen:**
+
+- `prompt` MUST be present.
+- All prompt and negative_prompt variables MUST have matching inputs.
+- All inputs MUST be referenced in prompt or negative_prompt.
+
+**PipeExtract:**
+
+- `inputs` MUST contain exactly one entry.
+- `output` MUST be `"Page[]"`.
+
+**PipeSearch:**
+
+- `prompt` MUST be present.
+- All prompt variables MUST have matching inputs.
+- All inputs MUST be referenced in prompt.
+- `output` MUST be `SearchResult` or a concept that refines `SearchResult`.
+
+**PipeJudge:**
+
+- `prompt` MUST be present and non-empty.
+- Exactly one of `question` or `questions` MUST be present. A pipe carrying neither is rejected, and the message SHOULD say that `prompt` holds the evidence and the question is written in `question`.
+- `question`, and the `question` of every entry of `questions`, MUST be non-empty.
+- All prompt and question variables MUST have matching inputs.
+- All inputs MUST be referenced in `prompt` or in a question.
+- A question variable MUST NOT reach an `Image` or a `Document`, single or a list; only `prompt` presents files.
+- `options` and `levels` MUST NOT both be present on one question. `options` MUST hold at least two entries with non-empty keys. `levels` MUST hold at least two levels, each a non-empty string or a table carrying a non-empty `label`, a non-empty `description` or both and no other key; either every level carries a `label` or none does, and no two labels of one scale are equal.
+- `criteria` and `threshold` MUST NOT be present beside `options` or `levels`. `criteria` MUST carry both `yes` and `no`, each non-empty, and no other key; a table declaring one side is rejected, and the message SHOULD suggest writing the missing side as the complement of the other. `threshold` MUST be strictly between 0 and 1.
+- With `question`, `output` MUST be `YesNo` (no `options` or `levels`), `Choice` (`options`) or `Rating` (`levels`), or a concept that refines it, and MUST NOT use multiplicity brackets.
+- With `questions`, there MUST be at least one question, each key a valid structure field name, and each question table MUST carry `question` and only `options`, `levels`, `criteria` and `threshold` beside it; those four MUST NOT be present on the pipe itself. `output` MUST be a structured concept without multiplicity brackets whose fields are exactly the question names, each declared `type = "concept"` with a `concept_ref` naming the verdict native of its question's kind or a concept that refines it.
+
+**PipeCompose:**
+
+- Exactly one of `template` or `construct` MUST be present.
+- `output` MUST NOT use multiplicity brackets (`[]` or `[N]`).
+- All template/construct variables MUST have matching inputs.
+- All inputs MUST be referenced in the template, or in construct mode by a `from` path or a field template, nested constructs included.
+
+**PipeSequence:**
+
+- `steps` MUST have at least one entry.
+- `nb_output` and `multiple_output` MUST NOT both be set on the same step.
+- `batch_over` and `batch_as` MUST either both be present or both be absent.
+- `batch_over` and `batch_as` MUST NOT be the same value.
+- A dotted `batch_over` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar), or the step is rejected as `method.binding_step_invalid`. Its walk MUST derive a list, and one deriving a single value is reported as a `batch_over` naming a value that is not a list (see [Dotted `batch_over`](../spec/mthds-format.md#dotted-batch_over)).
+- A step MUST carry exactly one of `pipe` and `from`. A step carrying both is rejected as `method.binding_step_invalid`, and a step carrying neither, such as `{ result = "x" }`, is rejected by the schema as `method.schema_violation`, since no sharper code names it.
+- A binding step (one carrying `from`) MUST carry `result` and MUST NOT carry `nb_output`, `multiple_output`, `batch_over` or `batch_as`. Its `result` MUST take the form of a plain input name ([Stage 2](#stage-2-bundle-structural-validation), rule 7), and its `from` MUST follow the [path grammar](../spec/mthds-format.md#path-grammar). Each of these faults is `method.binding_step_invalid`.
+- A binding step's path MUST be walkable through the declared structures, or the step is rejected as `method.field_path_unresolved`. The walk starts from the concept and multiplicity of the latest value stored under the root's name before the step, in step order, and from those the sequence's `inputs` declare only when no earlier step stored that name (see [The Concept of the Result](../spec/mthds-format.md#the-concept-of-the-result)).
+- A pipe step's `result` and `batch_as` are stored names, and each MUST take the form of a plain input name ([Stage 2](#stage-2-bundle-structural-validation), rule 7), as a binding step's `result` does. The schema rejects a name in any other form, such as `Pages` or `a.b`, and the refusal SHOULD be reported as `method.identifier_invalid` (see [Stored Names](../spec/mthds-format.md#stored-names)).
+- A pipe step's plain `batch_over` MUST NOT start with `_bound_`, a prefix reserved for the private names under which an implementation binds a dotted `batch_over`. The schema rejects such a name, and the refusal SHOULD be reported as `method.identifier_invalid`.
+
+**PipeParallel:**
+
+- `branches` MUST have at least one entry.
+- Every branch MUST be a pipe step. A binding step in `branches` is rejected as `method.binding_step_invalid`.
+- A branch MUST NOT carry a dotted `batch_over`, which is a binding followed by a batch, and one that does is rejected as `method.binding_step_invalid`. A plain `batch_over` on a branch is allowed (see [Dotted `batch_over`](../spec/mthds-format.md#dotted-batch_over)).
+- A branch's `result` and `batch_as` MUST take the form of a plain input name, and its plain `batch_over` MUST NOT start with the reserved prefix `_bound_`. A branch that breaks either rule is rejected as `method.identifier_invalid`, as on a sequence step.
+- `output` MUST be `Composite` or a structured concept.
+- `output` MUST NOT use multiplicity brackets (`[]` or `[N]`).
+- For structured output, required fields MUST be produced by matching branch `result` names and branch output concepts MUST be compatible with the corresponding fields.
+
+**Optionality:**
+
+- Presence markers (`?` and `!`) MAY appear only on pipe `inputs` and `output`.
+- Presence markers MUST NOT be combined with multiplicity brackets.
+- `!` MUST NOT appear on `output`.
+- A `PipeCondition` that can resolve to `continue` MUST declare an optional (`?`) output.
+- A template-rendering pipe MUST guard references to declared-optional inputs.
+- A maybe-absent `PipeParallel` branch MUST NOT feed a required structured output field.
+
+**PipeCondition:**
+
+- Exactly one of `expression_template` or `expression` MUST be present.
+- `outcomes` MUST have at least one entry.
+
+**PipeBatch:**
+
+- `input_list_name` MUST be a plain input name.
+- `input_list_name` MUST be in `inputs`.
+- `input_item_name` MUST NOT be empty.
+- `input_item_name` MUST NOT equal `input_list_name`.
+- `input_item_name` MUST NOT equal any key in `inputs`.
+- `input_item_name` MUST take the form of a plain input name, and one that does not is rejected as `method.identifier_invalid`, which the schema catches (see [Stored Names](../spec/mthds-format.md#stored-names)).
+
+## Stage 5: Reference Validation (Bundle-Level)
+
+Within a single bundle:
+
+- Bare concept references MUST resolve to: a native concept, a concept in the current bundle, or a concept in the same domain (same package).
+- Bare pipe references MUST resolve to: a pipe in the current bundle, or a pipe in the same domain (same package).
+- Domain-qualified references MUST resolve within the current package.
+- Cross-package references (`->` syntax) are deferred to package-level validation.
+
+## Stage 6: Manifest Validation
+
+For `METHODS.toml`:
+
+1. `[package]` section MUST be present.
+2. `name` MUST be present, `snake_case`, and 2–25 characters.
+3. `address` MUST match the pattern `^[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+/[a-zA-Z0-9._/-]+$`.
+4. `version` MUST be valid semver.
+5. `description` MUST NOT be empty.
+6. `main_pipe`, if present, MUST be a valid `snake_case` pipe code.
+7. All dependency aliases MUST be unique and `snake_case`.
+8. All dependency addresses MUST match the hostname/path pattern.
+9. All dependency version constraints MUST be valid.
+10. Domain paths in `[exports]` MUST be valid domain codes and MUST NOT use reserved domains (`native`, `mthds`, `pipelex`).
+11. All pipe codes in `[exports]` MUST be valid `snake_case`.
+12. `exclude`, if present, MUST be an array of strings, none holding a line break.
+
+## Stage 7: Package-Level Validation
+
+After loading all bundles and resolving dependencies:
+
+1. Bundles MUST NOT declare a domain starting with a reserved segment.
+2. Cross-package references MUST reference known dependency aliases.
+3. Cross-package pipe references MUST target pipes exported by the dependency — diagnosed at validation time, never silently filtered at load time.
+4. Exported pipes MUST exist in the scanned bundles.
+5. Same-domain concept and pipe code collisions across bundles (within one package) are errors.
+6. Every [file reference](../spec/method-tree.md#file-references), normalized to NFC, MUST resolve, lexically and inside the tree, to a file of the tree, and a reference that does not is refused by the first step of the resolution that fails: as malformed, such as an absolute one, as not a tree path, such as an empty one, as leaving the tree, or as not in the tree, naming a file the tree does not hold, a directory of the tree or its root. A reference refused as not in the tree names the reference and the path it resolved to, `.` for the root, and the rule that excluded the file when one did. A URL in a template that names a scheme, holds an authority or has no path is not a file reference, and is left as written.
+7. Every `PipeFunc`'s module MUST be a module of its tree, as Stage 4 states.
+8. A `requirements.txt` at the root MUST hold only blank lines, comments and PEP 508 requirements with no URL, and no option (see [`requirements.txt`](../spec/method-tree.md#python-dependencies-requirementstxt)).
+
+## Stage 8: Lock File Validation
+
+For `methods.lock`:
+
+1. Each entry's `version` MUST be valid semver.
+2. Each entry's `digest` MUST match `sha256:[0-9a-f]{64}`. An entry carrying a `hash` field predates tree digests: refuse the lock with a message saying that `lock` regenerates it, and verify nothing.
+3. Each entry's `fingerprint` MUST be a 64-character lowercase hex digest.
+4. Each entry's `source` MUST start with `https://` and end with `.git`.
+5. Each entry's `commit` MUST be a 40-character lowercase hex digest.

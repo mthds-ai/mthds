@@ -1,0 +1,3872 @@
+<!DOCTYPE html><html lang="en" class="no-js"><head>
+    
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  
+    <meta name="description" content="The method tree — which files make up a method, how each is named and referenced, the tree digest that identifies them, the file entry that carries one, and how a method declares its Python.">
+  
+  
+  
+  <link rel="canonical" href="https://mthds.ai/latest/spec/method-tree/">
+  
+    <link rel="prev" href="../mthds-format/">
+  
+  
+    <link rel="next" href="../native-concepts/">
+  
+  
+    
+  
+
+    
+      
+        <title>Method Tree - MTHDS</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="../../assets/external/fonts.googleapis.com/css.49ea35f2.css">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/mermaid.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/general.css">
+    
+      <link rel="stylesheet" href="../../stylesheets/neoteroi-oad.css">
+    
+    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+  
+
+
+  
+<script>
+  function __md_analytics() {
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing identify alias people.set people.set_once set_config reset get_distinct_id getFeatureFlag getFeatureFlagPayload isFeatureEnabled onFeatureFlags reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init("phc_LRwe2lybfPTNCzAT1ScpnsWznrxAvmc1pmCaXEr1hwJ", {
+      api_host: "https://eu.i.posthog.com",
+      person_profiles: "identified_only",
+      // The privacy policy describes page-view analytics on this site, never recordings,
+      // so replay stays off even if the PostHog project turns it on remotely.
+      disable_session_recording: true
+    });
+  }
+
+  (function () {
+    var consent = __md_get("__consent");
+
+    if (!(consent && consent.analytics)) {
+      var cookie = "ph_phc_LRwe2lybfPTNCzAT1ScpnsWznrxAvmc1pmCaXEr1hwJ_posthog";
+      var expired = "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; path=/";
+      document.cookie = cookie + expired;
+      // PostHog sets its cookie on the widest domain it may, so try the host and each
+      // parent domain. A host name that is an IP address has no parent domain.
+      var labels = location.hostname.split(".");
+      if (!/^[\d.]+$/.test(location.hostname)) {
+        for (var i = 0; i < labels.length - 1; i++) {
+          document.cookie = cookie + expired + "; domain=" + labels.slice(i).join(".");
+        }
+      }
+      // PostHog keeps its persistence in localStorage beside the cookie, and its window
+      // and tab identifiers in sessionStorage, all under the `ph_<key>_` prefix.
+      var prefixes = ["ph_phc_LRwe2lybfPTNCzAT1ScpnsWznrxAvmc1pmCaXEr1hwJ_", "ph_debug"];
+      try {
+        [localStorage, sessionStorage].forEach(function (storage) {
+          Object.keys(storage).forEach(function (key) {
+            if (prefixes.some(function (prefix) { return key.indexOf(prefix) === 0; })) {
+              storage.removeItem(key);
+            }
+          });
+        });
+      } catch (error) {
+        // Storage can be disabled or blocked; nothing was stored there either.
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      var form = document.forms.consent;
+      if (form && !__md_get("__consent")) {
+        setPurposes(form, false);
+      }
+    });
+    // Capturing on the document runs before the listener Material puts on the form.
+    document.addEventListener("submit", function (event) {
+      var form = document.forms.consent;
+      if (event.target === form && !form.elements.__settings.checked) {
+        setPurposes(form, true);
+      }
+    }, true);
+
+    function setPurposes(form, checked) {
+      for (var input of form.elements) {
+        if (input.name) {
+          input.checked = checked;
+        }
+      }
+    }
+  })();
+</script>
+  
+    <script>if("undefined"!=typeof __md_analytics){var consent=__md_get("__consent");consent&&consent.analytics&&__md_analytics()}</script>
+  
+
+    
+    
+
+<link rel="icon" type="image/png" sizes="32x32" href="../../images/favicon-32.png">
+<link rel="icon" type="image/png" sizes="128x128" href="../../images/favicon-128.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../../images/favicon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../../images/favicon-192.png">
+
+
+
+
+
+
+
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="MTHDS">
+<meta property="og:locale" content="en_US">
+<meta property="og:title" content="Method Tree">
+<meta property="og:description" content="The method tree — which files make up a method, how each is named and referenced, the tree digest that identifies them, the file entry that carries one, and how a method declares its Python.">
+<meta property="og:image" content="https://mthds.ai/latest/images/og-banner.jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://mthds.ai/latest/spec/method-tree/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Method Tree">
+<meta name="twitter:description" content="The method tree — which files make up a method, how each is named and referenced, the tree digest that identifies them, the file entry that carries one, and how a method declares its Python.">
+<meta name="twitter:image" content="https://mthds.ai/latest/images/og-banner.jpeg">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "MTHDS",
+  "url": "https://mthds.ai",
+  "logo": "https://mthds.ai/images/mthds-black_on_transparent.png",
+  "description": "Official documentation for the MTHDS open standard: to give AI methods to AI agents."
+}
+</script>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Method Tree",
+  "description": "The method tree \u2014 which files make up a method, how each is named and referenced, the tree digest that identifies them, the file entry that carries one, and how a method declares its Python.",
+  "url": "https://mthds.ai/latest/spec/method-tree/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "MTHDS",
+    "url": "https://mthds.ai"
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "MTHDS",
+    "url": "https://mthds.ai"
+  }
+}
+</script>
+
+
+<!-- Vercel Web Analytics — script served by Vercel's edge when Web Analytics
+     is enabled for the project; 404s harmlessly under `mkdocs serve`. It stores
+     nothing in the browser, so it needs no consent. PostHog does, and lives in
+     partials/integrations/analytics/posthog.html behind Material's consent banner. -->
+<script defer src="/_vercel/insights/script.js"></script>
+
+
+  <link href="../../assets/stylesheets/glightbox.min.css" rel="stylesheet"><script src="../../assets/javascripts/glightbox.min.js"></script><style id="glightbox-style">
+            html.glightbox-open { overflow: initial; height: 100%; }
+            .gslide-title { margin-top: 0px; user-select: text; }
+            .gslide-desc { color: #666; user-select: text; }
+            .gslide-image img { background: white; }
+            .gscrollbar-fixer { padding-right: 15px; }
+            .gdesc-inner { font-size: 0.75rem; }
+            body[data-md-color-scheme="slate"] .gdesc-inner { background: var(--md-default-bg-color); }
+            body[data-md-color-scheme="slate"] .gslide-title { color: var(--md-default-fg-color); }
+            body[data-md-color-scheme="slate"] .gslide-desc { color: var(--md-default-fg-color); }
+        </style></head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#method-tree" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MTHDS" class="md-header__button md-logo" aria-label="MTHDS" data-md-component="logo">
+      
+  <img src="../../images/mthds-black_on_transparent.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MTHDS
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Method Tree
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to dark mode" type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"></path></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom" aria-label="Switch to light mode" type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"></path></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"></path></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/mthds-ai/mthds" title="Go to repository" class="md-source" data-md-component="source" target="_blank" rel="noopener">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    MTHDS on GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../.." class="md-tabs__link">
+          
+  
+  
+  Home
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../language/bundles/" class="md-tabs__link">
+          
+  
+  
+  The Language
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../packages/structure/" class="md-tabs__link">
+          
+  
+  
+  The Package System
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../versioning/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/first-method/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../implementers/runtime/" class="md-tabs__link">
+          
+  
+  
+  For Implementers
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../about/roadmap/" class="md-tabs__link">
+          
+  
+  
+  About
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="https://mthds.sh" class="md-tabs__link" target="_blank" rel="noopener">
+        
+  
+  
+    
+  
+  Hub ↗
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MTHDS" class="md-nav__button md-logo" aria-label="MTHDS" data-md-component="logo">
+      
+  <img src="../../images/mthds-black_on_transparent.png" alt="logo">
+
+    </a>
+    MTHDS
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/mthds-ai/mthds" title="Go to repository" class="md-source" data-md-component="source" target="_blank" rel="noopener">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"></path></svg>
+  </div>
+  <div class="md-source__repository">
+    MTHDS on GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1">
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Home
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../what-is-mthds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What is MTHDS?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/philosophy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Design Philosophy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/comparison-agent-skills/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Comparison with Agent Skills
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../know-how-graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Know-How Graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2">
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Language
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Language
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/bundles/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bundles
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/pipes-operators/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipes — Operators
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/pipes-controllers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipes — Controllers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/optionality/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Optionality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/working-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Working Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/multiplicity/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Multiplicity
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/model-references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/putting-it-all-together/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Putting It All Together
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/domains/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Domains
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../language/namespace-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespace Resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3">
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Package System
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Package System
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/structure/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Structure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/manifest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Manifest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/exports-visibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Exports &amp; Visibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/cross-package-references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-Package References
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/lock-file/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Lock File
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/distribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/version-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Version Resolution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_9">
+        
+          
+          <label class="md-nav__link" for="__nav_3_9" id="__nav_3_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    The Registry
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    The Registry
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/registry-indexing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry Indexing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../packages/future-directions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Future Directions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Specification
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Specification
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../versioning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Versioning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mthds-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    .mthds File Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Method Tree
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Root
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-membership-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Membership Rule
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Membership Rule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#symbolic-links-and-other-entries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symbolic Links and Other Entries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-artifacts-beside-a-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Artifacts Beside a Method
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-inputs-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Inputs Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checking-the-rule-against-git" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking the Rule Against Git
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tree-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tree Paths
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File References
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-tree-digest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Tree Digest
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Tree Digest">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-reference-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Reference Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#digest-and-fingerprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Digest and Fingerprint
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-file-entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The File Entry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The File Entry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-dependencies-requirementstxt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Dependencies: requirements.txt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies-are-trees-of-their-own" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies Are Trees of Their Own
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../native-concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Native Concept Definitions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../intent-hints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Intent Hints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../manifest-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    METHODS.toml Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lock-format/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    methods.lock Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../library-crate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Library Crate Format
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pipe-io-contracts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipe I/O Contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../input-form-descriptor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Input-Form Descriptor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../output-form-descriptor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Output-Form Descriptor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../namespace-resolution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Namespace Resolution Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli-io-contract/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI I/O Contract
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../protocol/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HTTP Runner Protocol
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../error-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../errors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Error Codes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4">
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tooling
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tooling
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tooling/editor-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Editor Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tooling/formatting-linting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Formatting &amp; Linting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tooling/json-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MTHDS JSON Schema
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5">
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/first-method/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Write Your First Method
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/create-package/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Create a Package
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/use-dependencies/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Use Dependencies
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/discover-methods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Discover Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6">
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    For Implementers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    For Implementers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building a Runtime
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/validation-rules/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Rules
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/package-loading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Package Loading
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../implementers/editor-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Building Editor Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7">
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    About
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/roadmap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Roadmap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing to MTHDS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../CODE_OF_CONDUCT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Code of Conduct
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    License
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="https://mthds.sh" class="md-nav__link" target="_blank" rel="noopener">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hub ↗
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-root" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Root
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-membership-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Membership Rule
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Membership Rule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#symbolic-links-and-other-entries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Symbolic Links and Other Entries
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-artifacts-beside-a-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Artifacts Beside a Method
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-inputs-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Inputs Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checking-the-rule-against-git" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checking the Rule Against Git
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tree-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tree Paths
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File References
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-tree-digest" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Tree Digest
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Tree Digest">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-reference-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Reference Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#digest-and-fingerprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Digest and Fingerprint
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-file-entry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The File Entry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The File Entry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Modules
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-dependencies-requirementstxt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Dependencies: requirements.txt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies-are-trees-of-their-own" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies Are Trees of Their Own
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        See Also
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="method-tree">Method Tree</h1>
+<p>A method is a tree of files. Its bundles, its manifest, the Python modules its <code>PipeFunc</code> steps call, the templates and images its steps read, its <code>requirements.txt</code> and its <code>README.md</code> are all files of one tree, each named by its path from the tree's root, and the tree as a whole is identified by its digest. This page defines that object once: where the root is, which files belong, how a file is named and how one file names another, the digest, the file entry that carries a file from one program to another, and how a method declares its Python.</p>
+<div class="highlight"><pre><span></span><code>invoices/
+├── METHODS.toml
+├── README.md
+├── main.mthds
+├── requirements.txt
+├── inputs.json           (the inputs of the last run)
+├── examples/
+│   └── invoice-inputs.json
+├── funcs/
+│   ├── __init__.py
+│   ├── totals.py
+│   └── __pycache__/
+├── templates/
+│   ├── letter.html
+│   └── logo.png
+├── results/
+│   ├── .gitignore        (holds the single pattern *)
+│   └── run-1.json
+├── .gitignore
+└── .venv/
+</code></pre></div>
+<p>The method tree of this directory is:</p>
+<div class="highlight"><pre><span></span><code>METHODS.toml
+README.md
+examples/invoice-inputs.json
+funcs/__init__.py
+funcs/totals.py
+main.mthds
+requirements.txt
+templates/letter.html
+templates/logo.png
+</code></pre></div>
+<p><code>.gitignore</code> and <code>.venv/</code> are out because their names start with a dot, <code>funcs/__pycache__/</code> and <code>inputs.json</code> are out by default, and <code>results/run-1.json</code> is out because the <code>.gitignore</code> file in its directory ignores every file there. Every other file belongs to the tree and travels with the method, whether a step reads it or it is carried for people and agents to read, <code>examples/invoice-inputs.json</code> included, since only a file named <code>inputs.json</code> or <code>inputs.toml</code> is kept out.</p>
+<div class="admonition note">
+<p class="admonition-title">Implementation status</p>
+<p>The method tree is committed design. This page is the contract implementations are brought into conformance with — the same forward-contract convention the <a href="../library-crate/#specification-status">Library Crate Format</a> uses for its unrealized sections. Conformance is asserted against this document as each piece lands.</p>
+</div>
+<h2 id="the-root">The Root</h2>
+<p>A <strong>method tree</strong> is the set of regular files under a <strong>root</strong> directory that the <a href="#the-membership-rule">membership rule</a> admits, each named by its <a href="#tree-paths">tree path</a> from the root. The root is the directory holding <code>METHODS.toml</code>. A compliant implementation finds it from what a caller hands over:</p>
+<ul>
+<li><strong>A directory.</strong> The root is the nearest directory at or above the directory handed over that holds <code>METHODS.toml</code>, found by <a href="../manifest-format/#manifest-discovery">Manifest Discovery</a>. When there is none, the method has no manifest, and the directory handed over is its root.</li>
+<li><strong>A <code>.mthds</code> file named alone.</strong> The root is the nearest directory at or above the file's own directory that holds <code>METHODS.toml</code>, found the same way. When there is none, the tree is that one file, under its file name, and nothing beside it is read: no <code>.gitignore</code> file and no <code>pyvenv.cfg</code> entry, beside it or above it, applies to it, so of the membership rule only the dot-segment rule reaches it. A <a href="#file-references">file reference</a> from it to any other file is refused, with a message saying to run the method's directory or to add a <code>METHODS.toml</code>.</li>
+</ul>
+<p>A <code>.mthds</code> file named alone that the membership rule keeps out of its own tree is refused, naming the rule that excludes it: with no manifest, only a name starting with a dot does so, and when a <code>METHODS.toml</code> makes a root, so does any other part of the rule, such as a <code>.gitignore</code> file under that root that ignores the file.</p>
+<p>Sending a directory is always the caller's explicit act. A <code>.mthds</code> file named alone never carries the files beside it unless a manifest makes their directory a method's root, so a bundle saved among unrelated documents never takes them anywhere.</p>
+<p>A run loads one root tree and the trees of the packages it depends on, each with its own root and its own digest (see <a href="#dependencies-are-trees-of-their-own">Dependencies Are Trees of Their Own</a>).</p>
+<p>A method's files are its own: they are authored once, travel with the method, and are its identity. A file a caller supplies for one run reaches the run as an input, a stuff in the wire form of the <a href="../cli-io-contract/#stuffs-on-the-wire">CLI I/O Contract</a>, and is never a file of the tree.</p>
+<h2 id="the-membership-rule">The Membership Rule</h2>
+<p>A regular file under the root belongs to the tree unless one of the following excludes it, and a directory that one of them excludes is excluded with everything under it:</p>
+<ol>
+<li><strong>A path segment starting with a dot.</strong> This keeps out <code>.git/</code>, <code>.venv/</code>, <code>.env</code>, <code>.gitignore</code>, the <code>.mthds/</code> directory where a project keeps its installed packages, and every other dotfile and dot directory, the state of editors and tools included. It is the rule that keeps the commonest secret files out by construction.</li>
+<li><strong>The defaults.</strong> A directory named <code>__pycache__</code> or <code>node_modules</code>; any directory holding an entry named <code>pyvenv.cfg</code> that is a regular file or a symbolic link, the link never followed, since <a href="https://peps.python.org/pep-0405/" target="_blank" rel="noopener">PEP 405</a> places a <code>pyvenv.cfg</code> file at the top of every Python virtual environment, so a virtual environment stays out whatever its name, while a directory named <code>pyvenv.cfg</code> marks nothing; any directory below the root holding an entry named <code>.git</code> of any kind, a directory, a file such as the one a submodule or a worktree holds, or a symbolic link, never followed, whatever that entry holds and whether or not git would take it for a repository, so a nested repository stays out, as git leaves it out of every commit; and any directory below the root holding a file named <code>METHODS.toml</code>, so a nested package stays out, since it is another package and travels as a tree of its own (see <a href="#dependencies-are-trees-of-their-own">Dependencies Are Trees of Their Own</a>). The <code>pyvenv.cfg</code> default applies to the root too, so a root that is itself a virtual environment holds an empty tree, which no surface accepts. The root's own <code>METHODS.toml</code> is the manifest that makes it the root, and it excludes nothing. One default excludes a file rather than a directory: an entry named <code>inputs.json</code> or <code>inputs.toml</code>, at any depth, that is a regular file or a symbolic link, the link never followed, is a run's inputs file and stays out (see <a href="#run-inputs-files">Run Inputs Files</a>), while a directory of either name excludes nothing.</li>
+<li><strong>The tree's own <code>.gitignore</code> files.</strong> The patterns of every <code>.gitignore</code> file inside the root, at any depth, read with git's own semantics as <a href="https://git-scm.com/docs/gitignore" target="_blank" rel="noopener">gitignore</a> documents them: a pattern applies relative to the directory of the file that holds it, a deeper file's patterns take precedence over a shallower one's, git never descends into an excluded directory, and so a negation cannot re-include a file under an excluded directory. A <code>.gitignore</code> file is read as UTF-8, skipping a leading byte order mark as git skips it, and one whose bytes are not UTF-8 is an error naming its path, never skipped silently, as a symbolic link is. A <code>.gitignore</code> file inside an excluded directory is never read, so it is never an error. A pattern is normalized to NFC before it is matched, so a pattern an editor wrote in decomposed form matches the same names as one written composed, and it then matches tree paths byte for byte, letter case included, as git matches with <code>core.ignoreCase</code> off, whatever the file system. Only these files count: neither a user's global excludes, nor a repository's <code>info/exclude</code>, nor a <code>.gitignore</code> file above the root, so the same directory yields the same tree on every machine.</li>
+<li><strong>The manifest's <code>exclude</code> patterns.</strong> The patterns of <a href="../manifest-format/#exclude"><code>[package] exclude</code></a>, in the same syntax and normalized to NFC in the same way, read as git reads <code>core.excludesFile</code>: relative to the root, and below every <code>.gitignore</code> file in precedence, so a negation in a <code>.gitignore</code> file can re-include a file they exclude. They keep out of the tree what a method wants kept out of the tree but not out of git.</li>
+</ol>
+<p>No pattern re-includes a file that the dot-segment rule or a default excludes. A default looks at a directory's own entries whatever the patterns say of them, so a pattern that ignores a nested <code>.git</code> entry, a <code>pyvenv.cfg</code> entry or a nested <code>METHODS.toml</code> file does not bring its directory back.</p>
+<p>The rule is deliberately close to what git would commit from the directory. A package is published by pushing a tag, so honouring the tree's own <code>.gitignore</code> files makes a local run, a run on a remote runner and a run of the published package see the same files.</p>
+<h3 id="symbolic-links-and-other-entries">Symbolic Links and Other Entries</h3>
+<p>A symbolic link that the membership rule does not exclude is an error naming its path: it is never followed and never skipped silently, since a link is either a mistake or a reach outside the root, and both deserve to be seen. Exclusion prunes first, so a link inside an excluded directory is never visited, and a link the rule excludes is no error. An entry that is neither a regular file, nor a directory, nor a symbolic link, such as a named pipe or a device, is an error naming its path in the same way.</p>
+<h3 id="run-artifacts-beside-a-method">Run Artifacts Beside a Method</h3>
+<p>A tool that creates a directory under a method's root to write its own files into, such as the results of a run, SHOULD make that directory self-excluding by writing into it a <code>.gitignore</code> file holding the single pattern <code>*</code>. The directory then stays out of the tree and out of git, and neither this rule nor its defaults need to know the directory's name.</p>
+<h3 id="run-inputs-files">Run Inputs Files</h3>
+<p>A tool that runs a method from a directory may read the run's inputs from a file in that directory, as a command line reads the <code>inputs.json</code> it <a href="../cli-io-contract/#3-auto-detected-inputsjson">auto-detects in directory mode</a>. That file holds one run's real data, which is never a file of the tree (see <a href="#the-root">The Root</a>), and if it were a member, sending or saving the method would carry that data along and store it as method content. The directory a tool runs need not be the root, since a <code>METHODS.toml</code> above it makes the root higher up, so the defaults keep a file named <code>inputs.json</code> or <code>inputs.toml</code> out of every tree at any depth. Because the exclusion belongs to the membership rule rather than to each client's own choice, every program that lists the tree leaves the file out alike, so the tree a client sends, the tree a runtime lists and the tree a save records keep one digest.</p>
+<p>Nothing in this standard reads <code>inputs.toml</code>. A runtime MAY auto-detect an inputs file written in TOML beside the JSON one, and the rule keeps both spellings out, so the format a tool reads never decides whether a run's data travels with the method.</p>
+<p>A tool MAY still read an inputs file as a run's inputs: the file never travels with the tree, so reading it carries nothing into the method. A method that ships example inputs for people and agents to read gives them any other name, such as <code>examples/invoice-inputs.json</code>, and they are then ordinary members of the tree.</p>
+<h3 id="checking-the-rule-against-git">Checking the Rule Against Git</h3>
+<p>Because the membership rule follows git, git itself can produce the expected listing of a test tree, which keeps an implementation from sharing a misreading of git's semantics with the person who wrote its tests. In a scratch repository holding the test tree, with global and system configuration turned off, <code>core.ignoreCase</code> set to <code>false</code>, and <code>core.excludesFile</code> holding the case's <code>exclude</code> patterns one per line, <code>git -c core.ignoreCase=false ls-files --others --exclude-standard -z</code> lists the files git would commit. Setting <code>core.ignoreCase</code> matters on a case-insensitive file system, where <code>git init</code> writes <code>core.ignoreCase = true</code> into the scratch repository's own configuration and git then matches every pattern regardless of case, so that <code>*.PY</code> would exclude <code>a.py</code>, whereas the membership rule matches tree paths byte for byte. Git also matches a pattern as it is written against a name as the file system holds it, so every pattern goes into the scratch repository, in its <code>.gitignore</code> files and in <code>core.excludesFile</code>, normalized to NFC, as the membership rule normalizes it before matching, and every file and directory of the scratch tree is written under its name in NFC, as the membership rule reads it. A test whose point is a name stored on disk in decomposed form is therefore checked without git as its oracle. Git applies the patterns and nothing else, so the dot-segment rule and the defaults are applied after its listing, which gives the same result because no pattern re-includes what they exclude and a <code>.gitignore</code> file inside an excluded directory reaches nothing outside it. Dropping from git's output every path holding a segment that starts with a dot, every path inside a <code>__pycache__</code> or <code>node_modules</code> directory, every path whose last segment is <code>inputs.json</code> or <code>inputs.toml</code>, which git lists alike for a regular file and for a symbolic link, and every path at or inside a directory holding an entry named <code>pyvenv.cfg</code> that is a file or a symbolic link, a directory below the root holding an entry named <code>.git</code>, or a directory below the root holding <code>METHODS.toml</code> gives the tree's listing. These last three defaults are read from the test tree itself rather than from git's output, since git never lists a <code>.git</code> entry and a pattern may keep out of that output the very file that triggers the other two.</p>
+<p>The nested repository default is where the membership rule and git part ways. Git leaves a directory out as a nested repository only when its <code>.git</code> entry leads to a repository, and lists as untracked the files under a directory whose <code>.git</code> entry is an empty directory, or a file that names no repository, such as one whose <code>gitdir:</code> line points nowhere. The membership rule excludes any directory below the root holding an entry named <code>.git</code> of any kind, whatever it holds, so the files git lists under such a directory are dropped with the rest.</p>
+<h2 id="tree-paths">Tree Paths</h2>
+<p>A <strong>tree path</strong> names a file of a tree from its root, such as <code>templates/letter.html</code>:</p>
+<ul>
+<li>It is a relative POSIX path: segments separated by <code>/</code>, with no leading or trailing <code>/</code> and no empty segment.</li>
+<li>No segment is <code>.</code> or <code>..</code>, and no segment holds a backslash (<code>\</code>), a colon (<code>:</code>), or a control character, meaning any character of Unicode general category <code>Cc</code>, NUL and the line breaks among them.</li>
+<li>It is encoded as UTF-8 in Unicode Normalization Form C (NFC), and tree paths are compared, sorted and matched byte for byte on that encoding.</li>
+<li>Each segment is at most 255 bytes long and the whole path at most 1024 bytes long, in that encoding.</li>
+</ul>
+<p>Two tree paths <strong>collide</strong> when their case foldings are equal. The case folding of a tree path takes two steps: the path in NFC is mapped by Unicode full case folding, which replaces each character holding an entry of status <code>C</code> or <code>F</code> in the <a href="https://www.unicode.org/Public/14.0.0/ucd/CaseFolding.txt" target="_blank" rel="noopener"><code>CaseFolding.txt</code></a> of Unicode 14.0 or of any later version by that entry's mapping, with no locale tailoring, and the result is normalized to NFC again. In Python it is <code>nfc(nfc(p).casefold())</code>, where <code>nfc</code> is <code>unicodedata.normalize("NFC", …)</code>. Implementations reading different versions of the file may differ only on characters assigned after Unicode 14.0. Case folding is what a case-insensitive file system compares names by, and it reaches further than converting to lowercase: <code>ß</code> collides with <code>SS</code>, <code>ẞ</code> with <code>ß</code>, <code>ς</code> with <code>σ</code>, and <code>ſ</code> with <code>s</code>. JavaScript has no built-in full case folding, <code>toLowerCase</code> being a case conversion and not a folding, so an implementation written in it carries the folding table itself.</p>
+<p>Within one tree, no two paths collide and no path collides with a directory of another: one tree never holds both <code>README.md</code> and <code>readme.md</code>, nor both <code>straße.txt</code> and <code>STRASSE.txt</code>, nor both <code>templates</code> and <code>templates/letter.html</code>, nor both <code>Templates</code> and <code>templates/letter.html</code>. A tree written out on a case-insensitive file system therefore loses no file and never needs a file and a directory under one name.</p>
+<p>A name listed from a file system is normalized to NFC, since some file systems hand back a decomposed form of an accented name, and two names in one directory that are equal after normalization are refused, naming both. A tree path given as text rather than listed, such as a key of a <a href="#the-file-entry">map of file entries</a>, is never normalized: one not already in NFC is not a tree path. A <a href="#file-references">file reference</a> is not a tree path but names one, and is normalized as it is resolved. A path that breaks any rule above is refused, naming it.</p>
+<p>The <a href="#the-membership-rule">membership rule</a> applies before these rules, so a name it excludes is never checked against them: a name that breaks them is excluded silently, whether the rule excludes it directly, as a pattern naming it does, or it lies inside an excluded directory.</p>
+<p>A tree path is a name, never a storage location. A receiver that stores a file keeps it under its hash, as <a href="#the-file-entry">the file entry</a> carries it, so a tree path may hold accents, spaces or a non-Latin script, and no storage system's naming rules reach an author.</p>
+<h2 id="file-references">File References</h2>
+<p>A <strong>file reference</strong> is a relative path, written in a file of a tree, that names another file of the same tree. It is written in one of two contexts:</p>
+<ul>
+<li><strong>Path context</strong>: a field of a bundle that names a file, whose whole value is the reference's path. Every field that names a method file, whether this specification defines it or an implementation adds it, is a file reference in path context and follows this rule.</li>
+<li><strong>URL context</strong>: a relative URL inside a template, such as the <code>src</code> of an image in an HTML template, whose path is what is left once its query and its fragment are dropped, since they take no part. Only a relative URL with a path is a file reference. A URL that names a <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.1" target="_blank" rel="noopener">scheme</a>, such as <code>https:</code>, <code>data:</code> or <code>mailto:</code>, one that holds an <a href="https://www.rfc-editor.org/rfc/rfc3986#section-3.2" target="_blank" rel="noopener">authority</a>, such as <code>//host/x</code>, and one with no path, such as <code>#top</code>, <code>?v=2</code> or an empty one, are not file references: each is left exactly as written and never refused.</li>
+</ul>
+<div class="highlight"><pre><span></span><code>letters/
+├── METHODS.toml
+├── shared/
+│   └── logo.png
+└── templates/
+    └── letter.html       (holds &lt;img src="../shared/logo.png"&gt;)
+</code></pre></div>
+<p>A file reference is resolved against the directory of the file that holds it, as a relative URL is resolved in a web page, and is refused in one of four ways: as <strong>a malformed reference</strong>, written in a form a file reference never takes; as <strong>not a tree path</strong>, when it is empty or names a file in a way no tree path can, such as with an empty segment or a trailing <code>/</code>; as <strong>leaving the tree</strong>, when it climbs above the root; or as <strong>not in the tree</strong>, when the tree holds no file at the path it resolves to. The steps run in this order, and a reference that fails more than one check is refused by the first step that fails:</p>
+<ol>
+<li><strong>Take its path</strong>, as its context defines it. In path context, an empty reference is refused as not a tree path.</li>
+<li><strong>Check its form.</strong> A reference is written with <code>/</code> separators, so it is refused as malformed when its path holds a backslash or is absolute, starting with <code>/</code>, and, in path context, when it names a scheme or holds an authority.</li>
+<li><strong>Decode it.</strong> In URL context, the path is split into segments at each <code>/</code> before each segment is percent-decoded, so decoding never creates a separator. A segment whose decoding yields a <code>/</code>, a <code>\</code>, a control character, or bytes that are not UTF-8 makes the reference malformed, and so does a <code>%</code> not followed by two hexadecimal digits, as in <code>logo%2.png</code> or <code>100%.png</code>. A reference in path context is never percent-decoded.</li>
+<li><strong>Normalize it to NFC</strong>, so a reference an editor wrote in decomposed form names the same file as one written composed.</li>
+<li><strong>Resolve it.</strong> Take the directory of the holding file's tree path, which is the root for a file at the root, join the path to it with <code>/</code>, and normalize the result lexically: drop each <code>.</code> segment, and let each <code>..</code> segment remove the segment before it. A <code>..</code> that would climb above the root is refused as leaving the tree.</li>
+<li><strong>Check the result.</strong> A result naming the root, with no segment or with only a trailing <code>/</code>, as <code>../</code> held by <code>templates/letter.html</code> resolves to, is the root itself, which this step lets through to the next, where it is refused as not in the tree, its resolved path named <code>.</code>. Any other result that is not a tree path, such as one holding an empty segment, as <code>images/</code> does by ending in <code>/</code> after a name, is refused as not a tree path. The check reads the resolved path, so <code>a//b</code> is refused, while <code>a//../b</code> resolves to <code>a/b</code>, its <code>..</code> having removed the empty segment before it.</li>
+<li><strong>Look it up.</strong> The result MUST name a file of the tree. A result at which the tree holds no file is refused as not in the tree, and so is one naming a directory of the tree, as <code>images/.</code> resolves to <code>images</code>, or the root itself, as <code>a/..</code> does, whose resolved path is named <code>.</code>.</li>
+</ol>
+<p>In the example, <code>../shared/logo.png</code> held by <code>templates/letter.html</code> resolves to <code>shared/logo.png</code>.</p>
+<p><strong>Resolving a reference is a lookup in the tree's set of paths, never a file system access.</strong> A reference can only name a file the tree holds, which is what makes <code>..</code> harmless, and no implementation opens a path that a method's author, or a caller, wrote.</p>
+<p>A reference refused as not in the tree names the reference and the path it resolved to, written <code>.</code> when that is the root. An implementation that listed the tree from a directory also names the rule that excluded the file, when one did, and for a file inside a nested repository or a nested package it names that directory, so an author who meant to ship the file learns why it is not in the tree. In the one-file tree of a <code>.mthds</code> file named alone, the refusal says to run the method's directory or to add a <code>METHODS.toml</code>. That advice belongs to this refusal alone: a reference from a one-file tree that fails an earlier step is refused by that step, as malformed, as not a tree path or as leaving the tree, like any other.</p>
+<h2 id="the-tree-digest">The Tree Digest</h2>
+<p>The <strong>tree digest</strong> identifies a tree by its bytes. It is <code>sha256:</code> followed by the lowercase hexadecimal SHA-256 of the tree's <strong>listing</strong>, which holds one line per file of the tree, sorted by tree path byte for byte, each line being exactly what <code>sha256sum</code> prints for that file: the SHA-256 of the file's bytes in lowercase hexadecimal, two spaces, the file's tree path, and a line feed.</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>greetings/funcs<span class="w"> </span>greetings/templates<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>greetings
+<span class="nb">printf</span><span class="w"> </span><span class="s1">'# Greetings\n'</span><span class="w"> </span>&gt;<span class="w"> </span>README.md
+<span class="nb">printf</span><span class="w"> </span><span class="s1">'domain = "greetings"\n'</span><span class="w"> </span>&gt;<span class="w"> </span>main.mthds
+<span class="nb">printf</span><span class="w"> </span><span class="s1">'def shout(text):\n    return text.upper()\n'</span><span class="w"> </span>&gt;<span class="w"> </span>funcs/text_utils.py
+<span class="nb">printf</span><span class="w"> </span><span class="s1">'&lt;p&gt;Hello&lt;/p&gt;\n'</span><span class="w"> </span>&gt;<span class="w"> </span>templates/card.html
+</code></pre></div>
+<p>The listing of this tree is:</p>
+<div class="highlight"><pre><span></span><code>af12591480ada38cf107d1a76bc5e2e111ad4c7ec5f3a2a63d058f5f5ab6b91c  README.md
+d78fff51f2aea9cb634456d3c83925ae047d967798f28e8a4b3e7b232a1dc097  funcs/text_utils.py
+45b0d6a4796412598db6d328978990fc44563e59057d6e3bfc8419ae3ed3981f  main.mthds
+3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0  templates/card.html
+</code></pre></div>
+<p>and its digest is <code>sha256:801fca61b41566e46d3fb1923e323590da7a539fd3e7af7455e7cba3934d4674</code>.</p>
+<p>The encoding is injective: a hash has a fixed width and a tree path holds no line break, so two different trees never share a listing.</p>
+<h3 id="the-reference-pipeline">The Reference Pipeline</h3>
+<p>Anyone can recompute a digest with coreutils. Given the tree's paths, one per line, sort them in the C locale, pass each to <code>sha256sum</code>, and pass the listing to <code>sha256sum</code> once more:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>greetings
+<span class="nb">printf</span><span class="w"> </span><span class="s1">'%s\n'</span><span class="w"> </span>README.md<span class="w"> </span>funcs/text_utils.py<span class="w"> </span>main.mthds<span class="w"> </span>templates/card.html<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span><span class="nv">LC_ALL</span><span class="o">=</span>C<span class="w"> </span>sort<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span><span class="k">while</span><span class="w"> </span><span class="nv">IFS</span><span class="o">=</span><span class="w"> </span><span class="nb">read</span><span class="w"> </span>-r<span class="w"> </span>f<span class="p">;</span><span class="w"> </span><span class="k">do</span><span class="w"> </span>sha256sum<span class="w"> </span>--<span class="w"> </span><span class="s2">"</span><span class="nv">$f</span><span class="s2">"</span><span class="p">;</span><span class="w"> </span><span class="k">done</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>sha256sum
+<span class="c1"># 801fca61b41566e46d3fb1923e323590da7a539fd3e7af7455e7cba3934d4674  -</span>
+</code></pre></div>
+<p><code>LC_ALL=C</code> is what makes <code>sort</code> order the paths byte for byte. Under another locale it orders them differently, here <code>funcs/text_utils.py</code>, <code>main.mthds</code>, <code>README.md</code>, <code>templates/card.html</code>, and the digest it gives is wrong. <code>shasum -a 256</code> prints the same line format as <code>sha256sum</code> and can stand in for it. A conformance corpus takes its expected digests from this pipeline rather than from any implementation.</p>
+<h3 id="digest-and-fingerprint">Digest and Fingerprint</h3>
+<p>The tree digest and the <a href="../library-crate/#fingerprint">library crate fingerprint</a> answer different questions. The digest changes with any byte of any file and with any tree path, comments and formatting included, so it says whether two trees hold the same files. The fingerprint changes only when what the method means changes, so it says whether two methods do the same thing. The <a href="../lock-format/">lock file</a> records both for each dependency.</p>
+<h2 id="the-file-entry">The File Entry</h2>
+<p>A <strong>file entry</strong> is how one file of a tree travels from one program to another, under its tree path, as its bytes or as their hash. A tree travels as a map from tree path to file entry:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"README.md"</span><span class="p">:</span><span class="w"> </span><span class="s2">"# Greetings\n"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"main.mthds"</span><span class="p">:</span><span class="w"> </span><span class="s2">"domain = \"greetings\"\n"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"funcs/text_utils.py"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"base64"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ZGVmIHNob3V0KHRleHQpOgogICAgcmV0dXJuIHRleHQudXBwZXIoKQo="</span><span class="w"> </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"templates/card.html"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"sha256"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3e9b68b71cc667168399f0bccfb64b2d16314cdc0ed78fac4819aba0dda121a0"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="mi">13</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>This map carries the <code>greetings</code> tree above, so its digest is <code>sha256:801fca61b41566e46d3fb1923e323590da7a539fd3e7af7455e7cba3934d4674</code> whichever form each file travels in. An entry takes exactly one of three forms:</p>
+<ul>
+<li><strong>A string</strong> is the file's text: the file's bytes are the UTF-8 encoding of the string, exactly, with no line ending converted and no byte order mark added. A string holding a code point that UTF-8 cannot encode, such as a lone surrogate, is refused. This is the shorthand that keeps the commonest case, a bundle pasted as text, a one-liner.</li>
+<li><strong><code>{ "base64": "…" }</code></strong> carries any bytes, encoded with the standard Base64 alphabet of <a href="https://www.rfc-editor.org/rfc/rfc4648#section-4" target="_blank" rel="noopener">RFC 4648</a>, padded, with no line breaks, and canonical as <a href="https://www.rfc-editor.org/rfc/rfc4648#section-3.5" target="_blank" rel="noopener">RFC 4648</a> defines it: the pad bits, which the last character before the <code>=</code> padding carries beyond the encoded bytes, are zero. An encoding that breaks any of these, non-zero pad bits included, is not valid Base64, and its entry is refused.</li>
+<li><strong><code>{ "sha256": "…", "size": … }</code></strong> names bytes the receiver already holds: <code>sha256</code> is their SHA-256 in lowercase hexadecimal and <code>size</code> their length in bytes, a JSON integer written without a fraction or an exponent, so a <code>size</code> written <code>13.0</code> is refused. It resolves only in the receiver's own blob store, and a receiver that does not hold those bytes, or holds them with another size, refuses the entry, naming the hash.</li>
+</ul>
+<p>An entry object holds no other key and no key twice, and no entry names a file by URL: a URL form would let a sender point the receiver at an address of its choosing, which is exactly what reading only the files it is sent prevents.</p>
+<p>A map of entries is refused, naming the offending path, when one of its keys:</p>
+<ul>
+<li>is not a <a href="#tree-paths">tree path</a>, which a key not already in NFC is not, since a receiver refuses such a key rather than normalize it, so two keys equal after normalization never both stand; or holds a segment that the membership rule's dot-segment rule or its name defaults exclude (a segment starting with a dot, a <code>__pycache__</code> or <code>node_modules</code> directory, or a file named <code>pyvenv.cfg</code>, <code>inputs.json</code> or <code>inputs.toml</code>), or names a file <code>METHODS.toml</code> anywhere but at the root, since no tree has such a member;</li>
+<li>is given twice in the document, as written or once its JSON escapes are decoded, which a receiver detects in the text it parses rather than keeping one of the values, or holds an entry object that gives one of its own keys twice, which is refused in the same way;</li>
+<li><a href="#tree-paths">collides</a> with another key, or with a directory of another key, such as <code>readme.md</code> beside <code>README.md</code>, <code>STRASSE.txt</code> beside <code>straße.txt</code>, or <code>Templates</code> beside <code>templates/letter.html</code>.</li>
+</ul>
+<p>The collision check reads only the keys that are tree paths the membership rule could admit, and reads a key given twice once, so a repeated key that collides with another breaks the second rule and the third. A key refused under the first rule, as not a tree path or as a name the membership rule could never admit, collides with nothing, just as a name the membership rule excludes from a tree listed from a directory is never checked against the <a href="#tree-paths">tree path rules</a>. So a map holding <code>inputs.json</code> beside <code>Inputs.json</code> is refused naming <code>inputs.json</code> alone, since <code>Inputs.json</code> is a member like any other, and never because the two collide; and a map holding <code>café.txt</code> beside the same name in decomposed form is refused naming the decomposed key alone, which is not a tree path.</p>
+<p>The <strong>entry checks</strong> are the checks an entry's value must pass: that it is a string or an object holding exactly the members of one of the two object forms; that it is valid within its form, a string UTF-8 can encode, Base64 that is padded, without line breaks and canonical, a <code>sha256</code> in lowercase hexadecimal and a <code>size</code> that is a JSON integer written without a fraction or an exponent; and, for a hash entry, that the receiver holds its bytes at the stated size. The entry checks read only the entries of the keys that are tree paths the membership rule could admit, as the collision check does, since a key refused under the first rule names no file a tree could hold. So a map holding <code>inputs.json</code> with the entry <code>{ "base64": "e30" }</code>, which is not padded, is refused naming <code>inputs.json</code> as a name the membership rule could never admit, and never because its entry is malformed; and a map holding <code>templates\card.html</code> as a hash entry whose bytes the receiver does not hold is refused naming that key, which is not a tree path, and never the hash. A key that collides is a tree path the membership rule could admit, so its entry is checked like any other, and a map whose colliding key also carries a malformed entry is refused on both counts. The check that the receiver holds a hash entry's bytes comes last: a receiver refuses a map for the hashes it lacks only when the map breaks no other rule of this section, so a sender never uploads blobs for a map that would be refused anyway.</p>
+<p>A map with no key is refused: a tree holds at least one file.</p>
+<p>The same map is the method source of a request under the <a href="../protocol/#method-files">HTTP Runner Protocol</a>, where a runner that keeps a blob store also lets a sender upload once the files it lacks and send the rest by hash. A map has no order, so no file of it is "the first": a request that names no pipe starts at the method's <code>main_pipe</code>, as the protocol states.</p>
+<h3 id="limits">Limits</h3>
+<p>The standard bounds a tree path's length and nothing else. Each implementation bounds as its own policy a file's size, a tree's file count and its total size, and the total of a request's inline entries, and refuses a tree past one of them with a message naming the limit. A program listing a tree for a receiver whose limits it knows SHOULD count files and sum their sizes as it walks the directory, and stop at the first limit passed, before hashing any file, with a message naming the root, the limit and the count reached, so that a directory handed over by mistake is refused in moments rather than read in full.</p>
+<h2 id="python-modules">Python Modules</h2>
+<p>A <code>PipeFunc</code> names its function by its Python import path from the root of the tree that holds the bundle, which is the import root: <code>function_name = "funcs.text_utils.shout"</code> names the function <code>shout</code> of the module <code>funcs/text_utils.py</code> of the <code>greetings</code> tree, and the modules that one imports are resolved from the same root. The name is normalized to NFC before it is mapped to a module's tree path, as a <a href="#file-references">file reference</a> is at step 4, so a name written in decomposed form finds its module, and each of its segments must be a Python identifier that NFKC normalization leaves unchanged, since Python reads identifiers in NFKC and would otherwise import another file than the tree holds. The rule is the <a href="../mthds-format/#operator-pipefunc">PipeFunc</a> field's own, with an example of each.</p>
+<h2 id="python-dependencies-requirementstxt">Python Dependencies: <code>requirements.txt</code></h2>
+<p>A method whose Python needs third-party packages declares them in a file named <code>requirements.txt</code> at the root of its tree:</p>
+<div class="highlight"><pre><span></span><code># The packages funcs/totals.py imports
+pandas&gt;=2.2,&lt;3
+openpyxl==3.1.5
+tzdata; python_version &gt;= "3.12"
+</code></pre></div>
+<p>Each line is blank, a comment whose first character other than a space or a tab is <code>#</code>, or exactly one requirement written as <a href="https://peps.python.org/pep-0508/" target="_blank" rel="noopener">PEP 508</a> defines it, environment markers included. A requirement naming a URL (<code>name @ https://…</code>), an option of any kind (a line starting with <code>-</code>, such as <code>-e</code>, <code>-r</code>, <code>-c</code> or <code>--index-url</code>), a comment after a requirement, and a line continued with a backslash are refused, naming the line. Only the root's <code>requirements.txt</code> declares anything: a file of that name elsewhere in the tree is an ordinary file.</p>
+<p>The standard specifies the file and nothing about how it is satisfied. A runtime decides how to satisfy it, and a runtime that cannot, such as one whose environment lacks a declared package or holds it at a version the requirement excludes, SHOULD refuse the method when it loads, naming each package it cannot satisfy, rather than fail later inside a function.</p>
+<h2 id="dependencies-are-trees-of-their-own">Dependencies Are Trees of Their Own</h2>
+<p>A package a method depends on is a tree of its own, with its own root and its own digest, and never travels inside the tree that depends on it. The <code>.mthds/</code> directory where a project keeps its installed packages starts with a dot, so it is out of every tree, and a package kept in a directory below another package's root is out of that package's tree by the nested-package default, so the packages of a library repository never hold one another.</p>
+<ul>
+<li>A dependency with a local <code>path</code> is the method tree rooted at that directory, listed under the membership rule like any other.</li>
+<li>A fetched dependency's tree is the set of files of the package's directory in the commit its resolved version points at, <strong>read from the commit's git objects as stored</strong>, with no checkout filter, no line-ending conversion and no <code>export-ignore</code> attribute applied, so its digest is the same on every machine, and <strong>filtered by the membership rule</strong>, reading the <code>.gitignore</code> files that commit holds inside the package's directory and the package's own <code>exclude</code> patterns. A file committed despite a pattern that matches it is therefore out of the published tree as it is out of the local one, a submodule contributes no file, and a symbolic link committed in the package's directory is an error naming its path unless the rule excludes it.</li>
+</ul>
+<p><strong>A tree written out is read back as written.</strong> A copy of a tree that a program writes to disk, such as a package in a cache, holds the tree's files at their tree paths and nothing else, and those files are the tree: a reader takes every file of the copy as a file of the tree and never applies the membership rule to it again. The rule cannot be applied twice, since the <code>.gitignore</code> files that shaped the tree start with a dot and are left out of the copy, so a manifest <code>exclude</code> pattern that one of them overrode with a negation would exclude its file a second time.</p>
+<p>The <a href="../lock-format/">lock file</a> records each fetched dependency's tree digest, which an install checks against the tree it fetched.</p>
+<h2 id="see-also">See Also</h2>
+<ul>
+<li><a href="../mthds-format/#operator-pipefunc"><code>.mthds</code> File Format: PipeFunc</a> — how a step names its function by import path.</li>
+<li><a href="../manifest-format/">METHODS.toml Manifest Format</a> — the root's manifest, its <code>exclude</code> patterns, and Manifest Discovery.</li>
+<li><a href="../lock-format/">methods.lock Format</a> — the lock records each dependency's tree digest.</li>
+<li><a href="../protocol/#method-files">HTTP Runner Protocol</a> — a request's <code>files</code> and the optional blob routes.</li>
+<li><a href="../../packages/distribution/">Distribution</a> — how a package is fetched and cached as a tree.</li>
+</ul>
+        <div id="llms-copy-button" style="position: fixed; z-index: 1100; top: 80px; right: 20px;">
+            <button onclick="copyMarkdownToClipboard()" style="cursor: pointer; background: #007acc; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">Copy Markdown</button>
+        </div>
+        <script>
+        async function copyMarkdownToClipboard() {
+            try {
+                const currentPath = window.location.pathname;
+                const mdPath = currentPath.endsWith('/') ? currentPath + 'index.md' : currentPath.replace(/\.html$/, '.md');
+
+                const response = await fetch(mdPath);
+                if (response.ok) {
+                    const markdown = await response.text();
+                    await navigator.clipboard.writeText(markdown);
+                    // Show feedback
+                    const button = document.querySelector('#llms-copy-button button');
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.style.background = '#28a745';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = '#007acc';
+                    }, 2000);
+                } else {
+                    throw new Error('Markdown file not found');
+                }
+            } catch (err) {
+                console.error('Failed to copy markdown:', err);
+                alert('Failed to copy markdown content');
+            }
+        }
+        </script>
+        
+
+
+
+
+
+
+
+  
+  
+
+
+
+  
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"></path></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer">
+        
+          
+          <a href="../mthds-format/" class="md-footer__link md-footer__link--prev" aria-label="Previous: .mthds File Format">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"></path></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                .mthds File Format
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../native-concepts/" class="md-footer__link md-footer__link--next" aria-label="Next: Native Concept Definitions">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Native Concept Definitions
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"></path></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Reference runtime: <a href="https://github.com/Pipelex/pipelex" target="_blank" rel="noopener">Pipelex</a> (MIT)<br>© 2025-2026 Evotis S.A.S. · <a href="https://www.pipelex.com/privacy-policy" target="_blank" rel="noopener">Privacy policy</a> · <a href="#__consent">Cookie settings</a>
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/mthds-ai/mthds" target="_blank" rel="noopener" title="MTHDS on GitHub" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"></path></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+      <div class="md-consent" data-md-component="consent" id="__consent" hidden>
+        <div class="md-consent__overlay"></div>
+        <aside class="md-consent__inner">
+          <form class="md-consent__form md-grid md-typeset" name="consent">
+            
+
+
+
+<h4>Cookie consent</h4>
+<p>With your consent, mthds.ai uses PostHog, hosted in the European Union, to count visits and see which pages are read, and loads the repository's star and fork counts from GitHub. Nothing is stored until you accept. See the <a href="https://www.pipelex.com/privacy-policy" target="_blank" rel="noopener">privacy policy</a>.</p>
+<input class="md-toggle" type="checkbox" id="__settings">
+<div class="md-consent__settings">
+  <ul class="task-list">
+    
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="github" checked>
+      <span class="task-list-indicator"></span>
+      GitHub
+    </label>
+  </li>
+
+      
+    
+    
+      
+        
+  
+  
+    
+    
+  
+  <li class="task-list-item">
+    <label class="task-list-control">
+      <input type="checkbox" name="analytics" checked>
+      <span class="task-list-indicator"></span>
+      PostHog
+    </label>
+  </li>
+
+      
+    
+  </ul>
+</div>
+<div class="md-consent__controls">
+  
+    
+      <button class="md-button md-button--primary">Accept</button>
+    
+    
+    
+  
+    
+    
+      <button type="reset" class="md-button md-button--primary">Reject</button>
+    
+    
+  
+    
+    
+    
+      <label class="md-button" for="__settings">Manage settings</label>
+    
+  
+</div>
+          </form>
+        </aside>
+      </div>
+      <script>var consent=__md_get("__consent");if(consent)for(var input of document.forms.consent.elements)input.name&&(input.checked=consent[input.name]||!1);else"file:"!==location.protocol&&setTimeout((function(){document.querySelector("[data-md-component=consent]").hidden=!1}),250);var form=document.forms.consent;for(var action of["submit","reset"])form.addEventListener(action,(function(e){if(e.preventDefault(),"reset"===e.type)for(var n of document.forms.consent.elements)n.name&&(n.checked=!1);__md_set("__consent",Object.fromEntries(Array.from(new FormData(form).keys()).map((function(e){return[e,!0]})))),location.hash="",location.reload()}))</script>
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.footer", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  
+<script id="init-glightbox">document.querySelectorAll('.glightbox').forEach(function(element) {
+    try {
+        var img = element.querySelector('img');
+        if (img && img.src) {
+            element.setAttribute('href', img.src);
+        } else {
+            console.log('No img element with src attribute found');
+        }
+    } catch (error) {
+        console.log('Error:', error);
+    }
+});
+const lightbox = GLightbox({"touchNavigation": true, "loop": false, "zoomable": true, "draggable": true, "openEffect": "zoom", "closeEffect": "zoom", "slideEffect": "slide"});
+document$.subscribe(()=>{ lightbox.reload(); });
+</script></body></html>

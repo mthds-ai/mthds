@@ -2,7 +2,7 @@
 
 Every code of the MTHDS core error registry has a page here, at the URL a problem's `type` names: `https://mthds.ai/errors/<code>`. Each page says what its code means, who must act and what to do, and gives the code's steps, parameters and templates. The [Error Registry](../spec/error-registry.md) page describes the registry itself, and the [HTTP Runner Protocol](../spec/protocol.md#errors) how a problem document carries a code.
 
-These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `8.0.0` of the registry.
+These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `8.0.1` of the registry.
 
 ## Extension prefixes
 
@@ -60,9 +60,9 @@ A run's inputs.
 |---|---|---|---|---|
 | [`input.missing`](input/missing.md) | A required input is missing | `input` | `no` | `422` |
 | [`input.unexpected`](input/unexpected.md) | An input the method does not declare | `input` | `no` | `422` |
-| [`input.wrong_concept`](input/wrong_concept.md) | An input is not the declared concept | `input` | `no` | `422` |
-| [`input.wrong_multiplicity`](input/wrong_multiplicity.md) | An input has the wrong number of items | `input` | `no` | `422` |
-| [`input.invalid`](input/invalid.md) | An input does not fit its concept's structure | `input` | `no` | `422` |
+| [`input.wrong_concept`](input/wrong_concept.md) | An input is not of the kind the method declares | `input` | `no` | `422` |
+| [`input.wrong_multiplicity`](input/wrong_multiplicity.md) | An input has the wrong form or the wrong number of items | `input` | `no` | `422` |
+| [`input.invalid`](input/invalid.md) | An input does not have the structure the method declares | `input` | `no` | `422` |
 | [`input.file_unreadable`](input/file_unreadable.md) | An input file cannot be read | `input` | `no` | `422` |
 | [`input.file_type_unsupported`](input/file_type_unsupported.md) | An input file's type is not supported here | `input` | `no` | `422` |
 | [`input.too_large`](input/too_large.md) | An input exceeds a size limit | `input` | `no` | `422` |
@@ -122,19 +122,19 @@ A pipe failing at run time because of what the method does.
 
 | Code | Title | Domain | Retry | Status |
 |---|---|---|---|---|
-| [`pipe.output_multiplicity`](pipe/output_multiplicity.md) | A pipe's output does not have the declared multiplicity | `method` | `no` | `422` |
-| [`pipe.output_invalid`](pipe/output_invalid.md) | A pipe's output does not fit its concept | `method` | `no` | `422` |
-| [`pipe.function_raised`](pipe/function_raised.md) | The method's function raised | `method` | `no` | `422` |
+| [`pipe.output_multiplicity`](pipe/output_multiplicity.md) | A step produced a list instead of one result, or the reverse | `method` | `no` | `422` |
+| [`pipe.output_invalid`](pipe/output_invalid.md) | A step's result does not have the structure the method declares | `method` | `no` | `422` |
+| [`pipe.function_raised`](pipe/function_raised.md) | The method's function failed | `method` | `no` | `422` |
 | [`pipe.function_timed_out`](pipe/function_timed_out.md) | The method's function ran past its time limit | `method` | `no` | `422` |
-| [`pipe.template_render_failed`](pipe/template_render_failed.md) | A template failed to render | `method` | `no` | `422` |
-| [`pipe.template_budget_exceeded`](pipe/template_budget_exceeded.md) | A template exceeded its render budget | `method` | `no` | `422` |
+| [`pipe.template_render_failed`](pipe/template_render_failed.md) | A template in the method could not be filled in | `method` | `no` | `422` |
+| [`pipe.template_budget_exceeded`](pipe/template_budget_exceeded.md) | A template in the method tried to do more than it may | `method` | `no` | `422` |
 | [`pipe.condition_unmatched`](pipe/condition_unmatched.md) | A condition matched no outcome | `method` | `no` | `422` |
 | [`pipe.condition_refused`](pipe/condition_refused.md) | The method refused these inputs | `input` | `no` | `422` |
-| [`pipe.binding_failed`](pipe/binding_failed.md) | A binding step could not bind its value | `method` | `no` | `422` |
-| [`pipe.input_unresolved`](pipe/input_unresolved.md) | A pipe could not read a value it needs | `method` | `no` | `422` |
-| [`pipe.forced_input_absent`](pipe/forced_input_absent.md) | A forced input was absent | `method` | `no` | `422` |
-| [`pipe.prompt_empty`](pipe/prompt_empty.md) | A pipe's prompt is empty | `input` | `no` | `422` |
-| [`pipe.stack_overflow`](pipe/stack_overflow.md) | The run nested pipes deeper than the limit | `method` | `no` | `422` |
+| [`pipe.binding_failed`](pipe/binding_failed.md) | A step could not find a field in the value it reads | `method` | `no` | `422` |
+| [`pipe.input_unresolved`](pipe/input_unresolved.md) | A step could not read a value it needs | `method` | `no` | `422` |
+| [`pipe.forced_input_absent`](pipe/forced_input_absent.md) | A value the method counts on was missing | `method` | `no` | `422` |
+| [`pipe.prompt_empty`](pipe/prompt_empty.md) | A step's prompt came out empty | `input` | `no` | `422` |
+| [`pipe.stack_overflow`](pipe/stack_overflow.md) | The run nested its steps deeper than the limit | `method` | `no` | `422` |
 
 ## model
 
@@ -147,8 +147,8 @@ The model a step names.
 | [`model.unspecified`](model/unspecified.md) | No model is named for this step | `method` | `no` | `422` |
 | [`model.capability_unsupported`](model/capability_unsupported.md) | The model cannot do what the step asks | `method` | `no` | `422` |
 | [`model.context_exceeded`](model/context_exceeded.md) | The inputs exceed what the model can read | `input` | `no` | `422` |
-| [`model.output_truncated`](model/output_truncated.md) | The answer was cut at the method's token cap | `method` | `no` | `422` |
-| [`model.output_schema_mismatch`](model/output_schema_mismatch.md) | The model's structured output did not match its schema | `runtime` | `yes` | `502` |
+| [`model.output_truncated`](model/output_truncated.md) | The model's answer was cut off at the method's length limit | `method` | `no` | `422` |
+| [`model.output_schema_mismatch`](model/output_schema_mismatch.md) | The model's answer did not have the expected structure | `runtime` | `yes` | `502` |
 | [`model.content_refused`](model/content_refused.md) | The provider refused the content | `input` | `no` | `422` |
 | [`model.no_result`](model/no_result.md) | The model found nothing for this request | `input` | `no` | `422` |
 
@@ -196,8 +196,8 @@ Refusals made for safety. An implementation may also record each one as a securi
 | [`security.provider_url_refused`](security/provider_url_refused.md) | A URL a provider returned was refused | `runtime` | `no` | `502` |
 | [`security.input_path_refused`](security/input_path_refused.md) | A path the caller supplied was refused | `input` | `no` | `422` |
 | [`security.method_path_refused`](security/method_path_refused.md) | A path the method names was refused | `method` | `no` | `422` |
-| [`security.template_refused`](security/template_refused.md) | A template was refused by the template sandbox | `method` | `no` | `422` |
-| [`security.schema_refused`](security/schema_refused.md) | An output schema was refused | `method` | `no` | `422` |
+| [`security.template_refused`](security/template_refused.md) | A template in the method reached for something it may not use | `method` | `no` | `422` |
+| [`security.schema_refused`](security/schema_refused.md) | The method declares an output structure the runtime refuses | `method` | `no` | `422` |
 | [`security.integrity_mismatch`](security/integrity_mismatch.md) | A dependency's content differs from its lock | `method` | `no` | `422` |
 
 ## runtime

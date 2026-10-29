@@ -75,7 +75,9 @@ The map must form a tree. A runner refuses with a `422` naming the offending pat
 - two paths [collide](./method-tree.md#tree-paths), or one collides with a directory of another, under the Unicode full case folding the method tree defines, such as `readme.md` beside `README.md`, `STRASSE.txt` beside `straße.txt`, or `Templates` beside `templates/letter.html`;
 - an entry is malformed, such as Base64 whose pad bits are not zero, or a `size` written `13.0`.
 
-A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. A runner without a blob store, or one that does not hold every hash a request names, answers with a `422` problem coded `request.blobs_missing`, whose `params.missing_blobs` lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer which files to supply:
+As the method tree's [file entry](./method-tree.md#the-file-entry) rules state, the collision check reads only the keys that are tree paths the membership rule could admit, and reads a key given twice once, so a map holding `inputs.json` beside `Inputs.json` is refused naming `inputs.json` alone, never because the two collide. The [entry checks](./method-tree.md#the-file-entry), an entry's form, its validity within that form and whether the runner holds the bytes a hash entry names, read the entries of those keys alone, so a map holding `inputs.json` with a malformed entry, or with a hash entry the runner lacks, is refused for its name, never for its entry. The check of a hash entry's bytes comes last, so a runner answers `request.blobs_missing` only for a map that breaks none of the rules above, and a sender never uploads blobs for a map that would be refused anyway.
+
+A hash entry resolves only in the runner's own blob store, and only when the runner holds those bytes at the stated size. For a map that breaks none of the rules above, a runner without a blob store, or one that does not hold every hash the map names, answers with a `422` problem coded `request.blobs_missing`, whose `params.missing_blobs` lists, in lowercase hexadecimal, each hash it does not hold, so a sender learns in one answer which files to supply:
 
 ```json
 {
@@ -215,7 +217,7 @@ The status read answers `200` with the run's `pipeline_run_id`, its `status`, an
   "status": "failed",
   "error": {
     "type": "https://mthds.ai/errors/pipe.output_multiplicity",
-    "title": "A pipe's output does not have the declared multiplicity",
+    "title": "A step produced a list instead of one result, or the reverse",
     "detail": "Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item.",
     "code": "pipe.output_multiplicity",
     "domain": "method",
@@ -323,7 +325,7 @@ Every code in the table below is a core code that the run reads and idempotency 
 
 ```json
 {
-  "protocol_version": "2.0.0",
+  "protocol_version": "2.0.1",
   "runner_version": "2.3.0",
   "blob_store": true,
   "run_store": true
@@ -362,7 +364,7 @@ Every error a runner answers is a problem document of [RFC 9457](https://www.rfc
 ```json
 {
   "type": "https://mthds.ai/errors/pipe.output_multiplicity",
-  "title": "A pipe's output does not have the declared multiplicity",
+  "title": "A step produced a list instead of one result, or the reverse",
   "status": 422,
   "detail": "Pipe 'extract_clauses' produced a list, but its output 'clause' is declared as a single item.",
   "code": "pipe.output_multiplicity",
@@ -424,7 +426,7 @@ The domain answers the first question a reader has: can I fix this myself, and i
 
 | Domain | Who acts | Examples |
 |---|---|---|
-| `input` | The caller, by changing the request or its inputs | A required input is missing; an input is not the declared concept; a request body is malformed; the runner does not hold a file sent by hash. |
+| `input` | The caller, by changing the request or its inputs | A required input is missing; an input is not of the kind the method declares; a request body is malformed; the runner does not hold a file sent by hash. |
 | `method` | The method's author, by changing the method | The method does not validate; a pipe's output has the wrong multiplicity at run time; the method names a model that exists nowhere. |
 | `account` | The account's owner | A refused credential; a missing permission; an exhausted quota. |
 | `operator` | Whoever runs the runtime | The method names a model that exists, but this runner serves no backend for it; a misconfigured server. |
@@ -1321,7 +1323,7 @@ Protocol and runner versions.<p class="responses-title"><strong>Responses</stron
                     "blob_store": {
                         "type": "boolean",
                         "default": false,
-                        "description": "True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers any hash entry with a 422 coded request.blobs_missing, listing the hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.\n"
+                        "description": "True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers a files map that breaks no other rule but holds hash entries with a 422 coded request.blobs_missing, listing their hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.\n"
                     },
                     "run_store": {
                         "type": "boolean",
@@ -2460,7 +2462,7 @@ A completed run's output, as /execute answers it.
         <tr>
             <td><code>missing_blobs</code></td>
             <td>Array&lt;<span class="string-type">string</span>&gt;</td>
-            <td>Carried by the protocol's own refusal of hash entries, request.blobs_missing: every hash of the request the runner does not hold, in lowercase hexadecimal.
+            <td>Carried by the protocol's own refusal of hash entries, request.blobs_missing: every hash the request's files map names that the runner does not hold, in lowercase hexadecimal, for a map that breaks no other rule.
 </td>
         </tr>
     </tbody>
@@ -2904,7 +2906,7 @@ A completed run's output, as /execute answers it.
         <tr>
             <td><code>blob_store</code></td>
             <td><span class="boolean-type">boolean</span></td>
-            <td>True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers any hash entry with a 422 coded request.blobs_missing, listing the hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.
+            <td>True when the runner keeps a blob store: it serves POST /blobs/missing and resolves hash entries in a files map. False or absent when it does not, in which case it answers a files map that breaks no other rule but holds hash entries with a 422 coded request.blobs_missing, listing their hashes in params.missing_blobs, and serves no upload route, so a sender sends those files inline instead.
 </td>
         </tr>
         <tr>
@@ -2966,7 +2968,7 @@ An RFC 9457 problem document carrying the MTHDS core members. As the body of an 
 
 
 ### ValidationProblem
-A 422 problem document. On /execute and /start a method that does not validate also lands here, one item per fault in errors; on /validate an invalid method is a 200 verdict, so there a 422 is about the request alone. A request whose files map is not a tree is a 422 naming the offending path, and a request naming a hash entry the runner does not hold, or any hash entry when it keeps no blob store, is a 422 coded request.blobs_missing whose params.missing_blobs lists each such hash. Like every problem response, it always carries status.
+A 422 problem document. On /execute and /start a method that does not validate also lands here, one item per fault in errors; on /validate an invalid method is a 200 verdict, so there a 422 is about the request alone. A request whose files map is not a tree is a 422 naming the offending path, and a request whose files map breaks no other rule but names a hash entry the runner does not hold, or any hash entry when it keeps no blob store, is a 422 coded request.blobs_missing whose params.missing_blobs lists each such hash. Like every problem response, it always carries status.
 
 
 <p class="message-separator"></p>
