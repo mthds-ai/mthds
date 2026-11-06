@@ -365,6 +365,7 @@ This section consolidates the validation rules scattered throughout this specifi
 10. Domain paths in `[exports]` MUST be valid domain codes and MUST NOT use reserved domains.
 11. All pipe codes in `[exports]` MUST be valid `snake_case`.
 12. `exclude`, if present, MUST be an array of strings, none holding a line break.
+13. `categories`, if present, MUST be an array of strings, each matching `^[a-z0-9]+(-[a-z0-9]+)*$`. A repeated entry and a value the implementation does not know are not errors.
 
 ### Package-Level Validation
 
