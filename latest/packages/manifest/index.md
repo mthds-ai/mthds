@@ -13,7 +13,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=8.0.1"
+mthds_version = ">=8.1.0"
 main_pipe     = "analyze_nda"
 
 [exports.legal]
@@ -41,9 +41,10 @@ The `[package]` section defines the package's identity:
 | `description` | Yes | Human-readable summary of the package's purpose. Must not be empty. |
 | `authors` | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | No | [SPDX license identifier](https://spdx.org/licenses/) (e.g., `"MIT"`, `"Apache-2.0"`). |
-| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `8.0.1`. |
+| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `8.1.0`. |
 | `main_pipe` | No | The package's entry-point pipe. Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe) below. |
 | `exclude` | No | Patterns, in `.gitignore` syntax, naming files to keep out of the package's method tree. See [Exclude](#exclude) below. |
+| `categories` | No | The categories the method belongs to, as lowercase slugs (e.g., `["legal", "customer-support"]`). See [Categories](#categories) below. |
 
 ## Package Addresses
 
@@ -112,6 +113,22 @@ exclude = ["samples/", "*.psd"]
 ```
 
 Each entry is one pattern written as it would be in a `.gitignore` file, read from the package's root. See [Specification: Exclude](../spec/manifest-format.md#exclude) for the exact rules.
+
+## Categories
+
+The `categories` field declares the categories a method belongs to, like tags, so that a catalog of methods can offer it to a person browsing by category. A method can declare several:
+
+```toml
+[package]
+name       = "nda_analyzer"
+address    = "github.com/acme/legal-tools"
+version    = "0.3.0"
+categories = ["legal", "compliance"]
+```
+
+Each entry is a lowercase slug: letters and digits, with single hyphens between words, such as `customer-support`. Repeating an entry means nothing, and neither does the order.
+
+The standard keeps no list of categories. Each catalog decides which values it knows and ignores the others, so look up the values of the catalog you want to appear in. A tool that does not display categories simply carries them. See [Specification: Categories](../spec/manifest-format.md#categories) for the exact rules.
 
 ## The `[dependencies]` Section
 

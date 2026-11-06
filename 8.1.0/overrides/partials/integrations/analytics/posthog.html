@@ -1,0 +1,90 @@
+{#- PostHog, started only with the visitor's consent.
+
+  `extra.analytics.provider: posthog` in mkdocs.yml makes Material include this file in
+  every page's head and call `__md_analytics()` only when the choice stored by its consent
+  banner (`extra.consent`) has `analytics: true`. Without that consent, PostHog's code is
+  never fetched.
+
+  The rest of this file runs on every page load, whatever the choice:
+
+  - Without analytics consent, it clears what PostHog stored on an earlier visit, made
+    before the banner existed or before the visitor withdrew (Material reloads the page
+    after every choice). The names are those pipelex.com clears, in its
+    `src/lib/analyticsCleanup.ts` and `clearPostHogPersistence`.
+  - It keeps the banner from presenting any purpose as already chosen. Material ticks
+    every box of the "Manage settings" panel until a choice is stored, and "Accept" stores
+    whatever is ticked. So the boxes are unticked on a first visit, and "Accept" pressed
+    with the panel closed ticks them all first, so that it accepts everything, after an
+    earlier rejection too. With the panel open, "Accept" stores what the visitor ticked.
+    Both depend on the names Material's `partials/consent.html` gives the form (`consent`)
+    and the panel's toggle (`__settings`).
+
+  404.html includes this file without Material's caller, so the 404 page keeps the
+  cleanup and the banner's behaviour but never starts PostHog. -#}
+{% set posthog_key = "phc_LRwe2lybfPTNCzAT1ScpnsWznrxAvmc1pmCaXEr1hwJ" %}
+<script>
+  function __md_analytics() {
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once unregister opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing identify alias people.set people.set_once set_config reset get_distinct_id getFeatureFlag getFeatureFlagPayload isFeatureEnabled onFeatureFlags reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init("{{ posthog_key }}", {
+      api_host: "https://eu.i.posthog.com",
+      person_profiles: "identified_only",
+      // The privacy policy describes page-view analytics on this site, never recordings,
+      // so replay stays off even if the PostHog project turns it on remotely.
+      disable_session_recording: true
+    });
+  }
+
+  (function () {
+    var consent = __md_get("__consent");
+
+    if (!(consent && consent.analytics)) {
+      var cookie = "ph_{{ posthog_key }}_posthog";
+      var expired = "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; path=/";
+      document.cookie = cookie + expired;
+      // PostHog sets its cookie on the widest domain it may, so try the host and each
+      // parent domain. A host name that is an IP address has no parent domain.
+      var labels = location.hostname.split(".");
+      if (!/^[\d.]+$/.test(location.hostname)) {
+        for (var i = 0; i < labels.length - 1; i++) {
+          document.cookie = cookie + expired + "; domain=" + labels.slice(i).join(".");
+        }
+      }
+      // PostHog keeps its persistence in localStorage beside the cookie, and its window
+      // and tab identifiers in sessionStorage, all under the `ph_<key>_` prefix.
+      var prefixes = ["ph_{{ posthog_key }}_", "ph_debug"];
+      try {
+        [localStorage, sessionStorage].forEach(function (storage) {
+          Object.keys(storage).forEach(function (key) {
+            if (prefixes.some(function (prefix) { return key.indexOf(prefix) === 0; })) {
+              storage.removeItem(key);
+            }
+          });
+        });
+      } catch (error) {
+        // Storage can be disabled or blocked; nothing was stored there either.
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      var form = document.forms.consent;
+      if (form && !__md_get("__consent")) {
+        setPurposes(form, false);
+      }
+    });
+    // Capturing on the document runs before the listener Material puts on the form.
+    document.addEventListener("submit", function (event) {
+      var form = document.forms.consent;
+      if (event.target === form && !form.elements.__settings.checked) {
+        setPurposes(form, true);
+      }
+    }, true);
+
+    function setPurposes(form, checked) {
+      for (var input of form.elements) {
+        if (input.name) {
+          input.checked = checked;
+        }
+      }
+    }
+  })();
+</script>

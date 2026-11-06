@@ -2,7 +2,7 @@
 
 Every code of the MTHDS core error registry has a page here, at the URL a problem's `type` names: `https://mthds.ai/errors/<code>`. Each page says what its code means, who must act and what to do, and gives the code's steps, parameters and templates. The [Error Registry](../spec/error-registry.md) page describes the registry itself, and the [HTTP Runner Protocol](../spec/protocol.md#errors) how a problem document carries a code.
 
-These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `8.0.1` of the registry.
+These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `8.1.0` of the registry.
 
 ## Extension prefixes
 

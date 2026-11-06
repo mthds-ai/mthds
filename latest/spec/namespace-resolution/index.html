@@ -4048,6 +4048,7 @@
 <li>Domain paths in <code>[exports]</code> MUST be valid domain codes and MUST NOT use reserved domains.</li>
 <li>All pipe codes in <code>[exports]</code> MUST be valid <code>snake_case</code>.</li>
 <li><code>exclude</code>, if present, MUST be an array of strings, none holding a line break.</li>
+<li><code>categories</code>, if present, MUST be an array of strings, each matching <code>^[a-z0-9]+(-[a-z0-9]+)*$</code>. A repeated entry and a value the implementation does not know are not errors.</li>
 </ol>
 <h3 id="package-level-validation">Package-Level Validation</h3>
 <ol>

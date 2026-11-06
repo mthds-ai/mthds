@@ -2010,6 +2010,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#categories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Categories
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3360,6 +3371,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#categories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Categories
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3621,6 +3643,12 @@
 <td>No</td>
 <td>Patterns, in <code>.gitignore</code> syntax, naming files to keep out of the package's method tree. See <a href="#exclude">Exclude</a>.</td>
 </tr>
+<tr>
+<td><code>categories</code></td>
+<td>array of strings</td>
+<td>No</td>
+<td>The categories the method belongs to, as lowercase slugs. Each entry MUST match <code>^[a-z0-9]+(-[a-z0-9]+)*$</code>. Default: empty list. See <a href="#categories">Categories</a>.</td>
+</tr>
 </tbody>
 </table>
 <h3 id="address-format">Address Format</h3>
@@ -3675,7 +3703,7 @@ acme/legal-tools                # No dot in hostname
 <p><strong>Examples:</strong> <code>1.0.0</code>, <code>0.3.0</code>, <code>2.1.3-beta.1</code>, <code>1.0.0-rc.1+build.42</code></p>
 <h3 id="mthds_version-constraints">mthds_version Constraints</h3>
 <p>The <code>mthds_version</code> field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see <a href="#version-constraint-syntax">Version Constraint Syntax</a>).</p>
-<p>The current MTHDS standard version is <code>8.0.1</code>. See <a href="../versioning/">Versioning</a> for what moves it.</p>
+<p>The current MTHDS standard version is <code>8.1.0</code>. See <a href="../versioning/">Versioning</a> for what moves it.</p>
 <h3 id="main-pipe">Main Pipe</h3>
 <p>The optional <code>main_pipe</code> field designates the package's primary entry point — the pipe that runs when a user invokes the package by name or address:</p>
 <div class="highlight"><pre><span></span><code>mthds<span class="w"> </span>run<span class="w"> </span>method<span class="w"> </span>nda_analyzer
@@ -3708,6 +3736,38 @@ mthds<span class="w"> </span>run<span class="w"> </span>method<span class="w"> <
 <li>The patterns are read relative to the package's root, as git reads <code>core.excludesFile</code>, below every <code>.gitignore</code> file of the tree in precedence. <a href="../method-tree/#the-membership-rule">The Membership Rule</a> states how they combine with the tree's other exclusions.</li>
 <li>Each pattern is normalized to NFC before it is matched, as <a href="../method-tree/#the-membership-rule">the membership rule</a> normalizes every pattern, so a pattern written in decomposed form matches the same names as one written composed.</li>
 </ul>
+<h3 id="categories">Categories</h3>
+<p>The optional <code>categories</code> field declares the categories a method belongs to, like tags, so that a catalog can offer the method to a person browsing by category. A catalog is anything that lists methods for people to browse, such as a <a href="../../packages/registry/">registry</a>. A method MAY declare several:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[package]</span>
+<span class="n">name</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"nda_analyzer"</span>
+<span class="n">address</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"github.com/acme/legal-tools"</span>
+<span class="n">version</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s2">"0.3.0"</span>
+<span class="n">categories</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"legal"</span><span class="p">,</span><span class="w"> </span><span class="s2">"compliance"</span><span class="p">]</span>
+</code></pre></div>
+<p>A category belongs to the method as a whole, which is why it sits in the manifest and not on a bundle: a <a href="../mthds-format/#domain-naming-rules">domain</a> names a namespace of code, and a category is something a person browses by.</p>
+<p>Each entry is a <strong>slug</strong>.</p>
+<p><strong>Pattern:</strong> <code>^[a-z0-9]+(-[a-z0-9]+)*$</code></p>
+<p>In plain language: a slug is one or more runs of lowercase ASCII letters and digits, joined by single hyphens, and it holds nothing else. It has no uppercase letter, underscore, space or line break, and it does not start or end with a hyphen.</p>
+<p><strong>Examples of valid entries:</strong></p>
+<div class="highlight"><pre><span></span><code>legal
+customer-support
+3d-printing
+</code></pre></div>
+<p><strong>Examples of invalid entries:</strong></p>
+<div class="highlight"><pre><span></span><code>Legal                # Uppercase letter
+customer_support     # Underscore
+customer--support    # Doubled hyphen
+-legal               # Leading hyphen
+</code></pre></div>
+<p><strong>Constraints:</strong></p>
+<ul>
+<li>Each entry MUST be a string that matches the pattern as a whole. A compliant implementation that validates a manifest MUST refuse a manifest holding an entry that does not.</li>
+<li>Duplicates mean nothing: <code>["legal", "legal"]</code> declares exactly what <code>["legal"]</code> declares, and a compliant implementation MUST NOT refuse a manifest for repeating an entry.</li>
+<li>The order of the entries means nothing.</li>
+<li>An empty array declares no category, as leaving the field out does.</li>
+</ul>
+<p><strong>The values are each catalog's.</strong> The standard defines the field and its pattern, and no list of values: no slug has a meaning of its own here, and the slugs on this page are only examples. Each catalog decides which values it knows and ignores the others, as crates.io does with Cargo's <code>categories</code>, so a value that one catalog knows may mean nothing to another. A value a tool does not know is never an error: a compliant implementation MUST NOT refuse a manifest because it does not know a value that matches the pattern.</p>
+<p><strong>A tool that does not display categories simply carries them.</strong> A compliant tool with no use for categories accepts the field, and leaves it as written in any manifest it copies or rewrites.</p>
 <h2 id="the-dependencies-section">The <code>[dependencies]</code> Section</h2>
 <div class="admonition note">
 <p class="admonition-title">Implementation status</p>
@@ -3951,9 +4011,10 @@ mthds<span class="w"> </span>run<span class="w"> </span>method<span class="w"> <
 <span class="n">description</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"Legal document analysis and contract review methods."</span>
 <span class="n">authors</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"ACME Legal Tech &lt;legal@acme.com&gt;"</span><span class="p">]</span>
 <span class="n">license</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"MIT"</span>
-<span class="n">mthds_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"&gt;=8.0.1"</span>
+<span class="n">mthds_version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"&gt;=8.1.0"</span>
 <span class="n">main_pipe</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s2">"analyze_nda"</span>
 <span class="n">exclude</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"drafts/"</span><span class="p">]</span>
+<span class="n">categories</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"legal"</span><span class="p">,</span><span class="w"> </span><span class="s2">"compliance"</span><span class="p">]</span>
 
 <span class="k">[exports.legal]</span>
 <span class="n">pipes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"classify_document"</span><span class="p">]</span>
