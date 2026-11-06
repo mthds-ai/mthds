@@ -1,12 +1,16 @@
 # Changelog
 
-## [Unreleased]
+## [v8.1.0] - 2026-11-06
 
-**Next release: v8.1.0 · MTHDS standard 8.1.0 · MTHDS Protocol 2.0.1**
+**MTHDS standard 8.1.0 · MTHDS Protocol 2.0.1**
 
 ### Added
 
 - **A manifest declares the categories a method belongs to** (`spec/manifest-format.md`, `spec/namespace-resolution.md`, `implementers/validation-rules.md`, `packages/manifest.md`): `[package]` gains the optional `categories`, an array of lowercase slugs matching `^[a-z0-9]+(-[a-z0-9]+)*$`, such as `["legal", "customer-support"]`, and a manifest holding an entry that breaks the pattern is invalid. Duplicates and the order of the entries mean nothing. The standard lists no values: each catalog decides which it knows and ignores the others, and a compliant tool that does not display categories simply carries them.
+
+### Changed
+
+- **Documentation versions served on mthds.ai**: this release stops serving `8.0.0`, so links into that version no longer resolve and should point at `/latest/`. The site serves `8.1.0`, which `/latest/` also serves, and `8.0.1`, and keeps both numbered directories out of search indexes, so that only `/latest/` is indexed.
 
 ## [v8.0.1] - 2026-10-29
 
