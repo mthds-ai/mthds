@@ -34,6 +34,7 @@ A `METHODS.toml` file contains up to three top-level sections:
 | `mthds_version` | string | No | MTHDS standard version constraint. If set, MUST be a valid version constraint. |
 | `main_pipe` | string | No | The package's entry-point pipe code. MUST be `snake_case` (matching `[a-z][a-z0-9_]*`). Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe). |
 | `exclude` | array of strings | No | Patterns, in `.gitignore` syntax, naming files to keep out of the package's method tree. See [Exclude](#exclude). |
+| `categories` | array of strings | No | The categories the method belongs to, as lowercase slugs. Each entry MUST match `^[a-z0-9]+(-[a-z0-9]+)*$`. Default: empty list. See [Categories](#categories). |
 
 ### Address Format
 
@@ -117,7 +118,7 @@ MAJOR.MINOR.PATCH[-pre-release][+build-metadata]
 
 The `mthds_version` field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see [Version Constraint Syntax](#version-constraint-syntax)).
 
-The current MTHDS standard version is `8.0.1`. See [Versioning](./versioning.md) for what moves it.
+The current MTHDS standard version is `8.1.0`. See [Versioning](./versioning.md) for what moves it.
 
 ### Main Pipe
 
@@ -161,6 +162,54 @@ exclude = ["samples/", "*.psd"]
 - Each entry is one pattern in the syntax of a `.gitignore` file, as [gitignore](https://git-scm.com/docs/gitignore) documents it, and MUST NOT hold a line break. An entry starting with `#` is a comment, as it would be in a `.gitignore` file, and `\#` escapes it.
 - The patterns are read relative to the package's root, as git reads `core.excludesFile`, below every `.gitignore` file of the tree in precedence. [The Membership Rule](./method-tree.md#the-membership-rule) states how they combine with the tree's other exclusions.
 - Each pattern is normalized to NFC before it is matched, as [the membership rule](./method-tree.md#the-membership-rule) normalizes every pattern, so a pattern written in decomposed form matches the same names as one written composed.
+
+### Categories
+
+The optional `categories` field declares the categories a method belongs to, like tags, so that a catalog can offer the method to a person browsing by category. A catalog is anything that lists methods for people to browse, such as a [registry](../packages/registry.md). A method MAY declare several:
+
+```toml
+[package]
+name       = "nda_analyzer"
+address    = "github.com/acme/legal-tools"
+version    = "0.3.0"
+categories = ["legal", "compliance"]
+```
+
+A category belongs to the method as a whole, which is why it sits in the manifest and not on a bundle: a [domain](./mthds-format.md#domain-naming-rules) names a namespace of code, and a category is something a person browses by.
+
+Each entry is a **slug**.
+
+**Pattern:** `^[a-z0-9]+(-[a-z0-9]+)*$`
+
+In plain language: a slug is one or more runs of lowercase ASCII letters and digits, joined by single hyphens, and it holds nothing else. It has no uppercase letter, underscore, space or line break, and it does not start or end with a hyphen.
+
+**Examples of valid entries:**
+
+```
+legal
+customer-support
+3d-printing
+```
+
+**Examples of invalid entries:**
+
+```
+Legal                # Uppercase letter
+customer_support     # Underscore
+customer--support    # Doubled hyphen
+-legal               # Leading hyphen
+```
+
+**Constraints:**
+
+- Each entry MUST be a string that matches the pattern as a whole. A compliant implementation that validates a manifest MUST refuse a manifest holding an entry that does not.
+- Duplicates mean nothing: `["legal", "legal"]` declares exactly what `["legal"]` declares, and a compliant implementation MUST NOT refuse a manifest for repeating an entry.
+- The order of the entries means nothing.
+- An empty array declares no category, as leaving the field out does.
+
+**The values are each catalog's.** The standard defines the field and its pattern, and no list of values: no slug has a meaning of its own here, and the slugs on this page are only examples. Each catalog decides which values it knows and ignores the others, as crates.io does with Cargo's `categories`, so a value that one catalog knows may mean nothing to another. A value a tool does not know is never an error: a compliant implementation MUST NOT refuse a manifest because it does not know a value that matches the pattern.
+
+**A tool that does not display categories simply carries them.** A compliant tool with no use for categories accepts the field, and leaves it as written in any manifest it copies or rewrites.
 
 ## The `[dependencies]` Section
 
@@ -337,9 +386,10 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=8.0.1"
+mthds_version = ">=8.1.0"
 main_pipe     = "analyze_nda"
 exclude       = ["drafts/"]
+categories    = ["legal", "compliance"]
 
 [exports.legal]
 pipes = ["classify_document"]
