@@ -22,7 +22,16 @@ A **pipe I/O contract** states, for one pipe, exactly what a caller must supply 
         "presence": "optional",
         "multiplicity": "single",
         "item_count": null,
-        "json_schema": { "type": "object", "properties": { "text": { "type": "string" } }, "required": ["text"] }
+        "json_schema": {
+          "type": "object",
+          "properties": {
+            "text": { "type": "string" },
+            "url": { "type": "string" },
+            "size": { "type": "integer" },
+            "mime_type": { "type": "string" },
+            "preview": { "type": "string" }
+          }
+        }
       }
     },
     "output": {

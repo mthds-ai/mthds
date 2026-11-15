@@ -6,7 +6,7 @@ description: "Normative, version-pinned definitions of the MTHDS native concepts
 
 Native concepts are the built-in vocabulary of the MTHDS standard: always available in every bundle, never declared by authors. This page pins their **normative definitions** — the exact blueprint form of each native concept, expressed in the same structure language authors use for their own concepts (see [Concept Structure Fields](./mthds-format.md#concept-structure-fields)).
 
-These definitions are **pinned per MTHDS standard version**. The set below was pinned at MTHDS `5.0.0`, and is normative for every standard version from `5.0.0` until a later version pins a new one: an implementation of standard version `V` materializes the pinned set of the greatest version less than or equal to `V` (see [Versioning](./versioning.md#the-pinned-native-set-under-one-number)). Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard, [bumps the standard version](./versioning.md#what-bumps-the-standard-version), and re-pins the set at that version. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by **lookup into this pinned set**.
+These definitions are **pinned per MTHDS standard version**. The set below was pinned at MTHDS `9.0.0`, and is normative for every standard version from `9.0.0` until a later version pins a new one: an implementation of standard version `V` materializes the pinned set of the greatest version less than or equal to `V` (see [Versioning](./versioning.md#the-pinned-native-set-under-one-number)). Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard, [bumps the standard version](./versioning.md#what-bumps-the-standard-version), and re-pins the set at that version. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by **lookup into this pinned set**.
 
 Three consequences follow:
 
@@ -22,7 +22,7 @@ Three natives are **structureless by design**: their shape is intentionally open
 
 One reserved marker: `value_type = "Any"` on a `dict` field declares the value type **unspecified** — the values are arbitrary; a consumer surfaces this as declared imprecision (e.g. `dict[str, Any]` with a caveat), never as a guessed value shape.
 
-## The Pinned Set — Pinned at MTHDS 5.0.0
+## The Pinned Set — Pinned at MTHDS 9.0.0
 
 ### native.Dynamic
 
@@ -40,8 +40,17 @@ description = "A dynamic concept"
 description = "A text"
 
 [concept.Text.structure]
-text = { type = "text", required = true, description = "The text" }
+text = { type = "text", description = "The text" }
+url = { type = "text", description = "The URL of the stored text: a storage URI, an HTTP(S) URL, or a base64 data URL" }
+size = { type = "integer", description = "The length of the stored text, in bytes as stored" }
+mime_type = { type = "text", description = "The MIME type of the stored text: text/plain or text/markdown" }
+preview = { type = "text", description = "The first few hundred characters of the stored text, always its true start" }
 ```
+
+A `Text` carries its value in one of two forms: **inline**, in `text`, or **stored**, at `url`. A compliant value carries exactly one of `text` and `url`, never both and never neither. `size`, `mime_type` and `preview` describe a stored value and accompany `url` only, each optional beside it: `size` is the stored text's length in bytes, `mime_type` is `text/plain` or `text/markdown`, and `preview` is the first few hundred characters of the text, always its true start and never a summary, so that a reader can show or describe a stored text without fetching it. An inline value carries none of the three.
+{ #stored-values }
+
+The two forms carry the same value: the text stored at `url` is the value itself, and a runtime that reads the value, to render it into a prompt, to bind a path to it or to compare it, reads it from there. Which form a value takes is a matter of transport, never of meaning, so a method behaves the same whichever form its values arrive in, and a producer may choose the stored form for a large value and the inline form for a small one. As with `Image`'s `width` and `height`, these rules constrain values, not the blueprint: the structure language has no cross-field form, so a consumer projecting this definition emits independently optional fields, and a validating runtime is what enforces the rules.
 
 ### native.Image
 
@@ -85,11 +94,17 @@ snippet = { type = "text", description = "A text snippet or excerpt from the doc
 description = "HTML content"
 
 [concept.Html.structure]
-inner_html = { type = "text", required = true, description = "The inner HTML of the content" }
+inner_html = { type = "text", description = "The inner HTML of the content" }
 css_class = { type = "text", description = "The CSS class of the content" }
+url = { type = "text", description = "The URL of the stored inner HTML: a storage URI, an HTTP(S) URL, or a base64 data URL" }
+size = { type = "integer", description = "The length of the stored inner HTML, in bytes as stored" }
+mime_type = { type = "text", description = "The MIME type of the stored inner HTML: text/html" }
+preview = { type = "text", description = "The first few hundred characters of the stored inner HTML, always its true start" }
 ```
 
-`css_class` is optional: it names a class for a wrapper a consumer may put around `inner_html`, and content that needs no wrapper simply omits it. Only `inner_html` is required — an `Html` value is its markup, and the class is presentation a producer states when it has one.
+An `Html` value is its markup, carried inline in `inner_html` or stored at `url`, by the same rules as a [`Text`](#stored-values): a compliant value carries exactly one of `inner_html` and `url`, never both and never neither, and `size`, `mime_type` and `preview` accompany `url` only, each optional beside it, `mime_type` being `text/html`. The markup stored at `url` is the value itself, and a runtime that reads `inner_html` reads it from there.
+
+`css_class` is optional: it names a class for a wrapper a consumer may put around the markup, and content that needs no wrapper simply omits it. It is presentation a producer states when it has one, not part of the stored markup, so it stays inline in both forms.
 
 ### native.TextAndImages
 
@@ -200,8 +215,14 @@ page_view = { type = "concept", concept_ref = "native.Image", description = "The
 description = "A JSON object"
 
 [concept.JSON.structure]
-json_obj = { type = "dict", key_type = "text", value_type = "Any", required = true, description = "The JSON object" }
+json_obj = { type = "dict", key_type = "text", value_type = "Any", description = "The JSON object" }
+url = { type = "text", description = "The URL of the stored JSON object: a storage URI, an HTTP(S) URL, or a base64 data URL" }
+size = { type = "integer", description = "The length of the stored JSON object's serialized form, in bytes as stored" }
+mime_type = { type = "text", description = "The MIME type of the stored JSON object: application/json" }
+preview = { type = "text", description = "The first few hundred characters of the stored JSON object's serialized form, always its true start" }
 ```
+
+A `JSON` value is its object, carried inline in `json_obj` or stored at `url` as its serialized form, by the same rules as a [`Text`](#stored-values): a compliant value carries exactly one of `json_obj` and `url`, never both and never neither, and `size`, `mime_type` and `preview` accompany `url` only, each optional beside it, `mime_type` being `application/json`. The object stored at `url` is the value itself, and a runtime that reads `json_obj` reads it from there.
 
 ### native.SearchResult
 
@@ -235,6 +256,13 @@ description = "A named composition of contents"
 ## Changes Between Pinned Sets
 
 Each earlier pinned set stays normative for the crates stamped with the versions it governs, so this page records how each set differs from the one before it, newest first.
+
+### From the Set Pinned at 5.0.0
+
+- `native.Text`'s `text`, `native.Html`'s `inner_html` and `native.JSON`'s `json_obj` are no longer `required`.
+- `native.Text`, `native.Html` and `native.JSON` each gain the optional `url`, `size`, `mime_type` and `preview`, which carry a stored value in place of the inline one.
+
+A crate stamped with a version from `5.0.0` to `8.2.0` materialized the set pinned at `5.0.0`, so its `native.Text`, `native.Html` and `native.JSON` require their inline value and carry no `url`. Re-normalizing the same library against a `9.0.0` implementation materializes the definitions above instead, and the crate's [fingerprint](./library-crate.md#fingerprint) changes with it. That holds for every crate carrying any of the three, and a crate carries `native.Text` whenever it references `native.Text`, `native.TextAndImages` or `native.Page`, so the fingerprint of almost every crate changes. The set pinned at `5.0.0` is this page as published with the `5.x` to `8.x` versions of the standard.
 
 ### From the Set Pinned at 3.0.0
 
