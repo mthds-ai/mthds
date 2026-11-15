@@ -87,7 +87,7 @@ A `.mthds` file is a valid [TOML](https://toml.io/) document with structure and 
 
 - **Concepts** — typed data declarations. A concept is a named type that describes a kind of data: a `ContractClause`, a `CandidateProfile`, a `Joke`. Concepts can have internal structure (fields with types like `text`, `integer`, `boolean`, `list`, `number`, `date`, `datetime`, `time`, `dict`, and `concept`) or they can be simple semantic labels. Concepts can refine other concepts — `NonCompeteClause` refines `ContractClause`, meaning it can be used anywhere a `ContractClause` is expected.
 
-- **Pipes** — typed transformations. A concrete pipe declares its inputs (concepts), its output (a concept), and its type — what kind of work it does. A contract-only signature omits `type` until it is implemented. MTHDS defines **operators** (PipeLLM for language model generation, PipeStructure for turning text into a structured concept, PipeFunc for Python functions, PipeImgGen for image generation, PipeExtract for document extraction, PipeSearch for web search, PipeJudge for verdicts on closed questions, PipeCompose for templating and assembly) and **controllers** (PipeSequence for sequential steps, PipeParallel for concurrent branches, PipeCondition for conditional routing, PipeBatch for mapping over lists).
+- **Pipes** — typed transformations. A concrete pipe declares its inputs (concepts), its output (a concept), and its type — what kind of work it does. A contract-only signature omits `type` until it is implemented. MTHDS defines **operators** (PipeLLM for language model generation, PipeStructure for turning text, or a spreadsheet's rows, into structured concepts, PipeFunc for Python functions, PipeImgGen for image generation, PipeExtract for document extraction, PipeSearch for web search, PipeJudge for verdicts on closed questions, PipeCompose for templating and assembly) and **controllers** (PipeSequence for sequential steps, PipeParallel for concurrent branches, PipeCondition for conditional routing, PipeBatch for mapping over lists).
 
 - **Domains** — namespaces that organize concepts and pipes. A domain like `legal.contracts` tells you what a bundle is about and prevents naming collisions between unrelated definitions.
 
@@ -1032,7 +1032,7 @@ Analyze the document and explain how it relates to the context: $reference_doc
 
 ## PipeStructure
 
-Turns text into a structured concept — typically by invoking an LLM that fills the declared output schema, though the standard does not prescribe a specific mechanism.
+Turns text into a structured concept — typically by invoking an LLM that fills the declared output schema, though the standard does not prescribe a specific mechanism. It can also [read the rows of a spreadsheet](#reading-a-spreadsheet) into a list of structured concepts, without a model.
 
 ```toml
 [concept.RestaurantReview]
@@ -1059,14 +1059,16 @@ Reach for `PipeStructure` whenever the text comes from somewhere other than a fr
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `inputs` | Yes | Exactly one input. Its concept must be `Text` or a concept that refines `Text`. |
-| `output` | Yes | The target structured concept, with optional multiplicity (`Foo`, `Foo[]`, `Foo[N]`). Cannot be `Text` or a concept that refines `Text`. |
-| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline LLM settings table (see [Inline LLM Settings](../spec/mthds-format.md#inline-llm-settings)). |
+| `inputs` | Yes | Exactly one input. Its concept must be `Text` or a concept that refines `Text`, or, to read a spreadsheet, `Document` or a concept that refines `Document`. |
+| `output` | Yes | The target structured concept, with optional multiplicity (`Foo`, `Foo[]`, `Foo[N]`). Cannot be `Text` or a concept that refines `Text`. Reading a spreadsheet, it must be a list (`Foo[]`). |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline LLM settings table (see [Inline LLM Settings](../spec/mthds-format.md#inline-llm-settings)). Not allowed when reading a spreadsheet, which calls no model. |
+| `table` | No | Reading a workbook, the name of the Excel Table to read. Optional when the workbook holds exactly one Table. |
+| `row_field` | No | Reading a spreadsheet, the field of the output concept that receives each row's position, counted from one. |
 
 `PipeStructure` does not accept a user-controlled prompt template — the runtime owns whatever prompting (or other mechanism) it uses to produce the structured output. Use a `PipeLLM` instead when prose generation needs prompt control.
 
-!!! note "No images, no documents"
-    `PipeStructure` is intentionally narrow: it takes one `Text` input. To structure an image or a PDF page, run an upstream extraction step (e.g. `PipeExtract` or a vision `PipeLLM`) and feed its text output into `PipeStructure`.
+!!! note "No images, and no documents other than spreadsheets"
+    `PipeStructure` is intentionally narrow: it takes one `Text` input, or one `Document` holding a spreadsheet. To structure an image or a PDF page, run an upstream extraction step (e.g. `PipeExtract` or a vision `PipeLLM`) and feed its text output into `PipeStructure`.
 
 ### Output Multiplicity
 
@@ -1127,6 +1129,39 @@ inputs      = { review_text = "Text" }
 output      = "RestaurantReview"
 model       = "@default-premium"
 ```
+
+### Reading a Spreadsheet
+
+```toml
+[concept.ExpenseRow]
+description = "One line of an expense report"
+
+[concept.ExpenseRow.structure]
+row      = { type = "integer", description = "The line's position in the Expenses table" }
+date     = { type = "date", description = "When the expense was made", required = true }
+merchant = { type = "text", description = "Who was paid" }
+amount   = { type = "number", description = "Amount paid, in euros", required = true }
+category = { description = "Expense category", choices = ["travel", "meals", "supplies"] }
+
+[pipe.read_expenses]
+type        = "PipeStructure"
+description = "Read the lines of the expense report"
+inputs      = { workbook = "Document" }
+output      = "ExpenseRow[]"
+table       = "Expenses"
+row_field   = "row"
+```
+
+**What this does:** Reads the Excel Table named `Expenses` in the workbook into a list of `ExpenseRow`, one item per row, without calling a model. Each item's `row` field receives the row's position in the Table, `1` for the first row under the header, so a later step can tell which row an item came from.
+
+When the single input is a `Document` or a concept that refines it, `PipeStructure` reads a spreadsheet instead of structuring a text. The document holds an Excel workbook (`.xlsx`) or a CSV file:
+
+- **The table.** In a workbook, the rows come from an Excel Table. `table` names it, and can be left out when the workbook holds exactly one Table; several Tables without a name, or no Table at all, fail the step. A CSV file is a single table, its first line being the header, so `table` is not allowed with one.
+- **Columns and fields.** A header spelling a field's name exactly matches that field alone. Any other header matches the fields it equals when compared ignoring case, spaces, dots and underscores, so the header `Unit price` fills the field `unit_price`. A column whose header matches no field is ignored, so the table may hold columns the concept does not declare. The step fails when a header matches several fields, as `Unit Price` would when the concept declares both `unit_price` and `unitprice`, when several headers match one field, when a header matches the field `row_field` names, or when a `required` field other than the `row_field` field is matched by no header. Any other field that no header matches takes its `default_value`, or is left without a value.
+- **Values.** Cells are read typed, a number as a number and a date as a date, and converted to the field's type. A text cell, which every CSV cell is, converts only from plain forms: an integer such as `-12`, a number with `.` as its decimal separator and no grouping such as `1234.5`, a boolean word such as `true`, `yes` or `1`, an ISO 8601 date or datetime such as `2026-03-04`, or exactly one of a field's `choices`. A locale form such as `1,5` or `03/04/2026` fails the step, naming the column and the row. An empty cell is no value: the field takes its `default_value` if it has one, and is null otherwise, so an empty cell under a `required` field fails the step. A cell holding a formula is read as the value the workbook last calculated for it.
+- **The output.** It must be a list (`Foo[]`) of a concept with a structure, never `Dynamic`, `Anything`, `Composite` or a concept declared without `structure`, whose fields are all simple values: `text`, `integer`, `number`, `boolean`, `date`, `datetime`, or a field with `choices`. `model` is not allowed, since no model is called.
+
+See [Reading a Spreadsheet](../spec/mthds-format.md#reading-a-spreadsheet) in the specification for the complete rules.
 
 ## PipeFunc
 
@@ -2325,7 +2360,7 @@ The following operator pipe types accept the `model` field:
 | Pipe Type | Typical Use |
 |-----------|-------------|
 | `PipeLLM` | Large language model invocation. |
-| `PipeStructure` | Structuring text into a typed concept. |
+| `PipeStructure` | Structuring text into a typed concept. Reading a spreadsheet calls no model, so `model` is not allowed there. |
 | `PipeImgGen` | Image generation. |
 | `PipeExtract` | Document extraction (e.g., PDF to pages). |
 | `PipeSearch` | Web search with structured results. |
@@ -2903,7 +2938,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=8.1.0"
+mthds_version = ">=8.2.0"
 main_pipe     = "analyze_nda"
 
 [exports.legal]
@@ -2931,7 +2966,7 @@ The `[package]` section defines the package's identity:
 | `description` | Yes | Human-readable summary of the package's purpose. Must not be empty. |
 | `authors` | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | No | [SPDX license identifier](https://spdx.org/licenses/) (e.g., `"MIT"`, `"Apache-2.0"`). |
-| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `8.1.0`. |
+| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `8.2.0`. |
 | `main_pipe` | No | The package's entry-point pipe. Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe) below. |
 | `exclude` | No | Patterns, in `.gitignore` syntax, naming files to keep out of the package's method tree. See [Exclude](#exclude) below. |
 | `categories` | No | The categories the method belongs to, as lowercase slugs (e.g., `["legal", "customer-support"]`). See [Categories](#categories) below. |
@@ -4093,7 +4128,7 @@ MTHDS carries **two version numbers**, and they move independently:
 
 | Number | Governs | Current |
 |---|---|---|
-| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff, the core error registry | `8.1.0` |
+| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff, the core error registry | `8.2.0` |
 | **Protocol version** | The HTTP runner contract — its routes, their request and response shapes, and the problem document every error is | `2.0.1` |
 
 Both are [Semantic Versioning 2.0.0](https://semver.org/) numbers. Everything else that carries a version — a package's own `version`, a runner's `runner_version`, an implementation's release number — belongs to that package, runner, or implementation and is governed by whoever publishes it.
@@ -4549,7 +4584,7 @@ MTHDS defines pipe types in two categories:
 | Type | Value | Description |
 |------|-------|-------------|
 | PipeLLM | `"PipeLLM"` | Generates output using a large language model. |
-| PipeStructure | `"PipeStructure"` | Turns text into a structured concept using a large language model. |
+| PipeStructure | `"PipeStructure"` | Turns text into a structured concept using a large language model, or reads a spreadsheet's rows into a list of structured concepts without one. |
 | PipeFunc | `"PipeFunc"` | Calls a Python function of the method's tree. |
 | PipeImgGen | `"PipeImgGen"` | Generates images using an image generation model. |
 | PipeExtract | `"PipeExtract"` | Extracts structured content from documents. |
@@ -4685,7 +4720,10 @@ cv_pages = "Page"
 
 ## Operator: PipeStructure
 
-Turns text into a structured concept matching the declared output schema. The standard does not prescribe how a runtime achieves this; a typical implementation uses an LLM call.
+Turns its single input into a structured concept matching the declared output schema. The input is either a text or a spreadsheet:
+
+- **From a text**, the runtime structures the text into the output concept. The standard does not prescribe how a runtime achieves this; a typical implementation uses an LLM call.
+- **From a spreadsheet**, a `Document` holding an Excel workbook or a CSV file, the runtime reads one table of the file into a list of the output concept, one item per row, without calling a model. The rules of this path are in [Reading a Spreadsheet](#reading-a-spreadsheet).
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -4693,14 +4731,23 @@ Turns text into a structured concept matching the declared output schema. The st
 | `description` | string | Yes | — |
 | `inputs` | table | Yes | MUST contain exactly one entry. |
 | `output` | string | Yes | The target structured concept reference, with optional multiplicity. MUST NOT be `Text` or a concept that refines `Text`. |
-| `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [LLM settings](#inline-llm-settings) table. |
+| `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [LLM settings](#inline-llm-settings) table. Text input only. |
+| `table` | string | No | The name of the Excel Table to read. Spreadsheet input only. |
+| `row_field` | string | No | The name of the output concept's field that receives each row's position. Spreadsheet input only. |
 
 **Validation rules:**
 
-- `inputs` MUST contain exactly one entry. The single input concept MUST be `Text` or a concept that refines `Text`.
+- `inputs` MUST contain exactly one entry. The single input concept MUST be `Text` or a concept that refines `Text`, or `Document` or a concept that refines `Document`.
 - `output` MUST NOT be `Text` and MUST NOT be a concept that refines `Text`.
-- `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`).
-- `PipeStructure` MUST NOT accept image or document inputs. Use an upstream extraction step to produce text first.
+- `PipeStructure` MUST NOT accept image inputs. Use an upstream extraction step to produce text first.
+- When the input concept is `Text` or refines it, `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`), and `table` and `row_field` MUST NOT be present.
+- When the input concept is `Document` or refines it:
+    - The input MUST NOT use multiplicity.
+    - `output` MUST use variable multiplicity (`Foo[]`).
+    - `model` MUST NOT be present.
+    - The output concept MUST have a structure. A concept declared with neither `structure` nor `refines`, `Dynamic`, `Anything`, `Composite`, or a concept refining one of them, is rejected.
+    - Each field of the output concept MUST be of type `text`, `integer`, `number`, `boolean`, `date` or `datetime`, or an enumeration field declared with `choices`.
+    - `row_field`, when present, MUST name a field of the output concept whose type is `integer` or `number`.
 
 **Example:**
 
@@ -4722,6 +4769,73 @@ inputs      = { review_text = "Text" }
 output      = "RestaurantReview"
 model       = "@default-premium"
 ```
+
+### Reading a Spreadsheet
+
+```toml
+[concept.ExpenseRow]
+description = "One line of an expense report"
+
+[concept.ExpenseRow.structure]
+row      = { type = "integer", description = "The line's position in the Expenses table" }
+date     = { type = "date", description = "When the expense was made", required = true }
+merchant = { type = "text", description = "Who was paid" }
+amount   = { type = "number", description = "Amount paid, in euros", required = true }
+category = { description = "Expense category", choices = ["travel", "meals", "supplies"] }
+
+[pipe.read_expenses]
+type        = "PipeStructure"
+description = "Read the lines of the expense report"
+inputs      = { workbook = "Document" }
+output      = "ExpenseRow[]"
+table       = "Expenses"
+row_field   = "row"
+```
+
+When the single input is a `Document` or refines it, the runtime reads one table of the file into the output list, one item per data row, in the table's order, and calls no model.
+
+**The file.** The document MUST hold an Excel workbook in the Office Open XML format (`.xlsx`) or a CSV file. A runtime identifies the format from the file's content, falling back to its media type and then its file name, and refuses any other document when the step runs. An `.xlsx` file, for instance, is a ZIP archive whose content types declare a spreadsheet.
+
+**The table.** In a workbook, the rows are read from an Excel Table, the named table object a workbook defines over a range of cells with a header row:
+
+- When `table` is present, the runtime reads the Table of that name, compared ignoring case, as Excel compares Table names. A workbook with no Table of that name is refused.
+- When `table` is absent, the runtime reads the workbook's only Table. A workbook holding several Tables, or none, is refused, and the refusal names the Tables it found.
+- The Table's header row names the columns, and the rows between the header row and the end of the Table are its data rows. A totals row is not read. Every row of the Table between its header row and its end, a row whose cells are all empty included, is a data row and counts toward the row position.
+
+A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark at its start being ignored, whose first record is the header row and whose following records are the data rows. A blank line, holding no characters before its line break, is not a record: it is skipped and does not count toward the row position. A record of empty cells, such as `,,`, is a data row. A record with more cells than the header fails the step, and a record with fewer reads its missing trailing cells as empty. `table` MUST NOT be present when the file is a CSV file, and a runtime refuses the step when it is.
+
+**Columns and fields.** A header equal to the name of a field of the output concept matches that field alone. Any other header matches every field whose name it equals once spaces, dots and underscores are removed from both and case is ignored, so the header `Unit price` matches the field `unit_price` and `Merchant.Name` matches `merchant_name`. When the output concept declares both `unit_price` and `unitprice`, the headers `unit_price` and `unitprice` each match their own field, while the header `Unit Price`, equal to neither name, matches both. A column whose header matches no field is ignored, in a workbook and in a CSV file alike, so a table may carry columns the output concept does not declare, a calculated column for instance. The runtime refuses the step when:
+
+- a header matches several fields under these rules, or several headers match one field;
+- a header matches the field `row_field` names;
+- a `required` field of the output concept, other than the one `row_field` names, is matched by no header.
+
+A field that is not required and that no header matches holds no value in any row, as under an empty cell: it takes its `default_value` when it declares one and is null otherwise.
+
+A runtime MAY refuse a file or a Table that exceeds its own size limits, such as the file's uncompressed size or the Table's number of cells, and it reports the refusal as [`input.too_large`](../errors/input/too_large.md). The standard sets no such limit.
+
+**Values.** Each cell is read with its own type, a number as a number and a date as a date, and converted to the type of the field its column matches. A cell the workbook types as a number, a date, a datetime or a boolean converts as follows:
+
+- `text` takes a text as it is, a whole number as its digits without a decimal point, any other number in its shortest decimal form, a date or a datetime in ISO 8601 form, and a boolean as `true` or `false`.
+- `integer` takes a number with no fractional part.
+- `number` takes any number.
+- `boolean` takes a boolean.
+- `date` takes a date, or a datetime whose time is midnight.
+- `datetime` takes a datetime, or a date, read as midnight on that day.
+
+A text cell, which every cell of a CSV file is, converts only from these forms:
+
+- `text` takes the text as it is.
+- `integer` takes an integer literal: an optional sign followed by digits.
+- `number` takes a decimal number written with `.` as its decimal separator, with an optional sign and an optional exponent, and with no grouping separator.
+- `boolean` takes, ignoring case, `true`, `false`, `yes`, `no`, `on`, `off`, `y`, `n`, `t`, `f`, `1` or `0`.
+- `date` takes an ISO 8601 date, or an ISO 8601 datetime whose time is midnight.
+- `datetime` takes an ISO 8601 datetime or date.
+- An enumeration field takes the text when it is exactly one of its `choices`.
+
+A value that converts by none of these rules fails the step, and the failure names the column and the row position. Forms written for a locale, such as `1,5` for a number or `03/04/2026` for a date, therefore fail. An empty cell holds no value: the field takes its `default_value` when it declares one and is null otherwise, so an empty cell under a `required` field fails the step. A cell holding a formula is read as the value the workbook last calculated and stored for it. A workbook saved by a program that stores no calculated values has none, and such a cell is read as an empty cell; a runtime SHOULD warn when it does so, naming the column.
+
+**The row position.** When `row_field` is present, each item's `row_field` field receives the position of its row among the table's data rows, counted from one: the first data row under the header is `1`. It counts data rows, never the sheet's own row numbers, so it stays the same wherever the table sits on its sheet.
 
 ## Operator: PipeFunc
 
@@ -6520,7 +6634,7 @@ MAJOR.MINOR.PATCH[-pre-release][+build-metadata]
 
 The `mthds_version` field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see [Version Constraint Syntax](#version-constraint-syntax)).
 
-The current MTHDS standard version is `8.1.0`. See [Versioning](./versioning.md) for what moves it.
+The current MTHDS standard version is `8.2.0`. See [Versioning](./versioning.md) for what moves it.
 
 ### Main Pipe
 
@@ -6788,7 +6902,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=8.1.0"
+mthds_version = ">=8.2.0"
 main_pipe     = "analyze_nda"
 exclude       = ["drafts/"]
 categories    = ["legal", "compliance"]
@@ -8036,7 +8150,7 @@ This section consolidates the validation rules scattered throughout this specifi
 ### Pipe Validation (Type-Specific)
 
 1. **PipeLLM**: All prompt variables MUST have matching inputs. All inputs MUST be used.
-2. **PipeStructure**: Exactly one input MUST be declared. The input concept MUST be `Text` or refine `Text`. `output` MUST NOT be `Text` or refine `Text`.
+2. **PipeStructure**: Exactly one input MUST be declared. The input concept MUST be `Text` or refine `Text`, or be `Document` or refine `Document`. `output` MUST NOT be `Text` or refine `Text`. With a `Text` input, `table` and `row_field` MUST NOT be present. With a `Document` input, the input MUST NOT use multiplicity, `output` MUST use variable multiplicity (`Foo[]`), `model` MUST NOT be present, the output concept MUST have a structure (a concept declared with neither `structure` nor `refines`, `Dynamic`, `Anything`, `Composite`, or one refining them, is rejected), every field of the output concept MUST be of type `text`, `integer`, `number`, `boolean`, `date` or `datetime` or declare `choices`, and `row_field`, when present, MUST name a field of the output concept of type `integer` or `number` (see [Reading a Spreadsheet](./mthds-format.md#reading-a-spreadsheet)).
 3. **PipeFunc**: `function_name` MUST be present and, once normalized to NFC, MUST be an import path holding at least one dot, each dot-separated segment a Python identifier that is not a keyword and that NFKC normalization leaves unchanged, whose module path names a module of the [method tree](./method-tree.md) (see [PipeFunc](./mthds-format.md#operator-pipefunc)).
 4. **PipeImgGen**: `prompt` MUST be present. All prompt and negative_prompt variables MUST have matching inputs. All inputs MUST be used.
 5. **PipeExtract**: Exactly one input MUST be declared. `output` MUST be `"Page[]"`.
@@ -11675,7 +11789,7 @@ The core registry is part of the standard, and its `version` is the standard ver
 
 Every code of the MTHDS core error registry has a page here, at the URL a problem's `type` names: `https://mthds.ai/errors/<code>`. Each page says what its code means, who must act and what to do, and gives the code's steps, parameters and templates. The [Error Registry](../spec/error-registry.md) page describes the registry itself, and the [HTTP Runner Protocol](../spec/protocol.md#errors) how a problem document carries a code.
 
-These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `8.1.0` of the registry.
+These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `8.2.0` of the registry.
 
 ## Extension prefixes
 
@@ -12565,7 +12679,7 @@ version       = "0.1.0"
 description   = "Text summarization and document classification methods"
 authors       = ["Your Name <you@example.com>"]
 license       = "MIT"
-mthds_version = ">=8.1.0"
+mthds_version = ">=8.2.0"
 ```
 
 ## Step 5: Validate
@@ -13039,9 +13153,14 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 **PipeStructure:**
 
 - `inputs` MUST contain exactly one entry.
-- The single input concept MUST be `Text` or a concept that refines `Text`.
+- The single input concept MUST be `Text` or a concept that refines `Text`, or `Document` or a concept that refines `Document`. An image input is rejected.
 - `output` MUST NOT be `Text` and MUST NOT be a concept that refines `Text`.
-- `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`).
+- With a `Text` input, `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`), and `table` and `row_field` MUST NOT be present.
+- With a `Document` input, the input MUST NOT use multiplicity, `output` MUST use variable multiplicity (`Foo[]`), and `model` MUST NOT be present.
+- With a `Document` input, the output concept MUST have a structure: a concept declared with neither `structure` nor `refines`, `Dynamic`, `Anything`, `Composite`, or a concept refining one of them, is rejected.
+- With a `Document` input, every field of the output concept MUST be of type `text`, `integer`, `number`, `boolean`, `date` or `datetime`, or an enumeration field declared with `choices`.
+- With a `Document` input, `row_field`, when present, MUST name a field of the output concept whose type is `integer` or `number`.
+- These rules read the input concept and the output concept's fields, so they apply once those concept references resolve. What the file holds, its format, its Tables and its column headers, is checked when the step runs, not at validation (see [Reading a Spreadsheet](../spec/mthds-format.md#reading-a-spreadsheet)).
 
 **PipeFunc:**
 
@@ -13449,7 +13568,7 @@ The following integration points describe the full scope of MTHDS-aware language
 
 # Roadmap
 
-The MTHDS standard is at version `8.1.0`. This page outlines planned and potential directions for future development.
+The MTHDS standard is at version `8.2.0`. This page outlines planned and potential directions for future development.
 
 ## Near-Term
 

@@ -2040,6 +2040,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Operator: PipeStructure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reading-a-spreadsheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading a Spreadsheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3897,6 +3914,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Operator: PipeStructure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#reading-a-spreadsheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading a Spreadsheet
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -4888,7 +4922,7 @@
 <tr>
 <td>PipeStructure</td>
 <td><code>"PipeStructure"</code></td>
-<td>Turns text into a structured concept using a large language model.</td>
+<td>Turns text into a structured concept using a large language model, or reads a spreadsheet's rows into a list of structured concepts without one.</td>
 </tr>
 <tr>
 <td>PipeFunc</td>
@@ -5185,7 +5219,11 @@
 <span class="n">cv_pages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Page"</span>
 </code></pre></div>
 <h2 id="operator-pipestructure">Operator: PipeStructure</h2>
-<p>Turns text into a structured concept matching the declared output schema. The standard does not prescribe how a runtime achieves this; a typical implementation uses an LLM call.</p>
+<p>Turns its single input into a structured concept matching the declared output schema. The input is either a text or a spreadsheet:</p>
+<ul>
+<li><strong>From a text</strong>, the runtime structures the text into the output concept. The standard does not prescribe how a runtime achieves this; a typical implementation uses an LLM call.</li>
+<li><strong>From a spreadsheet</strong>, a <code>Document</code> holding an Excel workbook or a CSV file, the runtime reads one table of the file into a list of the output concept, one item per row, without calling a model. The rules of this path are in <a href="#reading-a-spreadsheet">Reading a Spreadsheet</a>.</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -5224,16 +5262,37 @@
 <td><code>model</code></td>
 <td>string or table</td>
 <td>No</td>
-<td>Model identifier, model reference (see <a href="../../language/model-references/">Model References</a>), or an inline <a href="#inline-llm-settings">LLM settings</a> table.</td>
+<td>Model identifier, model reference (see <a href="../../language/model-references/">Model References</a>), or an inline <a href="#inline-llm-settings">LLM settings</a> table. Text input only.</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>string</td>
+<td>No</td>
+<td>The name of the Excel Table to read. Spreadsheet input only.</td>
+</tr>
+<tr>
+<td><code>row_field</code></td>
+<td>string</td>
+<td>No</td>
+<td>The name of the output concept's field that receives each row's position. Spreadsheet input only.</td>
 </tr>
 </tbody>
 </table>
 <p><strong>Validation rules:</strong></p>
 <ul>
-<li><code>inputs</code> MUST contain exactly one entry. The single input concept MUST be <code>Text</code> or a concept that refines <code>Text</code>.</li>
+<li><code>inputs</code> MUST contain exactly one entry. The single input concept MUST be <code>Text</code> or a concept that refines <code>Text</code>, or <code>Document</code> or a concept that refines <code>Document</code>.</li>
 <li><code>output</code> MUST NOT be <code>Text</code> and MUST NOT be a concept that refines <code>Text</code>.</li>
-<li><code>output</code> MAY use multiplicity (<code>Foo</code>, <code>Foo[]</code>, <code>Foo[N]</code>).</li>
-<li><code>PipeStructure</code> MUST NOT accept image or document inputs. Use an upstream extraction step to produce text first.</li>
+<li><code>PipeStructure</code> MUST NOT accept image inputs. Use an upstream extraction step to produce text first.</li>
+<li>When the input concept is <code>Text</code> or refines it, <code>output</code> MAY use multiplicity (<code>Foo</code>, <code>Foo[]</code>, <code>Foo[N]</code>), and <code>table</code> and <code>row_field</code> MUST NOT be present.</li>
+<li>When the input concept is <code>Document</code> or refines it:<ul>
+<li>The input MUST NOT use multiplicity.</li>
+<li><code>output</code> MUST use variable multiplicity (<code>Foo[]</code>).</li>
+<li><code>model</code> MUST NOT be present.</li>
+<li>The output concept MUST have a structure. A concept declared with neither <code>structure</code> nor <code>refines</code>, <code>Dynamic</code>, <code>Anything</code>, <code>Composite</code>, or a concept refining one of them, is rejected.</li>
+<li>Each field of the output concept MUST be of type <code>text</code>, <code>integer</code>, <code>number</code>, <code>boolean</code>, <code>date</code> or <code>datetime</code>, or an enumeration field declared with <code>choices</code>.</li>
+<li><code>row_field</code>, when present, MUST name a field of the output concept whose type is <code>integer</code> or <code>number</code>.</li>
+</ul>
+</li>
 </ul>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre><span></span><code><span class="k">[pipe.structure_review]</span>
@@ -5250,6 +5309,63 @@
 <span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"RestaurantReview"</span>
 <span class="n">model</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"@default-premium"</span>
 </code></pre></div>
+<h3 id="reading-a-spreadsheet">Reading a Spreadsheet</h3>
+<div class="highlight"><pre><span></span><code><span class="k">[concept.ExpenseRow]</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"One line of an expense report"</span>
+
+<span class="k">[concept.ExpenseRow.structure]</span>
+<span class="n">row</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"integer"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The line's position in the Expenses table"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">date</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"date"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"When the expense was made"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<span class="n">merchant</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Who was paid"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">amount</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"number"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Amount paid, in euros"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<span class="n">category</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Expense category"</span><span class="p">,</span><span class="w"> </span><span class="n">choices</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"travel"</span><span class="p">,</span><span class="w"> </span><span class="s2">"meals"</span><span class="p">,</span><span class="w"> </span><span class="s2">"supplies"</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+
+<span class="k">[pipe.read_expenses]</span>
+<span class="n">type</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeStructure"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Read the lines of the expense report"</span>
+<span class="n">inputs</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">workbook</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Document"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"ExpenseRow[]"</span>
+<span class="n">table</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"Expenses"</span>
+<span class="n">row_field</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"row"</span>
+</code></pre></div>
+<p>When the single input is a <code>Document</code> or refines it, the runtime reads one table of the file into the output list, one item per data row, in the table's order, and calls no model.</p>
+<p><strong>The file.</strong> The document MUST hold an Excel workbook in the Office Open XML format (<code>.xlsx</code>) or a CSV file. A runtime identifies the format from the file's content, falling back to its media type and then its file name, and refuses any other document when the step runs. An <code>.xlsx</code> file, for instance, is a ZIP archive whose content types declare a spreadsheet.</p>
+<p><strong>The table.</strong> In a workbook, the rows are read from an Excel Table, the named table object a workbook defines over a range of cells with a header row:</p>
+<ul>
+<li>When <code>table</code> is present, the runtime reads the Table of that name, compared ignoring case, as Excel compares Table names. A workbook with no Table of that name is refused.</li>
+<li>When <code>table</code> is absent, the runtime reads the workbook's only Table. A workbook holding several Tables, or none, is refused, and the refusal names the Tables it found.</li>
+<li>The Table's header row names the columns, and the rows between the header row and the end of the Table are its data rows. A totals row is not read. Every row of the Table between its header row and its end, a row whose cells are all empty included, is a data row and counts toward the row position.</li>
+</ul>
+<p>A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark at its start being ignored, whose first record is the header row and whose following records are the data rows. A blank line, holding no characters before its line break, is not a record: it is skipped and does not count toward the row position. A record of empty cells, such as <code>,,</code>, is a data row. A record with more cells than the header fails the step, and a record with fewer reads its missing trailing cells as empty. <code>table</code> MUST NOT be present when the file is a CSV file, and a runtime refuses the step when it is.</p>
+<p><strong>Columns and fields.</strong> A header equal to the name of a field of the output concept matches that field alone. Any other header matches every field whose name it equals once spaces, dots and underscores are removed from both and case is ignored, so the header <code>Unit price</code> matches the field <code>unit_price</code> and <code>Merchant.Name</code> matches <code>merchant_name</code>. When the output concept declares both <code>unit_price</code> and <code>unitprice</code>, the headers <code>unit_price</code> and <code>unitprice</code> each match their own field, while the header <code>Unit Price</code>, equal to neither name, matches both. A column whose header matches no field is ignored, in a workbook and in a CSV file alike, so a table may carry columns the output concept does not declare, a calculated column for instance. The runtime refuses the step when:</p>
+<ul>
+<li>a header matches several fields under these rules, or several headers match one field;</li>
+<li>a header matches the field <code>row_field</code> names;</li>
+<li>a <code>required</code> field of the output concept, other than the one <code>row_field</code> names, is matched by no header.</li>
+</ul>
+<p>A field that is not required and that no header matches holds no value in any row, as under an empty cell: it takes its <code>default_value</code> when it declares one and is null otherwise.</p>
+<p>A runtime MAY refuse a file or a Table that exceeds its own size limits, such as the file's uncompressed size or the Table's number of cells, and it reports the refusal as <a href="../../errors/input/too_large/"><code>input.too_large</code></a>. The standard sets no such limit.</p>
+<p><strong>Values.</strong> Each cell is read with its own type, a number as a number and a date as a date, and converted to the type of the field its column matches. A cell the workbook types as a number, a date, a datetime or a boolean converts as follows:</p>
+<ul>
+<li><code>text</code> takes a text as it is, a whole number as its digits without a decimal point, any other number in its shortest decimal form, a date or a datetime in ISO 8601 form, and a boolean as <code>true</code> or <code>false</code>.</li>
+<li><code>integer</code> takes a number with no fractional part.</li>
+<li><code>number</code> takes any number.</li>
+<li><code>boolean</code> takes a boolean.</li>
+<li><code>date</code> takes a date, or a datetime whose time is midnight.</li>
+<li><code>datetime</code> takes a datetime, or a date, read as midnight on that day.</li>
+</ul>
+<p>A text cell, which every cell of a CSV file is, converts only from these forms:</p>
+<ul>
+<li><code>text</code> takes the text as it is.</li>
+<li><code>integer</code> takes an integer literal: an optional sign followed by digits.</li>
+<li><code>number</code> takes a decimal number written with <code>.</code> as its decimal separator, with an optional sign and an optional exponent, and with no grouping separator.</li>
+<li><code>boolean</code> takes, ignoring case, <code>true</code>, <code>false</code>, <code>yes</code>, <code>no</code>, <code>on</code>, <code>off</code>, <code>y</code>, <code>n</code>, <code>t</code>, <code>f</code>, <code>1</code> or <code>0</code>.</li>
+<li><code>date</code> takes an ISO 8601 date, or an ISO 8601 datetime whose time is midnight.</li>
+<li><code>datetime</code> takes an ISO 8601 datetime or date.</li>
+<li>An enumeration field takes the text when it is exactly one of its <code>choices</code>.</li>
+</ul>
+<p>A value that converts by none of these rules fails the step, and the failure names the column and the row position. Forms written for a locale, such as <code>1,5</code> for a number or <code>03/04/2026</code> for a date, therefore fail. An empty cell holds no value: the field takes its <code>default_value</code> when it declares one and is null otherwise, so an empty cell under a <code>required</code> field fails the step. A cell holding a formula is read as the value the workbook last calculated and stored for it. A workbook saved by a program that stores no calculated values has none, and such a cell is read as an empty cell; a runtime SHOULD warn when it does so, naming the column.</p>
+<p><strong>The row position.</strong> When <code>row_field</code> is present, each item's <code>row_field</code> field receives the position of its row among the table's data rows, counted from one: the first data row under the header is <code>1</code>. It counts data rows, never the sheet's own row numbers, so it stays the same wherever the table sits on its sheet.</p>
 <h2 id="operator-pipefunc">Operator: PipeFunc</h2>
 <p>Calls a Python function of the method's tree.</p>
 <table>

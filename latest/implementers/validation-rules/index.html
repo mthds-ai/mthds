@@ -3263,9 +3263,14 @@
 <p><strong>PipeStructure:</strong></p>
 <ul>
 <li><code>inputs</code> MUST contain exactly one entry.</li>
-<li>The single input concept MUST be <code>Text</code> or a concept that refines <code>Text</code>.</li>
+<li>The single input concept MUST be <code>Text</code> or a concept that refines <code>Text</code>, or <code>Document</code> or a concept that refines <code>Document</code>. An image input is rejected.</li>
 <li><code>output</code> MUST NOT be <code>Text</code> and MUST NOT be a concept that refines <code>Text</code>.</li>
-<li><code>output</code> MAY use multiplicity (<code>Foo</code>, <code>Foo[]</code>, <code>Foo[N]</code>).</li>
+<li>With a <code>Text</code> input, <code>output</code> MAY use multiplicity (<code>Foo</code>, <code>Foo[]</code>, <code>Foo[N]</code>), and <code>table</code> and <code>row_field</code> MUST NOT be present.</li>
+<li>With a <code>Document</code> input, the input MUST NOT use multiplicity, <code>output</code> MUST use variable multiplicity (<code>Foo[]</code>), and <code>model</code> MUST NOT be present.</li>
+<li>With a <code>Document</code> input, the output concept MUST have a structure: a concept declared with neither <code>structure</code> nor <code>refines</code>, <code>Dynamic</code>, <code>Anything</code>, <code>Composite</code>, or a concept refining one of them, is rejected.</li>
+<li>With a <code>Document</code> input, every field of the output concept MUST be of type <code>text</code>, <code>integer</code>, <code>number</code>, <code>boolean</code>, <code>date</code> or <code>datetime</code>, or an enumeration field declared with <code>choices</code>.</li>
+<li>With a <code>Document</code> input, <code>row_field</code>, when present, MUST name a field of the output concept whose type is <code>integer</code> or <code>number</code>.</li>
+<li>These rules read the input concept and the output concept's fields, so they apply once those concept references resolve. What the file holds, its format, its Tables and its column headers, is checked when the step runs, not at validation (see <a href="../../spec/mthds-format/#reading-a-spreadsheet">Reading a Spreadsheet</a>).</li>
 </ul>
 <p><strong>PipeFunc:</strong></p>
 <ul>

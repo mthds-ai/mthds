@@ -1057,6 +1057,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#reading-a-spreadsheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading a Spreadsheet
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3357,6 +3368,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#reading-a-spreadsheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reading a Spreadsheet
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -3804,7 +3826,7 @@
 <span class="s2">"""</span>
 </code></pre></div>
 <h2 id="pipestructure">PipeStructure</h2>
-<p>Turns text into a structured concept — typically by invoking an LLM that fills the declared output schema, though the standard does not prescribe a specific mechanism.</p>
+<p>Turns text into a structured concept — typically by invoking an LLM that fills the declared output schema, though the standard does not prescribe a specific mechanism. It can also <a href="#reading-a-spreadsheet">read the rows of a spreadsheet</a> into a list of structured concepts, without a model.</p>
 <div class="highlight"><pre><span></span><code><span class="k">[concept.RestaurantReview]</span>
 <span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A structured restaurant review extracted from prose"</span>
 
@@ -3835,24 +3857,34 @@
 <tr>
 <td><code>inputs</code></td>
 <td>Yes</td>
-<td>Exactly one input. Its concept must be <code>Text</code> or a concept that refines <code>Text</code>.</td>
+<td>Exactly one input. Its concept must be <code>Text</code> or a concept that refines <code>Text</code>, or, to read a spreadsheet, <code>Document</code> or a concept that refines <code>Document</code>.</td>
 </tr>
 <tr>
 <td><code>output</code></td>
 <td>Yes</td>
-<td>The target structured concept, with optional multiplicity (<code>Foo</code>, <code>Foo[]</code>, <code>Foo[N]</code>). Cannot be <code>Text</code> or a concept that refines <code>Text</code>.</td>
+<td>The target structured concept, with optional multiplicity (<code>Foo</code>, <code>Foo[]</code>, <code>Foo[N]</code>). Cannot be <code>Text</code> or a concept that refines <code>Text</code>. Reading a spreadsheet, it must be a list (<code>Foo[]</code>).</td>
 </tr>
 <tr>
 <td><code>model</code></td>
 <td>No</td>
-<td>Model identifier, model reference (see <a href="../model-references/">Model References</a>), or an inline LLM settings table (see <a href="../../spec/mthds-format/#inline-llm-settings">Inline LLM Settings</a>).</td>
+<td>Model identifier, model reference (see <a href="../model-references/">Model References</a>), or an inline LLM settings table (see <a href="../../spec/mthds-format/#inline-llm-settings">Inline LLM Settings</a>). Not allowed when reading a spreadsheet, which calls no model.</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>No</td>
+<td>Reading a workbook, the name of the Excel Table to read. Optional when the workbook holds exactly one Table.</td>
+</tr>
+<tr>
+<td><code>row_field</code></td>
+<td>No</td>
+<td>Reading a spreadsheet, the field of the output concept that receives each row's position, counted from one.</td>
 </tr>
 </tbody>
 </table>
 <p><code>PipeStructure</code> does not accept a user-controlled prompt template — the runtime owns whatever prompting (or other mechanism) it uses to produce the structured output. Use a <code>PipeLLM</code> instead when prose generation needs prompt control.</p>
 <div class="admonition note">
-<p class="admonition-title">No images, no documents</p>
-<p><code>PipeStructure</code> is intentionally narrow: it takes one <code>Text</code> input. To structure an image or a PDF page, run an upstream extraction step (e.g. <code>PipeExtract</code> or a vision <code>PipeLLM</code>) and feed its text output into <code>PipeStructure</code>.</p>
+<p class="admonition-title">No images, and no documents other than spreadsheets</p>
+<p><code>PipeStructure</code> is intentionally narrow: it takes one <code>Text</code> input, or one <code>Document</code> holding a spreadsheet. To structure an image or a PDF page, run an upstream extraction step (e.g. <code>PipeExtract</code> or a vision <code>PipeLLM</code>) and feed its text output into <code>PipeStructure</code>.</p>
 </div>
 <h3 id="output-multiplicity">Output Multiplicity</h3>
 <p>Use bracket notation in <code>output</code> to control how many items the runtime produces:</p>
@@ -3902,6 +3934,34 @@
 <span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"RestaurantReview"</span>
 <span class="n">model</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"@default-premium"</span>
 </code></pre></div>
+<h3 id="reading-a-spreadsheet">Reading a Spreadsheet</h3>
+<div class="highlight"><pre><span></span><code><span class="k">[concept.ExpenseRow]</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"One line of an expense report"</span>
+
+<span class="k">[concept.ExpenseRow.structure]</span>
+<span class="n">row</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"integer"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The line's position in the Expenses table"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">date</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"date"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"When the expense was made"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<span class="n">merchant</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Who was paid"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">amount</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"number"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Amount paid, in euros"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<span class="n">category</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Expense category"</span><span class="p">,</span><span class="w"> </span><span class="n">choices</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"travel"</span><span class="p">,</span><span class="w"> </span><span class="s2">"meals"</span><span class="p">,</span><span class="w"> </span><span class="s2">"supplies"</span><span class="p">]</span><span class="w"> </span><span class="p">}</span>
+
+<span class="k">[pipe.read_expenses]</span>
+<span class="n">type</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="s2">"PipeStructure"</span>
+<span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"Read the lines of the expense report"</span>
+<span class="n">inputs</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">workbook</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Document"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">output</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="s2">"ExpenseRow[]"</span>
+<span class="n">table</span><span class="w">       </span><span class="o">=</span><span class="w"> </span><span class="s2">"Expenses"</span>
+<span class="n">row_field</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s2">"row"</span>
+</code></pre></div>
+<p><strong>What this does:</strong> Reads the Excel Table named <code>Expenses</code> in the workbook into a list of <code>ExpenseRow</code>, one item per row, without calling a model. Each item's <code>row</code> field receives the row's position in the Table, <code>1</code> for the first row under the header, so a later step can tell which row an item came from.</p>
+<p>When the single input is a <code>Document</code> or a concept that refines it, <code>PipeStructure</code> reads a spreadsheet instead of structuring a text. The document holds an Excel workbook (<code>.xlsx</code>) or a CSV file:</p>
+<ul>
+<li><strong>The table.</strong> In a workbook, the rows come from an Excel Table. <code>table</code> names it, and can be left out when the workbook holds exactly one Table; several Tables without a name, or no Table at all, fail the step. A CSV file is a single table, its first line being the header, so <code>table</code> is not allowed with one.</li>
+<li><strong>Columns and fields.</strong> A header spelling a field's name exactly matches that field alone. Any other header matches the fields it equals when compared ignoring case, spaces, dots and underscores, so the header <code>Unit price</code> fills the field <code>unit_price</code>. A column whose header matches no field is ignored, so the table may hold columns the concept does not declare. The step fails when a header matches several fields, as <code>Unit Price</code> would when the concept declares both <code>unit_price</code> and <code>unitprice</code>, when several headers match one field, when a header matches the field <code>row_field</code> names, or when a <code>required</code> field other than the <code>row_field</code> field is matched by no header. Any other field that no header matches takes its <code>default_value</code>, or is left without a value.</li>
+<li><strong>Values.</strong> Cells are read typed, a number as a number and a date as a date, and converted to the field's type. A text cell, which every CSV cell is, converts only from plain forms: an integer such as <code>-12</code>, a number with <code>.</code> as its decimal separator and no grouping such as <code>1234.5</code>, a boolean word such as <code>true</code>, <code>yes</code> or <code>1</code>, an ISO 8601 date or datetime such as <code>2026-03-04</code>, or exactly one of a field's <code>choices</code>. A locale form such as <code>1,5</code> or <code>03/04/2026</code> fails the step, naming the column and the row. An empty cell is no value: the field takes its <code>default_value</code> if it has one, and is null otherwise, so an empty cell under a <code>required</code> field fails the step. A cell holding a formula is read as the value the workbook last calculated for it.</li>
+<li><strong>The output.</strong> It must be a list (<code>Foo[]</code>) of a concept with a structure, never <code>Dynamic</code>, <code>Anything</code>, <code>Composite</code> or a concept declared without <code>structure</code>, whose fields are all simple values: <code>text</code>, <code>integer</code>, <code>number</code>, <code>boolean</code>, <code>date</code>, <code>datetime</code>, or a field with <code>choices</code>. <code>model</code> is not allowed, since no model is called.</li>
+</ul>
+<p>See <a href="../../spec/mthds-format/#reading-a-spreadsheet">Reading a Spreadsheet</a> in the specification for the complete rules.</p>
 <h2 id="pipefunc">PipeFunc</h2>
 <p>Calls a Python function that lives in the method's own folder.</p>
 <div class="highlight"><pre><span></span><code>text_tools/
