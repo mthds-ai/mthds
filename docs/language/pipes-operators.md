@@ -228,7 +228,7 @@ Analyze the document and explain how it relates to the context: $reference_doc
 
 ## PipeStructure
 
-Turns text into a structured concept — typically by invoking an LLM that fills the declared output schema, though the standard does not prescribe a specific mechanism.
+Turns text into a structured concept — typically by invoking an LLM that fills the declared output schema, though the standard does not prescribe a specific mechanism. It can also [read the rows of a spreadsheet](#reading-a-spreadsheet) into a list of structured concepts, without a model.
 
 ```toml
 [concept.RestaurantReview]
@@ -255,14 +255,16 @@ Reach for `PipeStructure` whenever the text comes from somewhere other than a fr
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `inputs` | Yes | Exactly one input. Its concept must be `Text` or a concept that refines `Text`. |
-| `output` | Yes | The target structured concept, with optional multiplicity (`Foo`, `Foo[]`, `Foo[N]`). Cannot be `Text` or a concept that refines `Text`. |
-| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline LLM settings table (see [Inline LLM Settings](../spec/mthds-format.md#inline-llm-settings)). |
+| `inputs` | Yes | Exactly one input. Its concept must be `Text` or a concept that refines `Text`, or, to read a spreadsheet, `Document` or a concept that refines `Document`. |
+| `output` | Yes | The target structured concept, with optional multiplicity (`Foo`, `Foo[]`, `Foo[N]`). Cannot be `Text` or a concept that refines `Text`. Reading a spreadsheet, it must be a list (`Foo[]`). |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline LLM settings table (see [Inline LLM Settings](../spec/mthds-format.md#inline-llm-settings)). Not allowed when reading a spreadsheet, which calls no model. |
+| `table` | No | Reading a workbook, the name of the Excel Table to read. Optional when the workbook holds exactly one Table. |
+| `row_field` | No | Reading a spreadsheet, the field of the output concept that receives each row's position, counted from one. |
 
 `PipeStructure` does not accept a user-controlled prompt template — the runtime owns whatever prompting (or other mechanism) it uses to produce the structured output. Use a `PipeLLM` instead when prose generation needs prompt control.
 
-!!! note "No images, no documents"
-    `PipeStructure` is intentionally narrow: it takes one `Text` input. To structure an image or a PDF page, run an upstream extraction step (e.g. `PipeExtract` or a vision `PipeLLM`) and feed its text output into `PipeStructure`.
+!!! note "No images, and no documents other than spreadsheets"
+    `PipeStructure` is intentionally narrow: it takes one `Text` input, or one `Document` holding a spreadsheet. To structure an image or a PDF page, run an upstream extraction step (e.g. `PipeExtract` or a vision `PipeLLM`) and feed its text output into `PipeStructure`.
 
 ### Output Multiplicity
 
@@ -323,6 +325,39 @@ inputs      = { review_text = "Text" }
 output      = "RestaurantReview"
 model       = "@default-premium"
 ```
+
+### Reading a Spreadsheet
+
+```toml
+[concept.ExpenseRow]
+description = "One line of an expense report"
+
+[concept.ExpenseRow.structure]
+row      = { type = "integer", description = "The line's position in the Expenses table" }
+date     = { type = "date", description = "When the expense was made", required = true }
+merchant = { type = "text", description = "Who was paid" }
+amount   = { type = "number", description = "Amount paid, in euros", required = true }
+category = { description = "Expense category", choices = ["travel", "meals", "supplies"] }
+
+[pipe.read_expenses]
+type        = "PipeStructure"
+description = "Read the lines of the expense report"
+inputs      = { workbook = "Document" }
+output      = "ExpenseRow[]"
+table       = "Expenses"
+row_field   = "row"
+```
+
+**What this does:** Reads the Excel Table named `Expenses` in the workbook into a list of `ExpenseRow`, one item per row, without calling a model. Each item's `row` field receives the row's position in the Table, `1` for the first row under the header, so a later step can tell which row an item came from.
+
+When the single input is a `Document` or a concept that refines it, `PipeStructure` reads a spreadsheet instead of structuring a text. The document holds an Excel workbook (`.xlsx`) or a CSV file:
+
+- **The table.** In a workbook, the rows come from an Excel Table. `table` names it, and can be left out when the workbook holds exactly one Table; several Tables without a name, or no Table at all, fail the step. A CSV file is a single table, its first line being the header, so `table` is not allowed with one.
+- **Columns and fields.** Each column header matches a field of the output concept, compared ignoring case, spaces, dots and underscores, so the header `Unit price` fills the field `unit_price`. A header that matches no field, or that matches several, fails the step. A field that no header matches is left without a value.
+- **Values.** Cells are read typed, a number as a number and a date as a date, and converted to the field's type. An empty cell is no value: the field takes its `default_value` if it has one, and is null otherwise, so an empty cell under a `required` field fails the step. A cell holding a formula is read as the value the workbook last calculated for it.
+- **The output.** It must be a list (`Foo[]`) of a concept whose fields are all simple values: `text`, `integer`, `number`, `boolean`, `date`, `datetime`, or a field with `choices`. `model` is not allowed, since no model is called.
+
+See [Reading a Spreadsheet](../spec/mthds-format.md#reading-a-spreadsheet) in the specification for the complete rules.
 
 ## PipeFunc
 

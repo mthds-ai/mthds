@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v8.2.0 · MTHDS standard 8.2.0 · MTHDS Protocol 2.0.1**
+
+### Added
+
+- **`PipeStructure` reads a spreadsheet into a list without a model** (`spec/mthds-format.md`, `spec/namespace-resolution.md`, `implementers/validation-rules.md`, `language/pipes-operators.md`, `language/model-references.md`): the single input of a `PipeStructure` may now be a `Document`, or a concept refining it, holding an Excel workbook (`.xlsx`) or a CSV file, and the step then reads one table of the file into its output list, one item per data row, calling no model. On that path the input does not use multiplicity, the output is a variable list (`Foo[]`) of a concept whose fields are all `text`, `integer`, `number`, `boolean`, `date`, `datetime` or enumeration fields, and `model` is not allowed. The optional `table` names the Excel Table to read; without it the workbook's only Table is read, and several Tables, or none, fail the step, while a CSV file is one implicit table and refuses `table`. The optional `row_field` names an `integer` or `number` field of the output concept that receives each row's position among the data rows, counted from one. Column headers match fields ignoring case, spaces, dots and underscores, and a header matching no field or several, several headers matching one field, or a header matching the `row_field` field fail the step. Cells are read typed and converted to the field's type, an empty cell holds no value, and a formula cell reads the value the workbook last calculated for it. With a `Text` input, `table` and `row_field` are not allowed, and the rule that `PipeStructure` accepts no document input becomes a rule that it accepts no image input.
+
 ## [v8.1.0] - 2026-11-06
 
 **MTHDS standard 8.1.0 · MTHDS Protocol 2.0.1**

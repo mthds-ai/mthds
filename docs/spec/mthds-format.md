@@ -339,7 +339,7 @@ MTHDS defines pipe types in two categories:
 | Type | Value | Description |
 |------|-------|-------------|
 | PipeLLM | `"PipeLLM"` | Generates output using a large language model. |
-| PipeStructure | `"PipeStructure"` | Turns text into a structured concept using a large language model. |
+| PipeStructure | `"PipeStructure"` | Turns text into a structured concept using a large language model, or reads a spreadsheet's rows into a list of structured concepts without one. |
 | PipeFunc | `"PipeFunc"` | Calls a Python function of the method's tree. |
 | PipeImgGen | `"PipeImgGen"` | Generates images using an image generation model. |
 | PipeExtract | `"PipeExtract"` | Extracts structured content from documents. |
@@ -475,7 +475,10 @@ cv_pages = "Page"
 
 ## Operator: PipeStructure
 
-Turns text into a structured concept matching the declared output schema. The standard does not prescribe how a runtime achieves this; a typical implementation uses an LLM call.
+Turns its single input into a structured concept matching the declared output schema. The input is either a text or a spreadsheet:
+
+- **From a text**, the runtime structures the text into the output concept. The standard does not prescribe how a runtime achieves this; a typical implementation uses an LLM call.
+- **From a spreadsheet**, a `Document` holding an Excel workbook or a CSV file, the runtime reads one table of the file into a list of the output concept, one item per row, without calling a model. The rules of this path are in [Reading a Spreadsheet](#reading-a-spreadsheet).
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -483,14 +486,22 @@ Turns text into a structured concept matching the declared output schema. The st
 | `description` | string | Yes | — |
 | `inputs` | table | Yes | MUST contain exactly one entry. |
 | `output` | string | Yes | The target structured concept reference, with optional multiplicity. MUST NOT be `Text` or a concept that refines `Text`. |
-| `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [LLM settings](#inline-llm-settings) table. |
+| `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [LLM settings](#inline-llm-settings) table. Text input only. |
+| `table` | string | No | The name of the Excel Table to read. Spreadsheet input only. |
+| `row_field` | string | No | The name of the output concept's field that receives each row's position. Spreadsheet input only. |
 
 **Validation rules:**
 
-- `inputs` MUST contain exactly one entry. The single input concept MUST be `Text` or a concept that refines `Text`.
+- `inputs` MUST contain exactly one entry. The single input concept MUST be `Text` or a concept that refines `Text`, or `Document` or a concept that refines `Document`.
 - `output` MUST NOT be `Text` and MUST NOT be a concept that refines `Text`.
-- `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`).
-- `PipeStructure` MUST NOT accept image or document inputs. Use an upstream extraction step to produce text first.
+- `PipeStructure` MUST NOT accept image inputs. Use an upstream extraction step to produce text first.
+- When the input concept is `Text` or refines it, `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`), and `table` and `row_field` MUST NOT be present.
+- When the input concept is `Document` or refines it:
+    - The input MUST NOT use multiplicity.
+    - `output` MUST use variable multiplicity (`Foo[]`).
+    - `model` MUST NOT be present.
+    - Each field of the output concept MUST be of type `text`, `integer`, `number`, `boolean`, `date` or `datetime`, or an enumeration field declared with `choices`.
+    - `row_field`, when present, MUST name a field of the output concept whose type is `integer` or `number`.
 
 **Example:**
 
@@ -512,6 +523,52 @@ inputs      = { review_text = "Text" }
 output      = "RestaurantReview"
 model       = "@default-premium"
 ```
+
+### Reading a Spreadsheet
+
+```toml
+[concept.ExpenseRow]
+description = "One line of an expense report"
+
+[concept.ExpenseRow.structure]
+row      = { type = "integer", description = "The line's position in the Expenses table" }
+date     = { type = "date", description = "When the expense was made", required = true }
+merchant = { type = "text", description = "Who was paid" }
+amount   = { type = "number", description = "Amount paid, in euros", required = true }
+category = { description = "Expense category", choices = ["travel", "meals", "supplies"] }
+
+[pipe.read_expenses]
+type        = "PipeStructure"
+description = "Read the lines of the expense report"
+inputs      = { workbook = "Document" }
+output      = "ExpenseRow[]"
+table       = "Expenses"
+row_field   = "row"
+```
+
+When the single input is a `Document` or refines it, the runtime reads one table of the file into the output list, one item per data row, in the table's order, and calls no model.
+
+**The file.** The document MUST hold an Excel workbook in the Office Open XML format (`.xlsx`) or a CSV file. A runtime determines the format from the document's media type or file name, and refuses any other document when the step runs.
+
+**The table.** In a workbook, the rows are read from an Excel Table, the named table object a workbook defines over a range of cells with a header row:
+
+- When `table` is present, the runtime reads the Table of that name, compared ignoring case, as Excel compares Table names. A workbook with no Table of that name is refused.
+- When `table` is absent, the runtime reads the workbook's only Table. A workbook holding several Tables, or none, is refused, and the refusal names the Tables it found.
+- The Table's header row names the columns, and the rows between the header row and the end of the Table are its data rows. A totals row is not read.
+
+A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark at its start being ignored, whose first record is the header row and whose following records are the data rows. `table` MUST NOT be present when the file is a CSV file, and a runtime refuses the step when it is.
+
+**Columns and fields.** A column's header matches a field of the output concept when the two names are equal once spaces, dots and underscores are removed from both and case is ignored, so the header `Unit price` matches the field `unit_price` and `Merchant.Name` matches `merchant_name`. The runtime refuses the step when:
+
+- a header matches no field of the output concept;
+- a header matches several fields, or several headers match one field;
+- a header matches the field `row_field` names.
+
+A field no header matches, other than the one `row_field` names, holds no value in any row, as under an empty cell.
+
+**Values.** Each cell is read with its own type, a number as a number and a date as a date, and converted to the type of the field its column matches. A value that cannot be converted to the field's type, or that is not one of an enumeration field's `choices`, fails the step, and the failure names the row and the field. An empty cell holds no value: the field takes its `default_value` when it declares one and is null otherwise, so an empty cell under a `required` field fails the step. A cell holding a formula is read as the value the workbook last calculated and stored for it. A workbook saved by a program that stores no calculated values has none, and such a cell is read as an empty cell; a runtime SHOULD warn when it does so, naming the column.
+
+**The row position.** When `row_field` is present, each item's `row_field` field receives the position of its row among the table's data rows, counted from one: the first data row under the header is `1`. It counts data rows, never the sheet's own row numbers, so it stays the same wherever the table sits on its sheet.
 
 ## Operator: PipeFunc
 
