@@ -500,6 +500,7 @@ Turns its single input into a structured concept matching the declared output sc
     - The input MUST NOT use multiplicity.
     - `output` MUST use variable multiplicity (`Foo[]`).
     - `model` MUST NOT be present.
+    - The output concept MUST have a structure. A concept declared with neither `structure` nor `refines`, `Dynamic`, `Anything`, `Composite`, or a concept refining one of them, is rejected.
     - Each field of the output concept MUST be of type `text`, `integer`, `number`, `boolean`, `date` or `datetime`, or an enumeration field declared with `choices`.
     - `row_field`, when present, MUST name a field of the output concept whose type is `integer` or `number`.
 
@@ -554,9 +555,9 @@ When the single input is a `Document` or refines it, the runtime reads one table
 
 - When `table` is present, the runtime reads the Table of that name, compared ignoring case, as Excel compares Table names. A workbook with no Table of that name is refused.
 - When `table` is absent, the runtime reads the workbook's only Table. A workbook holding several Tables, or none, is refused, and the refusal names the Tables it found.
-- The Table's header row names the columns, and the rows between the header row and the end of the Table are its data rows. A totals row is not read.
+- The Table's header row names the columns, and the rows between the header row and the end of the Table are its data rows. A totals row is not read. Every row of the Table between its header row and its end, a row whose cells are all empty included, is a data row and counts toward the row position.
 
-A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark at its start being ignored, whose first record is the header row and whose following records are the data rows. `table` MUST NOT be present when the file is a CSV file, and a runtime refuses the step when it is.
+A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark at its start being ignored, whose first record is the header row and whose following records are the data rows. A blank line, holding no characters before its line break, is not a record: it is skipped and does not count toward the row position. A record of empty cells, such as `,,`, is a data row. A record with more cells than the header fails the step, and a record with fewer reads its missing trailing cells as empty. `table` MUST NOT be present when the file is a CSV file, and a runtime refuses the step when it is.
 
 **Columns and fields.** A column's header matches a field of the output concept when the two names are equal once spaces, dots and underscores are removed from both and case is ignored, so the header `Unit price` matches the field `unit_price` and `Merchant.Name` matches `merchant_name`. A column whose header matches no field is ignored, in a workbook and in a CSV file alike, so a table may carry columns the output concept does not declare, a calculated column for instance. The runtime refuses the step when:
 
@@ -566,7 +567,26 @@ A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark 
 
 A field that is not required and that no header matches holds no value in any row, as under an empty cell: it takes its `default_value` when it declares one and is null otherwise.
 
-**Values.** Each cell is read with its own type, a number as a number and a date as a date, and converted to the type of the field its column matches. A value that cannot be converted to the field's type, or that is not one of an enumeration field's `choices`, fails the step, and the failure names the row and the field. An empty cell holds no value: the field takes its `default_value` when it declares one and is null otherwise, so an empty cell under a `required` field fails the step. A cell holding a formula is read as the value the workbook last calculated and stored for it. A workbook saved by a program that stores no calculated values has none, and such a cell is read as an empty cell; a runtime SHOULD warn when it does so, naming the column.
+**Values.** Each cell is read with its own type, a number as a number and a date as a date, and converted to the type of the field its column matches. A cell the workbook types as a number, a date, a datetime or a boolean converts as follows:
+
+- `text` takes a text as it is, a whole number as its digits without a decimal point, any other number in its shortest decimal form, a date or a datetime in ISO 8601 form, and a boolean as `true` or `false`.
+- `integer` takes a number with no fractional part.
+- `number` takes any number.
+- `boolean` takes a boolean.
+- `date` takes a date, or a datetime whose time is midnight.
+- `datetime` takes a datetime, or a date, read as midnight on that day.
+
+A text cell, which every cell of a CSV file is, converts only from these forms:
+
+- `text` takes the text as it is.
+- `integer` takes an integer literal: an optional sign followed by digits.
+- `number` takes a decimal number written with `.` as its decimal separator, with an optional sign and an optional exponent, and with no grouping separator.
+- `boolean` takes, ignoring case, `true`, `false`, `yes`, `no`, `on`, `off`, `y`, `n`, `t`, `f`, `1` or `0`.
+- `date` takes an ISO 8601 date, or an ISO 8601 datetime whose time is midnight.
+- `datetime` takes an ISO 8601 datetime or date.
+- An enumeration field takes the text when it is exactly one of its `choices`.
+
+A value that converts by none of these rules fails the step, and the failure names the column and the row position. Forms written for a locale, such as `1,5` for a number or `03/04/2026` for a date, therefore fail. An empty cell holds no value: the field takes its `default_value` when it declares one and is null otherwise, so an empty cell under a `required` field fails the step. A cell holding a formula is read as the value the workbook last calculated and stored for it. A workbook saved by a program that stores no calculated values has none, and such a cell is read as an empty cell; a runtime SHOULD warn when it does so, naming the column.
 
 **The row position.** When `row_field` is present, each item's `row_field` field receives the position of its row among the table's data rows, counted from one: the first data row under the header is `1`. It counts data rows, never the sheet's own row numbers, so it stays the same wherever the table sits on its sheet.
 
