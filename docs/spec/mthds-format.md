@@ -567,7 +567,7 @@ A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark 
 
 A field that is not required and that no header matches holds no value in any row, as under an empty cell: it takes its `default_value` when it declares one and is null otherwise.
 
-A runtime MAY refuse a file or a Table that passes its own size limits, such as the file's uncompressed size or the Table's number of cells, and it reports the refusal as an input error. The standard sets no such limit.
+A runtime MAY refuse a file or a Table that exceeds its own size limits, such as the file's uncompressed size or the Table's number of cells, and it reports the refusal as [`input.too_large`](../errors/input/too_large.md). The standard sets no such limit.
 
 **Values.** Each cell is read with its own type, a number as a number and a date as a date, and converted to the type of the field its column matches. A cell the workbook types as a number, a date, a datetime or a boolean converts as follows:
 
