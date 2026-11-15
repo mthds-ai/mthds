@@ -548,7 +548,7 @@ row_field   = "row"
 
 When the single input is a `Document` or refines it, the runtime reads one table of the file into the output list, one item per data row, in the table's order, and calls no model.
 
-**The file.** The document MUST hold an Excel workbook in the Office Open XML format (`.xlsx`) or a CSV file. A runtime determines the format from the document's media type or file name, and refuses any other document when the step runs.
+**The file.** The document MUST hold an Excel workbook in the Office Open XML format (`.xlsx`) or a CSV file. A runtime identifies the format from the file's content, falling back to its media type and then its file name, and refuses any other document when the step runs. An `.xlsx` file, for instance, is a ZIP archive whose content types declare a spreadsheet.
 
 **The table.** In a workbook, the rows are read from an Excel Table, the named table object a workbook defines over a range of cells with a header row:
 
@@ -558,13 +558,13 @@ When the single input is a `Document` or refines it, the runtime reads one table
 
 A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark at its start being ignored, whose first record is the header row and whose following records are the data rows. `table` MUST NOT be present when the file is a CSV file, and a runtime refuses the step when it is.
 
-**Columns and fields.** A column's header matches a field of the output concept when the two names are equal once spaces, dots and underscores are removed from both and case is ignored, so the header `Unit price` matches the field `unit_price` and `Merchant.Name` matches `merchant_name`. The runtime refuses the step when:
+**Columns and fields.** A column's header matches a field of the output concept when the two names are equal once spaces, dots and underscores are removed from both and case is ignored, so the header `Unit price` matches the field `unit_price` and `Merchant.Name` matches `merchant_name`. A column whose header matches no field is ignored, in a workbook and in a CSV file alike, so a table may carry columns the output concept does not declare, a calculated column for instance. The runtime refuses the step when:
 
-- a header matches no field of the output concept;
 - a header matches several fields, or several headers match one field;
-- a header matches the field `row_field` names.
+- a header matches the field `row_field` names;
+- a `required` field of the output concept, other than the one `row_field` names, is matched by no header.
 
-A field no header matches, other than the one `row_field` names, holds no value in any row, as under an empty cell.
+A field that is not required and that no header matches holds no value in any row, as under an empty cell: it takes its `default_value` when it declares one and is null otherwise.
 
 **Values.** Each cell is read with its own type, a number as a number and a date as a date, and converted to the type of the field its column matches. A value that cannot be converted to the field's type, or that is not one of an enumeration field's `choices`, fails the step, and the failure names the row and the field. An empty cell holds no value: the field takes its `default_value` when it declares one and is null otherwise, so an empty cell under a `required` field fails the step. A cell holding a formula is read as the value the workbook last calculated and stored for it. A workbook saved by a program that stores no calculated values has none, and such a cell is read as an empty cell; a runtime SHOULD warn when it does so, naming the column.
 
