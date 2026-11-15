@@ -1,12 +1,14 @@
 # Changelog
 
-## [Unreleased]
+## [v9.0.0] - 2026-11-15
 
-**Next release: v9.0.0 · MTHDS standard 9.0.0 · MTHDS Protocol 2.0.1**
+**MTHDS standard 9.0.0 · MTHDS Protocol 2.0.1**
 
 ### Changed
 
 - **`Text`, `Html` and `JSON` values may be stored (Breaking)** (`spec/native-concepts.md`, `spec/mthds-format.md`, `spec/cli-io-contract.md`, `spec/pipe-io-contracts.md`, `spec/openapi/mthds-error-registry.yaml`, `language/concepts.md`): `native.Text`'s `text`, `native.Html`'s `inner_html` and `native.JSON`'s `json_obj` are no longer required, and each of the three natives gains the optional `url` (a storage URI, an HTTP(S) URL, or a base64 data URL), `size` (the stored value's length in bytes, the stored bytes always being UTF-8), `mime_type` (`text/plain` or `text/markdown`, `text/html`, `application/json`) and `preview` (the value's first few hundred characters, always its true start). A compliant value carries exactly one of its inline value and `url`, `size`, `mime_type` and `preview` accompany `url` only, and `Html`'s `css_class` stays inline in both forms; the stored value is the value itself, so a runtime reads it from `url` wherever it reads the value, and a consumer reading a `Text`, `Html` or `JSON` content now handles both forms. The native set is re-pinned at 9.0.0, so every crate that materializes `native.Text`, `native.Html` or `native.JSON`, directly or through `native.TextAndImages` or `native.Page`, gets a new fingerprint when re-normalized. `Text` and `JSON` stay leaves for a binding's path, and a path through `Html`'s `inner_html` is no more likely to be absent than before.
+- **The bundled schema `mthds_schema.json` still does not describe the spreadsheet-reading `PipeStructure`**: the copy this release publishes at `https://mthds.ai/mthds_schema.json` is the one `8.2.0` published, so it still rejects the `table` and `row_field` fields the standard allows on a `PipeStructure` since `8.2.0`, and a tool validating bundles against it flags a `PipeStructure` that declares either. This release's change to `Text`, `Html` and `JSON` adds no lag, since the copy describes bundles and holds no native concept's definition, and the copy accepts nothing the standard now rejects. A later release of the site publishes the schema of the implementation release that supports spreadsheet reading.
+- **Documentation versions served on mthds.ai**: this release stops serving `8.1.0`, so links into that version no longer resolve and should point at `/latest/`. The site serves `9.0.0`, which `/latest/` also serves, and `8.2.0`, and keeps both numbered directories out of search indexes, so that only `/latest/` is indexed.
 
 ## [v8.2.0] - 2026-11-15
 
