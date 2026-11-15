@@ -1,6 +1,6 @@
 # Roadmap
 
-The MTHDS standard is at version `8.2.0`. This page outlines planned and potential directions for future development.
+The MTHDS standard is at version `9.0.0`. This page outlines planned and potential directions for future development.
 
 ## Near-Term
 

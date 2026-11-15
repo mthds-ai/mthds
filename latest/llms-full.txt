@@ -764,9 +764,9 @@ A bundle cannot declare a concept with the same code as a native concept. For ex
 
 ### Native Concept Fields
 
-The most commonly used native concepts have the following fields. These are the fields you can reference in prompts via dot notation (e.g., `$page_content.page_view`).
+The most commonly used native concepts have the following fields. A native that carries several values, such as `Image`, `Html` or `Page`, has its fields reached in prompts via dot notation (e.g., `$page_content.page_view`). `Text`, `Number`, `Time` and `JSON` each hold a single value and are reached only whole (`$note`): a path never reads one of their fields, so `$note.text` or `$note.url` is rejected as `method.field_path_unresolved`.
 
-**Text** — a single `text` field containing the string value.
+**Text** — `text`, the string value. A large text may be stored rather than carried inline: it then carries `url` (where the text is stored: a storage URI, an HTTP(S) URL, or a base64 data URL) in place of `text`, with `size` (its length in bytes), `mime_type` (`text/plain` or `text/markdown`) and `preview` (its first few hundred characters) beside it. A value holds exactly one of `text` and `url`. `url`, `size`, `mime_type` and `preview` describe the stored form and are not readable by dot notation: `$note` in a prompt renders the text whichever form it takes.
 
 **Image** — `url` (location of the image: a storage URI, an HTTP(S) URL, or a base64 data URL), `source_prompt` (the prompt used to generate it, if applicable), `caption` (descriptive text), `width` / `height` (pixel dimensions, present together or not at all).
 
@@ -792,7 +792,9 @@ The most commonly used native concepts have the following fields. These are the 
 
 **SearchResult** — `answer` (the synthesized answer text), `sources` (a list of source citations, each a Document with `title`, `url`, and `snippet`).
 
-**JSON** — a single `json_obj` field containing the JSON object.
+**Html** — `inner_html` (the markup) and `css_class` (an optional class for a wrapper). Like a Text, the markup may be stored at `url` instead of carried in `inner_html`, with `size`, `mime_type` (`text/html`) and `preview` beside it; `css_class` stays inline either way.
+
+**JSON** — `json_obj`, the JSON object, or, when it is stored, `url` in its place with `size`, `mime_type` (`application/json`) and `preview` beside it. As with a Text, these fields describe the stored form and are not readable by dot notation: a JSON value is reached only whole.
 
 **Composite** — dynamically named component fields. PipeParallel uses this when branch results are combined without a bespoke structured output concept.
 
@@ -2938,7 +2940,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=8.2.0"
+mthds_version = ">=9.0.0"
 main_pipe     = "analyze_nda"
 
 [exports.legal]
@@ -2966,7 +2968,7 @@ The `[package]` section defines the package's identity:
 | `description` | Yes | Human-readable summary of the package's purpose. Must not be empty. |
 | `authors` | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | No | [SPDX license identifier](https://spdx.org/licenses/) (e.g., `"MIT"`, `"Apache-2.0"`). |
-| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `8.2.0`. |
+| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `9.0.0`. |
 | `main_pipe` | No | The package's entry-point pipe. Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe) below. |
 | `exclude` | No | Patterns, in `.gitignore` syntax, naming files to keep out of the package's method tree. See [Exclude](#exclude) below. |
 | `categories` | No | The categories the method belongs to, as lowercase slugs (e.g., `["legal", "customer-support"]`). See [Categories](#categories) below. |
@@ -4128,7 +4130,7 @@ MTHDS carries **two version numbers**, and they move independently:
 
 | Number | Governs | Current |
 |---|---|---|
-| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff, the core error registry | `8.2.0` |
+| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff, the core error registry | `9.0.0` |
 | **Protocol version** | The HTTP runner contract — its routes, their request and response shapes, and the problem document every error is | `2.0.1` |
 
 Both are [Semantic Versioning 2.0.0](https://semver.org/) numbers. Everything else that carries a version — a package's own `version`, a runner's `runner_version`, an implementation's release number — belongs to that package, runner, or implementation and is governed by whoever publishes it.
@@ -5525,9 +5527,9 @@ A step that stores its result under the name of a sequence input therefore repla
 | `type = "list"` with any other `item_type` | the native concept that `item_type` gives by the rows above, a leaf, crossing a list |
 | `type = "dict"` | `native.JSON`, a leaf |
 
-The walk reads only the concept references the structures declare. A field the table above calls a leaf holds a plain value, which has no fields of its own, so the walk always ends on it, whatever native concept it derives. A native concept reached through a concept reference is walked through its [pinned definition](./native-concepts.md), so `page.page_view` is a `native.Image` and `page.page_view.caption` is a `native.Text`. The exceptions are the natives whose pinned definition is a single field holding the value itself, which are leaves wherever the walk reaches them. A concept that [refines](#concept-refinement) another is walked through the structure it inherits. The walk never infers a concept from the shape of a value: several concepts can share one structure, and only the declaration says which of them a field holds.
+The walk reads only the concept references the structures declare. A field the table above calls a leaf holds a plain value, which has no fields of its own, so the walk always ends on it, whatever native concept it derives. A native concept reached through a concept reference is walked through its [pinned definition](./native-concepts.md), so `page.page_view` is a `native.Image` and `page.page_view.caption` is a `native.Text`. The exceptions are the natives whose pinned definition holds a single value itself, which are leaves wherever the walk reaches them. A concept that [refines](#concept-refinement) another is walked through the structure it inherits. The walk never infers a concept from the shape of a value: several concepts can share one structure, and only the declaration says which of them a field holds.
 
-**A native that holds its value in a single field is a leaf wherever it is reached.** A native concept whose pinned definition is a single field holding the value itself, rather than a part of it, is a leaf for the walk, and so is any concept that refines one: a path never enters it. In the pinned set, these natives are `Text`, whose field is `text`, `Number`, whose field is `number`, `Time`, whose field is `time`, and `JSON`, whose field is `json_obj`. How the walk reached the concept makes no difference: a field declared `type = "number"` and a field declared `type = "concept"` with `concept_ref = "native.Number"` both derive `native.Number`, and both end the walk. A path may end on such a concept, but no segment may follow it: `from = "note.text"`, over a `note` holding a `Text`, is rejected as `method.field_path_unresolved`, and so is `from = "invoice.total.number"` over the invoice above, whether `Invoice` declares `total` as a number field or as a reference to `native.Number`. Every other native that has a structure, such as `YesNo`, `Date`, `Image` or `Page`, carries several fields and is walked through its pinned definition when a concept reference leads to it.
+**A native that holds a single value is a leaf wherever it is reached.** A native concept whose pinned definition holds one value itself, rather than parts of it, is a leaf for the walk, and so is any concept that refines one: a path never enters it. In the pinned set, these natives are `Text`, whose value is `text`, `Number`, whose value is `number`, `Time`, whose value is `time`, and `JSON`, whose value is `json_obj`. `Text` and `JSON` may hold that value [stored](./native-concepts.md#stored-values) rather than inline, through `url` and the fields that describe it, and those fields are not parts of the value either, so `from = "note.url"` is rejected exactly as `from = "note.text"` is. How the walk reached the concept makes no difference: a field declared `type = "number"` and a field declared `type = "concept"` with `concept_ref = "native.Number"` both derive `native.Number`, and both end the walk. A path may end on such a concept, but no segment may follow it: `from = "note.text"`, over a `note` holding a `Text`, is rejected as `method.field_path_unresolved`, and so is `from = "invoice.total.number"` over the invoice above, whether `Invoice` declares `total` as a number field or as a reference to `native.Number`. Every other native that has a structure, such as `YesNo`, `Date`, `Image`, `Html` or `Page`, carries several values and is walked through its pinned definition when a concept reference leads to it.
 
 **A plain field stays a leaf even when its native has several fields.** A `boolean` field derives `native.YesNo` and a `date` field derives `native.Date`, both natives with several fields, yet the walk ends on the field itself. This makes the walk asymmetric, and the asymmetry is intended. Over an invoice declaring a boolean field `paid`, the one-step path `from = "invoice.paid.probability"` is rejected as `method.field_path_unresolved` before any run. Binding `invoice.paid` first, with `{ from = "invoice.paid", result = "paid" }`, stores a `YesNo` carrying only the field's value, and a later step's `from = "paid.probability"` then validates, because its walk starts from a `YesNo` and follows its pinned definition. A plain boolean carries no probability, so that later step records an absence at run time.
 
@@ -5536,7 +5538,7 @@ When the walk crosses no list, the result is a single value of the concept the w
 The walk refuses the path, and the step is rejected as `method.field_path_unresolved`, when:
 
 - a segment names no field of the structure it walks;
-- a segment follows a leaf: a field the table above calls a leaf, or, however the walk reached it, a native whose pinned definition is a single field holding the value itself, such as `Text`, `Number`, `Time` or `JSON`, or any concept that refines one of them;
+- a segment follows a leaf: a field the table above calls a leaf, or, however the walk reached it, a native whose pinned definition holds a single value itself, such as `Text`, `Number`, `Time` or `JSON`, or any concept that refines one of them;
 - a segment follows a `dict` field, or a `list` field with no `item_type`;
 - a segment walks a concept that has no structure, which is any concept declared with neither a `structure` nor `refines`, any of the [structureless natives](./native-concepts.md#reading-the-definitions) `Dynamic`, `Anything` and `Composite`, and any concept that refines one of them;
 - the path ends on a `list` field with no `item_type`, whose items have no concept to derive.
@@ -5556,8 +5558,8 @@ When the walk crosses a list, whether the root is a list or a field along the pa
 A binding step introduces no new kind of absence: like a pipe's output under the [optionality model](../language/optionality.md#runtime-behavior), a single result is either a value or a recorded absence, and a list result is never absent.
 
 - **The root is absent.** The root is read like a plain input, so the binding step lifts the way a pipe with an absent plain input does: a single result is recorded as a skipped absence, with provenance pointing to the root's absence. A list result is an empty list instead, since a plural slot is never absent.
-- **The path reaches nothing.** When the result is a single value and a segment holds nothing, at the leaf or at any segment before it (`invoice.scan.url` on an invoice with no `scan`), the result is a recorded absence whose provenance names the segment that held nothing. This is not an error. When the result is a list, the [list rule](#lists-map-and-flatten) applies instead.
-- **Statically,** a single result may be absent when its root may be absent, judged from the same latest value stored under the root's name that gives the root its concept (see [The Concept of the Result](#the-concept-of-the-result)), or when its path walks a field that may hold nothing, meaning one that is not `required` and has no `default_value`. Structure fields default to `required = false`, so most single-value bindings may be absent unless the concept marks the field required, which is correct, since the data may lack the field. A list result is never considered maybe-absent.
+- **The path reaches nothing.** When the result is a single value and a segment holds nothing, at the leaf or at any segment before it (`invoice.scan.url` on an invoice with no `scan`), the result is a recorded absence whose provenance names the segment that held nothing. This is not an error. A stored value is not nothing: a path ending on the `inner_html` of an `Html` stored at `url` binds that markup. When the result is a list, the [list rule](#lists-map-and-flatten) applies instead.
+- **Statically,** a single result may be absent when its root may be absent, judged from the same latest value stored under the root's name that gives the root its concept (see [The Concept of the Result](#the-concept-of-the-result)), or when its path walks a field that may hold nothing, meaning one that is not `required` and has no `default_value`. Structure fields default to `required = false`, so most single-value bindings may be absent unless the concept marks the field required, which is correct, since the data may lack the field. The one exception is the inline value field of a native whose value may be [stored](./native-concepts.md#stored-values), `Html`'s `inner_html`: a compliant `Html` always holds its markup, inline or at `url`, so walking `inner_html` does not by itself make a result maybe-absent. A list result is never considered maybe-absent.
 
 What follows is the existing machinery: a step reading the result through a plain input lifts when it is absent, a step reading it through an optional (`?`) input runs and guards the read, and a sequence whose output can be absent MUST declare its output `?`.
 
@@ -6095,7 +6097,7 @@ The [lock file](./lock-format.md) records each fetched dependency's tree digest,
 
 Native concepts are the built-in vocabulary of the MTHDS standard: always available in every bundle, never declared by authors. This page pins their **normative definitions** — the exact blueprint form of each native concept, expressed in the same structure language authors use for their own concepts (see [Concept Structure Fields](./mthds-format.md#concept-structure-fields)).
 
-These definitions are **pinned per MTHDS standard version**. The set below was pinned at MTHDS `5.0.0`, and is normative for every standard version from `5.0.0` until a later version pins a new one: an implementation of standard version `V` materializes the pinned set of the greatest version less than or equal to `V` (see [Versioning](./versioning.md#the-pinned-native-set-under-one-number)). Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard, [bumps the standard version](./versioning.md#what-bumps-the-standard-version), and re-pins the set at that version. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by **lookup into this pinned set**.
+These definitions are **pinned per MTHDS standard version**. The set below was pinned at MTHDS `9.0.0`, and is normative for every standard version from `9.0.0` until a later version pins a new one: an implementation of standard version `V` materializes the pinned set of the greatest version less than or equal to `V` (see [Versioning](./versioning.md#the-pinned-native-set-under-one-number)). Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard, [bumps the standard version](./versioning.md#what-bumps-the-standard-version), and re-pins the set at that version. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by **lookup into this pinned set**.
 
 Three consequences follow:
 
@@ -6111,7 +6113,7 @@ Three natives are **structureless by design**: their shape is intentionally open
 
 One reserved marker: `value_type = "Any"` on a `dict` field declares the value type **unspecified** — the values are arbitrary; a consumer surfaces this as declared imprecision (e.g. `dict[str, Any]` with a caveat), never as a guessed value shape.
 
-## The Pinned Set — Pinned at MTHDS 5.0.0
+## The Pinned Set — Pinned at MTHDS 9.0.0
 
 ### native.Dynamic
 
@@ -6129,8 +6131,17 @@ description = "A dynamic concept"
 description = "A text"
 
 [concept.Text.structure]
-text = { type = "text", required = true, description = "The text" }
+text = { type = "text", description = "The text" }
+url = { type = "text", description = "The URL of the stored text: a storage URI, an HTTP(S) URL, or a base64 data URL" }
+size = { type = "integer", description = "The length of the stored text, in bytes as stored" }
+mime_type = { type = "text", description = "The MIME type of the stored text: text/plain or text/markdown" }
+preview = { type = "text", description = "The first few hundred characters of the stored text, always its true start" }
 ```
+
+A `Text` carries its value in one of two forms: **inline**, in `text`, or **stored**, at `url`. A compliant value carries exactly one of `text` and `url`, never both and never neither. `size`, `mime_type` and `preview` describe a stored value and accompany `url` only, each optional beside it: `size` is the stored text's length in bytes, `mime_type` is `text/plain` or `text/markdown`, and `preview` is the first few hundred characters of the text, always its true start and never a summary, so that a reader can show or describe a stored text without fetching it. An inline value carries none of the three. The bytes stored at `url` MUST be the value encoded in UTF-8, whatever charset transport metadata such as an HTTP `Content-Type` or a data URL's parameters claims: `size` counts those UTF-8 bytes, and `preview` is the start of their decoded text.
+{ #stored-values }
+
+The two forms carry the same value: the text stored at `url` is the value itself, and a runtime that reads the value, to render it into a prompt, to bind a path to it or to compare it, reads it from there. Which form a value takes is a matter of transport, never of meaning, so a method behaves the same whichever form its values arrive in, and a producer may choose the stored form for a large value and the inline form for a small one. As with `Image`'s `width` and `height`, these rules constrain values, not the blueprint: the structure language has no cross-field form, so a consumer projecting this definition emits independently optional fields, and a validating runtime is what enforces the rules.
 
 ### native.Image
 
@@ -6174,11 +6185,17 @@ snippet = { type = "text", description = "A text snippet or excerpt from the doc
 description = "HTML content"
 
 [concept.Html.structure]
-inner_html = { type = "text", required = true, description = "The inner HTML of the content" }
+inner_html = { type = "text", description = "The inner HTML of the content" }
 css_class = { type = "text", description = "The CSS class of the content" }
+url = { type = "text", description = "The URL of the stored inner HTML: a storage URI, an HTTP(S) URL, or a base64 data URL" }
+size = { type = "integer", description = "The length of the stored inner HTML, in bytes as stored" }
+mime_type = { type = "text", description = "The MIME type of the stored inner HTML: text/html" }
+preview = { type = "text", description = "The first few hundred characters of the stored inner HTML, always its true start" }
 ```
 
-`css_class` is optional: it names a class for a wrapper a consumer may put around `inner_html`, and content that needs no wrapper simply omits it. Only `inner_html` is required — an `Html` value is its markup, and the class is presentation a producer states when it has one.
+An `Html` value is its markup, carried inline in `inner_html` or stored at `url`, by the same rules as a [`Text`](#stored-values): a compliant value carries exactly one of `inner_html` and `url`, never both and never neither, and `size`, `mime_type` and `preview` accompany `url` only, each optional beside it, `mime_type` being `text/html`. The markup stored at `url` is the value itself, and a runtime that reads `inner_html` reads it from there.
+
+`css_class` is optional: it names a class for a wrapper a consumer may put around the markup, and content that needs no wrapper simply omits it. It is presentation a producer states when it has one, not part of the stored markup, so it stays inline in both forms.
 
 ### native.TextAndImages
 
@@ -6289,8 +6306,14 @@ page_view = { type = "concept", concept_ref = "native.Image", description = "The
 description = "A JSON object"
 
 [concept.JSON.structure]
-json_obj = { type = "dict", key_type = "text", value_type = "Any", required = true, description = "The JSON object" }
+json_obj = { type = "dict", key_type = "text", value_type = "Any", description = "The JSON object" }
+url = { type = "text", description = "The URL of the stored JSON object: a storage URI, an HTTP(S) URL, or a base64 data URL" }
+size = { type = "integer", description = "The length of the stored JSON object's serialized form, in bytes as stored" }
+mime_type = { type = "text", description = "The MIME type of the stored JSON object: application/json" }
+preview = { type = "text", description = "The first few hundred characters of the stored JSON object's serialized form, always its true start" }
 ```
+
+A `JSON` value is its object, carried inline in `json_obj` or stored at `url` as its serialized form, by the same rules as a [`Text`](#stored-values): a compliant value carries exactly one of `json_obj` and `url`, never both and never neither, and `size`, `mime_type` and `preview` accompany `url` only, each optional beside it, `mime_type` being `application/json`. The object stored at `url` is the value itself, and a runtime that reads `json_obj` reads it from there.
 
 ### native.SearchResult
 
@@ -6324,6 +6347,13 @@ description = "A named composition of contents"
 ## Changes Between Pinned Sets
 
 Each earlier pinned set stays normative for the crates stamped with the versions it governs, so this page records how each set differs from the one before it, newest first.
+
+### From the Set Pinned at 5.0.0
+
+- `native.Text`'s `text`, `native.Html`'s `inner_html` and `native.JSON`'s `json_obj` are no longer `required`.
+- `native.Text`, `native.Html` and `native.JSON` each gain the optional `url`, `size`, `mime_type` and `preview`, which carry a stored value in place of the inline one.
+
+A crate stamped with a version from `5.0.0` to `8.2.0` materialized the set pinned at `5.0.0`, so its `native.Text`, `native.Html` and `native.JSON` require their inline value and carry no `url`. Re-normalizing the same library against a `9.0.0` implementation materializes the definitions above instead, and the crate's [fingerprint](./library-crate.md#fingerprint) changes with it. That holds for every crate carrying any of the three, and a crate carries `native.Text` whenever it references `native.Text`, `native.TextAndImages` or `native.Page`, so the fingerprint of almost every crate changes. The set pinned at `5.0.0` is this page as published with the `5.x` to `8.x` versions of the standard.
 
 ### From the Set Pinned at 3.0.0
 
@@ -6634,7 +6664,7 @@ MAJOR.MINOR.PATCH[-pre-release][+build-metadata]
 
 The `mthds_version` field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see [Version Constraint Syntax](#version-constraint-syntax)).
 
-The current MTHDS standard version is `8.2.0`. See [Versioning](./versioning.md) for what moves it.
+The current MTHDS standard version is `9.0.0`. See [Versioning](./versioning.md) for what moves it.
 
 ### Main Pipe
 
@@ -6902,7 +6932,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=8.2.0"
+mthds_version = ">=9.0.0"
 main_pipe     = "analyze_nda"
 exclude       = ["drafts/"]
 categories    = ["legal", "compliance"]
@@ -7245,7 +7275,16 @@ A **pipe I/O contract** states, for one pipe, exactly what a caller must supply 
         "presence": "optional",
         "multiplicity": "single",
         "item_count": null,
-        "json_schema": { "type": "object", "properties": { "text": { "type": "string" } }, "required": ["text"] }
+        "json_schema": {
+          "type": "object",
+          "properties": {
+            "text": { "type": "string" },
+            "url": { "type": "string" },
+            "size": { "type": "integer" },
+            "mime_type": { "type": "string" },
+            "preview": { "type": "string" }
+          }
+        }
       }
     },
     "output": {
@@ -8238,7 +8277,7 @@ A stuff — one named value in a working memory, whether a method input or a pip
 }
 ```
 
-`concept` names the concept by its **crate key**, the string the [library crate](./library-crate.md#1-merge) keys it under: the domain-qualified reference `<domain>.<Code>` for a concept the method's own package declares (`legal.ContractAnalysis`) or a native concept (`native.Text`), and the address-prefixed `<package_address>::<domain>.<Code>` for a concept a dependency contributes (`github.com/mthds/scoring-lib::scoring.ScoreResult`). Two packages may declare the same domain and code, so a dependency's concept is never named by the bare `<domain>.<Code>`, and the prefix is the package address, never the alias one consumer happens to give it. `content` is the value, shaped as the concept's structure dictates. The same string names the concept wherever a stuff travels: an entry of `--inputs`, a stuff read from stdin, every entry of `working_memory.root` in the `--with-memory` envelope, every stuff of a runner's `pipe_output` over the [HTTP protocol](./protocol.md#executing-a-method), and any file a runtime writes from a working memory.
+`concept` names the concept by its **crate key**, the string the [library crate](./library-crate.md#1-merge) keys it under: the domain-qualified reference `<domain>.<Code>` for a concept the method's own package declares (`legal.ContractAnalysis`) or a native concept (`native.Text`), and the address-prefixed `<package_address>::<domain>.<Code>` for a concept a dependency contributes (`github.com/mthds/scoring-lib::scoring.ScoreResult`). Two packages may declare the same domain and code, so a dependency's concept is never named by the bare `<domain>.<Code>`, and the prefix is the package address, never the alias one consumer happens to give it. `content` is the value, shaped as the concept's structure dictates. A native whose value may be [stored](./native-concepts.md#stored-values) — `native.Text`, `native.Html`, `native.JSON` — travels in whichever form it holds, inline (`{"text": "The parties agree..."}`) or stored (`{"url": "https://example.com/contract.txt", "size": 48213, "mime_type": "text/plain", "preview": "The parties agree..."}`), and a consumer that needs a stored value reads it from `url`. The same string names the concept wherever a stuff travels: an entry of `--inputs`, a stuff read from stdin, every entry of `working_memory.root` in the `--with-memory` envelope, every stuff of a runner's `pipe_output` over the [HTTP protocol](./protocol.md#executing-a-method), and any file a runtime writes from a working memory.
 
 The reference is the whole of what a stuff says about its concept. The concept's definition — its description, its structure, what it refines, and anything an implementation attaches to it, such as the name of a runtime class — belongs to the library the method loads and never travels beside a stuff. A consumer that needs the definition resolves the reference against that library, or reads it from the [pipe I/O contracts](./pipe-io-contracts.md) a validating runtime reports. A runtime MUST emit `concept` as this string and MUST NOT emit an object in its place.
 
@@ -11789,7 +11828,7 @@ The core registry is part of the standard, and its `version` is the standard ver
 
 Every code of the MTHDS core error registry has a page here, at the URL a problem's `type` names: `https://mthds.ai/errors/<code>`. Each page says what its code means, who must act and what to do, and gives the code's steps, parameters and templates. The [Error Registry](../spec/error-registry.md) page describes the registry itself, and the [HTTP Runner Protocol](../spec/protocol.md#errors) how a problem document carries a code.
 
-These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `8.2.0` of the registry.
+These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `9.0.0` of the registry.
 
 ## Extension prefixes
 
@@ -12679,7 +12718,7 @@ version       = "0.1.0"
 description   = "Text summarization and document classification methods"
 authors       = ["Your Name <you@example.com>"]
 license       = "MIT"
-mthds_version = ">=8.2.0"
+mthds_version = ">=9.0.0"
 ```
 
 ## Step 5: Validate
@@ -13568,7 +13607,7 @@ The following integration points describe the full scope of MTHDS-aware language
 
 # Roadmap
 
-The MTHDS standard is at version `8.2.0`. This page outlines planned and potential directions for future development.
+The MTHDS standard is at version `9.0.0`. This page outlines planned and potential directions for future development.
 
 ## Near-Term
 

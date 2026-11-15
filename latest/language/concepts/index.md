@@ -249,9 +249,9 @@ A bundle cannot declare a concept with the same code as a native concept. For ex
 
 ### Native Concept Fields
 
-The most commonly used native concepts have the following fields. These are the fields you can reference in prompts via dot notation (e.g., `$page_content.page_view`).
+The most commonly used native concepts have the following fields. A native that carries several values, such as `Image`, `Html` or `Page`, has its fields reached in prompts via dot notation (e.g., `$page_content.page_view`). `Text`, `Number`, `Time` and `JSON` each hold a single value and are reached only whole (`$note`): a path never reads one of their fields, so `$note.text` or `$note.url` is rejected as `method.field_path_unresolved`.
 
-**Text** — a single `text` field containing the string value.
+**Text** — `text`, the string value. A large text may be stored rather than carried inline: it then carries `url` (where the text is stored: a storage URI, an HTTP(S) URL, or a base64 data URL) in place of `text`, with `size` (its length in bytes), `mime_type` (`text/plain` or `text/markdown`) and `preview` (its first few hundred characters) beside it. A value holds exactly one of `text` and `url`. `url`, `size`, `mime_type` and `preview` describe the stored form and are not readable by dot notation: `$note` in a prompt renders the text whichever form it takes.
 
 **Image** — `url` (location of the image: a storage URI, an HTTP(S) URL, or a base64 data URL), `source_prompt` (the prompt used to generate it, if applicable), `caption` (descriptive text), `width` / `height` (pixel dimensions, present together or not at all).
 
@@ -277,7 +277,9 @@ The most commonly used native concepts have the following fields. These are the 
 
 **SearchResult** — `answer` (the synthesized answer text), `sources` (a list of source citations, each a Document with `title`, `url`, and `snippet`).
 
-**JSON** — a single `json_obj` field containing the JSON object.
+**Html** — `inner_html` (the markup) and `css_class` (an optional class for a wrapper). Like a Text, the markup may be stored at `url` instead of carried in `inner_html`, with `size`, `mime_type` (`text/html`) and `preview` beside it; `css_class` stays inline either way.
+
+**JSON** — `json_obj`, the JSON object, or, when it is stored, `url` in its place with `size`, `mime_type` (`application/json`) and `preview` beside it. As with a Text, these fields describe the stored form and are not readable by dot notation: a JSON value is reached only whole.
 
 **Composite** — dynamically named component fields. PipeParallel uses this when branch results are combined without a bespoke structured output concept.
 

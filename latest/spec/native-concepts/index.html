@@ -1855,15 +1855,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-pinned-set-pinned-at-mthds-500" class="md-nav__link">
+  <a href="#the-pinned-set-pinned-at-mthds-900" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Pinned Set — Pinned at MTHDS 5.0.0
+        The Pinned Set — Pinned at MTHDS 9.0.0
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="The Pinned Set — Pinned at MTHDS 5.0.0">
+    <nav class="md-nav" aria-label="The Pinned Set — Pinned at MTHDS 9.0.0">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2069,6 +2069,17 @@
   
     <nav class="md-nav" aria-label="Changes Between Pinned Sets">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-the-set-pinned-at-500" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From the Set Pinned at 5.0.0
+      
+    </span>
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#from-the-set-pinned-at-300" class="md-nav__link">
@@ -3277,15 +3288,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-pinned-set-pinned-at-mthds-500" class="md-nav__link">
+  <a href="#the-pinned-set-pinned-at-mthds-900" class="md-nav__link">
     <span class="md-ellipsis">
       
-        The Pinned Set — Pinned at MTHDS 5.0.0
+        The Pinned Set — Pinned at MTHDS 9.0.0
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="The Pinned Set — Pinned at MTHDS 5.0.0">
+    <nav class="md-nav" aria-label="The Pinned Set — Pinned at MTHDS 9.0.0">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -3493,6 +3504,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#from-the-set-pinned-at-500" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From the Set Pinned at 5.0.0
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#from-the-set-pinned-at-300" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3552,7 +3574,7 @@
 
 <h1 id="native-concept-definitions">Native Concept Definitions</h1>
 <p>Native concepts are the built-in vocabulary of the MTHDS standard: always available in every bundle, never declared by authors. This page pins their <strong>normative definitions</strong> — the exact blueprint form of each native concept, expressed in the same structure language authors use for their own concepts (see <a href="../mthds-format/#concept-structure-fields">Concept Structure Fields</a>).</p>
-<p>These definitions are <strong>pinned per MTHDS standard version</strong>. The set below was pinned at MTHDS <code>5.0.0</code>, and is normative for every standard version from <code>5.0.0</code> until a later version pins a new one: an implementation of standard version <code>V</code> materializes the pinned set of the greatest version less than or equal to <code>V</code> (see <a href="../versioning/#the-pinned-native-set-under-one-number">Versioning</a>). Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard, <a href="../versioning/#what-bumps-the-standard-version">bumps the standard version</a>, and re-pins the set at that version. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by <strong>lookup into this pinned set</strong>.</p>
+<p>These definitions are <strong>pinned per MTHDS standard version</strong>. The set below was pinned at MTHDS <code>9.0.0</code>, and is normative for every standard version from <code>9.0.0</code> until a later version pins a new one: an implementation of standard version <code>V</code> materializes the pinned set of the greatest version less than or equal to <code>V</code> (see <a href="../versioning/#the-pinned-native-set-under-one-number">Versioning</a>). Any change to a definition — a field added, a type changed, a description reworded — is a change to the standard, <a href="../versioning/#what-bumps-the-standard-version">bumps the standard version</a>, and re-pins the set at that version. An implementation MUST NOT derive these definitions from its own runtime types (reflection over internal classes makes one implementation's quirks the de-facto standard); it materializes them by <strong>lookup into this pinned set</strong>.</p>
 <p>Three consequences follow:</p>
 <ul>
 <li><strong>Crate materialization is a copy, not a computation.</strong> When a <a href="../library-crate/">library crate</a> expands native concepts (<a href="../library-crate/#4-expand-native-concepts">normalization step 4</a>), each referenced native is materialized into <code>concepts</code> as the <code>native.&lt;Code&gt;</code> concept object equivalent to its definition below. The crate's <code>mthds_version</code> records which pinned set was used.</li>
@@ -3563,7 +3585,7 @@
 <p>Each definition is written in authored TOML form. In a crate, the same definition appears as the JSON concept object keyed <code>native.&lt;Code&gt;</code>: the <code>description</code>, and the <code>structure</code> table with one field blueprint per field, exactly as pinned — field order preserved, <code>required</code> explicit only where <code>true</code> (the default is <code>false</code>). Materialized natives carry no <code>source</code> field: they originate from this page, not from a file in the closure. The preserved field order governs the crate's <em>emitted encodings</em>; the <a href="../library-crate/#fingerprint">fingerprint</a> is computed separately over the canonicalized (key-sorted) hash payload, per the crate spec's canonicalization rules.</p>
 <p>Three natives are <strong>structureless by design</strong>: their shape is intentionally open, so they carry a <code>description</code> and no <code>structure</code>. A consumer treats them per the <a href="../library-crate/#sufficiency-guarantee">sufficiency guarantee</a>: surface the openness (an opaque, pass-through type), never invent a shape.</p>
 <p>One reserved marker: <code>value_type = "Any"</code> on a <code>dict</code> field declares the value type <strong>unspecified</strong> — the values are arbitrary; a consumer surfaces this as declared imprecision (e.g. <code>dict[str, Any]</code> with a caveat), never as a guessed value shape.</p>
-<h2 id="the-pinned-set-pinned-at-mthds-500">The Pinned Set — Pinned at MTHDS 5.0.0</h2>
+<h2 id="the-pinned-set-pinned-at-mthds-900">The Pinned Set — Pinned at MTHDS 9.0.0</h2>
 <h3 id="nativedynamic">native.Dynamic</h3>
 <p>Structureless by design — a dynamically-typed value whose shape is determined at runtime.</p>
 <div class="highlight"><pre><span></span><code><span class="k">[concept.Dynamic]</span>
@@ -3574,8 +3596,14 @@
 <span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A text"</span>
 
 <span class="k">[concept.Text.structure]</span>
-<span class="n">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The text"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">text</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The text"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The URL of the stored text: a storage URI, an HTTP(S) URL, or a base64 data URL"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"integer"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The length of the stored text, in bytes as stored"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">mime_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The MIME type of the stored text: text/plain or text/markdown"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">preview</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The first few hundred characters of the stored text, always its true start"</span><span class="w"> </span><span class="p">}</span>
 </code></pre></div>
+<p id="stored-values">A <code>Text</code> carries its value in one of two forms: <strong>inline</strong>, in <code>text</code>, or <strong>stored</strong>, at <code>url</code>. A compliant value carries exactly one of <code>text</code> and <code>url</code>, never both and never neither. <code>size</code>, <code>mime_type</code> and <code>preview</code> describe a stored value and accompany <code>url</code> only, each optional beside it: <code>size</code> is the stored text's length in bytes, <code>mime_type</code> is <code>text/plain</code> or <code>text/markdown</code>, and <code>preview</code> is the first few hundred characters of the text, always its true start and never a summary, so that a reader can show or describe a stored text without fetching it. An inline value carries none of the three. The bytes stored at <code>url</code> MUST be the value encoded in UTF-8, whatever charset transport metadata such as an HTTP <code>Content-Type</code> or a data URL's parameters claims: <code>size</code> counts those UTF-8 bytes, and <code>preview</code> is the start of their decoded text.</p>
+<p>The two forms carry the same value: the text stored at <code>url</code> is the value itself, and a runtime that reads the value, to render it into a prompt, to bind a path to it or to compare it, reads it from there. Which form a value takes is a matter of transport, never of meaning, so a method behaves the same whichever form its values arrive in, and a producer may choose the stored form for a large value and the inline form for a small one. As with <code>Image</code>'s <code>width</code> and <code>height</code>, these rules constrain values, not the blueprint: the structure language has no cross-field form, so a consumer projecting this definition emits independently optional fields, and a validating runtime is what enforces the rules.</p>
 <h3 id="nativeimage">native.Image</h3>
 <div class="highlight"><pre><span></span><code><span class="k">[concept.Image]</span>
 <span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"An image"</span>
@@ -3609,10 +3637,15 @@
 <span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"HTML content"</span>
 
 <span class="k">[concept.Html.structure]</span>
-<span class="n">inner_html</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The inner HTML of the content"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">inner_html</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The inner HTML of the content"</span><span class="w"> </span><span class="p">}</span>
 <span class="n">css_class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The CSS class of the content"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The URL of the stored inner HTML: a storage URI, an HTTP(S) URL, or a base64 data URL"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"integer"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The length of the stored inner HTML, in bytes as stored"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">mime_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The MIME type of the stored inner HTML: text/html"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">preview</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The first few hundred characters of the stored inner HTML, always its true start"</span><span class="w"> </span><span class="p">}</span>
 </code></pre></div>
-<p><code>css_class</code> is optional: it names a class for a wrapper a consumer may put around <code>inner_html</code>, and content that needs no wrapper simply omits it. Only <code>inner_html</code> is required — an <code>Html</code> value is its markup, and the class is presentation a producer states when it has one.</p>
+<p>An <code>Html</code> value is its markup, carried inline in <code>inner_html</code> or stored at <code>url</code>, by the same rules as a <a href="#stored-values"><code>Text</code></a>: a compliant value carries exactly one of <code>inner_html</code> and <code>url</code>, never both and never neither, and <code>size</code>, <code>mime_type</code> and <code>preview</code> accompany <code>url</code> only, each optional beside it, <code>mime_type</code> being <code>text/html</code>. The markup stored at <code>url</code> is the value itself, and a runtime that reads <code>inner_html</code> reads it from there.</p>
+<p><code>css_class</code> is optional: it names a class for a wrapper a consumer may put around the markup, and content that needs no wrapper simply omits it. It is presentation a producer states when it has one, not part of the stored markup, so it stays inline in both forms.</p>
 <h3 id="nativetextandimages">native.TextAndImages</h3>
 <div class="highlight"><pre><span></span><code><span class="k">[concept.TextAndImages]</span>
 <span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A text and an image"</span>
@@ -3690,8 +3723,13 @@
 <span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A JSON object"</span>
 
 <span class="k">[concept.JSON.structure]</span>
-<span class="n">json_obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"dict"</span><span class="p">,</span><span class="w"> </span><span class="n">key_type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">value_type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Any"</span><span class="p">,</span><span class="w"> </span><span class="n">required</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The JSON object"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">json_obj</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"dict"</span><span class="p">,</span><span class="w"> </span><span class="n">key_type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">value_type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"Any"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The JSON object"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The URL of the stored JSON object: a storage URI, an HTTP(S) URL, or a base64 data URL"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"integer"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The length of the stored JSON object's serialized form, in bytes as stored"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">mime_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The MIME type of the stored JSON object: application/json"</span><span class="w"> </span><span class="p">}</span>
+<span class="n">preview</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"text"</span><span class="p">,</span><span class="w"> </span><span class="n">description</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s2">"The first few hundred characters of the stored JSON object's serialized form, always its true start"</span><span class="w"> </span><span class="p">}</span>
 </code></pre></div>
+<p>A <code>JSON</code> value is its object, carried inline in <code>json_obj</code> or stored at <code>url</code> as its serialized form, by the same rules as a <a href="#stored-values"><code>Text</code></a>: a compliant value carries exactly one of <code>json_obj</code> and <code>url</code>, never both and never neither, and <code>size</code>, <code>mime_type</code> and <code>preview</code> accompany <code>url</code> only, each optional beside it, <code>mime_type</code> being <code>application/json</code>. The object stored at <code>url</code> is the value itself, and a runtime that reads <code>json_obj</code> reads it from there.</p>
 <h3 id="nativesearchresult">native.SearchResult</h3>
 <div class="highlight"><pre><span></span><code><span class="k">[concept.SearchResult]</span>
 <span class="n">description</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"A search result with answer and sources"</span>
@@ -3712,6 +3750,12 @@
 </code></pre></div>
 <h2 id="changes-between-pinned-sets">Changes Between Pinned Sets</h2>
 <p>Each earlier pinned set stays normative for the crates stamped with the versions it governs, so this page records how each set differs from the one before it, newest first.</p>
+<h3 id="from-the-set-pinned-at-500">From the Set Pinned at 5.0.0</h3>
+<ul>
+<li><code>native.Text</code>'s <code>text</code>, <code>native.Html</code>'s <code>inner_html</code> and <code>native.JSON</code>'s <code>json_obj</code> are no longer <code>required</code>.</li>
+<li><code>native.Text</code>, <code>native.Html</code> and <code>native.JSON</code> each gain the optional <code>url</code>, <code>size</code>, <code>mime_type</code> and <code>preview</code>, which carry a stored value in place of the inline one.</li>
+</ul>
+<p>A crate stamped with a version from <code>5.0.0</code> to <code>8.2.0</code> materialized the set pinned at <code>5.0.0</code>, so its <code>native.Text</code>, <code>native.Html</code> and <code>native.JSON</code> require their inline value and carry no <code>url</code>. Re-normalizing the same library against a <code>9.0.0</code> implementation materializes the definitions above instead, and the crate's <a href="../library-crate/#fingerprint">fingerprint</a> changes with it. That holds for every crate carrying any of the three, and a crate carries <code>native.Text</code> whenever it references <code>native.Text</code>, <code>native.TextAndImages</code> or <code>native.Page</code>, so the fingerprint of almost every crate changes. The set pinned at <code>5.0.0</code> is this page as published with the <code>5.x</code> to <code>8.x</code> versions of the standard.</p>
 <h3 id="from-the-set-pinned-at-300">From the Set Pinned at 3.0.0</h3>
 <ul>
 <li><code>native.Rating</code> gains the optional <code>label</code>.</li>
