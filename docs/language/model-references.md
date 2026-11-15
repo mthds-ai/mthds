@@ -93,7 +93,7 @@ The following operator pipe types accept the `model` field:
 | Pipe Type | Typical Use |
 |-----------|-------------|
 | `PipeLLM` | Large language model invocation. |
-| `PipeStructure` | Structuring text into a typed concept. |
+| `PipeStructure` | Structuring text into a typed concept. Reading a spreadsheet calls no model, so `model` is not allowed there. |
 | `PipeImgGen` | Image generation. |
 | `PipeExtract` | Document extraction (e.g., PDF to pages). |
 | `PipeSearch` | Web search with structured results. |
