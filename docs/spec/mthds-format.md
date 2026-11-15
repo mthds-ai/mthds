@@ -559,13 +559,15 @@ When the single input is a `Document` or refines it, the runtime reads one table
 
 A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark at its start being ignored, whose first record is the header row and whose following records are the data rows. A blank line, holding no characters before its line break, is not a record: it is skipped and does not count toward the row position. A record of empty cells, such as `,,`, is a data row. A record with more cells than the header fails the step, and a record with fewer reads its missing trailing cells as empty. `table` MUST NOT be present when the file is a CSV file, and a runtime refuses the step when it is.
 
-**Columns and fields.** A column's header matches a field of the output concept when the two names are equal once spaces, dots and underscores are removed from both and case is ignored, so the header `Unit price` matches the field `unit_price` and `Merchant.Name` matches `merchant_name`. A column whose header matches no field is ignored, in a workbook and in a CSV file alike, so a table may carry columns the output concept does not declare, a calculated column for instance. The runtime refuses the step when:
+**Columns and fields.** A header equal to the name of a field of the output concept matches that field alone. Any other header matches every field whose name it equals once spaces, dots and underscores are removed from both and case is ignored, so the header `Unit price` matches the field `unit_price` and `Merchant.Name` matches `merchant_name`. When the output concept declares both `unit_price` and `unitprice`, the headers `unit_price` and `unitprice` each match their own field, while the header `Unit Price`, equal to neither name, matches both. A column whose header matches no field is ignored, in a workbook and in a CSV file alike, so a table may carry columns the output concept does not declare, a calculated column for instance. The runtime refuses the step when:
 
-- a header matches several fields, or several headers match one field;
+- a header matches several fields under these rules, or several headers match one field;
 - a header matches the field `row_field` names;
 - a `required` field of the output concept, other than the one `row_field` names, is matched by no header.
 
 A field that is not required and that no header matches holds no value in any row, as under an empty cell: it takes its `default_value` when it declares one and is null otherwise.
+
+A runtime MAY refuse a file or a Table that exceeds its own size limits, such as the file's uncompressed size or the Table's number of cells, and it reports the refusal as [`input.too_large`](../errors/input/too_large.md). The standard sets no such limit.
 
 **Values.** Each cell is read with its own type, a number as a number and a date as a date, and converted to the type of the field its column matches. A cell the workbook types as a number, a date, a datetime or a boolean converts as follows:
 
