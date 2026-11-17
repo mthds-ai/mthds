@@ -64,12 +64,13 @@ Each concrete pipe type has specific rules. A typeless `[pipe.<code>]` section i
 - `inputs` MUST contain exactly one entry.
 - The single input concept MUST be `Text` or a concept that refines `Text`, or `Document` or a concept that refines `Document`. An image input is rejected.
 - `output` MUST NOT be `Text` and MUST NOT be a concept that refines `Text`.
-- With a `Text` input, `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`), and `table` and `row_field` MUST NOT be present.
+- With a `Text` input, `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`), and `table`, `sheet_range` and `row_field` MUST NOT be present.
 - With a `Document` input, the input MUST NOT use multiplicity, `output` MUST use variable multiplicity (`Foo[]`), and `model` MUST NOT be present.
+- With a `Document` input, `table` and `sheet_range` MUST NOT both be present, and `sheet_range`, when present, MUST be a table whose only keys are among `sheet`, a string, and `header_row`, an integer of at least `1`. Both keys are optional, so `sheet_range = {}` is valid.
 - With a `Document` input, the output concept MUST have a structure: a concept declared with neither `structure` nor `refines`, `Dynamic`, `Anything`, `Composite`, or a concept refining one of them, is rejected.
 - With a `Document` input, every field of the output concept MUST be of type `text`, `integer`, `number`, `boolean`, `date` or `datetime`, or an enumeration field declared with `choices`.
 - With a `Document` input, `row_field`, when present, MUST name a field of the output concept whose type is `integer` or `number`.
-- These rules read the input concept and the output concept's fields, so they apply once those concept references resolve. What the file holds, its format, its Tables and its column headers, is checked when the step runs, not at validation (see [Reading a Spreadsheet](../spec/mthds-format.md#reading-a-spreadsheet)).
+- These rules read the input concept and the output concept's fields, so they apply once those concept references resolve. What the file holds, its format, its Tables, named ranges and worksheets, the range a `sheet_range` finds and its column headers, is checked when the step runs, not at validation (see [Reading a Spreadsheet](../spec/mthds-format.md#reading-a-spreadsheet)).
 
 **PipeFunc:**
 
