@@ -258,7 +258,8 @@ Reach for `PipeStructure` whenever the text comes from somewhere other than a fr
 | `inputs` | Yes | Exactly one input. Its concept must be `Text` or a concept that refines `Text`, or, to read a spreadsheet, `Document` or a concept that refines `Document`. |
 | `output` | Yes | The target structured concept, with optional multiplicity (`Foo`, `Foo[]`, `Foo[N]`). Cannot be `Text` or a concept that refines `Text`. Reading a spreadsheet, it must be a list (`Foo[]`). |
 | `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline LLM settings table (see [Inline LLM Settings](../spec/mthds-format.md#inline-llm-settings)). Not allowed when reading a spreadsheet, which calls no model. |
-| `table` | No | Reading a workbook, the name of the Excel Table to read. Optional when the workbook holds exactly one Table. |
+| `table` | No | Reading a workbook, the name of the Excel Table, or of the named range, to read. Optional when the workbook holds exactly one Table. |
+| `sheet_range` | No | Reading a workbook, a range on one worksheet, found from its cells, or the sheet's only Excel Table when it holds one, as `{ sheet = "Expenses", header_row = 3 }`, both keys optional. Not allowed together with `table`. |
 | `row_field` | No | Reading a spreadsheet, the field of the output concept that receives each row's position, counted from one. |
 
 `PipeStructure` does not accept a user-controlled prompt template — the runtime owns whatever prompting (or other mechanism) it uses to produce the structured output. Use a `PipeLLM` instead when prose generation needs prompt control.
@@ -352,12 +353,41 @@ row_field   = "row"
 
 When the single input is a `Document` or a concept that refines it, `PipeStructure` reads a spreadsheet instead of structuring a text. The document holds an Excel workbook (`.xlsx`) or a CSV file:
 
-- **The table.** In a workbook, the rows come from an Excel Table. `table` names it, and can be left out when the workbook holds exactly one Table; several Tables without a name, or no Table at all, fail the step. A CSV file is a single table, its first line being the header, so `table` is not allowed with one.
+- **The table.** In a workbook, the rows come from an Excel Table, a named range or a range on a sheet. `table` names an Excel Table or, when the workbook holds no Table of that name, a named range: a name the workbook defines for a rectangular range of cells, whose first row is the header. With neither `table` nor `sheet_range`, the step reads the workbook's only Table; several Tables, or no Table at all, fail the step. A CSV file is a single table, its first line being the header, so neither `table` nor `sheet_range` is allowed with one.
+- **A range on a sheet.** `sheet_range` reads a range on one worksheet, usually rows that no Table or name declares, as shown [below](#reading-a-range-on-a-sheet).
 - **Columns and fields.** A header spelling a field's name exactly matches that field alone. Any other header matches the fields it equals when compared ignoring case, spaces, dots and underscores, so the header `Unit price` fills the field `unit_price`. A column whose header matches no field is ignored, so the table may hold columns the concept does not declare. The step fails when a header matches several fields, as `Unit Price` would when the concept declares both `unit_price` and `unitprice`, when several headers match one field, when a header matches the field `row_field` names, or when a `required` field other than the `row_field` field is matched by no header. Any other field that no header matches takes its `default_value`, or is left without a value.
 - **Values.** Cells are read typed, a number as a number and a date as a date, and converted to the field's type. A text cell, which every CSV cell is, converts only from plain forms: an integer such as `-12`, a number with `.` as its decimal separator and no grouping such as `1234.5`, a boolean word such as `true`, `yes` or `1`, an ISO 8601 date or datetime such as `2026-03-04`, or exactly one of a field's `choices`. A locale form such as `1,5` or `03/04/2026` fails the step, naming the column and the row. An empty cell is no value: the field takes its `default_value` if it has one, and is null otherwise, so an empty cell under a `required` field fails the step. A cell holding a formula is read as the value the workbook last calculated for it.
 - **The output.** It must be a list (`Foo[]`) of a concept with a structure, never `Dynamic`, `Anything`, `Composite` or a concept declared without `structure`, whose fields are all simple values: `text`, `integer`, `number`, `boolean`, `date`, `datetime`, or a field with `choices`. `model` is not allowed, since no model is called.
 
 See [Reading a Spreadsheet](../spec/mthds-format.md#reading-a-spreadsheet) in the specification for the complete rules.
+
+### Reading a Range on a Sheet
+
+```toml
+[pipe.read_expense_sheet]
+type        = "PipeStructure"
+description = "Read the lines of the expense sheet"
+inputs      = { workbook = "Document" }
+output      = "ExpenseRow[]"
+sheet_range = { sheet = "Expenses", header_row = 3 }
+row_field   = "row"
+```
+
+**What this does:** Reads the rows under the header in row 3 of the sheet `Expenses` into a list of `ExpenseRow`, for a workbook that keeps its expenses as a plain range rather than an Excel Table. Each item's `row` field receives the row's position among the data rows, `1` for the row under the header.
+
+Both keys of `sheet_range` are optional. Without `sheet`, the workbook must hold a single worksheet; without `header_row`, the header is the sheet's first row holding a value. `sheet_range = {}` therefore reads the only sheet of a workbook and finds its header. When the sheet holds exactly one Excel Table, the step reads that Table instead, and `header_row`, if given, must be the Table's header row.
+
+A plain range declares nowhere where it ends, so the runtime finds it by strict rules and fails the step, naming the sheet and the cell, whenever the rules cannot settle it:
+
+- **The header row** must hold its column headers side by side, none of them a merged cell or a formula the workbook stores no value of, and no second block of headers further along the row.
+- **The data rows** run down to the first row holding no data, or to the totals line when one ends them first, and no data may follow in the columns below the range: a further row of data, or a note under the data or under its total, fails the step, even past a blank row, while a value outside the columns is left alone. A formula holds data when the value the workbook stored for it is not empty, so a sheet of formulas such as `=Source!A2` is read, while a formula storing an empty text holds none. A cell merged down from a data row, such as a category spanning two rows, keeps the rows going and reads as the merge's first cell.
+- **No column without a header.** A value in the column just left or just right of the headers, beside the header, the data rows, the totals line or its footer rows, fails the step, and so does a merged cell crossing the edge of the columns. Values further away, past an empty column, are another part of the sheet and are left alone.
+- **A totals line** is a row holding a lone aggregate of its column's data rows, at least two of them, such as `=SUM(C4:C9)` in `C10`, or `AVERAGE`, `MIN`, `MAX`, `COUNT`, `COUNTA`, `PRODUCT`, `SUBTOTAL` or `AGGREGATE` over the same range. A formula doing more, such as `=SUM(C4:C9)*1`, `SUMIF` or a row number `=MAX($A$4:A9)+1`, is no total, and nor is a cumulative column such as `=SUM($D$4:D4)` filled down from `D5`, under a header on row 3. The first such row ends the data, so a subtotal in the middle of the data ends it there; a total may also stand right after the pre-filled rows that follow the data. It is not read and is not counted in the row position.
+- **Footer rows** directly after the totals line build on it, such as a VAT line `=C10*0.2` and a grand total `=C10+C11`, each holding a label beside its formulas and no other typed value but texts: a row holding a typed number, date or boolean, or holding no label, is data, and fails the step below the totals line. Like the totals line, footer rows are not read and are not counted.
+- **Pre-filled rows**, which hold formulas and no data, such as a template's `=IF(A10="","",B10*C10)` filled down to row 500 and storing an empty text, are neither read nor refused, so a template prepared for rows to come reads as the rows it holds, its total under them included. Pre-filled rows whose formulas store no value at all, in a workbook saved without its calculated values, are not read either, and a runtime should warn that it skipped them.
+- **The sheet's filter**, when it has one, must start on the header row and cover the same columns.
+
+Rows above the header row, such as a title, are not read, and hidden rows and columns are read like any other. When the rules refuse a sheet, fixing the cell they name, or turning the range into an Excel Table, makes it readable. See [Finding a Sheet Range](../spec/mthds-format.md#finding-a-sheet-range) in the specification for the complete rules.
 
 ## PipeFunc
 
