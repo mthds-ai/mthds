@@ -1,8 +1,8 @@
 # Changelog
 
-## [Unreleased]
+## [v9.1.0] - 2026-11-17
 
-**Next release: v9.1.0 · MTHDS standard 9.1.0 · MTHDS Protocol 2.0.1**
+**MTHDS standard 9.1.0 · MTHDS Protocol 2.0.1**
 
 ### Added
 
@@ -13,6 +13,7 @@
 - **A Table with no header row, or reaching outside the sheet's grid, is refused (Breaking)** (`spec/mthds-format.md`): a `PipeStructure` reading an Excel Table, whether `table` names it, it is the workbook's only Table, or it is the one Table on the sheet `sheet_range` names, refuses a Table whose header row is turned off, since no header names its columns, and a Table whose reference reaches outside the sheet's grid, which runs from `A1` to `XFD1048576`, since those cells do not exist. Every bundle keeps its meaning, but a runtime conforming to `9.0.0`, which reads every Table, must now refuse these two.
 - **`table` also names a named range (Breaking)** (`spec/mthds-format.md`, `language/pipes-operators.md`): a `PipeStructure` reading a workbook reads, when the workbook holds no Excel Table of the name `table` gives, the named range of that name, compared ignoring case: a name the workbook defines for one rectangular range of cells, whose first row is the header and whose every other row is a data row. The name's reference may name its sheet bare in any script's letters, as Excel writes `Données!$A$1:$C$9`, or between quotes. Built-in names and LibreOffice's hidden database-range names are never named ranges, a name holding a formula, several ranges, whole columns or rows, cells outside the sheet's grid, or deleted cells, or defined more than once, is refused, and the default with neither `table` nor `sheet_range` still reads the workbook's only Table, counting Tables only. Every bundle keeps its meaning, but a runtime conforming to `9.0.0`, which refuses a `table` naming no Table, must now read the named range.
 - **The bundled schema `mthds_schema.json` does not describe the spreadsheet-reading `PipeStructure` yet**: the copy this release publishes at `https://mthds.ai/mthds_schema.json` is the one `8.2.0` published, so it still rejects the `table` and `row_field` fields the standard allows on a `PipeStructure` since `8.2.0`, and the `sheet_range` field it allows since this release, and a tool validating bundles against it flags a `PipeStructure` that declares any of them. The copy accepts nothing the standard now rejects. A later release of the site publishes the schema of the implementation release that supports spreadsheet reading.
+- **Documentation versions served on mthds.ai**: this release stops serving `8.2.0`, so links into that version no longer resolve and should point at `/latest/`. The site serves `9.1.0`, which `/latest/` also serves, and `9.0.0`, and keeps both numbered directories out of search indexes, so that only `/latest/` is indexed.
 
 ## [v9.0.0] - 2026-11-15
 
