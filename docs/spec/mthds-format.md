@@ -487,7 +487,8 @@ Turns its single input into a structured concept matching the declared output sc
 | `inputs` | table | Yes | MUST contain exactly one entry. |
 | `output` | string | Yes | The target structured concept reference, with optional multiplicity. MUST NOT be `Text` or a concept that refines `Text`. |
 | `model` | string or table | No | Model identifier, model reference (see [Model References](../language/model-references.md)), or an inline [LLM settings](#inline-llm-settings) table. Text input only. |
-| `table` | string | No | The name of the Excel Table to read. Spreadsheet input only. |
+| `table` | string | No | The name of the Excel Table, or of the named range, to read. Spreadsheet input only. |
+| `sheet_range` | table | No | A range to find on a worksheet, with the optional keys `sheet` and `header_row`. Spreadsheet input only. |
 | `row_field` | string | No | The name of the output concept's field that receives each row's position. Spreadsheet input only. |
 
 **Validation rules:**
@@ -495,11 +496,13 @@ Turns its single input into a structured concept matching the declared output sc
 - `inputs` MUST contain exactly one entry. The single input concept MUST be `Text` or a concept that refines `Text`, or `Document` or a concept that refines `Document`.
 - `output` MUST NOT be `Text` and MUST NOT be a concept that refines `Text`.
 - `PipeStructure` MUST NOT accept image inputs. Use an upstream extraction step to produce text first.
-- When the input concept is `Text` or refines it, `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`), and `table` and `row_field` MUST NOT be present.
+- When the input concept is `Text` or refines it, `output` MAY use multiplicity (`Foo`, `Foo[]`, `Foo[N]`), and `table`, `sheet_range` and `row_field` MUST NOT be present.
 - When the input concept is `Document` or refines it:
     - The input MUST NOT use multiplicity.
     - `output` MUST use variable multiplicity (`Foo[]`).
     - `model` MUST NOT be present.
+    - `table` and `sheet_range` MUST NOT both be present.
+    - `sheet_range`, when present, MUST be a table whose only keys are among `sheet`, a string, and `header_row`, an integer of at least `1`. Both keys are optional, so `sheet_range = {}` is valid.
     - The output concept MUST have a structure. A concept declared with neither `structure` nor `refines`, `Dynamic`, `Anything`, `Composite`, or a concept refining one of them, is rejected.
     - Each field of the output concept MUST be of type `text`, `integer`, `number`, `boolean`, `date` or `datetime`, or an enumeration field declared with `choices`.
     - `row_field`, when present, MUST name a field of the output concept whose type is `integer` or `number`.
@@ -551,13 +554,28 @@ When the single input is a `Document` or refines it, the runtime reads one table
 
 **The file.** The document MUST hold an Excel workbook in the Office Open XML format (`.xlsx`) or a CSV file. A runtime identifies the format from the file's content, falling back to its media type and then its file name, and refuses any other document when the step runs. An `.xlsx` file, for instance, is a ZIP archive whose content types declare a spreadsheet.
 
-**The table.** In a workbook, the rows are read from an Excel Table, the named table object a workbook defines over a range of cells with a header row:
+**The table.** In a workbook, the rows are read from one rectangular region of cells whose first row is the header row, which names the columns. The region is one of three kinds:
 
-- When `table` is present, the runtime reads the Table of that name, compared ignoring case, as Excel compares Table names. A workbook with no Table of that name is refused.
-- When `table` is absent, the runtime reads the workbook's only Table. A workbook holding several Tables, or none, is refused, and the refusal names the Tables it found.
-- The Table's header row names the columns, and the rows between the header row and the end of the Table are its data rows. A totals row is not read. Every row of the Table between its header row and its end, a row whose cells are all empty included, is a data row and counts toward the row position.
+- An **Excel Table**, the named table object a workbook defines over a range of cells with a header row. The rows between its header row and its end are its data rows. A totals row is not read. Every row of the Table between its header row and its end, a row whose cells are all empty included, is a data row and counts toward the row position.
+- A **named range**, a name the workbook defines for one rectangular range of cells, as described under **Named ranges** below.
+- A **sheet range**, a header row followed by data rows on a worksheet, with no Table and no name declaring where it ends. The runtime finds it by the rules of [Finding a Sheet Range](#finding-a-sheet-range).
 
-A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark at its start being ignored, whose first record is the header row and whose following records are the data rows. A blank line, holding no characters before its line break, is not a record: it is skipped and does not count toward the row position. A record of empty cells, such as `,,`, is a data row. A record with more cells than the header fails the step, and a record with fewer reads its missing trailing cells as empty. `table` MUST NOT be present when the file is a CSV file, and a runtime refuses the step when it is.
+`table` and `sheet_range` choose the region, and MUST NOT both be present:
+
+- When `table` is present, the runtime reads the Table of that name, compared ignoring case, as Excel compares Table names. When the workbook holds no Table of that name, the runtime reads the named range of that name, compared ignoring case as well. A workbook holding neither is refused.
+- When `sheet_range` is present, the runtime reads a range on one worksheet, as described under **Sheet ranges** below.
+- When both are absent, the runtime reads the workbook's only Table. Only Tables count toward this default, never named ranges, since a workbook often names single values and constants. A workbook holding several Tables, or none, is refused, and the refusal names the Tables it found. A refusal for a workbook holding no Table SHOULD mention `sheet_range`.
+
+**Named ranges.** A named range is a name the workbook defines, for the whole workbook or for one of its sheets, that refers to one rectangular range of cells on one worksheet, at least two columns wide or two rows tall, with a plain reference rather than a formula. Built-in names, whose names begin with `_xlnm.` (a print area, or the hidden range a filter keeps), and the hidden database-range names LibreOffice writes, whose names begin with `__Anonymous_Sheet_DB__`, are never named ranges. When `table` names a name that is not a named range, the step is refused: a name referring to a single cell, a name holding a formula such as `OFFSET(…)` or `INDEX(…)`, a name referring to several ranges, and a name referring to cells that no longer exist (`#REF!`) are all refused. A name defined more than once, for several sheets or both for the workbook and for a sheet, is refused too, since it does not designate one range. The range's first row is its header row, a header cell holding no value naming no column, and every row under it within the range is a data row and counts toward the row position, a row whose cells are all empty included, as in a Table. The rules for finding a sheet range do not apply to a named range, because the name declares its extent.
+
+**Sheet ranges.** `sheet_range` reads a range on one worksheet. It is a table whose two keys are both optional, so `sheet_range = {}` reads the workbook's only worksheet and finds its header:
+
+- `sheet` names the worksheet, compared ignoring case, as Excel compares sheet names. A workbook with no worksheet of that name is refused. When `sheet` is absent, the workbook MUST hold exactly one worksheet, and a workbook holding several is refused, the refusal naming them. A chart sheet is not a worksheet.
+- `header_row` is the number of the sheet row holding the header, counted from one as the spreadsheet numbers its rows. When it is absent, the header row is the sheet's first row holding a value.
+
+When the worksheet holds exactly one Excel Table, the runtime reads that Table, as if `table` named it, and `header_row`, when present, MUST be the sheet row of the Table's header row; a `header_row` naming another row is refused. A worksheet holding several Tables is refused, and the refusal names them. A worksheet holding no Table is read by the rules of [Finding a Sheet Range](#finding-a-sheet-range).
+
+A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark at its start being ignored, whose first record is the header row and whose following records are the data rows. A blank line, holding no characters before its line break, is not a record: it is skipped and does not count toward the row position. A record of empty cells, such as `,,`, is a data row. A record with more cells than the header fails the step, and a record with fewer reads its missing trailing cells as empty. `table` and `sheet_range` MUST NOT be present when the file is a CSV file, and a runtime refuses the step when either is.
 
 **Columns and fields.** A header equal to the name of a field of the output concept matches that field alone. Any other header matches every field whose name it equals once spaces, dots and underscores are removed from both and case is ignored, so the header `Unit price` matches the field `unit_price` and `Merchant.Name` matches `merchant_name`. When the output concept declares both `unit_price` and `unitprice`, the headers `unit_price` and `unitprice` each match their own field, while the header `Unit Price`, equal to neither name, matches both. A column whose header matches no field is ignored, in a workbook and in a CSV file alike, so a table may carry columns the output concept does not declare, a calculated column for instance. The runtime refuses the step when:
 
@@ -567,7 +585,7 @@ A CSV file is one implicit table: comma-separated UTF-8 text, a byte order mark 
 
 A field that is not required and that no header matches holds no value in any row, as under an empty cell: it takes its `default_value` when it declares one and is null otherwise.
 
-A runtime MAY refuse a file or a Table that exceeds its own size limits, such as the file's uncompressed size or the Table's number of cells, and it reports the refusal as [`input.too_large`](../errors/input/too_large.md). The standard sets no such limit.
+A runtime MAY refuse a file or a region that exceeds its own size limits, such as the file's uncompressed size or the number of cells in the Table, named range or sheet range it reads, counted as its header row and data rows times its columns, and it reports the refusal as [`input.too_large`](../errors/input/too_large.md). The standard sets no such limit.
 
 **Values.** Each cell is read with its own type, a number as a number and a date as a date, and converted to the type of the field its column matches. A cell the workbook types as a number, a date, a datetime or a boolean converts as follows:
 
@@ -590,7 +608,44 @@ A text cell, which every cell of a CSV file is, converts only from these forms:
 
 A value that converts by none of these rules fails the step, and the failure names the column and the row position. Forms written for a locale, such as `1,5` for a number or `03/04/2026` for a date, therefore fail. An empty cell holds no value: the field takes its `default_value` when it declares one and is null otherwise, so an empty cell under a `required` field fails the step. A cell holding a formula is read as the value the workbook last calculated and stored for it. A workbook saved by a program that stores no calculated values has none, and such a cell is read as an empty cell; a runtime SHOULD warn when it does so, naming the column.
 
-**The row position.** When `row_field` is present, each item's `row_field` field receives the position of its row among the table's data rows, counted from one: the first data row under the header is `1`. It counts data rows, never the sheet's own row numbers, so it stays the same wherever the table sits on its sheet.
+**The row position.** When `row_field` is present, each item's `row_field` field receives the position of its row among the data rows of the region read, counted from one: the first data row under the header is `1`. A Table's totals row and a sheet range's [totals line](#finding-a-sheet-range) are not data rows and are not counted. It counts data rows, never the sheet's own row numbers, so it stays the same wherever the region sits on its sheet.
+
+#### Finding a Sheet Range
+
+```toml
+[pipe.read_expense_sheet]
+type        = "PipeStructure"
+description = "Read the lines of the expense sheet"
+inputs      = { workbook = "Document" }
+output      = "ExpenseRow[]"
+sheet_range = { sheet = "Expenses", header_row = 3 }
+row_field   = "row"
+```
+
+On a sheet named `Expenses` holding these cells, the step reads rows 4 and 5, at positions `1` and `2`. Row 1 lies above the header row and is not read, and row 6 is a totals line:
+
+| | A | B | C | D |
+|---|---|---|---|---|
+| **1** | March expenses | | | |
+| **2** | | | | |
+| **3** | Date | Merchant | Amount | Category |
+| **4** | 2026-03-02 | Rail Co | 84.50 | travel |
+| **5** | 2026-03-03 | Café Nord | 12.00 | meals |
+| **6** | | | `=SUM(C4:C5)` | |
+
+On a worksheet holding no Table, the runtime finds the range from the cells the sheet holds. A cell holds a value when it holds anything other than nothing or an empty text: a cell holding a formula holds a value, whatever it calculates to, and a cell carrying only formatting holds none. The range MUST satisfy each rule below, and the runtime refuses the step when it does not:
+
+1. **The header row** is the row `header_row` names or, when `header_row` is absent, the sheet's first row holding a value. A sheet holding no value is refused, and so is a `header_row` naming a row that holds none. Rows above the header row are not part of the range and are not read.
+2. **The columns** run from the header row's first cell holding a value, rightwards, to the last cell before the first one holding none, so every header cell of the range holds a value. A header row of which any cell belongs to a merged range of cells is refused, naming the merged range. A cell holding a value further along the header row, past the cell holding none that ends the columns, begins a second block of columns, and is refused, naming the cell.
+3. **The data rows** are the rows under the header row down to the first blank row, which is not one of them, a blank row being one that holds no value in any of the columns. Every row below the sheet's last row holding a value is blank, so the data rows always end. When the row under the header row is blank, the range has no data row.
+4. **Nothing below.** No cell of the columns below that first blank row holds a value. A cell that does, being either a further row of data or a note, which the runtime cannot tell apart, is refused, naming the cell.
+5. **No column without a header.** No cell of the column immediately left of the columns, or of the column immediately right of them, holds a value on the header row or on a row the data rows rule found, a totals line included. A cell that does lies in a column with no header, and is refused, naming the cell. Cells further away, past that empty column, belong to another part of the sheet and do not affect the range.
+6. **The totals line.** When a cell of the last row the data rows rule found holds a formula containing a reference to the cells of its own column, on the same sheet, from the first data row through the row above it, written as a range of cells with a colon, such as `C4:C5`, `$C$4:$C$5` or `Expenses!C4:C5`, that row is a totals line: it is not a data row, it is not read, and it does not count toward the row position. `=SUM(C4:C5)` in cell `C6` is such a formula, and so is `=SUBTOTAL(109,C4:C5)`. The row under the header row is never a totals line, since no data row lies above it. A totals line written as values rather than formulas cannot be told apart from data and is read as a data row.
+7. **The filter.** When the worksheet carries a filter, the one a spreadsheet sets over a range of its cells with Data > Filter, the filter's first row MUST be the header row and its columns MUST be the columns found. A filter that disagrees is refused, since the sheet then states its range in two ways.
+
+A range holding a header row and no data row is valid, and reads as no items. A row or a column that is hidden, by hand or by the filter, is read like any other. A header written over two rows, and data holding intentional blank rows, are refused by these rules.
+
+Every refusal names the sheet and the cell, by its address such as `Expenses!C12`, or the row, and says what made the range unclear. It SHOULD suggest either fixing that cell or turning the range into an Excel Table.
 
 ## Operator: PipeFunc
 

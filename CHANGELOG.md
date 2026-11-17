@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v9.1.0 · MTHDS standard 9.1.0 · MTHDS Protocol 2.0.1**
+
+### Added
+
+- **`PipeStructure` reads a named range and a range on a sheet, not only an Excel Table** (`spec/mthds-format.md`, `spec/namespace-resolution.md`, `implementers/validation-rules.md`, `language/pipes-operators.md`): `table` now names an Excel Table or, when the workbook holds no Table of that name, a named range, a name the workbook defines for one rectangular range of cells whose first row is the header and whose every other row is a data row, while the default with neither field still reads the workbook's only Table and counts Tables only. The new optional `sheet_range` reads a plain range on a worksheet: its optional `sheet` names the worksheet, compared ignoring case, and defaults to the workbook's only worksheet, and its optional `header_row` gives the header's sheet row, counted from one, and defaults to the sheet's first row holding a value, so `sheet_range = {}` is valid; it excludes `table` and is refused for a CSV file. A sheet holding exactly one Table reads as that Table, and one holding several is refused. On a sheet holding no Table, the runtime finds the range by stated rules and refuses the step, naming the sheet and the cell, whenever they cannot settle it: the columns are the header row's contiguous run of cells holding a value, with no merged cell and no second block, the data rows run to the first blank row, with nothing in the columns below it and no value in the column just left or right of them, a last row holding a formula over its column's data rows is a totals line that is neither read nor counted toward the row position, and the sheet's filter, when it has one, must agree with the range found.
+
 ## [v9.0.0] - 2026-11-15
 
 **MTHDS standard 9.0.0 · MTHDS Protocol 2.0.1**
