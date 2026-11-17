@@ -380,9 +380,10 @@ Both keys of `sheet_range` are optional. Without `sheet`, the workbook must hold
 A plain range declares nowhere where it ends, so the runtime finds it by strict rules and fails the step, naming the sheet and the cell, whenever the rules cannot settle it:
 
 - **The header row** must hold its column headers side by side, none of them a merged cell, and no second block of headers further along the row.
-- **The data rows** run down to the first blank row, and nothing may follow in the columns below it: a further row of data or a note under the data fails the step.
+- **The data rows** run down to the first row holding no data, a formula not counting as data, and no data may follow in the columns below the range: a further row of data or a note under the data fails the step. A cell merged down from a data row, such as a category spanning two rows, keeps the rows going.
 - **No column without a header.** A value in the column just left or just right of the headers fails the step. Values further away, past an empty column, are another part of the sheet and are left alone.
-- **A totals line** is a last row holding a formula over its column's data, such as `=SUM(C4:C9)` in `C10`. It is not read and is not counted in the row position.
+- **A totals line** is a row holding a formula over its column's data rows, such as `=SUM(C4:C9)` in `C10`: either the row right after the data rows, or, when a label such as `Total` stands beside the formula, the last row holding data. It is not read and is not counted in the row position.
+- **Pre-filled rows** below the range, which hold formulas and no data, such as a template's `=IF(A10="","",B10*C10)` filled down to row 500, are neither read nor refused, so a template prepared for rows to come reads as the rows it holds.
 - **The sheet's filter**, when it has one, must start on the header row and cover the same columns.
 
 Rows above the header row, such as a title, are not read, and hidden rows and columns are read like any other. When the rules refuse a sheet, fixing the cell they name, or turning the range into an Excel Table, makes it readable. See [Finding a Sheet Range](../spec/mthds-format.md#finding-a-sheet-range) in the specification for the complete rules.
