@@ -1,8 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [v9.1.1] - 2026-11-17
 
-**Next release: v9.1.1 · MTHDS standard 9.1.1 · MTHDS Protocol 2.0.1**
+**MTHDS standard 9.1.1 · MTHDS Protocol 2.0.1**
+
+### Changed
+
+- **Documentation versions served on mthds.ai**: this release stops serving `9.0.0`, so links into that version no longer resolve and should point at `/latest/`. The site serves `9.1.1`, which `/latest/` also serves, and `9.1.0`, and keeps both numbered directories out of search indexes, so that only `/latest/` is indexed.
 
 ### Fixed
 
