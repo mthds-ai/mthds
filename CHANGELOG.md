@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v9.1.1 · MTHDS standard 9.1.1 · MTHDS Protocol 2.0.1**
+
+### Fixed
+
+- **The bundled schema `mthds_schema.json` describes the spreadsheet-reading `PipeStructure` and the workbook-editing `PipeDocGen`** (`mthds_schema.json`): the copy published at `https://mthds.ai/mthds_schema.json` is now the one pipelex v0.107.0 generates, so a tool validating bundles against it accepts a `PipeStructure`'s `table` and `row_field`, which the standard allows since `8.2.0`, and a `PipeDocGen`'s `template_input`, `table_fill` (`replace`, `append` or `update`), `match_on`, `match_row` and `cells` (`fill_empty` or `overwrite`). This closes most of the gap the `8.2.0`, `9.0.0` and `9.1.0` entries name; what stays open is `sheet_range`, allowed since `9.1.0`, which no pipelex release implements yet, so the copy still rejects it. The copy accepts nothing the standard rejects, and drops nothing it accepted before.
+
 ## [v9.1.0] - 2026-11-17
 
 **MTHDS standard 9.1.0 · MTHDS Protocol 2.0.1**
