@@ -379,7 +379,7 @@ Both keys of `sheet_range` are optional. Without `sheet`, the workbook must hold
 
 A plain range declares nowhere where it ends, so the runtime finds it by strict rules and fails the step, naming the sheet and the cell, whenever the rules cannot settle it:
 
-- **The header row** must hold its column headers side by side, with no merged cell and no second block of headers further along the row.
+- **The header row** must hold its column headers side by side, none of them a merged cell, and no second block of headers further along the row.
 - **The data rows** run down to the first blank row, and nothing may follow in the columns below it: a further row of data or a note under the data fails the step.
 - **No column without a header.** A value in the column just left or just right of the headers fails the step. Values further away, past an empty column, are another part of the sheet and are left alone.
 - **A totals line** is a last row holding a formula over its column's data, such as `=SUM(C4:C9)` in `C10`. It is not read and is not counted in the row position.
