@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v9.1.2 · MTHDS standard 9.1.2 · MTHDS Protocol 2.0.1**
+
+### Fixed
+
+- **The bundled schema `mthds_schema.json` accepts `sheet_range`** (`mthds_schema.json`): the copy published at `https://mthds.ai/mthds_schema.json` is now the one pipelex v0.108.0 generates, so a tool validating bundles against it accepts a `PipeStructure`'s `sheet_range`, allowed since `9.1.0`, with its optional `sheet` and `header_row`, and pipelex's `PipeDocGen` blueprint gains a `sheet_range` that also names, in its required `list`, the list of records filling the range. This closes the gap the `9.1.1` entry left open. It drops nothing it accepted before.
+
 ## [v9.1.1] - 2026-11-17
 
 **MTHDS standard 9.1.1 · MTHDS Protocol 2.0.1**
