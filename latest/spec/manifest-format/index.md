@@ -114,7 +114,7 @@ MAJOR.MINOR.PATCH[-pre-release][+build-metadata]
 
 The `mthds_version` field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see [Version Constraint Syntax](#version-constraint-syntax)).
 
-The current MTHDS standard version is `9.1.0`. See [Versioning](./versioning.md) for what moves it.
+The current MTHDS standard version is `9.1.1`. See [Versioning](./versioning.md) for what moves it.
 
 ### Main Pipe
 
@@ -382,7 +382,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=9.1.0"
+mthds_version = ">=9.1.1"
 main_pipe     = "analyze_nda"
 exclude       = ["drafts/"]
 categories    = ["legal", "compliance"]
