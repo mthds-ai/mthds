@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+**Next release: v9.1.3 · MTHDS standard 9.1.3 · MTHDS Protocol 2.0.1**
+
+### Fixed
+
+- **The bundled schema `mthds_schema.json` checks a structure field's `item_type` and `value_type`** (`mthds_schema.json`): the copy published at `https://mthds.ai/mthds_schema.json` is now the one pipelex v0.110.0 generates, so a tool validating bundles against it accepts only `text`, `list`, `dict`, `integer`, `boolean`, `number`, `date`, `datetime`, `time`, `concept` or `Any` as a field's `item_type` or `value_type`, where it accepted any string. These are the field types the standard already lists, so a bundle the standard accepts still validates; one declaring another value now fails schema validation, as it already failed in pipelex.
+
 ## [v9.1.2] - 2026-11-17
 
 **MTHDS standard 9.1.2 · MTHDS Protocol 2.0.1**
