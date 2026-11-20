@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## [v9.1.3] - 2026-11-20
 
-**Next release: v9.1.3 · MTHDS standard 9.1.3 · MTHDS Protocol 2.0.1**
+**MTHDS standard 9.1.3 · MTHDS Protocol 2.0.1**
 
 ### Changed
 
+- **Documentation versions served on mthds.ai**: this release stops serving `9.1.1`, so links into that version no longer resolve and should point at `/latest/`. The site serves `9.1.3`, which `/latest/` also serves, and `9.1.2`, and keeps both numbered directories out of search indexes, so that only `/latest/` is indexed.
 - **The bundled schema `mthds_schema.json` checks a structure field's `item_type` and `value_type` (Breaking)** (`mthds_schema.json`): the copy published at `https://mthds.ai/mthds_schema.json` is now the one pipelex v0.110.0 generates, so a tool validating bundles against it accepts only `text`, `list`, `dict`, `integer`, `boolean`, `number`, `date`, `datetime`, `time`, `concept` or `Any` as a field's `item_type` or `value_type`, where it accepted any string. This makes the schema stricter than the standard's text, which declares both as strings without listing their values: a bundle that names a concept code in `item_type`, such as `item_type = "Stop"`, now fails schema validation, as it already fails in pipelex, and should declare `item_type = "concept"` with `item_concept_ref` instead. The schema also accepts `item_type = "Any"`, which the standard reserves only for `value_type`.
 
 ## [v9.1.2] - 2026-11-17
