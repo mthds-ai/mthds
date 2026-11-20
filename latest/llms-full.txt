@@ -2970,7 +2970,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=9.1.2"
+mthds_version = ">=9.1.3"
 main_pipe     = "analyze_nda"
 
 [exports.legal]
@@ -2998,7 +2998,7 @@ The `[package]` section defines the package's identity:
 | `description` | Yes | Human-readable summary of the package's purpose. Must not be empty. |
 | `authors` | No | List of author identifiers (e.g., `"Name <email>"`). Default: empty list. |
 | `license` | No | [SPDX license identifier](https://spdx.org/licenses/) (e.g., `"MIT"`, `"Apache-2.0"`). |
-| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `9.1.2`. |
+| `mthds_version` | No | MTHDS standard version constraint. The current standard version is `9.1.3`. |
 | `main_pipe` | No | The package's entry-point pipe. Auto-exported by virtue of being `main_pipe`. See [Main Pipe](#main-pipe) below. |
 | `exclude` | No | Patterns, in `.gitignore` syntax, naming files to keep out of the package's method tree. See [Exclude](#exclude) below. |
 | `categories` | No | The categories the method belongs to, as lowercase slugs (e.g., `["legal", "customer-support"]`). See [Categories](#categories) below. |
@@ -4160,7 +4160,7 @@ MTHDS carries **two version numbers**, and they move independently:
 
 | Number | Governs | Current |
 |---|---|---|
-| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff, the core error registry | `9.1.2` |
+| **Standard version** | The language, the native concept set, the method tree, the manifest and lock formats, the library crate format, the namespace rules, the wire form of a stuff, the core error registry | `9.1.3` |
 | **Protocol version** | The HTTP runner contract — its routes, their request and response shapes, and the problem document every error is | `2.0.1` |
 
 Both are [Semantic Versioning 2.0.0](https://semver.org/) numbers. Everything else that carries a version — a package's own `version`, a runner's `runner_version`, an implementation's release number — belongs to that package, runner, or implementation and is governed by whoever publishes it.
@@ -6778,7 +6778,7 @@ MAJOR.MINOR.PATCH[-pre-release][+build-metadata]
 
 The `mthds_version` field, if present, declares which versions of the MTHDS standard this package is compatible with. It uses version constraint syntax (see [Version Constraint Syntax](#version-constraint-syntax)).
 
-The current MTHDS standard version is `9.1.2`. See [Versioning](./versioning.md) for what moves it.
+The current MTHDS standard version is `9.1.3`. See [Versioning](./versioning.md) for what moves it.
 
 ### Main Pipe
 
@@ -7046,7 +7046,7 @@ version       = "0.3.0"
 description   = "Legal document analysis and contract review methods."
 authors       = ["ACME Legal Tech <legal@acme.com>"]
 license       = "MIT"
-mthds_version = ">=9.1.2"
+mthds_version = ">=9.1.3"
 main_pipe     = "analyze_nda"
 exclude       = ["drafts/"]
 categories    = ["legal", "compliance"]
@@ -11942,7 +11942,7 @@ The core registry is part of the standard, and its `version` is the standard ver
 
 Every code of the MTHDS core error registry has a page here, at the URL a problem's `type` names: `https://mthds.ai/errors/<code>`. Each page says what its code means, who must act and what to do, and gives the code's steps, parameters and templates. The [Error Registry](../spec/error-registry.md) page describes the registry itself, and the [HTTP Runner Protocol](../spec/protocol.md#errors) how a problem document carries a code.
 
-These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `9.1.2` of the registry.
+These pages are generated from the registry's data, which is published with every release of the standard as [`mthds-error-registry.json`](../spec/openapi/mthds-error-registry.json). This is version `9.1.3` of the registry.
 
 ## Extension prefixes
 
@@ -12832,7 +12832,7 @@ version       = "0.1.0"
 description   = "Text summarization and document classification methods"
 authors       = ["Your Name <you@example.com>"]
 license       = "MIT"
-mthds_version = ">=9.1.2"
+mthds_version = ">=9.1.3"
 ```
 
 ## Step 5: Validate
@@ -13722,7 +13722,7 @@ The following integration points describe the full scope of MTHDS-aware language
 
 # Roadmap
 
-The MTHDS standard is at version `9.1.2`. This page outlines planned and potential directions for future development.
+The MTHDS standard is at version `9.1.3`. This page outlines planned and potential directions for future development.
 
 ## Near-Term
 

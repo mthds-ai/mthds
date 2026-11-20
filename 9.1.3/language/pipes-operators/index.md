@@ -1,0 +1,859 @@
+# Pipes — Operators
+
+Pipes are typed transformations — the actions in MTHDS. Each pipe has a typed signature: it declares what concepts it accepts as input and what concept it produces as output.
+
+MTHDS defines two categories of pipes:
+
+- **Operators** — pipes that perform a single transformation (this page).
+- **Controllers** — pipes that orchestrate other pipes (next page).
+
+## Common Fields
+
+All concrete pipe types share these base fields. Contract-only signatures omit `type`; see the [specification](../spec/mthds-format.md#contract-only-pipe-signatures).
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `type` | Yes for concrete pipes | The pipe type (e.g., `"PipeLLM"`, `"PipeSequence"`). |
+| `description` | Yes | Human-readable description of what this pipe does. |
+| `inputs` | No | Input declarations. Keys are input names (plain `snake_case`, never dotted), values are input slot declarations — a concept reference, or the expanded form `{ concept = "...", hints = { ... } }` (see [Input slot declarations](../spec/mthds-format.md#input-slot-declarations) and [Intent Hints](../spec/intent-hints.md)). |
+| `output` | Yes | The output concept reference. |
+
+**Pipe codes** are the keys in `[pipe.<pipe_code>]` tables. They must be `snake_case`, matching `[a-z][a-z0-9_]*`.
+
+**Concept references in inputs and output** support multiplicity suffixes, and pipe contracts also support presence markers (`?` / `!`):
+
+| Syntax | Meaning |
+|--------|---------|
+| `ConceptName` | A single instance. |
+| `ConceptName[]` | A variable-length list. |
+| `ConceptName[N]` | A fixed-length list of exactly N items (N ≥ 2). |
+| `ConceptName[1]` | A single instance — the same as `ConceptName`, with the count written out. Not a one-item list. |
+| `ConceptName?` | Optional single value; the slot may resolve as absent. |
+| `ConceptName!` | Forced single input; absence fails the run. Inputs only. |
+
+See [Multiplicity](multiplicity.md) for list forms and [Optionality](optionality.md) for presence markers.
+
+## PipeLLM
+
+Generates output by invoking a large language model with a prompt.
+
+```toml
+[pipe.analyze_cv]
+type = "PipeLLM"
+description = "Analyze a CV to extract key professional information"
+output = "CVAnalysis"
+model = "$writing-factual"
+system_prompt = """
+You are an expert HR analyst specializing in CV evaluation.
+"""
+prompt = """
+Analyze the following CV and extract the candidate's key professional information.
+
+@cv_pages
+"""
+
+[pipe.analyze_cv.inputs]
+cv_pages = "Page"
+```
+
+**What this does:** Takes a `Page` input, sends it to an LLM with the given prompt and system prompt, and produces a `CVAnalysis` output.
+
+**Key fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `prompt` | No | The LLM prompt template. Supports Jinja2 syntax and `@variable` / `$variable` shorthand. |
+| `system_prompt` | No | System prompt for the LLM. Falls back to the bundle-level `system_prompt` if omitted. |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
+| `model_to_structure` | No | Model used for structuring the LLM output into the declared concept. Accepts the same forms as `model`. |
+| `structuring_method` | No | How the output is structured: `"direct"` or `"preliminary_text"`. |
+
+**Prompt template syntax:**
+
+All three syntaxes below compile to the same Jinja2 template under the hood. The shorthands exist to improve readability:
+
+- `{{ variable_name }}` — standard Jinja2 variable substitution.
+- `@variable_name` — shorthand designed for **block-level insertion** of an input's full content. Use `@` when the variable stands on its own line or represents a large block of text.
+- `$variable_name` — shorthand designed for **inline substitution** within a sentence. Use `$` when the variable is embedded in surrounding text.
+- `@?variable_name` — shorthand for **conditional insertion**. Renders the variable only if it is truthy (non-empty, non-null). Use `@?` for optional inputs that may or may not be provided.
+
+For example:
+
+```toml
+prompt = """
+Summarize the following article about $topic:
+
+@article_text
+
+@?additional_context
+
+Keep the summary under 3 sentences.
+"""
+```
+
+Here, `$topic` is inline (part of the sentence), `@article_text` is block-level (inserted as a standalone block), and `@?additional_context` is conditionally inserted — it only appears if the variable has a value. All three conventions aid readability — they are not enforced by the runtime.
+
+Dotted paths are supported: `{{ doc_request.document_type }}`, `@doc_request.priority`.
+
+For the full reference on shorthand syntax, template categories, and available filters, see [PipeCompose — Template Mode](#template-mode) below.
+
+Every variable referenced in the prompt must correspond to a declared input, and every declared input must be referenced in the prompt or system prompt. Unused inputs are rejected.
+
+### Image Inputs
+
+PipeLLM supports vision language models that process both text and images. Declare image inputs in the `inputs` field — they are passed to the model alongside the text prompt. An image reached through a field of a structured input is passed the same way, as the example on reading an image field below shows.
+
+```toml
+[pipe.describe_image]
+type        = "PipeLLM"
+description = "Describe an image"
+inputs      = { image = "Image" }
+output      = "VisualDescription"
+prompt      = "Describe the provided image in great detail: $image"
+```
+
+Image variables must be tagged with `@` or `$` in the prompt, just like text variables.
+
+**Reading an image field of a structured input:** When the image is a field of a structured concept, declare the input with its whole concept and reach the image through it with a dotted path in the prompt:
+
+```toml
+[pipe.analyze_page_view]
+type        = "PipeLLM"
+description = "Analyze the visual layout of a page"
+inputs      = { page_content = "Page" }
+output      = "LayoutAnalysis"
+prompt      = """
+Analyze the visual layout and design elements of this page, focusing on typography, spacing, and overall composition.
+
+@page_content.page_view
+"""
+```
+
+The input is named `page_content` and typed `Page`; the dotted path `page_content.page_view` appears only in the prompt, where it reads the `page_view` field of that page. An input name is always a plain name, never a dotted one (see [Input names](../spec/mthds-format.md#input-names)). When a pipe should receive only the field, the calling PipeSequence hands it over under a plain name with a [binding step](pipes-controllers.md#binding-steps), and the pipe declares that name with the field's concept, here `page_view = "Image"`.
+
+**Multiple images:** List each image as a separate input:
+
+```toml
+[pipe.compare_images]
+type        = "PipeLLM"
+description = "Compare two images"
+inputs      = { first_image = "Image", second_image = "Image" }
+output      = "ImageComparison"
+prompt      = "Compare these two images and describe their similarities and differences: $first_image and $second_image"
+```
+
+### Document Inputs
+
+PipeLLM supports documents (PDFs, etc.) as inputs. Documents are passed to the model alongside the text prompt.
+
+```toml
+[pipe.summarize_document]
+type        = "PipeLLM"
+description = "Summarize a document"
+inputs      = { document = "Document" }
+output      = "DocumentSummary"
+prompt      = "Summarize the key points from this document: @document"
+```
+
+Document variables must be tagged with `@` or `$`, just like text and image variables.
+
+**Multiple documents:**
+
+```toml
+[pipe.compare_documents]
+type        = "PipeLLM"
+description = "Compare two documents"
+inputs      = { first_doc = "Document", second_doc = "Document" }
+output      = "DocumentComparison"
+prompt      = "Compare these two documents and describe their similarities and differences: $first_doc and $second_doc"
+```
+
+Text, image, and document inputs can be freely combined in the same pipe.
+
+### Structuring Method
+
+The `structuring_method` field is a directive that controls how PipeLLM produces structured output (when the output concept has a `structure` table):
+
+- `"direct"` — the model generates JSON conforming to the output schema in a single call. This is the fastest option and works well when the output structure is straightforward (few fields, simple types) and the model reliably produces well-formed JSON.
+- `"preliminary_text"` — the runtime first produces free-form text from the prompt, then structures that text into the target concept as a second step. Use this mode when the output structure is complex (many fields, nested concepts, or nuanced extraction) or when the model struggles to produce correct JSON in a single pass.
+
+When `structuring_method` is omitted, the runtime chooses a default. In general, start with the default and switch to `"preliminary_text"` if you observe structuring errors or degraded output quality on complex schemas.
+
+The standard does not prescribe how a runtime achieves `"preliminary_text"`. The reference runtime expands the pipe at load time into a [`PipeSequence`](pipes-controllers.md#pipesequence) of `PipeLLM` (producing `Text`) followed by [`PipeStructure`](#pipestructure) (producing the declared output). Authors who want explicit control over each step — for example, to pick a different model for the structuring call or to reuse the structuring step across several upstream text sources — can author the two pipes by hand instead of using the `structuring_method` shorthand.
+
+**More PipeLLM examples:**
+
+Image input with structured output:
+
+```toml
+[concept.TableRow]
+description = "A single row of data from a table"
+
+[concept.TableRow.structure]
+cells = { type = "list", item_type = "text", description = "Cell values in order" }
+
+[concept.TableData]
+description = "Structured data extracted from a table image"
+
+[concept.TableData.structure]
+headers = { type = "list", item_type = "text", description = "Column headers" }
+rows    = { type = "list", item_type = "concept", item_concept_ref = "TableRow", description = "Table rows" }
+
+[pipe.extract_table_from_image]
+type        = "PipeLLM"
+description = "Extract table data from an image"
+inputs      = { image = "Image" }
+output      = "TableData"
+prompt      = "Extract the table data from this image and return the headers and rows: $image"
+```
+
+Combining text and document inputs:
+
+```toml
+[pipe.analyze_with_context]
+type        = "PipeLLM"
+description = "Analyze a document with additional context"
+inputs      = { context = "Text", reference_doc = "Document" }
+output      = "ContextualAnalysis"
+prompt      = """
+Given this context: $context
+
+Analyze the document and explain how it relates to the context: $reference_doc
+"""
+```
+
+## PipeStructure
+
+Turns text into a structured concept — typically by invoking an LLM that fills the declared output schema, though the standard does not prescribe a specific mechanism. It can also [read the rows of a spreadsheet](#reading-a-spreadsheet) into a list of structured concepts, without a model.
+
+```toml
+[concept.RestaurantReview]
+description = "A structured restaurant review extracted from prose"
+
+[concept.RestaurantReview.structure]
+restaurant_name = { type = "text", description = "Name of the restaurant" }
+overall_rating  = { type = "integer", description = "Overall rating from 1 to 5" }
+highlights      = { type = "list", item_type = "text", description = "Standout positives" }
+complaints      = { type = "list", item_type = "text", description = "Issues mentioned" }
+
+[pipe.structure_review]
+type        = "PipeStructure"
+description = "Turn a free-form review into a RestaurantReview"
+inputs      = { review_text = "Text" }
+output      = "RestaurantReview"
+```
+
+**What this does:** Takes a single `Text` input and produces a typed object (or list of objects) matching the output concept. The reference runtime implements this with an LLM call that fills the schema.
+
+Reach for `PipeStructure` whenever the text comes from somewhere other than a fresh `PipeLLM` call — text that came from a `PipeExtract` over a PDF, from a `PipeSearch` result, from a user message, or from an upstream `PipeLLM` step that intentionally produced free-form prose.
+
+**Key fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `inputs` | Yes | Exactly one input. Its concept must be `Text` or a concept that refines `Text`, or, to read a spreadsheet, `Document` or a concept that refines `Document`. |
+| `output` | Yes | The target structured concept, with optional multiplicity (`Foo`, `Foo[]`, `Foo[N]`). Cannot be `Text` or a concept that refines `Text`. Reading a spreadsheet, it must be a list (`Foo[]`). |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline LLM settings table (see [Inline LLM Settings](../spec/mthds-format.md#inline-llm-settings)). Not allowed when reading a spreadsheet, which calls no model. |
+| `table` | No | Reading a workbook, the name of the Excel Table, or of the named range, to read. Optional when the workbook holds exactly one Table. |
+| `sheet_range` | No | Reading a workbook, a range on one worksheet, found from its cells, or the sheet's only Excel Table when it holds one, as `{ sheet = "Expenses", header_row = 3 }`, both keys optional. Not allowed together with `table`. |
+| `row_field` | No | Reading a spreadsheet, the field of the output concept that receives each row's position, counted from one. |
+
+`PipeStructure` does not accept a user-controlled prompt template — the runtime owns whatever prompting (or other mechanism) it uses to produce the structured output. Use a `PipeLLM` instead when prose generation needs prompt control.
+
+!!! note "No images, and no documents other than spreadsheets"
+    `PipeStructure` is intentionally narrow: it takes one `Text` input, or one `Document` holding a spreadsheet. To structure an image or a PDF page, run an upstream extraction step (e.g. `PipeExtract` or a vision `PipeLLM`) and feed its text output into `PipeStructure`.
+
+### Output Multiplicity
+
+Use bracket notation in `output` to control how many items the runtime produces:
+
+- `output = "Review"` — exactly one item.
+- `output = "Review[]"` — variable-length list (the model decides).
+- `output = "Review[3]"` — exactly three items.
+
+See [Multiplicity](multiplicity.md) for the full picture.
+
+### Examples
+
+**Structure a list of objects from a transcript:**
+
+```toml
+[pipe.structure_review_batch]
+type        = "PipeStructure"
+description = "Extract one or more reviews from a transcript"
+inputs      = { transcript = "Text" }
+output      = "RestaurantReview[]"
+```
+
+**After a document extraction step:**
+
+```toml
+[pipe.invoice_to_record]
+type        = "PipeSequence"
+description = "Read an invoice PDF and turn it into an InvoiceRecord"
+inputs      = { invoice_pdf = "Document" }
+output      = "InvoiceRecord"
+steps = [
+  { pipe = "extract_invoice_text", result = "invoice_text" },
+  { pipe = "structure_invoice",    result = "invoice_record" },
+]
+
+[pipe.extract_invoice_text]
+type        = "PipeLLM"
+description = "Read the invoice PDF and produce a faithful textual transcript"
+inputs      = { invoice_pdf = "Document" }
+output      = "Text"
+prompt      = "Read this invoice and produce a faithful textual transcript of every line item, total, and metadata: @invoice_pdf"
+
+[pipe.structure_invoice]
+type        = "PipeStructure"
+description = "Turn the invoice transcript into an InvoiceRecord"
+inputs      = { invoice_text = "Text" }
+output      = "InvoiceRecord"
+```
+
+**Pick a different model for the structuring step:**
+
+```toml
+[pipe.structure_review_premium]
+type        = "PipeStructure"
+description = "Use a stronger model for tricky structurings"
+inputs      = { review_text = "Text" }
+output      = "RestaurantReview"
+model       = "@default-premium"
+```
+
+### Reading a Spreadsheet
+
+```toml
+[concept.ExpenseRow]
+description = "One line of an expense report"
+
+[concept.ExpenseRow.structure]
+row      = { type = "integer", description = "The line's position in the Expenses table" }
+date     = { type = "date", description = "When the expense was made", required = true }
+merchant = { type = "text", description = "Who was paid" }
+amount   = { type = "number", description = "Amount paid, in euros", required = true }
+category = { description = "Expense category", choices = ["travel", "meals", "supplies"] }
+
+[pipe.read_expenses]
+type        = "PipeStructure"
+description = "Read the lines of the expense report"
+inputs      = { workbook = "Document" }
+output      = "ExpenseRow[]"
+table       = "Expenses"
+row_field   = "row"
+```
+
+**What this does:** Reads the Excel Table named `Expenses` in the workbook into a list of `ExpenseRow`, one item per row, without calling a model. Each item's `row` field receives the row's position in the Table, `1` for the first row under the header, so a later step can tell which row an item came from.
+
+When the single input is a `Document` or a concept that refines it, `PipeStructure` reads a spreadsheet instead of structuring a text. The document holds an Excel workbook (`.xlsx`) or a CSV file:
+
+- **The table.** In a workbook, the rows come from an Excel Table, a named range or a range on a sheet. `table` names an Excel Table or, when the workbook holds no Table of that name, a named range: a name the workbook defines for a rectangular range of cells, whose first row is the header. With neither `table` nor `sheet_range`, the step reads the workbook's only Table; several Tables, or no Table at all, fail the step. A CSV file is a single table, its first line being the header, so neither `table` nor `sheet_range` is allowed with one.
+- **A range on a sheet.** `sheet_range` reads a range on one worksheet, usually rows that no Table or name declares, as shown [below](#reading-a-range-on-a-sheet).
+- **Columns and fields.** A header spelling a field's name exactly matches that field alone. Any other header matches the fields it equals when compared ignoring case, spaces, dots and underscores, so the header `Unit price` fills the field `unit_price`. A column whose header matches no field is ignored, so the table may hold columns the concept does not declare. The step fails when a header matches several fields, as `Unit Price` would when the concept declares both `unit_price` and `unitprice`, when several headers match one field, when a header matches the field `row_field` names, or when a `required` field other than the `row_field` field is matched by no header. Any other field that no header matches takes its `default_value`, or is left without a value.
+- **Values.** Cells are read typed, a number as a number and a date as a date, and converted to the field's type. A text cell, which every CSV cell is, converts only from plain forms: an integer such as `-12`, a number with `.` as its decimal separator and no grouping such as `1234.5`, a boolean word such as `true`, `yes` or `1`, an ISO 8601 date or datetime such as `2026-03-04`, or exactly one of a field's `choices`. A locale form such as `1,5` or `03/04/2026` fails the step, naming the column and the row. An empty cell is no value: the field takes its `default_value` if it has one, and is null otherwise, so an empty cell under a `required` field fails the step. A cell holding a formula is read as the value the workbook last calculated for it.
+- **The output.** It must be a list (`Foo[]`) of a concept with a structure, never `Dynamic`, `Anything`, `Composite` or a concept declared without `structure`, whose fields are all simple values: `text`, `integer`, `number`, `boolean`, `date`, `datetime`, or a field with `choices`. `model` is not allowed, since no model is called.
+
+See [Reading a Spreadsheet](../spec/mthds-format.md#reading-a-spreadsheet) in the specification for the complete rules.
+
+### Reading a Range on a Sheet
+
+```toml
+[pipe.read_expense_sheet]
+type        = "PipeStructure"
+description = "Read the lines of the expense sheet"
+inputs      = { workbook = "Document" }
+output      = "ExpenseRow[]"
+sheet_range = { sheet = "Expenses", header_row = 3 }
+row_field   = "row"
+```
+
+**What this does:** Reads the rows under the header in row 3 of the sheet `Expenses` into a list of `ExpenseRow`, for a workbook that keeps its expenses as a plain range rather than an Excel Table. Each item's `row` field receives the row's position among the data rows, `1` for the row under the header.
+
+Both keys of `sheet_range` are optional. Without `sheet`, the workbook must hold a single worksheet; without `header_row`, the header is the sheet's first row holding a value. `sheet_range = {}` therefore reads the only sheet of a workbook and finds its header. When the sheet holds exactly one Excel Table, the step reads that Table instead, and `header_row`, if given, must be the Table's header row.
+
+A plain range declares nowhere where it ends, so the runtime finds it by strict rules and fails the step, naming the sheet and the cell, whenever the rules cannot settle it:
+
+- **The header row** must hold its column headers side by side, none of them a merged cell or a formula the workbook stores no value of, and no second block of headers further along the row. A header formula storing an empty text still counts as a header, an empty one that matches no field, so its column is ignored.
+- **The data rows** run down to the first row holding no data, or to the totals line when one ends them first, and no data may follow in the columns below the range: a further row of data, or a note under the data or under its total, fails the step, even past a blank row, while a value outside the columns is left alone. A formula holds data when the value the workbook stored for it is not empty, so a sheet of formulas such as `=Source!A2` is read, while a formula storing an empty text, or storing no value at all, holds none. A cell merged down from a data row, such as a category spanning two rows, keeps the rows going and reads as the merge's first cell.
+- **No column without a header.** A value in the column just left or just right of the headers, beside the header, the data rows, the totals line or its footer rows, fails the step, and so does a merged cell crossing the edge of the columns. Values further away, past an empty column, are another part of the sheet and are left alone.
+- **A totals line** is a row holding a lone aggregate of its column's data rows, at least two of them, such as `=SUM(C4:C9)` in `C10`, or `AVERAGE`, `MIN`, `MAX`, `COUNT`, `COUNTA`, `PRODUCT`, `SUBTOTAL` or `AGGREGATE` over the same range. A formula doing more, such as `=SUM(C4:C9)*1`, `SUMIF` or a row number `=MAX($A$4:A9)+1`, is no total, and nor is a cumulative column such as `=SUM($D$4:D4)` filled down from `D5`, under a header on row 3. The first such row ends the data, so a subtotal in the middle of the data ends it there; a total may also stand right after the pre-filled rows that follow the data. It is not read and is not counted in the row position.
+- **Footer rows** directly after the totals line build on it, such as a VAT line `=C10*0.2` and a grand total `=C10+C11`, each holding a label beside its formulas and no other typed value but texts: a row holding a typed number, date or boolean, or holding no label, is data, and fails the step below the totals line. Like the totals line, footer rows are not read and are not counted.
+- **Pre-filled rows**, which hold formulas and no data, such as a template's `=IF(A10="","",B10*C10)` filled down to row 500 and storing an empty text, are neither read nor refused, so a template prepared for rows to come reads as the rows it holds, its total under them included. Pre-filled rows whose formulas store no value at all, in a workbook saved without its calculated values, are not read either, and a runtime should warn that it skipped them.
+- **The sheet's filter**, when it has one, must start on the header row and cover the same columns.
+
+Rows above the header row, such as a title, are not read, and hidden rows and columns are read like any other. When the rules refuse a sheet, fixing the cell they name, or turning the range into an Excel Table, makes it readable. See [Finding a Sheet Range](../spec/mthds-format.md#finding-a-sheet-range) in the specification for the complete rules.
+
+## PipeFunc
+
+Calls a Python function that lives in the method's own folder.
+
+```
+text_tools/
+├── METHODS.toml
+├── text.mthds
+└── funcs/
+    └── text_utils.py     (defines capitalize)
+```
+
+```toml
+[pipe.capitalize_text]
+type          = "PipeFunc"
+description   = "Capitalize the input text"
+inputs        = { text = "Text" }
+output        = "Text"
+function_name = "funcs.text_utils.capitalize"
+```
+
+**What this does:** Passes the `Text` input to the function `capitalize` of the module `funcs/text_utils.py` and returns the result as `Text`.
+
+**Key fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `function_name` | Yes | The import path of the Python function to call, from the root of the method's folder: the module path, a dot, and the function's name. |
+
+PipeFunc bridges MTHDS with custom code, and that code is ordinary Python kept beside the bundle. `function_name` is read the way Python reads an import: the method's root folder is the import root, so `funcs.text_utils.capitalize` names the function `capitalize` of `funcs/text_utils.py`, and that module can import its own helpers from the same folder. A name with no dot names no module and is rejected. The name is read in NFC, so an accented name finds its module however an editor encoded the accent, and a segment that Python would read as another name, such as one holding the ligature `ﬁ` or a fullwidth letter, is rejected (see [PipeFunc](../spec/mthds-format.md#operator-pipefunc)). The Python travels with the method as part of its [method tree](../spec/method-tree.md), and the third-party packages it imports are declared in a [`requirements.txt`](../spec/method-tree.md#python-dependencies-requirementstxt) at the root. What the function must look like, and how it is called, is the runtime's to define.
+
+## PipeImgGen
+
+Generates images using an image generation model.
+
+```toml
+[pipe.generate_portrait]
+type        = "PipeImgGen"
+description = "Generate a portrait image from a description"
+inputs      = { description = "Text" }
+output      = "Image"
+prompt      = "A professional portrait: $description"
+model       = "$gen-image-testing"
+```
+
+**What this does:** Renders the `prompt` template — interpolating the `Text` input `description` — sends the result to an image generation model, and produces an `Image` output.
+
+PipeImgGen does not consume a dedicated "prompt" concept. The prompt is a string template declared directly on the pipe, and the pipe's declared `inputs` are injected into that template at runtime, each variable according to the concept its path reaches:
+
+- **A variable that reaches text** is interpolated into the prompt text via `$variable` shorthand or Jinja2, whether it reads a `Text` input such as `$description` or a text field reached through a structured input.
+- **A variable that reaches an `Image`** (a single image or a list) is injected as a **reference image**, whether it reads an `Image` input such as `$source` on `source = "Image"` or an image field reached through a structured input such as `$page.page_view` on `page = "Page"`. Each referenced image is replaced by an `[Image N]` token in the rendered text and passed to the generator alongside it. This is the same vision pattern `PipeLLM` uses for the images it reads (see [Image Inputs](#image-inputs)), and it enables image-to-image, reference-image, and image-editing generation, bounded by the model's image limit.
+
+Every variable referenced in the `prompt` or `negative_prompt` must correspond to a declared input, and every declared input must be referenced in one of them. Unused inputs are rejected: an `Image` input that the prompt never references would never reach the generator.
+
+**Key fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `prompt` | Yes | The image generation prompt template. Supports Jinja2 and `$variable` shorthand; declared inputs are injected into it. |
+| `negative_prompt` | No | An optional prompt template describing what to avoid in the generated image. |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
+| `aspect_ratio` | No | Desired aspect ratio. Values: `square`, `landscape_4_3`, `landscape_3_2`, `landscape_16_9`, `landscape_21_9`, `portrait_3_4`, `portrait_2_3`, `portrait_9_16`, `portrait_9_21`. |
+| `is_raw` | No | Whether to use raw mode (less post-processing). |
+| `seed` | No | Random seed for reproducibility. Integer value, or `"auto"` to let the model randomize it. |
+| `background` | No | Background setting. Values: `transparent`, `opaque`, `auto`. |
+| `output_format` | No | Image output format. Values: `png`, `jpeg`, `webp`. |
+
+**Reference images (image-to-image):** declare `Image` inputs and reference them in the prompt to condition generation on existing images. A single reference image:
+
+```toml
+[pipe.restyle_photo]
+type        = "PipeImgGen"
+description = "Restyle a photo following a textual instruction"
+inputs      = { source = "Image", instruction = "Text" }
+output      = "Image"
+prompt      = "Restyle this image: $source. $instruction"
+```
+
+A list of reference images, referenced as a group:
+
+```toml
+[pipe.blend_references]
+type        = "PipeImgGen"
+description = "Blend multiple reference images into one composition"
+inputs      = { refs = "Image[]" }
+output      = "Image"
+prompt      = "Combine these references into a single coherent scene: $refs"
+```
+
+Each referenced image becomes an `[Image N]` token in the rendered prompt and is passed to the generator as a reference image, up to the model's image limit.
+
+## PipeExtract
+
+Extracts structured content from documents (e.g., PDF, web pages).
+
+```toml
+[pipe.extract_cv]
+type        = "PipeExtract"
+description = "Extract text content from a CV PDF document"
+inputs      = { cv_pdf = "Document" }
+output      = "Page[]"
+model       = "@default-text-from-pdf"
+```
+
+**Web page extraction:**
+
+```toml
+[pipe.extract_web_article]
+type        = "PipeExtract"
+description = "Extract content from a web page"
+inputs      = { article_url = "Document" }
+output      = "Page[]"
+model       = "@default-extract-web-page"
+```
+
+**What this does:** Takes a `Document` input (a file path, storage URL, or web page URL) and extracts its content as a variable-length list of `Page` objects.
+
+**Key fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
+| `max_page_images` | No | Maximum number of page images to process. |
+| `page_image_captions` | No | Whether to generate captions for page images. |
+| `page_views` | No | Whether to generate page views. |
+| `page_views_dpi` | No | DPI for page view rendering. |
+| `render_js` | No | For web-page extraction: render JavaScript before fetching the page content (when the backend supports it). Default: `false`. |
+| `include_raw_html` | No | For web-page extraction: include the page's raw HTML in each extracted `Page`'s `raw_html` field. Default: `false`. |
+
+**Constraints:** PipeExtract requires exactly one input (typically `Document` or a concept refining it) and the output must be `"Page[]"`. The input document URL can be a web page URL for web content extraction. `render_js` and `include_raw_html` apply only to web-page extraction; backends extracting from local documents may ignore them.
+
+## PipeSearch
+
+Searches the web using a search provider and returns structured results with an answer and source citations.
+
+```toml
+[pipe.search_topic]
+type        = "PipeSearch"
+description = "Search the web for information about a topic"
+inputs      = { topic = "Text" }
+output      = "SearchResult"
+model       = "$standard"
+prompt      = "What's the latest news on $topic?"
+```
+
+**What this does:** Takes a `Text` input, sends a search query to a web search provider, and produces a `SearchResult` output containing a synthesized answer and a list of sources.
+
+**Key fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `prompt` | Yes | The search query template. Supports Jinja2 syntax and `$variable` shorthand. |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
+| `from_date` | No | Start date filter in ISO 8601 format (YYYY-MM-DD). Only return results from this date onwards. |
+| `to_date` | No | End date filter in ISO 8601 format (YYYY-MM-DD). Only return results up to this date. |
+| `include_domains` | No | Restrict search to these domains only (e.g., `["reuters.com", "bbc.com"]`). |
+| `exclude_domains` | No | Exclude results from these domains. |
+
+Every variable referenced in the prompt must correspond to a declared input, and every declared input must be referenced in the prompt. Unused inputs are rejected.
+
+**Constraints:** The output must be `SearchResult` or a concept that refines `SearchResult`.
+
+## PipeJudge
+
+Asks a judging model a closed question about the evidence its prompt presents, and returns the verdict together with how sure the model is.
+
+```toml
+[pipe.judge_is_urgent]
+type        = "PipeJudge"
+description = "Decide whether a customer message is urgent"
+inputs      = { message = "Text" }
+output      = "YesNo"
+prompt      = """
+A message from a customer:
+@message
+"""
+question    = "Is the message urgent?"
+```
+
+**What this does:** Renders the prompt with the message as the evidence, asks the judging model the question about it, and produces a `YesNo` whose `yes_no` is the verdict and whose `probability` is the model's probability that the answer is yes, when the model reports one.
+
+**The prompt is the evidence, the question is what is asked.** The judging model judges the rendered prompt and nothing else, so an input reaches it only when `prompt` or the question reads it, and every declared input must be read by one of them, as on PipeLLM. Write the evidence in `prompt` with the usual shorthand: `@message` inserts a tagged block, `$photo` places an image, and `@?note` inserts an optional input only when it is present. An image or document the prompt reads is presented to the model with the text, at the place the prompt reads it. Keep the question itself short and plain: it presents no file, and an input it reads is better kept to a short parameter, such as `"Is the message about $topic?"`.
+
+A question takes one of three kinds, decided by which fields the question declares, and the kind decides its verdict:
+
+- **Yes/no** — no `options` and no `levels`. The verdict is a `YesNo`.
+- **Choice** — `options` declares the set to pick from. The verdict is a `Choice`, whose `choice` is one of the option keys.
+- **Rating** — `levels` declares a scale, from lowest to highest. The verdict is a `Rating`, whose `level` is the index of the selected level, counted from 0.
+
+With `question`, the fields sit on the pipe and the verdict is the pipe's output.
+
+```toml
+[pipe.route_ticket]
+type        = "PipeJudge"
+description = "Pick the team that should handle a ticket"
+inputs      = { ticket = "Ticket" }
+output      = "Choice"
+prompt      = "@ticket"
+question    = "Which team should handle the ticket?"
+
+[pipe.route_ticket.options]
+returns  = "Exchanges, refunds, wrong or damaged items"
+shipping = "Delivery status, delays, lost packages"
+billing  = "Charges, invoices, payment problems"
+other    = "None of the above"
+
+[pipe.rate_severity]
+type        = "PipeJudge"
+description = "Rate how severe a reported issue is"
+inputs      = { report = "BugReport" }
+output      = "Rating"
+prompt      = "@report"
+question    = "How severe is the reported issue?"
+levels      = [
+  { label = "Cosmetic", description = "Appearance only; no lost functionality" },
+  { label = "Workaround available", description = "A task fails, but another way works" },
+  { label = "Fully blocked", description = "A task fails with no workaround" },
+]
+```
+
+**Labelled levels.** A level is either a plain description, such as `"Worn"`, or a table with a short `label` and a `description` of the situation it stands for. When the levels carry labels, the `Rating` carries the label of the selected level beside its index, and it renders as that label: `$severity` in a later prompt reads `Workaround available` rather than `1`. Label every level of a scale or none of them, and give each a different label.
+
+**Key fields:**
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `prompt` | Yes | The evidence template: what the model judges. Supports Jinja2 syntax and `@variable` / `$variable` shorthand, images and documents included. |
+| `question` | Yes, unless `questions` is set | The question template. Supports Jinja2 syntax and `$variable` shorthand. |
+| `questions` | Yes, unless `question` is set | Several questions over the same evidence (see [Several questions](#several-questions)). |
+| `model` | No | Model identifier, model reference (see [Model References](model-references.md)), or an inline settings table (see [Inline Settings](model-references.md#inline-settings)). |
+| `options` | No | A choice question's options: each key is an option, each value describes it (an empty string for none). At least two. |
+| `levels` | No | A rating question's levels, from lowest to highest, each a description or a `{ label, description }` table. At least two. |
+| `criteria` | No | A yes/no question's meaning of a yes and of a no, as a `yes` and a `no` description, always both. |
+| `threshold` | No | A yes/no question's probability of yes at or above which the verdict is yes. Strictly between 0 and 1; `0.5` when absent. |
+
+**Criteria describe both answers.** When the meaning of a yes needs pinning down, say what a yes means and what a no means, together. If you only know when the answer is no, write the yes side as its complement:
+
+```toml
+[pipe.judge_is_urgent.criteria]
+yes = "The customer needs an answer today, or something stops working without one"
+no  = "The message can wait for the normal queue"
+```
+
+**Writing a good judgment.** Ask narrow questions. Describe each option and each level as a concrete situation rather than a degree ("a workaround exists", not "medium"), and give a choice a catch-all option when nothing may fit. Keep the evidence to what the question needs: a large evidence that is mostly irrelevant makes the answers worse. Leave counting, arithmetic and date comparisons to code: a judging model reads the evidence, it does not compute over it.
+
+**When the model refuses.** A judging model may refuse to answer a question, and a refusal is never turned into a verdict: with `question`, a refusal fails the run. With `questions`, the output field decides, as described under [Several questions](#several-questions).
+
+**Routing on a verdict.** A `Choice` drives a [PipeCondition](pipes-controllers.md#pipecondition) directly, one outcome per option key, and the uncertainty is reached by name once the expression has checked it is there, since a model that measures none leaves it out:
+
+```toml
+[pipe.dispatch_ticket]
+type                = "PipeCondition"
+description         = "Send the ticket to its team, or to a person when the model is unsure"
+inputs              = { team = "Choice" }
+output              = "Text"
+expression_template = "{{ team.choice if team.confidence is defined and team.confidence is not none and team.confidence >= 0.8 else 'review' }}"
+default_outcome     = "fail"
+
+[pipe.dispatch_ticket.outcomes]
+returns  = "handle_returns"
+shipping = "handle_shipping"
+billing  = "handle_billing"
+other    = "handle_other"
+review   = "queue_for_review"
+```
+
+**Constraints:**
+
+- `options` and `levels` cannot both be set, and `criteria` and `threshold` apply to a yes/no question only.
+- The output of a single question must be `YesNo`, `Choice` or `Rating` according to the kind, or a concept that refines it, such as a `Department` concept refining `Choice`.
+- The output is never a list. To judge each item of a list, map the PipeJudge over it with a [PipeBatch](pipes-controllers.md#pipebatch).
+- A question cannot read an image or a document: only `prompt` presents files.
+- A model that reports no uncertainty leaves the uncertainty fields out, and a threshold then has nothing to apply to: the model's own yes or no stands.
+
+### Several questions
+
+One PipeJudge can ask several questions about the same evidence. Set `questions` instead of `question`: each key names a question and the output field that holds its verdict, and each question carries its own `options`, `levels`, `criteria` or `threshold`. The output is a concept with one field per question, each holding the verdict native of its question's kind:
+
+```toml
+[concept.ProductInspection]
+description = "What an inspection of a product photo found"
+
+[concept.ProductInspection.structure]
+damaged   = { type = "concept", concept_ref = "YesNo", description = "Whether the product is visibly damaged", required = true }
+category  = { type = "concept", concept_ref = "Choice", description = "The product's category", required = true }
+condition = { type = "concept", concept_ref = "Rating", description = "The product's overall condition" }
+
+[pipe.inspect_product]
+type        = "PipeJudge"
+description = "Inspect a product photo"
+inputs      = { photo = "Image" }
+output      = "ProductInspection"
+prompt      = "A product photo: $photo"
+
+[pipe.inspect_product.questions.damaged]
+question  = "Does the product have visible damage, such as a crack, tear, or dent?"
+threshold = 0.7
+
+[pipe.inspect_product.questions.category]
+question = "Which category does the product belong to?"
+options  = { footwear = "Shoes, boots and sandals", bags = "Handbags, backpacks and luggage", other = "Anything else" }
+
+[pipe.inspect_product.questions.condition]
+question = "What condition is the product in?"
+levels   = ["Damaged beyond use", "Worn", "Like new"]
+```
+
+Each question is answered on its own over the same evidence, and none sees another's answer. When a question depends on another's answer, ask it in a later pipe of a [PipeSequence](pipes-controllers.md#pipesequence), which reads the first verdict as an input.
+
+**When the model refuses one of the questions,** its field is left absent when the field is optional, as `condition` is above, and the run fails when the field is `required`.
+
+## PipeCompose
+
+Composes output by assembling data from working memory. PipeCompose has two modes: **template mode** and **construct mode**. Exactly one must be used.
+
+### Template Mode
+
+Uses a Jinja2 template to produce text output:
+
+```toml
+[pipe.format_report]
+type        = "PipeCompose"
+description = "Format analysis results into a report"
+inputs      = { analysis = "CVAnalysis", candidate_name = "Text" }
+output      = "Text"
+template    = """
+# Report for $candidate_name
+
+@analysis.summary
+
+Skills: $analysis.skills
+"""
+```
+
+The `template` field can be a plain string (as above) or a table with additional options:
+
+```toml
+[pipe.format_report.template]
+template = """
+# Report for $candidate_name
+
+@analysis.summary
+"""
+category = "markdown"
+
+[pipe.format_report.template.templating_style]
+tag_style   = "xml"
+text_format = "markdown"
+```
+
+#### Template Shorthand Syntax
+
+MTHDS templates support three shorthand patterns that are preprocessed into Jinja2 before rendering. Raw Jinja2 (`{{ }}`, `{% %}`) is always available alongside the shorthands.
+
+| Shorthand | Jinja2 Expansion | Purpose |
+|-----------|-----------------|---------|
+| `$variable` | `{{ variable|format() }}` | **Inline substitution** — embed a value within a sentence. |
+| `@variable` | `{{ variable|tag("variable") }}` | **Block insertion** — insert content as a standalone, tagged block. |
+| `@?variable` | `{% if variable %}{{ variable|tag("variable") }}{% endif %}` | **Conditional insertion** — render only if the variable is truthy. |
+
+**Notes:**
+
+- **Dotted paths** are supported with all three patterns: `$user.name`, `@doc.summary`, `@?extra.notes`.
+- **Trailing dots** are treated as punctuation, not part of the path: `$amount.` expands to `{{ amount|format() }}.`
+- **Dollar amounts** like `$100` or `$1,000` are **not** matched — the character after `$` must be a letter or underscore.
+- **Raw Jinja2** is always available: `{{ variable_name }}`, `{% for item in items %}`, etc.
+
+**Example combining all three patterns:**
+
+```toml
+[pipe.compose_prompt]
+type        = "PipeCompose"
+description = "Build an LLM prompt from structured inputs"
+inputs      = { topic = "Text", context = "Text", guidelines = "Text" }
+output      = "Text"
+template    = """
+Write an article about $topic.
+
+@context
+
+@?guidelines
+"""
+```
+
+Here, `$topic` is inlined into the sentence, `@context` is inserted as a tagged block, and `@?guidelines` appears only if the variable has a value.
+
+#### Template Categories
+
+The `category` field determines which Jinja2 filters are registered and how the template environment is configured.
+
+| Category | Use When | Autoescape | Trim Blocks | Available Filters |
+|----------|----------|:----------:|:-----------:|-------------------|
+| `basic` | General-purpose text composition | No | No | `format`, `tag` |
+| `expression` | Simple expression evaluation | No | No | *(none)* |
+| `html` | Generating HTML content | Yes | Yes | `format`, `tag`, `escape_script_tag` |
+| `markdown` | Generating Markdown content | No | Yes | `format`, `tag`, `escape_script_tag` |
+| `mermaid` | Generating Mermaid diagrams | No | No | *(none)* |
+| `llm_prompt` | Composing prompts for LLMs | No | No | `format`, `tag`, `with_images` |
+| `img_gen_prompt` | Composing prompts for image generation | No | No | `format`, `tag`, `with_images` |
+
+**Guidance:** Use `basic` for most templates. Use `html` when generating web content (autoescape prevents XSS). Use `llm_prompt` when composing prompts that may include image references.
+
+#### Available Filters
+
+Filters transform variable content during rendering. The `$` and `@` shorthands apply `format()` and `tag()` automatically — you only need to call filters explicitly when using raw Jinja2 syntax.
+
+| Filter | Syntax | Description | Categories |
+|--------|--------|-------------|------------|
+| `format` | `{{ var|format(text_format?) }}` | Formats a value as text. Optional `text_format` parameter: `plain`, `markdown`, `html`, `json`. Uses the context default if omitted. Applied automatically by `$`. | basic, html, markdown, llm_prompt, img_gen_prompt |
+| `tag` | `{{ var|tag(tag_name?) }}` | Wraps content in tags based on the template's `tag_style`. The tag name defaults to the variable name. Applied automatically by `@` and `@?`. | basic, html, markdown, llm_prompt, img_gen_prompt |
+| `escape_script_tag` | `{{ var|escape_script_tag() }}` | Escapes `</script>` tags to prevent injection. | html, markdown |
+| `with_images` | `{{ var|with_images() }}` | Extracts nested images from structured content and returns text with `[Image N]` placeholders. | llm_prompt, img_gen_prompt |
+
+#### Template Context
+
+All declared inputs are available as variables in the template. The optional `extra_context` field (table form only) injects additional static variables:
+
+```toml
+[pipe.format_report.template]
+template = """
+Version: $version — Report for $candidate_name
+
+@analysis.summary
+"""
+category = "basic"
+
+[pipe.format_report.template.extra_context]
+version = "2.0"
+```
+
+Every variable referenced in the template must correspond to a declared input or an `extra_context` key, and every declared input must be referenced in the template. Unused inputs are rejected.
+
+**`category` values:** `basic`, `expression`, `html`, `markdown`, `mermaid`, `llm_prompt`, `img_gen_prompt`.
+
+The optional `templating_style` table controls output formatting with `tag_style` (`no_tag`, `ticks`, `xml`, `square_brackets`) and `text_format` (`plain`, `markdown`, `html`, `json`). See the [specification](../spec/mthds-format.md#templating-style) for details.
+
+### Construct Mode
+
+Composes structured output field-by-field from working memory:
+
+```toml
+[pipe.compose_interview_sheet]
+type        = "PipeCompose"
+description = "Compose the final interview sheet"
+inputs      = { match_analysis = "MatchAnalysis", interview_questions = "InterviewQuestion[]" }
+output      = "InterviewSheet"
+
+[pipe.compose_interview_sheet.construct]
+overall_match_score  = { from = "match_analysis.overall_match_score" }
+matching_skills      = { from = "match_analysis.matching_skills" }
+missing_skills       = { from = "match_analysis.missing_skills" }
+questions            = { from = "interview_questions" }
+```
+
+Each field in the `construct` table defines how a field of the output concept is composed:
+
+| Value form | Method | Description |
+|------------|--------|-------------|
+| Literal (`string`, `integer`, `float`, `boolean`, `array`) | Fixed | The field value is the literal. |
+| `{ from = "path" }` | Variable reference | The field value comes from a variable in working memory. |
+| `{ from = "path", list_to_dict_keyed_by = "attr" }` | Variable reference with transform | Converts a list to a dict keyed by the named attribute. |
+| `{ template = "..." }` | Template | The field value is rendered from a Jinja2 template string. |
+| Nested table (no `from` or `template` key) | Nested construct | The field is recursively composed. |
+
+The root of every `from` path and of every variable in a field template must be a declared input, and every declared input must be read by at least one of them, nested constructs included. Unused inputs are rejected.
+
+**Constraint:** PipeCompose output must be a single concept — multiplicity (`[]` or `[N]`) is not allowed.
+
+## See Also
+
+- [Specification: Pipe Definitions](../spec/mthds-format.md#pipe-definitions) — normative reference for all pipe types and validation rules.
+- [Pipes — Controllers](pipes-controllers.md) — orchestrating multiple pipes.

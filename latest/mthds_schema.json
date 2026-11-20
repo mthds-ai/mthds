@@ -287,6 +287,19 @@
         "value_type": {
           "anyOf": [
             {
+              "enum": [
+                "text",
+                "list",
+                "dict",
+                "integer",
+                "boolean",
+                "number",
+                "date",
+                "datetime",
+                "time",
+                "concept",
+                "Any"
+              ],
               "type": "string"
             },
             {
@@ -299,6 +312,19 @@
         "item_type": {
           "anyOf": [
             {
+              "enum": [
+                "text",
+                "list",
+                "dict",
+                "integer",
+                "boolean",
+                "number",
+                "date",
+                "datetime",
+                "time",
+                "concept",
+                "Any"
+              ],
               "type": "string"
             },
             {
@@ -3200,7 +3226,7 @@
     }
   },
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "$comment": "Generated from PipelexBundleBlueprint v0.108.0. Do not edit manually.",
+  "$comment": "Generated from PipelexBundleBlueprint v0.110.0. Do not edit manually.",
   "x-taplo": {
     "initKeys": [
       "domain"
